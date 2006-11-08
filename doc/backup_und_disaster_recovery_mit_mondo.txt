@@ -1,0 +1,277 @@
+Linux Musterlösung 3.0
+----------------------
+
+
+Backup und Disaster Recovery mit mondo (http://www.mondorescue.org)
+
+
+Verwendet werden mondo/mindi Version 2.20 aus debian/testing, zurückportiert
+nach sarge, da diese Version das Wiederherstellen von Logical Volumes
+beherrscht.
+
+
+0. Features
+
+o Vollbackup im Live-Betrieb
+o Backup auf Wechselplatte/NFS-Share
+o Restore von Festplatte, NFS oder CD-/DVD-Medien
+o Wiederherstellung von LVM- und Raidsystemen
+o inkrementelle und differentielle Backups
+o Restore einzelner Dateien und Verzeichnisse im Live-Betrieb
+
+
+1. Sichern
+
+1.1 Konfiguration
+
+Das Sicherungsverhalten kann über die Konfigurationsdatei
+/etc/linuxmuster/backup.conf gesteuert werden.
+
+Die Optionen im Einzelnen:
+
+o backupdevice
+  Festplattenpartition oder NFS-Share, auf das gesichert werden soll.
+  Bsp.:
+  backupdevice=/dev/sdb1
+  backupdevice=10.16.1.10:/home/nfs
+
+o mointpoint
+  Mountpunkt, unter dem das Backupmedium in das Dateisystem eingehängt
+  werden soll.
+  Bsp.:
+  mountpoint=/media/backup
+  (sollte nicht geändert werden)
+
+o restoremethod
+  Mögl. Werte: "hd" oder "nfs", je nachdem, ob von Festplatte oder
+  NFS-Share restauriert werden soll.
+  Bsp.:
+  restoremethod=hd
+
+o ipcop
+  Mögl. Werte: "yes" oder "no", je nachdem, ob die aktuellen Einstellungen
+  des IPCop gesichert werden sollen. Es wird ein Archiv ipcop-backup.tar.gz
+  unter /var/lib/linuxmuster-ipcop erzeugt, das beim ersten Start nach
+  einer Vollrestauration bei der Erstellung des IPCop-UML-Images eingespielt
+  wird.
+  Bsp.:
+  ipcop=yes
+
+o verify
+  Mögl. Werte: "yes" oder "no", je nachdem, ob die gesicherten Daten nach
+  dem Backuplauf auf Konsistenz überprüft werden sollen.
+  Bsp.:
+  verify=yes
+
+o isoprefix
+  Wird für die Benamung der ISO-Images und des Verzeichnisses verwendet,
+  in dem dieselben abgelegt werden.
+  Bsp:
+  isoprefix=server
+
+o mediasize
+  mondo sichert in ISO-Images, die bei Bedarf auf CD/DVD gebrannt werden
+  können. Diese Option legt die Größe der Images in MB fest.
+  Bsp. (DVD):
+  mediasize=4430
+
+o excludedirs
+  Eine Komma separierte Liste der Verzeichnisse, die nicht gesichert werden
+  sollen. Die Standardeinstellung (s. Bsp.) sollte nicht entfernt werden.
+  Bsp.:
+  excludedirs=/var/lib/uml/ipcop,/var/tmp
+
+o includedirs
+  Eine Komma separierte Liste der Verzeichnisse, die gesichert werden sollen.
+  Wird nichts angegeben (Standard), wird das gesamte Dateisystem gesichert.
+  Bsp.:
+  includedirs=/home,/var/www
+
+o services
+  Mögliche Werte: "all" oder eine Komma separierte Liste der Dienste des
+  aktuellen Runlevels, die vor dem Start des Backups heruntergefahren
+  werden sollen. "all" (Standard) fährt alle Dienste des aktuellen Runlevels
+  herunter. Nach dem Backuplauf werden die Dienste wieder hochgefahren.
+  Wird nichts angegeben, werden auch keine Dienste heruntergefahren.
+  Bsp.:
+  services=bind9,dhcp3-server,linuxmuster-ipcop,postgresql,mysql
+  services=all
+
+o compression
+  Kompressionsgrad, mögl. Werte 0-9, der Standardwert 3 ist ein guter
+  Kompromiss zwischen Schnelligkeit und Komprimierung. Wert 0 bedeutet
+  keine Komprimierung.
+  Bsp.:
+  compression=3
+
+o unmount
+  Mögl. Werte: "yes" oder "no", bei "yes" wird versucht das backupdevice nach
+  dem Backup auszuhängen. Das klappt natürlich nur, wenn es nicht noch ander-
+  weitig in Gebrauch ist.
+  Bsp.:
+  unmount=yes
+
+o keepfull
+  Mögl. Werte: integer ab 1. Definiert die Anzahl der Vollbackups, die
+  vorgehalten werden.
+  Bsp.:
+  keepfull=1
+
+o keepdiff
+  Mögl. Werte: integer ab 1. Definiert die Anzahl der differentiellen Backups,
+  die vorgehalten werden.
+  Bsp.:
+  keepdiff=1
+
+o keepinc
+  Mögl. Werte: integer ab 1. Definiert die Anzahl der inkrementellen Backups,
+  die vorgehalten werden.
+  Bsp.:
+  keepinc=7
+
+Alte Backups werden nur gelöscht, wenn das Backup zuvor fehlerfrei durchlief.
+
+Wichtiger Hinweis:
+Das Backupgerät darf nicht in /etc/fstab eingetragen sein, da mondorestore es
+sonst bei der automatischen Restaurierung formatiert!
+
+1.2 Vollautomatische Sicherung
+
+Gestartet wird das Backup über das Wrapper-Skript
+/usr/sbin/linuxmuster-backup, das das Programm mondoarchive mit den
+entsprechenden Optionen für einen nicht interaktiven Ablauf aufruft.
+
+Ein Vollbackup start man mit
+# linuxmuster-backup --full
+ein differentielles Backup mit
+# linuxmuster-backup --diff
+ein inkrementelles Backup mit
+# linuxmuster-backup --inc
+
+Das differentielle Backup sichert alle Dateien, die seit dem letzten
+Vollbackup geändert wurden.
+
+Das inkrementelle Backup sichert alle Dateien, die seit dem letzten
+Backup (full oder diff) geändert wurden.
+
+Ein Vollbackup mit ca. 150GB Daten dauerte auf meinem System (Athlon64 3200+,
+1GB RAM) auf eine USB-Platte ohne verify ca. 5 Stunden.
+
+Die Backups werden in ISO-Dateien nach
+mountpoint/isoprefix/datum_full bzw. mountpoint/isoprefix/datum_diff oder
+mountpoint/isoprefix/datum_inc gesichert. Dabei werden die ISO-Dateien
+nach dem Schema isoprefix-1.iso, isoprefix-2.iso usw. abgelegt.
+Diese ISO-Dateien dienen quasi als Backup-Container und können ggf. auch
+auf CD/DVD gebrannt werden, um davon zu restaurieren.
+
+Des weiteren wird bei einem Vollbackup das für die Restauration benötigte
+Bootimage mondorescue.iso im Backupverzeichnis abgelegt.
+
+Im Homeverzeichnis des Benutzers administrator wird ein Link _backup zum
+Mountpoint der Backupplatte angelegt, sodass dieser in der Lage ist,
+ISO-Images von einem Client aus auf eine CDROM zu brennen. Dazu muss jedoch
+die Backupplatte gemountet sein.
+
+1.3 Die Benutzung von linuxmuster-backup
+
+Hat man alle benötigten Einstellungen in der Datei backup.conf getroffen, so
+genügt es, wenn man das Skript wie oben beschrieben mit den Optionen "--full"
+bzw. "--diff" oder "--inc" startet. Der Backuplauf wird dann vollautomatisch
+ohne weitere Eingaben durchgeführt und kann somit auch über einen Cronjob
+nachts angestoßen werden.
+
+Des weiteren ist es möglich das Skript mit allen Optionen auch über die
+Kommandozeile zu starten. Kommandozeilenoptionen überschreiben die Werte, die
+in backup.conf festgelegt wurden. Zu beachten ist, dass vor jede Option ein
+Doppelminus "--" zu setzen ist. Bsp.:
+# linuxmuster-backup --full --backupdevice=/dev/sdc2 --mountpoint=/media/sdc2
+# linuxmuster-backup --diff --ipcop=no --verify=no
+
+1.4 Interaktive Sicherung mit mondoarchive
+
+Das Programm mondoarchive ermöglicht es, ohne Parameter gestartet, Menü
+geführt Datensicherungen durchzuführen.
+
+
+2. Restaurieren
+
+2.1 Vollrestauration (disaster recovery)
+
+Zunächst muss von der ISO-Datei mondorescue.iso eine bootbare CDROM
+hergestellt werden. Das kann einfach mit einem handelsüblichen Brennprogramm
+durchgeführt werden. Außerdem muss natürlich die Wechsel- oder USB-Platte mit
+den Sicherungsdateien an dem zu restaurierenden Rechner angeschlossen sein.
+
+Das BIOS des Rechners muss so konfiguriert sein, dass er von CDROM booten
+kann. Dann einfach die Rescue-CD einlegen und den Rechner starten. Nach
+kurzer Zeit erscheint der Bootprompt von Mondo Rescue.
+
+2.1.1 Automatisch
+
+Hierzu gibt man am Bootprompt "nuke" ein und betätigt die ENTER-Taste. Nach
+dem Bootvorgang wird der Rechner vollautomatisch restauriert. Dies
+funktioniert natürlich nur, wenn die Hardwarekonfiguration des Rechners noch
+dieselbe ist wie zu dem Zeitpunkt, als das Backup erstellt wurde.
+
+Ist das nicht der Fall, empfiehlt sich die interaktive Methode.
+
+Hat man zusätzlich noch inkrementelle Backups, die man zurückspielen will,
+gibt man nach Abschluss der automatischen Restauration am Prompt
+"mondorestore" ein.
+Im Startmenü wählt man "Interactively" und danach "Hard Disk". Schließlich
+ist noch der Pfad zum Verzeichnis des inkrementellen Backups einzugeben. Alle
+folgenden Abfragen kann man mit OK bestätigen. Dieser Vorgang ist für alle
+inkrementellen Backups, die man zurückspielen will, zu wiederholen.
+
+2.1.2 Interaktiv
+
+Dazu ist am Bootprompt "interactive" einzugeben. Nachdem Booten präsentiert
+sich das Startmenü von "Mondo Rescue". Die Menüführung ist weitestgehend
+selbst erklärend. Ggf. wird man dazu aufgefordert, die Gerätedatei für die
+Backupplatte einzugeben, falls sich diese geändert hat. Außerdem ist man in
+der Lage, die Partitionstabelle anzupassen.
+
+2.1.3 NFS
+
+Bei meinen Versuchen gelang es der Restaurations-CD nicht, das Netzwerk
+automatisch zu konfigurieren und das Share zu mounten. Da ist also Handarbeit
+angesagt. Nach dem Booten von CD muss man zunächst auf die
+Busybox-Kommandozeile und folgende Aktionen durchführen:
+o das Netzwerk mit ifconfig konfigurieren
+o portmap starten
+o das NFS-Share mit den Sicherungsdateien nach /tmp/isodir mounten
+o mondorestore starten und sich durch das Menü hangeln
+
+2.2 Restauration einzelner Dateien und Verzeichnisse
+
+Das kann im Live-Betrieb geschehen. Dazu muss die Backupplatte bzw. das
+NFS-Share mit den Sicherungsdateien gemountet sein.
+Ist das erfolgt, startet man mondorestore als root auf der Kommandozeile.
+Der Pfad zum Backup muss angegeben werden 
+(mountpoint/isoprefix/datum_<full|inc>), damit die
+Sicherung gefunden wird.
+Danach wird das gesamte Sicherungsdateisystem angezeigt und man ist in der
+Lage über die Tastatur zu navigieren und Dateien und Verzeichnisse zur
+Restauration auszuwählen.
+
+Hat man das getan, muss noch festgelegt werden, wohin die Auswahl restauriert
+werden soll. Es ist sicher eine gute Idee erst einmal in ein temporäres
+Verzeichnis (z. Bsp. /var/tmp) zu restaurieren, um die Dateien dann nach
+eingehender Prüfung an den ursprünglichen Ort zu verschieben.
+
+
+3 Weiterführende Doku
+
+3.1 Manpages von mondoarchive und mondorestore
+
+3.2 MondoRescue HOWTO
+(http://www.mondorescue.org/docs/mondorescue-howto.html)
+
+3.3 Paket mondo-doc (/usr/share/doc/mondo-doc)
+
+
+
+-------------------
+24.10.2006
+Thomas Schmitt
+<schmitt@lmz-bw.de>

@@ -1,0 +1,13 @@
+@echo off
+
+if NOT "%OS%"=="Windows_NT" goto win9x
+
+:winnt
+call \\@@servername@@\netlogon\logon.bat H: %USERNAME% K: pgm P: pgm R: cdrom
+goto ende
+
+:win9x
+call \\@@servername@@\netlogon\logon.bat H: homes K: pgm P: pgm R: cdrom
+
+:ende
+rem pause

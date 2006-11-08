@@ -1,0 +1,13 @@
+# secure permissions
+chmod 600 /etc/rembo/rembo.conf
+chmod 600 /var/lib/myshn/user.conf
+
+if [ "$1" != "--first" ]; then
+
+  # restore user.conf.target
+  mv user.conf.tmp user.conf.target
+
+fi
+
+# start service
+/etc/init.d/rembo start

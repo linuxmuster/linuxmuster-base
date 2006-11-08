@@ -1,0 +1,55 @@
+Package: *
+Pin: release a=sarge
+Pin-Priority: 900
+
+Package: *
+Pin: release a=testing
+Pin-Priority: 100
+
+Package: moodle
+Pin: release a=testing
+Pin-Priority: 999
+
+Package: moodle-book
+Pin: release a=testing
+Pin-Priority: 999
+
+Package: initramfs-tools
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: kernel-package
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: klibc-utils
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: libklibc
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: libvolume-id0
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: lsb-base
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: make
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: module-init-tools
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: postfix
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: udev
+Pin: release a=sarge-backports
+Pin-Priority: 999

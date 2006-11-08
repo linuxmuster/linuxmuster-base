@@ -1,0 +1,37 @@
+if [ "$1" != "--first" ]; then
+
+  # prevent chora2.sourceroots.php from being patched
+  mv chora2.sourceroots.php.target chora2.sourceroots.php.target.tmp
+
+fi
+
+# patch horde config.php with basedn and domainname
+sed -e "s/\$conf\['auth'\]\['admins'\] =.*/\$conf\['auth'\]\['admins'\] = array\('$WWWADMIN'\);/
+        s/\$conf\['problems'\]\['email'\] =.*/\$conf\['problems'\]\['email'\] = '$WWWADMIN@$domainname';/
+        s/\$conf\['mailer'\]\['params'\]\['localhost'\] =.*/\$conf\['mailer'\]\['params'\]\['localhost'\] = '$domainname';/
+        s/\$conf\['problems'\]\['maildomain'\] =.*/\$conf\['problems'\]\['maildomain'\] = '$domainname';/" /etc/horde/horde3/conf.php > /etc/horde/horde3/conf.php.tmp
+cp -f /etc/horde/horde3/conf.php.tmp /etc/horde/horde3/conf.php && rm -f /etc/horde/horde3/conf.php.tmp
+
+# patch kronolith config.php with basedn and domainname
+sed -e "s/\$conf\['storage'\]\['default_domain'\] =.*/\$conf\['storage'\]\['default_domain'\] = '$domainname';/
+        s/\$conf\['reminder'\]\['server_name'\] =.*/\$conf\['reminder'\]\['server_name'\] = '$servername.$domainname';/
+        s/\$conf\['reminder'\]\['from_addr'\] =.*/\$conf\['reminder'\]\['from_addr'\] = '$WWWADMIN@$domainname';/" /etc/horde/kronolith2/conf.php > /etc/horde/kronolith2/conf.php.tmp
+cp -f /etc/horde/kronolith2/conf.php.tmp /etc/horde/kronolith2/conf.php && rm -f /etc/horde/kronolith2/conf.php.tmp
+
+# patch chora config.php
+sed -e "s/\$conf\['options'\]\['adminName'\] =.*/\$conf\['options'\]\['adminName'\] = '$WWWADMIN';/
+        s/\$conf\['options'\]\['adminEmail'\] =.*/\$conf\['options'\]\['adminEmail'\] = '$WWWADMIN@$domainname';/" /etc/horde/chora2/conf.php > /etc/horde/chora2/conf.php.tmp
+cp -f /etc/horde/chora2/conf.php.tmp /etc/horde/chora2/conf.php && rm -f /etc/horde/chora2/conf.php.tmp
+
+# create symlink for apache2
+[ ! -L /etc/apache2/conf.d/horde ] && ln -s /etc/horde/apache.conf /etc/apache2/conf.d/horde
+
+# secure horde configuration
+chown root:www-data /etc/horde -R
+for i in /etc/horde/*; do
+  if [ -d "$i" ]; then
+    for j in $i/*; do
+      [ -f "$j" ] && chmod 440 $j
+    done
+  fi
+done

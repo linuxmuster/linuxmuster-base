@@ -1,0 +1,217 @@
+*PPD-Adobe: "4.3"
+*%
+*% "$Id: postscript.ppd,v 1.1.1.1 2000/08/24 19:23:13 goffioul Exp $"
+*%
+*%   Sample Postscript driver PPD file for the Common UNIX Printing
+*%   System (CUPS).
+*%
+*%   Michael Goffioul <goffioul@emic.ucl.ac.be>
+*%
+*%   Changes to the original file by Volker Behr, Martin-Eric Racine 
+*%   and other contributors:
+*%   additional paper formats   - 02/03/2005 and 02/07/2005
+*%   made A4 default paper size - 02/03/2005
+*%   Color enabled              - 02/12/2003
+*%
+*FormatVersion:	"4.3"
+*FileVersion:	"1.1"
+*LanguageVersion: English
+*LanguageEncoding: ISOLatin1
+*PCFileName:	"POSTSCRIPTCOLOR.PPD"
+*Manufacturer:	"Postscript"
+*Product:	"(CUPS v1.1)"
+*ModelName:     "Generic postscript color printer (rev3)"
+*ShortNickName: "Generic postscript color printer (rev3)"
+*NickName:      "Generic postscript color printer (rev3)"
+*PSVersion:	"(2017.000) 0"
+*LanguageLevel:	"2"
+*ColorDevice:	True
+*DefaultColorSpace: RGB
+*FileSystem:	False
+*Throughput:	"8"
+*LandscapeOrientation: Plus90
+*VariablePaperSize: False
+*TTRasterizer:	Type42
+
+*UIConstraints: *PageSize Executive *InputSlot Envelope
+*UIConstraints: *PageSize Letter *InputSlot Envelope
+*UIConstraints: *PageSize Legal *InputSlot Envelope
+*UIConstraints: *PageSize PA4 *InputSlot Envelope
+*UIConstraints: *PageSize A0 *InputSlot Envelope
+*UIConstraints: *PageSize A1 *InputSlot Envelope
+*UIConstraints: *PageSize A2 *InputSlot Envelope
+*UIConstraints: *PageSize A3 *InputSlot Envelope
+*UIConstraints: *PageSize A4 *InputSlot Envelope
+*UIConstraints: *PageSize A5 *InputSlot Envelope
+*UIConstraints: *PageSize A6 *InputSlot Envelope
+*UIConstraints: *PageSize A7 *InputSlot Envelope
+*UIConstraints: *PageSize A8 *InputSlot Envelope
+*UIConstraints: *PageSize A9 *InputSlot Envelope
+*UIConstraints: *PageSize A10 *InputSlot Envelope
+*UIConstraints: *PageSize B5 *InputSlot Envelope
+
+*OpenUI *PageSize/Media Size: PickOne
+*OrderDependency: 10 AnySetup *PageSize
+*DefaultPageSize: A4
+*PageSize Letter/Letter:	"<</PageSize[612 792]/ImagingBBox null>>setpagedevice"
+*PageSize Legal/Legal:		"<</PageSize[612 1008]/ImagingBBox null>>setpagedevice"
+*PageSize Executive/Executive:	"<</PageSize[522 756]/ImagingBBox null>>setpagedevice"
+*PageSize PA4/PA4 (Universal):	"<</PageSize[595 792]/ImagingBBox null>>setpagedevice"
+*PageSize A0/A0:		"<</PageSize[2378 3370]/ImagingBBox null>>setpagedevice"
+*PageSize A1/A1:		"<</PageSize[1682 2378]/ImagingBBox null>>setpagedevice"
+*PageSize A2/A2:		"<</PageSize[1189 1682]/ImagingBBox null>>setpagedevice"
+*PageSize A3/A3:		"<</PageSize[841 1189]/ImagingBBox null>>setpagedevice"
+*PageSize A4/A4:		"<</PageSize[594 841]/ImagingBBox null>>setpagedevice"
+*PageSize A5/A5:		"<</PageSize[420 594]/ImagingBBox null>>setpagedevice"
+*PageSize A6/A6:		"<</PageSize[297 420]/ImagingBBox null>>setpagedevice"
+*PageSize A7/A7:		"<</PageSize[210 297]/ImagingBBox null>>setpagedevice"
+*PageSize A8/A8:		"<</PageSize[148 210]/ImagingBBox null>>setpagedevice"
+*PageSize A9/A9:		"<</PageSize[105 148]/ImagingBBox null>>setpagedevice"
+*PageSize A10/A10:		"<</PageSize[74 105]/ImagingBBox null>>setpagedevice"
+*PageSize B5/B5 (JIS):		"<</PageSize[516 729]/ImagingBBox null>>setpagedevice"
+*PageSize EnvISOB5/Envelope B5: "<</PageSize[499 709]/ImagingBBox null>>setpagedevice"
+*PageSize Env10/Envelope #10:	"<</PageSize[297 684]/ImagingBBox null>>setpagedevice"
+*PageSize EnvC5/Envelope C5:	"<</PageSize[459 649]/ImagingBBox null>>setpagedevice"
+*PageSize EnvDL/Envelope DL:	"<</PageSize[312 624]/ImagingBBox null>>setpagedevice"
+*PageSize EnvMonarch/Envelope Monarch: "<</PageSize[279 540]/ImagingBBox null>>setpagedevice"
+*CloseUI: *PageSize
+
+*OpenUI *PageRegion: PickOne
+*OrderDependency: 10 AnySetup *PageRegion
+*DefaultPageRegion: A4
+*PageRegion Letter/Letter:	"<</PageSize[612 792]/ImagingBBox null>>setpagedevice"
+*PageRegion Legal/Legal:	"<</PageSize[612 1008]/ImagingBBox null>>setpagedevice"
+*PageRegion Executive/Executive: "<</PageSize[522 756]/ImagingBBox null>>setpagedevice"
+*PageRegion PA4/PA4 (Universal): "<</PageSize[595 792]/ImagingBBox null>>setpagedevice"
+*PageRegion A0/A0:		"<</PageSize[2378 3364]/ImagingBBox null>>setpagedevice"
+*PageRegion A1/A1:		"<</PageSize[1682 2378]/ImagingBBox null>>setpagedevice"
+*PageRegion A2/A2:		"<</PageSize[1189 1682]/ImagingBBox null>>setpagedevice"
+*PageRegion A3/A3:		"<</PageSize[841 1189]/ImagingBBox null>>setpagedevice"
+*PageRegion A4/A4:		"<</PageSize[594 841]/ImagingBBox null>>setpagedevice"
+*PageRegion A5/A5:		"<</PageSize[420 594]/ImagingBBox null>>setpagedevice"
+*PageRegion A6/A6:		"<</PageSize[297 420]/ImagingBBox null>>setpagedevice"
+*PageRegion A7/A7:		"<</PageSize[210 297]/ImagingBBox null>>setpagedevice"
+*PageRegion A8/A8:		"<</PageSize[148 210]/ImagingBBox null>>setpagedevice"
+*PageRegion A9/A9:		"<</PageSize[105 148]/ImagingBBox null>>setpagedevice"
+*PageRegion A10/A10:		"<</PageSize[74 105]/ImagingBBox null>>setpagedevice"
+*PageRegion B5/B5 (JIS):	"<</PageSize[516 729]/ImagingBBox null>>setpagedevice"
+*PageRegion EnvISOB5/Envelope B5: "<</PageSize[499 709]/ImagingBBox null>>setpagedevice"
+*PageRegion Env10/Envelope #10:	"<</PageSize[297 684]/ImagingBBox null>>setpagedevice"
+*PageRegion EnvC5/Envelope C5:	"<</PageSize[459 649]/ImagingBBox null>>setpagedevice"
+*PageRegion EnvDL/Envelope DL:	"<</PageSize[312 624]/ImagingBBox null>>setpagedevice"
+*PageRegion EnvMonarch/Envelope Monarch: "<</PageSize[279 540]/ImagingBBox null>>setpagedevice"
+*CloseUI: *PageRegion
+
+*DefaultImageableArea: A4
+*ImageableArea Letter/US Letter:	"18 36 594 756"
+*ImageableArea Legal/US Legal:		"18 36 594 972"
+*ImageableArea Executive/Executive:	"18 36 504 684"
+*ImageableArea PA4/PA4 (Universal):    "18 36 577 756"
+*ImageableArea A0/A0:			"18 36 2360 3334"
+*ImageableArea A1/A1:			"18 36 1664 2342"
+*ImageableArea A2/A2:			"18 36 1171 1646"
+*ImageableArea A3/A3:			"18 36 823 1153"
+*ImageableArea A4/A4:			"18 36 576 805"
+*ImageableArea A5/A5:			"18 36 402 558"
+*ImageableArea A6/A6:			"18 36 279 384"
+*ImageableArea A7/A7:			"18 36 192 261"
+*ImageableArea A8/A8:			"18 36 130 174"
+*ImageableArea A9/A9:			"18 36 87 112"
+*ImageableArea A10/A10:			"18 36 56 69"
+*ImageableArea B5/JIS B5:		"18 36 498 693"
+*ImageableArea EnvISOB5/B5 (ISO):	"18 36 463 673"
+*ImageableArea Env10/Com-10:		"18 36 279 648"
+*ImageableArea EnvC5/EnvC5:		"18 36 441 613"
+*ImageableArea EnvDL/EnvDL:		"18 36 294 588"
+*ImageableArea EnvMonarch/Envelope Monarch: "18 36 261 504"
+
+*DefaultPaperDimension: A4
+*PaperDimension Letter/Letter:		"612 792"
+*PaperDimension Legal/Legal:		"612 1008"
+*PaperDimension Executive/Executive:	"522 756"
+*PaperDimension PA4/PA4 (Universal):    "595 792"
+*PaperDimension A0/A0:			"2378 3364"
+*PaperDimension A1/A1:			"1682 2378"
+*PaperDimension A2/A2:			"1189 1682"
+*PaperDimension A3/A3:			"841 1189"
+*PaperDimension A4/A4:			"594 841"
+*PaperDimension A5/A5:			"420 594"
+*PaperDimension A6/A6:			"297 420"
+*PaperDimension A7/A7:			"210 297"
+*PaperDimension A8/A8:			"148 210"
+*PaperDimension A9/A9:			"105 148"
+*PaperDimension A10/A10:		"74 105"
+*PaperDimension B5/B5 (JIS):		"516 729"
+*PaperDimension EnvISOB5/Envelope B5:	"499 709"
+*PaperDimension Env10/Envelope #10:	"297 684"
+*PaperDimension EnvC5/Envelope C5:	"459 649"
+*PaperDimension EnvDL/Envelope DL:	"312 624"
+*PaperDimension EnvMonarch/Envelope Monarch: "279 540"
+
+*OpenUI *InputSlot/Media Source: PickOne
+*OrderDependency: 10 AnySetup *InputSlot
+*DefaultInputSlot: Default
+*InputSlot Default/Default: ""
+*InputSlot Tray1/Tray 1: "<</ManualFeed false /MediaPosition 3>>setpagedevice"
+*InputSlot Tray2/Tray 2: "<</ManualFeed false /MediaPosition 0>>setpagedevice"
+*InputSlot Tray3/Tray 3: "<</ManualFeed false /MediaPosition 1>>setpagedevice"
+*InputSlot Manual/Manual Feed: "<</ManualFeed true /MediaPosition 3>>setpagedevice"
+*CloseUI: *InputSlot
+
+*OpenUI *Resolution/Output Resolution: PickOne
+*OrderDependency: 20 AnySetup *Resolution
+*DefaultResolution: 300dpi
+*Resolution 150dpi/150 DPI: "<</HWResolution[150 150]>>setpagedevice"
+*Resolution 300dpi/300 DPI: "<</HWResolution[300 300]>>setpagedevice"
+*Resolution 600dpi/600 DPI: "<</HWResolution[600 600]>>setpagedevice"
+*Resolution 1200dpi/1200 DPI: "<</HWResolution[1200 1200]>>setpagedevice"
+*Resolution 2400dpi/2400 DPI: "<</HWResolution[2400 2400]>>setpagedevice"
+*CloseUI: *Resolution
+
+*OpenUI *Duplex/Double-Sided Printing: PickOne
+*OrderDependency: 20 AnySetup *Duplex
+*DefaultDuplex: None
+*Duplex None/Off: "<</Duplex false>>setpagedevice"
+*Duplex DuplexNoTumble/Long Edge (Standard): "<</Duplex true/Tumble false>>setpagedevice"
+*Duplex DuplexTumble/Short Edge (Flip): "<</Duplex true/Tumble true>>setpagedevice"
+*CloseUI:       *Duplex
+
+*DefaultFont: Courier
+*Font AvantGarde-Book: Standard "(001.006S)" Standard ROM
+*Font AvantGarde-BookOblique: Standard "(001.006S)" Standard ROM
+*Font AvantGarde-Demi: Standard "(001.007S)" Standard ROM
+*Font AvantGarde-DemiOblique: Standard "(001.007S)" Standard ROM
+*Font Bookman-Demi: Standard "(001.004S)" Standard ROM
+*Font Bookman-DemiItalic: Standard "(001.004S)" Standard ROM
+*Font Bookman-Light: Standard "(001.004S)" Standard ROM
+*Font Bookman-LightItalic: Standard "(001.004S)" Standard ROM
+*Font Courier: Standard "(002.004S)" Standard ROM
+*Font Courier-Bold: Standard "(002.004S)" Standard ROM
+*Font Courier-BoldOblique: Standard "(002.004S)" Standard ROM
+*Font Courier-Oblique: Standard "(002.004S)" Standard ROM
+*Font Helvetica: Standard "(001.006S)" Standard ROM
+*Font Helvetica-Bold: Standard "(001.007S)" Standard ROM
+*Font Helvetica-BoldOblique: Standard "(001.007S)" Standard ROM
+*Font Helvetica-Narrow: Standard "(001.006S)" Standard ROM
+*Font Helvetica-Narrow-Bold: Standard "(001.007S)" Standard ROM
+*Font Helvetica-Narrow-BoldOblique: Standard "(001.007S)" Standard ROM
+*Font Helvetica-Narrow-Oblique: Standard "(001.006S)" Standard ROM
+*Font Helvetica-Oblique: Standard "(001.006S)" Standard ROM
+*Font NewCenturySchlbk-Bold: Standard "(001.009S)" Standard ROM
+*Font NewCenturySchlbk-BoldItalic: Standard "(001.007S)" Standard ROM
+*Font NewCenturySchlbk-Italic: Standard "(001.006S)" Standard ROM
+*Font NewCenturySchlbk-Roman: Standard "(001.007S)" Standard ROM
+*Font Palatino-Bold: Standard "(001.005S)" Standard ROM
+*Font Palatino-BoldItalic: Standard "(001.005S)" Standard ROM
+*Font Palatino-Italic: Standard "(001.005S)" Standard ROM
+*Font Palatino-Roman: Standard "(001.005S)" Standard ROM
+*Font Symbol: Special "(001.007S)" Special ROM
+*Font Times-Bold: Standard "(001.007S)" Standard ROM
+*Font Times-BoldItalic: Standard "(001.009S)" Standard ROM
+*Font Times-Italic: Standard "(001.007S)" Standard ROM
+*Font Times-Roman: Standard "(001.007S)" Standard ROM
+*Font ZapfChancery-MediumItalic: Standard "(001.007S)" Standard ROM
+*Font ZapfDingbats: Special "(001.004S)" Standard ROM
+*%
+*% End of "$Id: postscript.ppd,v 1.1.1.1 2000/08/24 19:23:13 goffioul Exp $".
+*%

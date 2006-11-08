@@ -1,0 +1,9 @@
+/var/log/linuxmuster/* {
+     rotate 14
+     weekly
+     compress
+     size 50k
+     missingok
+     notifempty
+     tabooext + .gz
+}

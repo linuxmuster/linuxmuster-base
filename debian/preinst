@@ -1,0 +1,31 @@
+#! /bin/sh -e
+# preinst script for linuxmuster-base
+
+case "$1" in
+	upgrade)
+
+		if debconf-show linuxmuster-base | grep -q cyradmpw; then
+			. /usr/share/debconf/confmodule
+			db_get linuxmuster-base/cyradmpw
+			imapsecret="$RET"
+			db_stop
+		fi
+
+		# create imap.secret file
+		if [ -n "$imapsecret" ]; then
+			if [ ! -e /etc/imap.secret ]; then
+				echo $imapsecret > /etc/imap.secret
+				chmod 600 /etc/imap.secret
+			fi
+		fi
+		;;
+
+	*)
+
+		;;
+
+esac
+
+#DEBHELPER#
+
+exit 0

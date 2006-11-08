@@ -1,0 +1,11 @@
+# Create these partitions on the server
+# MPoint              FStype                      Min        Max
+/                     default                     1024       1536
+/tmp                  tmpfs                       0          0
+# The rest of the disk should be used by LVM.
+vg_lml                lvm                         9216       -1
+/home                 lvm:vg_lml:lv_home:xfs      3040       4096
+/var                  lvm:vg_lml:lv_var:xfs       5120       6144
+/var/spool/cups       lvm:vg_lml:lv_cups:xfs      512        768
+# swap should be 2 x memory size
+swap                  lvm:vg_lml:lv_swap:swap     512        2.0*$RAMSIZE

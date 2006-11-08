@@ -1,0 +1,26 @@
+# config file
+ogoconfig="/var/lib/opengroupware.org/.libFoundation/Defaults/NSGlobalDomain.plist"
+
+# patch servername and basedn
+sed -e "s/\"skyrix_id\" =.*/\"skyrix_id\" = $servername-ogo;/
+        s/LSAuthLDAPServerRoot =.*/LSAuthLDAPServerRoot = \"ou=accounts,$basedn\";/" $ogoconfig > $ogoconfig.tmp
+cp -f $ogoconfig.tmp $ogoconfig && rm -f $ogoconfig.tmp
+
+# restore permissions
+chown ogo:ogo /var/lib/opengroupware.org -R
+chmod 640 $ogoconfig
+
+# build new database on first time install
+if [ "$1" = "--first" ]; then
+  dropdb -U postgres ogo
+  dropuser -U postgres ogo
+  ogo-create-instance -d
+  psql -U ogo -d ogo -c "UPDATE person SET login='wwwadmin', name='wwwadmin' WHERE company_id='10000';"
+fi
+
+# restore start links
+update-rc.d -f opengroupware.org remove
+update-rc.d opengroupware.org start 21 2 3 4 5 . stop 19 0 1 6 .
+
+# start ogo instances
+/etc/init.d/opengroupware.org start

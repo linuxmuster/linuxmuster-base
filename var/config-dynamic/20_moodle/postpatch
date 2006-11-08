@@ -1,0 +1,18 @@
+if [ "$1" = "--first" ]; then
+
+  # create tables
+  psql -U postgres -d moodle -f /var/tmp/moodle.psql
+
+  # delete temporary patch file
+  rm -f /var/tmp/moodle.psql
+
+else
+
+  # restore psql file
+  mv moodle.psql.tmp moodle.psql.target
+
+fi
+
+# secure permissions of config.php
+chown root:www-data /etc/moodle/config.php
+chmod 440 /etc/moodle/config.php

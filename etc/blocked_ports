@@ -1,0 +1,8 @@
+#
+# intranet ports which can be blocked
+#
+# Note: If want to remove a port/service here, you must add it to allowed_ports
+
+# protocoll (udp|tcp)  list of ports/services
+
+tcp ftp-data,ftp,ssh,smtp,imaps,www,https,999

@@ -1,0 +1,11 @@
+$TTL	3600
+@	IN	SOA	@@servername@@.@@domainname@@. postmaster.@@domainname@@. (
+			2004030801
+			10800
+			3600
+			604800
+			38400 )
+@		IN	NS	@@servername@@.@@domainname@@.
+@		IN	MX	10	@@servername@@.@@domainname@@.
+@@servername@@		IN	A	@@serverip@@
+ipcop		IN	A	@@ipcopip@@

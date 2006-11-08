@@ -1,0 +1,70 @@
+#!/bin/sh
+# setup for Linux-Musterloesung
+#
+# Thomas Schmitt <schmitt@lmz-bw.de>
+# GPL-2
+
+# read dist.conf
+. /usr/share/linuxmuster/config/dist.conf
+
+# check command line options
+opt=$1
+
+# calling as base-config late command
+if [ "$opt" = "--first" ]; then
+
+  # delete installed flag
+  [ -e "$INSTALLED" ] && rm -f $INSTALLED
+
+  # reconfigure package
+  dpkg-reconfigure linuxmuster-base
+
+  # installing depending tasks
+  for i in common server non-free; do
+    DEBIAN_FRONTEND=noninteractive /usr/bin/tasksel install linuxmuster-$i
+  done
+
+  # copying default configuration
+  cp -a /var/lib/linuxmuster/config-static/* /
+
+else
+
+  # check for installed flag
+  if [ ! -e "$INSTALLED" ]; then
+    echo "Linux-Musterloesung ist noch nicht installiert!"
+    echo "Benutzen Sie dazu den Befehl linuxmuster-setup --first!"
+    exit 1
+  fi
+
+  [ -e $OLDVALUES ] && rm $OLDVALUES
+
+  # read old configuration
+  echo "Reading current configuration values ..."
+  for i in country state location servername domainname schoolname dsluser dslpasswd smtprelay \
+           internsubrange fwconfig externtype externip externmask gatewayip dnsforwarders; do
+    RET=`echo get linuxmuster-base/$i | debconf-communicate`
+    RET=${RET#[0-9] }
+    oldvalue="${i}_old"
+    echo "$oldvalue=\"$RET\"" >> $OLDVALUES
+    unset RET
+
+  done
+
+  chmod 600 $OLDVALUES
+
+fi
+
+# look if we were on first boot
+if [ -e /etc/inittab.real ]; then
+
+  # reread inittab
+  rm /etc/inittab.real
+  telinit q
+
+fi
+
+# ask questions
+$SCRIPTSDIR/linuxmuster-config $opt
+
+# call configuration patch script
+$SCRIPTSDIR/linuxmuster-patch $opt

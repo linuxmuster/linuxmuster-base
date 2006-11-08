@@ -1,0 +1,11 @@
+root: administrator
+
+# See man 5 aliases for format
+postmaster:    root
+
+# amavis-perl
+virusalert: root
+clamav: root
+
+# quota mails for www-data are going to root
+www-data: root

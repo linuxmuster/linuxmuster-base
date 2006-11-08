@@ -1,0 +1,51 @@
+# repair permissions and group memberships
+dpkg-statoverride --force --update --add cyrus postfix 750 /var/run/cyrus/socket &> /dev/null
+usermod -G sasl postfix
+usermod -G sasl cyrus
+usermod -G amavis clamav
+
+if [ "$1" = "--first" ]; then
+
+  # create mail aliases file
+  sed -e "s/^root\:.*/root\: $ADMINISTRATOR/" /etc/aliases > /tmp/aliases
+  cp -f /tmp/aliases /etc
+  rm -f /tmp/aliases
+
+  # write smtp_auth file
+  if [ -n "$smtprelay" ]; then
+
+    echo "# $smtprelay		username:password" > /etc/postfix/smtp_auth
+
+  else
+
+    echo "# change smtp.relay.host to the FQDN of your smtp relay host" > /etc/postfix/smtp_auth
+    echo "# and uncomment the next line to activate smtp authentication" >> /etc/postfix/smtp_auth
+    echo "# smtp.relay.host		username:password" >> /etc/postfix/smtp_auth
+
+  fi
+
+fi
+
+if [ "$update_smtp" = "yes" ]; then
+
+  # modifiy smtp_auth file
+  if [ -n "$smtprelay_old" ]; then
+
+    cp -f /etc/postfix/smtp_auth /etc/postfix/smtp_auth.tmp
+    sed -e "s/${smtprelay_old}/${smtprelay}/g" /etc/postfix/smtp_auth.tmp > /etc/postfix/smtp_auth
+    rm -f /etc/postfix/smtp_auth.tmp
+
+  else
+
+    echo "# $smtprelay		username:password" > /etc/postfix/smtp_auth
+
+  fi
+
+fi
+
+# secure permissions
+chmod 600 /etc/postfix/smtp_auth
+
+# change password for cyrus user
+echo "$cyradmpw" | saslpasswd2 -p -c cyrus
+echo cyrus:$cyradmpw | chpasswd

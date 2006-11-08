@@ -1,0 +1,7 @@
+#!/bin/sh
+
+. /usr/share/linuxmuster/config/dist.conf
+
+myadmin -i "/var/lib/rembo/files/global/wimport_data" --rembo-path "/var/lib/rembo" \
+  --rembo-conf "$REMBOCONF" --myshn-path "$MYSHNDIR" --dhcp-conf "$DHCPDCONF" \
+  --hostgroup-conf "$HOSTGROUPCONF" --plugin "$SCRIPTSDIR/wimport_lml.rb"

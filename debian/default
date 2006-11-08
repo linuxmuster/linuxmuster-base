@@ -1,0 +1,7 @@
+# default settings for linuxmuster-base runlevel script
+
+# yes or no whether to start or not at boot time
+START_LINUXMUSTER=no
+
+# interface for internal firewall
+IFACE=eth1

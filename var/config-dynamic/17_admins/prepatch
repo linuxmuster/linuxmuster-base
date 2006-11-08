@@ -1,0 +1,28 @@
+# create admin users & groups
+
+if [ "$1" = "--first" ]; then
+
+  # wait until cyrus is ready
+  sleep 10
+
+  # delete old mailboxes
+  users=`ls /var/spool/cyrus/mail/*/user/ | grep -v :`
+  for i in $users; do
+    $SCRIPTSDIR/cyrus-mbox -d $i
+  done
+
+  # repair admin groups and administrators
+  $SCRIPTSDIR/repair-admins.sh
+
+  # set passwords for admins
+  echo -e "$adminpw\n$adminpw\n" | smbldap-passwd -e $DOMADMIN
+  echo -e "$adminpw\n$adminpw\n" | smbldap-passwd -e $ADMINISTRATOR
+  echo -e "$pgmadminpw\n$pgmadminpw\n" | smbldap-passwd -e $PGMADMIN
+  echo -e "$wwwadminpw\n$wwwadminpw\n" | smbldap-passwd -e $WWWADMIN
+
+else
+
+  # prevent access.conf from being patched
+  mv access.conf.target access.conf.target.tmp
+
+fi

@@ -1,0 +1,357 @@
+Zusatzinfos zur LML 3.0
+(die noch nicht im Installationshandbuch zu finden sind)
+--------------------------------------------------------
+
+I. Benutzerverwaltung
+-----------------------
+
+Benutzer anlegen funktioniert bisher nur auf der Kommandozeile mit den bekannten
+sophomorix-Befehlen.
+schueler.txt und lehrer.txt müssen nach /etc/sophomorix/user kopiert werden.
+Unter /usr/share/linuxmuster/examples befinden sich Beispieldateien und ein Skript zum
+Anlegen von Testusern:
+
+# /usr/share/linuxmuster/examples/create_testusers.sh
+
+Ansonsten stehen auf der Kommandozeile die gewohnten sophomorix-Befehle zur Verfügung.
+sophomorix-check prüft
+sophomorix-add legt an
+sophomorix-move versetzt
+
+Aktuelle Dokumentation erhält man z.B. mit
+$ sophomorix-add -h      (Kurzinfo)
+$ man sophomorix-add     (Ausführlicher)
+
+Wenn man das Paket sophomorix-developer zusätzlich installiert, hat man mit
+sophomorix-test noch diverse Testfunktionen zur Verfügung.
+
+Außerhalb von sophomorix können mit den smbldap-tools User angelegt werden.
+Befehle: smbldap-useradd, smbldap-groupadd, smbldap-userdel, smbldap-groupdel,
+smbldap-usermod, smbldap-usershow.
+Wenn man weitere Administratoren anlegt sollte man darauf achten dass deren $HOME
+unterhalb /home/administrators liegt. Dann werden diese User von sophomorix als 
+Administratoren erkannt.
+
+
+
+Testen, ob das Benutzer anlegen erfolgreich war kann man auf der Konsole mit
+# id <username>
+# smbldap-usershow <username>
+# getent passwd
+# getent group
+# sophomorix-user -i  (Überblick über Benutzer)
+# sophomorix-user -s string (sucht User auf die der string passt)
+
+Folgende administrativen Benutzer existieren nach der Installation auf dem System:
+
+ 1. administrator
+    Ist der frühere "admin". Kann der Windows-Domäne beitreten, Programme installieren
+    und Drucker einrichten. Mitglied der Gruppen domadmins, pgmadmins, administrators und
+    printoperators.
+
+ 2. wwwadmin
+    Dieser Benutzer ist Admininstrator-Account für die Webdienste Imp, Moodle und OpenGroupware.
+    Einziges Mitglied der Gruppe wwwadmin. Es ist kein Windows-Account.
+
+ 3. pgmadmin
+    Windows-Programm-Administrator. Ist berechtigt auf dem Windowsclient Programme
+    serverbasiert zu installieren. Mitglied der Gruppen pgmadmins und administrators.
+
+Haupt-Admingruppe ist die Gruppe domadmins. Mitglieder sind berechtigt der Domäne
+beizutreten, Software und Drucker zu installieren.
+Einziges Mitglied ist per default administrator.
+
+Mitglieder der Gruppe printoperators sind berechtigt auf dem CUPS-Webinterface Drucker
+zu verwalten. Einziges Mitglied ist per default administrator.
+
+Mitglieder der Gruppe administrators haben lokale Administrationsrechte auf dem
+Windowsclient. Einzige Mitglieder sind per default administrator und pgmadmin.
+
+Quota:
+Die Partitionen /home und /var werden automatisch quotiert.
+Festplattenquota für einzelne User werden in /etc/sophomorix/user/quota.txt, Mailquota
+in /etc/sophomorix/user/mailquota.txt festgelegt.
+Quota für Lehrer sind in /etc/sophomorix/user/lehrer.txt zu anzugeben.
+Nach Quota-Änderungen in diesen Dateien muss immer
+# sophomorix-quota
+aufgerufen werden, um die Quotierung zu aktualisieren. 
+
+Bei der Änderung von Klassen und Projektquota benutzt man die Befehle
+# sophomorix-class
+# sophomorix-project
+
+Dabei werden die Änderungen in die datenbank UND ins System übertragen. 
+
+Quotaeinstellungen werden über Schulkonsole noch konfigurierbar gemacht.
+
+
+II. Firewall
+-----------
+
+Wurde die Ein-Server-Variante installiert, läuft die IPCop-Firewall in einer
+user-mode-linux-Umgebung (UML), abgeschottet von den internen Serverdiensten.
+Das Passwort des administrativen Accounts "admin" für die IPCop-Weboberfläche sowie
+das root-Passwort sind nach der Installation identisch.
+Bei der dezidierten Variante gelten selbstverständlich die Passwörter, die bei der
+IPCop-Installation verwendet wurden
+
+Ansonsten verhalten sich beide Varianten vollkommen identisch.
+
+Der Standard-IPCop (http://www.ipcop.org) wurde mit folgenden Addons erweitert:
+- BlockOutTraffic (http://blockouttraffic.de)
+  Regeln des ausgehenden Datenverkehrs
+  Zugriff: Firewall -> Block outgoing Traffic
+- Advanced Proxy (http://www.advproxy.net)
+  Konfigurationserweiterung für Squid, ermöglicht u.a. Proxy-Authentifizierung
+  Zugriff: Dienste -> Advanced Proxy
+- URL-Filter (http://www.urlfilter.net)
+  SquidGuard basierter Webfilter
+  Zugriff: Dienste -> URL-Filter
+- ZERINA.vpn (http://www.zerina.de)
+  OpenVPN-Erweiterung für IPCop
+  Zugriff: VPNs -> OpenVPN
+
+Über die URL https://ipcop:445 (IP 10.0.0.254) kann im internen Netz auf die
+Administrationsseite zugegriffen werden. SSH-Zugriff auf den IPCop über das interne Netz
+ist auf Port 222 möglich.
+
+Interne und externe Firewall
+Die Firewallfunktionalität der Musterlösung wird für interne und externe Zugriffe
+getrennt geregelt. Der Datenverkehr vom und zum Internet und zwischen den Subnetzen
+wird über den IPCop gesteuert. Den Zugriff vom internen Netz auf den ML-Server steuern
+eigene iptables-Regeln.
+
+Intern
+Der interne Datenverkehr wird restriktiv gehandhabt. Vollzugriff auf die internen
+Netzresourcen sowie auch Internetzugriff haben nur Clients, die importiert wurden.
+Clients, die dem System nicht mit MAC-Adresse bekannt sind, können nur die Dienste nutzen
+(DHCP und tftp, rembo), die für die Rechneraufnahme notwendig sind.
+Dieses Verhalten kann über die Konfigurationsdateien
+- /etc/linuxmuster/base_ports (Ports, die allen Clients erlaubt sind)
+- /etc/linuxmuster/allowed_ports (Ports, die zusätzlich importierten Clients erlaubt sind)
+- /etc/linuxmuster/blocked_ports (Ports, die bei der Intranetsperre nicht erlaubt sind)
+gesteuert werden. Dabei ist darauf zu achten, dass Ports bzw. Portbereiche nicht
+doppelt definiert werden.
+
+Danach muss /etc/init.d/linuxmuster-base restart aufgerufen werden.
+
+
+Extern
+Standardeinstellungen:
+- externer Zugriff per SSH auf den ML-Server geht über Port 2222. Zugriffe auf diesen Port
+  werden an den Port 22 des Servers weitergeleitet.
+- Unter Firewall -> Port-Weiterleitung sind weitere Weiterleitungsregeln definiert,
+  aber per default deaktiviert. Durch setzen eines Häkchens können diese aktiviert werden.
+  So sind externe Zugriffe auf Mail- und Webdienste im Auslieferungszustand blockiert.
+- Für Zugriffe aus dem Internet über OpenVPN ist unter Firewall -> Externer Zugang die
+  "OpenVPN access"-Regel zu aktivieren.
+- Zugriffe von einem ggf. vorhandenen WLAN-Netz (BLAU) sind nur über OpenVPN möglich.
+  Clients erhalten zwar eine IP-Adresse, aber ohne OpenVPN-Key geht nichts.
+- Client-Zugriffe ins Internet sind für WWW über transparenten Proxy, FTP und SSH erlaubt.
+  Alle anderen Protokolle sind blockiert. Will man z.Bsp. IRC erlauben, ist über
+  Firewall -> Block outgoing Traffic eine entsprechende Regel zu erstellen.
+- BOT-Regeln, die für das Grüne Netz erstellt wurden, gelten automatisch auch für
+  Clients aus dem Blauen Netz. Es müssen also keine zusätzlichen Regeln für die "blauen"
+  Clients erstellt werden.
+
+OpenVPN
+ist für Zugriffe über das externe (IPCop: rot) und das wlan-Device (IPCOP: blau)
+vorkonfiguriert. Root- und Server-Zertifikate werden bei der Installation erstellt.
+Nach der Installation können im IPCop-Webinterface unter
+"VPNs -> OpenVPN -> Client Status und Kontrolle -> Hinzufügen" Client-Zertifikate und
+-Konfigurationsdateien erstellt werden.
+Ein deutsches Howto wie man Client-Zertifikate erstellt (Roadwarrior-Verbindung), findet
+sich hier: http://www.markowitz.at/phpBB2p/viewtopic.php?t=951.
+
+Clientseitig (Windows) benötigt man noch die OpenVPNGui von http://openvpn.se.
+
+Clientseitig (Debian Linux) benötigt man das Paket openvpn. 
+
+
+Passwörter
+----------
+
+1. LDAP
+
+   Das Passwort für den administrativen Zugriff auf den LDAP-Server wird bei der Installation
+   als 8-stelliges Zufalls-Passwort erzeugt.
+   Es ist in den Konfigurationsdateien
+   /etc/smbldap-tools/smbldap_bind.conf
+   /etc/ldap.secret
+   /etc/ldap/slapd.conf
+   gespeichert.
+
+2. Datenbanken
+
+   Für die Zugriffe auf die Datenbanken (postgres:ldap,
+   postgres:moodle, mysql:horde, postgres:ogo) werden 8stellige
+   Zufallspasswörter verwendet, die von linuxmuster-setup erstellt und
+   in den entsprechenden Konfigurationsdateien abgelegt werden.
+
+3. cyrus-imap
+
+   Das Anlegen der User-Mailboxen erfordert ein Passwort für den User cyrus. Dieses wird bei der
+   Installation als 8stelliges Zufallspasswort erzeugt und in der Debconf-Datenbank unter
+   linuxmuster-base/cyradmpw abgelegt.
+   Das Skript /usr/share/linuxmuster/scripts/cyrus-user.pl verwendet dieses Passwort
+   (vgl. unten 2. Mail).
+
+Bis auf das cyrus-Passwort werden alle Passwörter, die bei der Installation abgefragt werden,
+nur temporär in der Debconf-Datenbank abgelegt.
+
+
+Was funktioniert schon / ist konfiguriert?
+------------------------------------------
+
+ 1. Schulkonsole
+
+    Einloggen unter der URL https://server/schulkonsole/
+    Man kann sich als Schüler oder Lehrer einloggen.
+
+ 2. Mail (postfix-tls, cyrus21, amavisd-new, spamassassin, razor, clamav)
+
+    Cyrus ermöglicht per ssl/tls verschlüsselte Verbindungen. Der Mailclient sollte also
+    für verschlüsselte Verbindungen konfiguriert werden:
+    ssl, Port 993 für imaps, 995 für pop3s
+    Virus- und Spamfilter sind funktionstüchtig konfiguriert.
+
+    Intern können diese Dienste benutzt werde.
+    Extern müssen entsprechende Ports geöffnet werden (nicht zu empfehlen). 
+
+
+ 3. Webmin
+
+    läuft auf Port 999 (wie gehabt). Einloggen als root.
+
+ 4. Samba
+
+    Für die Domänenaufnahme muss nun der Benutzer "administrator" verwendet werden.
+
+    Die Datei /etc/samba/smb.conf wird von der Musterlösung immer
+    wieder neu überschrieben.
+
+    Eigene Anpassungen der Sambakonfiguration können in den Dateien
+    /etc/samba/smb.conf.global und /etc/samba/smb.conf.shares gemacht
+    werden.
+
+    Die Benutzer bekommen nur noch die Shares homes (H:) und pgm
+    (P:). Die Tauschverzeichnisse werden durch Links im
+    Homeverzeichnis dargestellt.
+
+ 5. DHCP-Server
+
+    Das Workstationimport-Skript ändert nur die Datei /etc/dhcp3/dhcpd.conf.muster, die in
+    /etc/dhcp3/dhcpd.conf inkludiert wird. Eigene Anpassungen in /etc/dhcp3/dhcpd.conf
+    gehen somit beim Workstationimport nicht verloren.
+
+ 6. Nameserver
+
+    Eigene Zonendefinitonen können in der Datei
+    /etc/bind/named.conf.local gemacht werden.  Importierte Clients
+    werden nicht mehr in die named-Konfiguration eingetragen, sondern
+    aus der dhcp konfiguration geholt.
+
+ 7. Drucken
+
+    Zur Druckereinrichtung als "administrator" auf der cups Administrationsseite einloggen.
+    Ein "PDF-Printer" ist per default eingerichtet.
+
+    Clientseitig _müssen_ Drucker über http-Protokoll eingerichtet werden, damit die
+    raumbezogene Druckerzugriffskontrolle funktioniert:
+    http://<servername>:631/printers/<Druckername>
+    Für Win98-Clients muss dazu ein Treiber installiert werden. Die Installationsdatei
+    für den "MS Internet Printing Service" (wpnpins.exe) kann von
+    http://www.microsoft.com/windows98/downloads/corporate.asp
+    heruntergeladen werden.
+    
+    Die Zuordnung von Druckern zu Räumen und einzelnen Hosts geschieht über die
+    Konfigurationsdatei /etc/linuxmuster/printers (Format siehe Kommentar in der Datei).
+    Auf Drucker, die dort nicht definiert sind, kann von allen Räumen/Hosts aus gedruckt
+    werden.
+    Der Import der Druckerzuordnungen aus dieser Datei in die CUPS-Konfiguration geschieht
+    über den Aufruf des Skripts
+    # import_printers
+
+    Die Festlegung von Druckerzuordnungen und der Import in die CUPS-Konfiguration
+    wird in erster Linie über die Schulkonsole erfolgen.
+
+ 8. Moodle
+
+    Ist so vorkonfiguriert, dass der lokale LDAP zur Authentisierung verwendet wird.
+    Eingloggen über http://server/moodle. Der Anmeldevorgang wird über https geleitet.
+    Administrator ist wwwadmin.
+    Mit sophomorix angelegte User können sich einloggen.
+    Mitglieder der Gruppe Lehrer (unis group: teachers) sind automatisch Kursersteller.
+
+ 9. Horde3/IMP4 usw.
+
+    Einloggen über http://<servername>/horde3 (/am Ende oder
+    nicht). Administrator ist wwwadmin mit dem Passwort, das bei der
+    Installation eingegeben wurde.  Das Horde-Framework mit den
+    Komponenten Imp, Ingo, Kronolith, Chora, Turba, Nag, Mnemo, Gollem
+    und Passwd vollständig konfiguriert und kann sofort in Betrieb
+    genommen werden.
+
+10. Apache2
+
+    http & https sind konfiguriert, Dokument-Root ist unter /var/www,
+    Site-Definitionen werden unter /etc/apache2/sites-available
+    hinzugefügt und durch einen Link nach /etc/apache2/sites-enabled
+    aktiviert.  mod_auth_pam ist integriert und user www-data in
+    Gruppe shadow, d.h. es kann der Verzeichnisschutz mit
+    .htaccess-Dateien verwendet werden.
+
+    Dateien können über webdavs nach /var/www/people hochgeladen und
+    publiziert werden.
+
+    Zum anschauen (windows und linux):    
+
+    https://<servername>/people/students/<username>/
+    https://<servername>/people/teachers/<username>/
+
+    Zum hochladen unter linux mit konqueror:
+
+    webdavs://<servername>/people/students/<username>/
+    webdavs://<servername>/people/teachers/<username>/
+
+    Zum Hochladen unter Windows:
+
+    Novell netdrive
+
+
+11. OpenGroupware
+
+    Nach der Installation kann man von Rechnern im Intranet mit
+    http://server/OpenGroupware einloggen.  
+
+    Administrator ist wwwadmin. Keinerlei Vorkonfiguration bislang.
+    Man muss also noch den den Template-User konfigurieren (z.Bsp.
+    deutsche Sprache einrichten, damit alle User das deutsche
+    Interface bekommen).  Angelegte Benutzer können sich einloggen und
+    damit arbeiten.
+
+
+linuxmuster-setup
+-----------------
+
+kann mit dem Parameter --first aufgerufen werden:
+
+# linuxmuster-setup --first
+
+  Veranlasst eine Neuinstallation. Alle bisher angelegten Benutzer
+  werden gelöscht. Passwörter werden neu vergeben. Alle Zertifikate
+  werden neu erstellt.
+
+Bei Aufruf ohne Parameter werden alle Konfigurationsdaten außer Passwörtern
+abgefragt. Damit können Servername, Domainname, Schulname und -ort und externe
+Netzkonfiguration geändert werden.
+Wichtig: Wenn sich Namen ändern, werden automatisch alle relevanten Zertifikate neu
+         erstellt! D.h. z.Bsp. dass alle bisher erstellten OpenVPN-Client-Zertifikate
+         ungültig werden und neu erstellt und ausgerollt werden müssen.
+
+Achtung: linuxmuster-setup erstellt derzeit kein Backup der alten Konfiguration!
+
+
+22.07.2006
+Thomas Schmitt
+<schmitt@lmz-bw.de>

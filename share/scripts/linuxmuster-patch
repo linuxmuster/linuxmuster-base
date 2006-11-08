@@ -1,0 +1,232 @@
+#!/bin/sh
+# config script for Linux-Musterloesung
+#
+# Thomas Schmitt <schmitt@lmz-bw.de>
+# GPL-2
+
+# read debconf database
+echo "Reading debconf database ..."
+for i in country state location servername domainname schoolname dsluser dslpasswd \
+         internmask internmask_short internsubrange fwconfig externtype externip externmask \
+         gatewayip dnsforwarders smtprelay sambasid adminpw pgmadminpw wwwadminpw \
+         ipcoppw workgroup; do
+  RET=`echo get linuxmuster-base/$i | debconf-communicate`
+  RET=${RET#[0-9] }
+  if [ -n "$RET" ]; then eval $i="${RET// /\\ }"; fi
+  unset RET
+done
+
+# clear admin user passwords from debconf db except cyradmpw
+for i in adminpw ipcoppw pgmadminpw wwwadminpw; do
+  RET=`echo set linuxmuster-base/$i "" | debconf-communicate`
+done
+
+# compute md5sum for adminpw
+adminpw_md5=`echo -n "${adminpw}" | md5sum | cut -c -32`
+
+# read dist.conf
+. /usr/share/linuxmuster/config/dist.conf
+
+# check for modified values
+if [ "$1" != "--first" ]; then
+  echo "Checking for modified values ..."
+  . $OLDVALUES || exit 1
+  rm $OLDVALUES
+  [ "$country" = "$country_old" ] || update_certs=yes
+  [ "$state" = "$state_old" ] || update_certs=yes
+  [ "$location" = "$location_old" ] || update_certs=yes
+  [ "$schoolname" = "$schoolname_old" ] || update_certs=yes
+  [ "$servername" = "$servername_old" ] || update_certs=yes
+  if [ "$domainname" != "$domainname_old" ]; then
+    update_certs=yes && update_ipcop_cert=yes
+  fi
+  [ "$internsubrange" = "$internsubrange_old" ] || update_ipcop_uml=yes
+  [ "$dsluser" = "$dsluser_old" ] || update_ipcop_uml=yes
+  [ "$dslpasswd" = "$dslpasswd_old" ] || update_ipcop_uml=yes
+  [ "$externtype" = "$externtype_old" ] || update_ipcop_uml=yes
+  [ "$externip" = "$externip_old" ] || update_ipcop_uml=yes
+  [ "$externmask" = "$externmask_old" ] || update_ipcop_uml=yes
+  [ "$gatewayip" = "$gatewayip_old" ] || update_ipcop_uml=yes
+  [ "$dnsforwarders" = "$dnsforwarders_old" ] || update_ipcop_uml=yes
+  [ "$fwconfig" = "$fwconfig_old" ] || update_fw=yes
+  [ "$smptrelay" = "$smtprelay_old" ] || update_smtp=yes
+fi
+
+# ip's
+internsub=`echo $internsubrange | cut -f1 -d"-"`
+orangesub=$(( $internsub+1 ))
+ovpnsub=$(( $internsub+2 ))
+internbc=`echo $internsubrange | cut -f2 -d"-"`
+serverip=10.$internsub.1.1
+serverrev_short=1.1.$internsub
+ipcopip=10.$internsub.1.254
+ipcoprev_short=254.1.$internsub
+internalnet=10.$internsub.0.0
+broadcast=10.$internbc.255.255
+ipcopblue=172.16.$internsub
+ipcoporange=172.16.$orangesub
+ipcopovpn=172.16.$ovpnsub
+
+# compute basedn from domainname
+basedn="dc=`echo $domainname|sed 's/\./,dc=/g'`"
+
+# write network settings
+echo "# linuxmuster network settings" > $NETWORKSETTINGS
+echo "serverip=\"$serverip\"" >> $NETWORKSETTINGS
+echo "ipcopip=\"$ipcopip\"" >> $NETWORKSETTINGS
+echo "internmask=\"$internmask\"" >> $NETWORKSETTINGS
+echo "internmask_short=\"$internmask_short\"" >> $NETWORKSETTINGS
+echo "internalnet=\"$internalnet\"" >> $NETWORKSETTINGS
+echo "broadcast=\"$broadcast\"" >> $NETWORKSETTINGS
+echo "ipcopblue=\"$ipcopblue\"" >> $NETWORKSETTINGS
+echo "ipcoporange=\"$ipcoporange\"" >> $NETWORKSETTINGS
+echo "ipcopovpn=\"$ipcopovpn\"" >> $NETWORKSETTINGS
+echo "basedn=\"$basedn\"" >> $NETWORKSETTINGS
+echo "smtprelay=\"$smtprelay\"" >> $NETWORKSETTINGS
+chmod 755 $NETWORKSETTINGS
+
+# assign network interfaces
+$SCRIPTSDIR/assign_interfaces.sh --type=$fwconfig --outfile=/etc/init.d/nameif || exit 1
+
+# define intern device
+if [ "$fwconfig" = "integrated" ]; then
+
+  intern=br_intern
+
+  # activate password patch for integrated ipcop
+  ipcopintpw=$ipcoppw
+
+else
+
+  intern=intern
+
+  # test if ipcop is online
+#  if ! ping -c 2 $ipcopip &> /dev/null; then
+#    echo "FATAL! Cannot connect to IPCop with IP $ipcopip!"
+#    exit 1
+#  fi
+
+fi
+
+# compute timzeone
+timezone=`stat -c %N /etc/localtime | cut -f5 -d"," | cut -f1 -d'"' | sed -e 's/\/usr\/share\/zoneinfo\///'`
+timezone=${timezone//\//\\\/}
+
+# compute server's amount of ram
+memtotal=`cat /proc/meminfo | grep MemTotal | awk -F" " '{ print $2 }' -`
+
+# split dnsforwarders
+c=1
+for i in $dnsforwarders; do
+  dnsforwarder[$c]=$i
+  let c+=1
+done
+
+# handle cyrus password
+cyradmpw=`pwgen -s 8 1`
+echo $cyradmpw > /etc/imap.secret
+chmod 600 /etc/imap.secret
+
+# handle samba SID
+if [ -z "$sambasid" ]; then
+
+  sambasid=`net getlocalsid | cut -f6 -d" "`
+
+  if [ -z "$sambasid" ]; then
+    echo "Fatal! Cannot get samba SID!"
+    exit 1
+  fi
+
+  RET=`echo set linuxmuster-base/sambasid $sambasid | debconf-communicate`
+
+fi
+
+# substitute spaces in schoolname
+schoolname=${schoolname// /_}
+
+# escaping /
+REMBOSTARTPAGE=${REMBOSTARTPAGE//\//\\\/}
+dsluser=${dsluser//\//\\\/}
+
+# date
+date=`date`
+
+# logfile
+logfile=$LOGDIR/setup.log
+echo >> $LOGDIR/setup.log
+echo "####################################################" >> $LOGDIR/setup.log
+echo "Setup session started at" >> $LOGDIR/setup.log
+echo "$date" >> $LOGDIR/setup.log
+echo "####################################################" >> $LOGDIR/setup.log
+
+echo "Logging output to $logfile ..."
+# patching conffiles
+for i in /var/lib/linuxmuster/config-dynamic/*; do
+  cd $i
+  echo "Processing $i ..."
+  # do something before the configuration is patched
+  [ -f prepatch ] && . prepatch $1 1>> $LOGDIR/setup.log 2>> $LOGDIR/setup.log
+  # process all variables through all targets
+  if ls *.target &> /dev/null; then
+    for t in *.target; do
+      eval target=`cat $t`
+      conffile=${t%.target}
+      sed -e "s/@@date@@/${date}/g
+              s/@@country@@/${country}/g
+              s/@@state@@/${state}/g
+              s/@@location@@/${location}/g
+              s/@@schoolname@@/${schoolname}/g
+              s/@@servername@@/${servername}/g
+              s/@@domainname@@/${domainname}/g
+              s/@@serverip@@/${serverip}/g
+              s/@@serverrev_short@@/${serverrev_short}/g
+              s/@@ipcopip@@/${ipcopip}/g
+              s/@@ipcoprev_short@@/${ipcoprev_short}/g
+              s/@@ipcopblue@@/${ipcopblue}/g
+              s/@@ipcoporange@@/${ipcoporange}/g
+              s/@@ipcopovpn@@/${ipcopovpn}/g
+              s/@@broadcast@@/${broadcast}/g
+              s/@@internsub@@/${internsub}/g
+              s/@@internalnet@@/${internalnet}/g
+              s/@@internmask@@/${internmask}/g
+              s/@@internmask_short@@/${internmask_short}/g
+              s/@@dsluser@@/${dsluser}/g
+              s/@@dslpasswd@@/${dslpasswd}/g
+              s/@@externtype@@/${externtype}/g
+              s/@@externip@@/${externip}/g
+              s/@@externmask@@/${externmask}/g
+              s/@@gatewayip@@/${gatewayip}/g
+              s/@@dnsforwarder1@@/${dnsforwarder[1]}/g
+              s/@@dnsforwarder2@@/${dnsforwarder[2]}/g
+              s/@@smtprelay@@/${smtprelay}/g
+              s/@@workgroup@@/${workgroup}/g
+              s/@@basedn@@/${basedn}/g
+              s/@@adminpw@@/${adminpw}/g
+              s/@@adminpw_md5@@/${adminpw_md5}/g
+              s/@@cyradmpw@@/${cyradmpw}/g
+              s/@@ipcoppw@@/${ipcopintpw}/g
+              s/@@sambasid@@/${sambasid}/g
+              s/@@timezone@@/${timezone}/g
+              s/@@domadmin@@/${DOMADMIN}/g
+              s/@@domadmins@@/${DOMADMINS}/g
+              s/@@administrator@@/${ADMINISTRATOR}/g
+              s/@@printeradmins@@/${PRINTERADMINS}/g
+              s/@@admingroup@@/${ADMINGROUP}/g
+              s/@@teachersgroup@@/${TEACHERSGROUP}/g
+              s/@@wwwadmin@@/${WWWADMIN}/g" $conffile > $target
+    done
+  fi
+  # do something after the configuration is patched
+  [ -f postpatch ] && . postpatch $1 1>> $LOGDIR/setup.log 2>> $LOGDIR/setup.log
+done
+
+# finish logging
+echo >> $LOGDIR/setup.log
+echo "####################################################" >> $LOGDIR/setup.log
+echo "Setup session finished at" >> $LOGDIR/setup.log
+date >> $LOGDIR/setup.log
+echo "####################################################" >> $LOGDIR/setup.log
+
+unset HISTSIZE HISTFILESIZE
+
+exit 0

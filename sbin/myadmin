@@ -1,0 +1,1703 @@
+#!/usr/bin/ruby -w
+
+def isWindows
+  RUBY_PLATFORM =~ /win/
+end
+
+def isUnix
+  RUBY_PLATFORM !~ /win/
+end
+
+require "optparse"
+require "ostruct"
+require "fileutils"
+require 'md5'
+require 'csv'
+require 'iconv'
+require 'Win32API' if isWindows
+require 'Win32/registry'if isWindows
+
+$TIMESTAMP = Time.now.strftime('%Y-%m-%d,%H-%M-%S')
+$BACKUPDIR = ""
+
+#DEFAULT_CONFIG='/usr/share/linuxmuster/config/wimport.conf' if File.directory?("/etc/linuxmuster")
+DEFAULT_CONFIG=''
+
+##############################################################################
+#                            Common functions                                #
+##############################################################################
+
+# Display info message
+def info(text)
+  puts "#{syspath(_(text))}"
+end
+
+# Display warning message
+def warn(text)
+  $stderr.puts "Warnung: #{syspath(_(text))}"
+end
+
+# Display error message
+def error(text)
+  $stderr.puts "Fehler: #{syspath(_(text))}"
+end
+
+# Display error message and exit
+def fatal(text, code = -1)
+  $stderr.puts "Fehler: #{syspath(_(text))}"
+  exit(code)
+end
+
+# Search files in multiple directories and return path of first existing file
+def config_file(*files)
+  search_path = [ "." ]          # aktuelles Verzeichnis
+  search_path << File.join(File.expand_path(RUBYSCRIPT2EXE_TEMPDIR), 'lib') if defined?(RUBYSCRIPT2EXE_TEMPDIR)
+
+  files.each do
+    |file|
+    next if file.strip.empty?
+    search_path.each do
+      |path|
+      path = File.expand_path(File.join(path, file))
+      return path if File.exists?(path)
+    end
+  end
+  ''
+end
+
+# Functions for accessing the registry in Windows
+if isWindows
+  # Split key into registry hive and path
+  def reg_hive(key)
+    if key =~ /^HKEY_LOCAL_MACHINE\\(.*)/i
+      hive = Win32::Registry::HKEY_LOCAL_MACHINE
+      key = $1
+    elsif key =~ /^HKEY_CURRENT_USER\\(.*)/i
+      hive = Win32::Registry::HKEY_CURRENT_USER
+      key = $1
+    else
+      hive = Win32::Registry::HKEY_LOCAL_MACHINE
+    end
+    return [hive, key]
+  end
+  # Read value
+  def reg_read(key, value)
+    hive, key = reg_hive(key)
+    data = ''
+    begin
+      data = hive.open(key) { |h| h.read(value)[1] }
+    rescue
+      data
+    end
+  end
+  # Write value
+  def reg_write(key, value, data)
+    hive, key = reg_hive(key)
+    case data.class.to_s
+      when "Fixnum": type = Win32::Registry::REG_DWORD
+      when "String": type = Win32::Registry::REG_SZ
+    end
+    begin
+      hive.open(key, Win32::Registry::KEY_ALL_ACCESS) { |h| h.write(value, type, data) }
+    rescue
+    end
+  end
+  # Enumerate all sub-keys
+  def reg_keys(key)
+    hive, key = reg_hive(key)
+    begin
+      hive.open(key, Win32::Registry::KEY_ALL_ACCESS) { |h| h.keys() }
+    rescue
+      []
+    end
+  end
+  # Create a new key
+  def reg_create(key, name)
+    hive, key = reg_hive(key)
+    begin
+      hive.open(key, Win32::Registry::KEY_ALL_ACCESS) { |h| h.create(name) }
+    rescue
+    end
+  end
+  # Delete a value
+  def reg_delete_value(key, value)
+    hive, key = reg_hive(key)
+    begin
+      hive.open(key, Win32::Registry::KEY_ALL_ACCESS) { |h| h.delete_value(value) }
+    rescue
+    end
+  end
+  # Delete a key
+  def reg_delete_key(key, name)
+    hive, key = reg_hive(key)
+    begin
+      hive.open(key, Win32::Registry::KEY_ALL_ACCESS) { |h| h.delete_key(name, true) }
+    rescue
+    end
+  end
+end
+
+# Check if the given string is a valid IP address
+def is_ip?(ip)
+  oct = ip.split(".")
+  return nil if oct.size != 4
+  oct.each { |x| return false if not x.to_i.between?(0, 255) }
+  true
+end
+
+# Convert a string representing an IP address into its integer equivalent
+def ip_to_int(ip)
+  return nil if not is_ip?(ip)
+  oct = ip.split(".").map { |o| o.to_i }
+  (oct[0] << 24) + (oct[1] << 16) + (oct[2] << 8) + oct[3]
+end
+
+# Convert an integer IP address into its string representation
+def int_to_ip(int)
+  return (int >> 24).to_s + "." + (int >> 16 & 255).to_s + "." + (int >> 8 & 255).to_s + "." + (int & 255).to_s
+end
+
+# Create backup of file
+def backup(file)
+  return true if not File.exists?(file)
+  if not defined?($BACKUPDIR) or $BACKUPDIR.to_s.empty?
+    begin
+      FileUtils.cp file, "#{file}.#{$TIMESTAMP}"
+    rescue
+      error "Fehler beim Kopieren von '#{file}' nach '#{file}.#{$TIMESTAMP}': "+$!
+      return false
+    end
+    return true
+  end
+  begin
+    FileUtils.mkdir_p($BACKUPDIR)
+  rescue
+    error "Kann #{$BACKUPDIR} nicht erzeugen!"
+    return false
+  end
+
+  dst = File.expand_path(File.join($BACKUPDIR, File.basename(file)))
+  begin
+    FileUtils.cp file, dst
+  rescue
+    error "Fehler beim Kopieren von '#{file}' nach '#{dst}': "+$!
+    return false
+  end
+  true
+end
+
+# Try to detect the Rembo path and set $BACKUPDIR accordingly
+def detect_rembo_path(abort = false)
+  if isWindows
+    reg = 'HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\RemboServer\Parameters'
+    path = reg_read(reg, 'BaseDir').to_s
+  else
+    path = nil
+  end
+  if not path.nil?
+    path = File.expand_path(path)
+    $BACKUPDIR = File.join(path, 'files/global/myshn/backup', $TIMESTAMP)
+  elsif abort
+    $stderr.puts "Fehler: Der Rembo Pfad wurde nicht gefunden!"
+    exit(-1)
+  end
+  path
+end
+
+# Convert text from latin1 zu cp850 (DOS) codepage
+def to850(text)
+  begin
+    Iconv.new("cp850", "latin1").iconv(text)
+  rescue
+    ''
+  end
+end
+
+# Convert text into the appropriate codepage for the current platform
+def _(text)
+  return text if RUBY_PLATFORM !~ /win/
+  to850(text)
+end
+
+# Format path for display (path separator / in Unix, \ in Windows)
+def syspath(path)
+  if RUBY_PLATFORM =~ /win/
+    path.gsub('/', '\\')
+  else
+    path
+  end
+end
+
+##############################################################################
+#                            Import classes                                  #
+##############################################################################
+
+# Each instance of this class stores the elements of one row of import data
+class ImportDataRow
+  attr_reader :header, :line_number, :isWimportData
+
+  # Arguments:
+  #   - header: table header (string array)
+  #   - row: row.data = columns (string array), row.line_number = line number
+  #   - isWimportData: if true, enable special support for LML import format
+  def initialize(header, row, isWimportData, mapping)
+    @header = header
+    # column data indexed by column header (data[COLUMN_HEADER] = COLUMN_DATA)
+    @data = Hash.new
+
+    # this array stores columns that have no column header
+    @data[''] = Array.new
+    @line_number = row.line_number
+    @isWimportData = isWimportData
+    @mapping = mapping
+
+    # Iterate over columns
+    row.data.each_with_index do
+      |column,i|
+      # Store column data
+      @data[@header[i].to_s] = column.strip
+    end
+  end
+
+  # Return column data as CSV line
+  def csv(sep = ';')
+    # Apply any column transformations that were defined
+    op = 'write'
+    @header.each do
+      |h|
+      next if not @mapping[h]
+      data = @data[h]
+      begin
+        eval @mapping[h].code.join("\n")
+      rescue
+      end
+      @data[h] = data
+    end
+
+    line = CSV.generate_line(@header.collect { |h| @data[h].to_s } + @data[''], sep)
+    if @isWimportData
+      line.gsub!(/""/, '')
+    end
+    line
+  end
+
+  # Returns the column index for the given header
+  def column(name)
+    @header.index(name)
+  end
+
+  # Returns true if a column with the given name exists
+  def has_column?(name)
+    !@header.index(name).nil?
+  end
+
+  # Access columns using struct notation (e.g., ip = instance.IPADDRESS)
+  # For non-existing columns, an empty string is returned
+  def method_missing(name, *args)
+    # Get header name
+    name = name.id2name
+    if name =~ /(.+)=$/
+      raise ArgumentError, "Falsche Anzahl von Argumenten (#{args.size} statt 1)", caller(1) if args.size != 1
+      if @data[$1]
+        # Set column data
+        @data[$1] = args[0]
+      else
+        raise "Unbekannter Wert/Methode '#{name}'"
+      end
+    else
+      # Return column data
+      @data[name].to_s
+    end
+  end
+
+  # Get column data using hash notation (e.g., ip = instance["IPADDRESS"])
+  # For non-existing columns, an empty string is returned
+  def [](name)
+    @data[name].to_s
+  end
+
+  # Set column data using hash notation (e.g., instance["IPADDRESS"] = ip)
+  def []=(name, value)
+    @data[name] = value
+  end
+
+  # Verify data consistency
+  def verify
+    @errors = []
+    @errors << _("Zeile #{@line_number}: Ungültiger Rechnername") if has_column?("HOSTNAME") and @data['HOSTNAME'].to_s !~ /^[A-Za-z_][\w_-]*$/
+    @errors << _("Zeile #{@line_number}: Fehlende oder ungültige IP Adresse") if has_column?('IPADDRESS') and not is_ip?(@data['IPADDRESS'].to_s)
+    @errors << _("Zeile #{@line_number}: Fehlende oder ungültige Subnetzmaske") if has_column?('NETMASK') and not is_ip?(@data['NETMASK'].to_s)
+    @errors << _("Zeile #{@line_number}: Ungültige MAC Adresse") if has_column('MACADDRESS') and @data['MACADDRESS'].delete(':') !~ /^[0-9A-F]{12}$/i
+
+    if has_column?('REMBOOPT') and @data['ENTRY'].index('R')
+      opts = @data['REMBOOPT'].split(/\s*,\s*/) - %w/unicast noudma admin nocache/
+      @errors << _("Zeile #{@line_number}: Ungültige Rembo Option: "+opts.join(", ")) if not opts.empty?
+    end
+    # LML spezifisch
+    if @isWimportData
+      @errors << _("Zeile #{@line_number}: Ungültiger Raum") if @data['ROOM'].empty?
+      @errors << _("Zeile #{@line_number}: Ungültige Imagegruppe") if @data['IMAGEGROUP'].empty? and @data['ENTRY'].index('R')
+    end
+    @errors
+  end
+
+  # Normalize column data
+  def normalize
+    # Colonize and capitalize MAC address (e.g., 001122aabbcc -> 00:01:02:AA:BB:CC)
+    if has_column?('MACADDRESS')
+      mac = @data['MACADDRESS'].to_s.delete('-:').strip.upcase
+      @data['MACADDRESS'] = mac.gsub(/(..)/, '\\1:')[0..-2] if mac =~ /^[0-9A-F]{12}$/
+    end
+
+    # Normalize IP address (e.g., 10.1.010.09 -> 10.1.10.9)
+    @data['IPADDRESS'] = int_to_ip(ip_to_int(@data['IPADDRESS'].to_s)) if has_column?('IPADDRESS') and is_ip?(@data['IPADDRESS'])
+
+    # Convert subnet mask from CIDR notation to dotted decimal notation, e.g. 8 -> 255.0.0.0)
+    @data['NETMASK'] = int_to_ip((2**(32-@data['NETMASK'].to_i))-1) if has_column?('NETMASK') and @data['NETMASK'].to_s =~ /^[\d][\d]?$/
+
+    # Normalize subnet mask (e.g., 255.0.0.000 -> 255.0.0.0)
+    @data['NETMASK'] = int_to_ip(ip_to_int(@data['NETMASK'])) if has_column?('NETMASK') and is_ip?(@data['NETMASK'])
+
+    # Normalize groups ("g1,g2,, g3,  g4" -> "g1,g2,g3,g4")
+    @data['IMAGEGROUP'] = (@data['IMAGEGROUP'].to_s.split(/\s*,\s*/) - [""]).uniq.join(",") if has_column?('IMAGEGROUP')
+    @data['MANAGEGROUP'] = (@data['MANAGEGROUP'].to_s.split(/\s*,\s*/) - [""]).uniq.join(",") if has_column?('MANAGEGROUP')
+
+    # Normalize Rembo options ("unicast, , NoUDMA" -> "unicast,noudma")
+    @data['REMBOOPT'] = (@data['REMBOOPT'].to_s.split(/,/).map { |g| g.strip.downcase } - [""]).sort.uniq.join(",") if has_column?('REMBOOPT')
+  end
+end
+
+class ImportData
+  attr_reader :header, :errors
+  def initialize(file, header = [], field_separator = '', min_fields = nil)
+    @isWimportData = (File.basename(file) =~ /^wimport_data$/i)
+    lines = File.readlines(file)
+
+    if @isWimportData
+      header = [ "Raum", "Rechnername", "Imagegruppe", "MAC Adresse", "IP Adresse", "Netzmaske", "Dummy1", "Dummy2", "Dummy3", "Dummy4", "Eintrag", "Rembo Optionen" ]
+      field_separator=';'
+      min_fields = header.size - 1 # "Rembo options" column is optional
+    else
+      header = []
+      field_separator=''
+    end
+
+    @header = header
+    @field_separator = field_separator
+    @min_fields = min_fields
+    @rows = []
+    @errors = []
+
+    lines.each_with_index do
+      |line,line_number|
+      line = line.chomp.strip
+      next if line =~ /^($|#)/   # Skip empty and comment lines
+      line_number = line_number + 1  # Display line numbers as starting from 1, not 0
+      if @header.empty?
+        if @field_separator.empty?
+          # Try to detect the field separator by splitting the line using various
+          # separators and using the one that results in most fields
+          s1 = begin CSV.parse_line(line, ',') rescue [] end
+          s2 = begin CSV.parse_line(line, ';') rescue [] end
+          if s1.size > s2.size
+            @field_separator = ','
+          else
+            @field_separator = ';'
+          end
+          if (s1 < 3 and s2 < 3)
+            errors << "Das Spaltentrennzeichen (, oder ;) wurde nicht erkannt."
+            return
+          end
+        end
+        @header = begin
+          CSV.parse_line(line, @field_separator)
+          @min_fields = header.size if import.min_fields.nil?
+        rescue
+          []
+        end
+        if @header.empty?
+          errors << "Der Tabellenheader wurde nicht erkannt."
+          return
+        end
+        next
+      end
+      row = begin CSV.parse_line(line, @field_separator) rescue nil end
+      if row.nil?
+        @errors << "Zeile #{line_number}: Ungültiges Format"
+      elsif row.size < @min_fields
+        @errors << "Zeile #{line_number}: Zuwenig Spalten"
+      else
+        row.map! { |col| col.to_s }
+        @rows << OpenStruct.new({ 'data' => row, 'line_number' => line_number })
+      end
+    end
+    @mapping = read_field_mapping_conf
+    @header_original = @header
+    @header.each_with_index do
+      |head, hidx|
+      @mapping.each_pair do
+        |key, value|
+        value.alias.each do
+          |a|
+          if head.downcase.gsub(/\s/, '') =~ Regexp.new("^"+a.downcase.gsub(/\s/, '')+"$")
+            @header[hidx] = key
+            break 2
+          end
+        end
+      end
+    end
+    # Check if essential columns were defined
+    errors << "HOSTNAME Spalte nicht gefunden" if not header.index('HOSTNAME')
+    errors << "IPADDRESS Spalte nicht gefunden" if not header.index('IPADDRESS')
+    errors << "NETMASK Spalte nicht gefunden" if not header.index('NETMASK')
+    # Apply any column transformations that were defined
+    op = 'read'
+    @rows.each_with_index do
+      |row, irow|
+      row.data.each_with_index do
+        |col, icol|
+        next if not @header[icol]
+        next if not @mapping[@header[icol]]
+        next if @mapping[@header[icol]].code.empty?
+        data = @rows[irow].data[icol]
+        begin
+          eval @mapping[@header[icol]].code.join("\n")
+        rescue
+          errors << "Zeile #{line_number}, Spalte #{icol+1}: Mapping error: "+$!
+        end
+        @rows[irow].data[icol] = data
+      end
+    end
+    @rows.map! { |row| ImportDataRow.new(@header, row, @isWimportData, @mapping) }
+  end
+  def size
+    @rows.size
+  end
+  def each(disabled_hosts = false)
+    @rows.each { |row| yield row if row.DISABLED.empty? or disabled_hosts }
+  end
+  def each_with_index(disabled_hosts = false)
+    @rows.each_with_index { |row,i| yield row, i if row.DISABLED.empty? or disabled_hosts }
+  end
+  def each_rembo_host
+    @rows.each { |row| yield row if row.DISABLED.empty? and not row.IPADDRESS.empty? and not row.MACADDRESS.empty? and not row.HOSTNAME.empty? and (row.ENTRY.empty? or row.ENTRY.index("R")) }
+  end
+  # Generate CSV
+  def csv(sep = ';')
+    ([ CSV.generate_line(@header_original, sep) + "\n" ] + @rows.collect { |row| row.csv(sep) }).join("\n")
+  end
+  def verify
+    @errors = []
+    @rows.each { |row| row.verify.each { |e| @errors << e } }
+    if @header.index("MACADDRESS")
+     # macs = Hash.new([])
+     # FIXME: Doppelte ... in Zeilen 1, 2, 10, 20
+     # @rows.each do { |row| macs << row.line_number if not row.MACADDRESS.empty? }
+     # @errors << "Zeile #{line_number}: Doppelte MAC Adresse" if macs[row.MACADDRESS] and not row.MACADRESS.empty?
+     # macs[row.MACADDRESS] = true 
+    end
+    @errors
+  end
+  def normalize
+    @rows.each { |row| row.normalize }
+  end
+end
+
+# Lese field_mapping.conf
+def read_field_mapping_conf(file = nil)
+  default_field_mapping = <<EOFM
+    [HOSTNAME]
+    Alias Rechnername
+
+    [IPADDRESS]
+    Alias IP Adresse, ip address
+
+    [NETMASK]
+    Alias Netzmaske, Subnetzmaske, subnetmask
+
+    [MACADDRESS]
+    Alias MAC, MAC Adresse, mac address
+
+    [ROOM]
+    Alias Raum
+
+    [DISABLED]
+    Alias Deaktiviert
+
+    [ENTRY]
+    Alias Eintrag, entries
+    if @isWimportData
+      if op == "read"
+        if data == "22"
+          data = "RD"
+        else
+          data = "D"
+        end
+      else
+        if data == "RD"
+          data = "22"
+        else
+          data = "0"
+        end
+      end
+    end
+
+    [PRINTER]
+    Alias Drucker, printers
+
+    [IMAGEGROUP]
+    Alias Imagegruppe, Imagegruppen, image group, image groups
+
+    [MANAGEGROUP]
+    Alias Verwaltungsgruppe, Verwaltungsgruppen, management group, management groups
+
+    [RESOLUTION]
+    (Bildschirm)?Aufloesung, (Bildschirm)?Auflösung, display resolution
+
+    [USERNAME]
+    Alias Benutzername, user name
+
+    [PASSWORD]
+    Alias Kennwort, Passwort
+
+    [DOMAIN]
+    Alias Domaene, Domäne
+
+    [AUTOLOGON]
+    Alias Automatische Anmeldung, auto logon
+
+    [DHCPOPT]
+    Alias DHCP Option, DHCP Optionen
+
+    [REMBOOPT]
+    Alias Rembo Option, Rembo Optionen
+EOFM
+
+  mapping = Hash.new
+  scope = ''
+  if file.to_s.strip.empty?
+    lines = default_field_mapping.split(/\r?\n/)
+    file = "DEFAULT"
+  else
+    begin
+      lines = File.readlines(file)
+    rescue
+      fatal "Kann Feldzuordnungsdatei '#{file}' nicht lesen: " + $!
+    end
+  end
+  lines.each_with_index do
+    |line, i|
+    line = line.chomp.strip
+    next if line =~ /^($|#)/  # Skip empty and comment lines
+
+    # Check if a new block is started
+    if line =~ /^\[(.+)\]$/
+      scope = $1
+      raise "Ungueltiges Zeichen in Bezeichner in #{file}, Zeile #{i+1}" if scope !~ /^[A-Z]+$/
+      mapping[scope] = OpenStruct.new if mapping[scope].nil?
+      mapping[scope].alias = []
+      mapping[scope].code = []
+      next
+    end
+    raise "Daten ausserhalb Block in #{file}, Zeile #{i+1}" if scope.empty?
+    if line =~ /^Alias\s+(.+)$/i
+      $1.split(',').each { |a| mapping[scope].alias << a.strip if not a.strip.empty? }
+    else
+      mapping[scope].code << line
+    end
+  end
+  mapping
+end
+
+class WorkstationImport
+  def initialize(command = nil)
+    # Lese Konfigurationsdatei
+    file = ""
+    if not $config.config_file.empty?
+      file = config_file($config.config_file.empty?)
+      fatal "Kann '#{$config.config_file}' nicht öffnen!" if file.empty?
+    end
+
+    if not file.empty?
+      begin
+        lines = File.readlines(file)
+      rescue
+        fatal "Fehler beim Lesen von #{file}: #{$!}"
+      end
+    else
+      lines = []
+    end
+
+    lines.each do
+      |line|
+      line = line.chomp.strip
+      next if line =~ /^($|#)/
+      name, value = line.split(/\s+/, 2)
+      value = value.to_s
+      name.downcase!
+      case name
+        when "importfile":          $config.import_file = value.strip if $config.import_file.empty?
+        when "fieldmapping":        $config.field_mapping = value.strip if $config.field_mapping.empty?
+        when "rembopath":           $config.rembo_path = value.strip if $config.rembo_path.empty?
+        when "myshnpath":           $config.myshn_path = value.strip if $config.myshn_path.empty?
+        when "remboconf":           $config.rembo_conf = value.strip if $config.rembo_conf.empty?
+        when "dhcpconf":            $config.dhcp_conf = value.strip if $config.dhcp_conf.empty?
+        when "hostgroupconf":       $config.hostgroup_conf = value.strip if $config.hostgroup_conf.empty?
+        when "hostgroupheader":     $config.hostgroup_header = value.strip if $config.hostgroup_header.empty?
+        when "hostgroupfooter":     $config.hostgroup_footer = value.strip if $config.hostgroup_footer.empty?
+        when "dhcptype":            $config.dhcp_type = value.strip if $config.dhcp_type.empty?
+        when "dhcpimport":          $config.dhcp_import = true
+        when "option":              value.split(',').each { |opt| $config.option[opt.strip.upcase] = true }
+        when "plugin":              $config.plugin << value if not value.strip.empty?
+        when "afterimport":         $config.after_import << value if not value.strip.empty?
+      end
+    end
+
+    if $config.rembo_path.empty?
+      $config.rembo_path = detect_rembo_path()
+      if $config.rembo_path.to_s.empty?
+        fatal "Die Rembo-Pfad wurde über die automatische Erkennung nicht gefunden."
+      end
+    end
+
+    # Normalisiere Pfad (absoluter Pfad mit OS-unabhängigen Pfadtrennzeichen)
+    $config.rembo_path = File.expand_path($config.rembo_path)
+    $config.import_file = File.expand_path($config.import_file) if not $config.import_file.empty?
+    $config.dhcp_conf = File.expand_path($config.dhcp_conf) if not $config.dhcp_conf.empty?
+    $config.hostgroup_conf = File.expand_path($config.hostgroup_conf) if not $config.hostgroup_conf.empty?
+    $config.hostgroup_header = File.expand_path($config.hostgroup_header) if not $config.hostgroup_header.empty?
+    $config.hostgroup_footer = File.expand_path($config.hostgroup_footer) if not $config.hostgroup_footer.empty?
+    $config.field_mapping = File.expand_path($config.field_mapping) if not $config.field_mapping.empty?
+
+    return if (command == "init")
+
+    [
+      $config.import_file,
+      $config.hostgroup_header,
+      $config.hostgroup_footer,
+      $config.field_mapping
+    ].each do
+      |file|
+      fatal "Die Datei #{file} kann nicht gelesen werden!" if not file.empty? and (not File.readable?(file) or not File.file?(file))
+    end
+
+
+    fatal "#{$config.rembo_path} ist keine Rembo Installation" if not $config.rembo_path.empty? and not File.exists?(File.join($config.rembo_path, "files/global"))
+    if isWindows and $config.rembo_conf.to_s.empty?
+      $config.rembo_conf = 'HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Services\\RemboServer\\Parameters'
+    end
+    if isUnix and $config.rembo_conf.to_s.empty?
+      $config.rembo_conf = File.join($config.rembo_path, 'rembo.conf')
+    end
+    $config.myshn_path = File.join($config.rembo_path, 'files/global/myshn') if $config.myshn_path.empty?
+    fatal "#{$config.myshn_path} ist keine mySHN Installation" if not $config.myshn_path.empty? and not File.exists?(File.join($config.myshn_path, "bin/library.debug.rbx"))
+
+    $config.gimport_file = File.expand_path(File.join($config.import_file, "../gimport_data"))
+    $config.hostgroup_conf = File.join($config.myshn_path, 'hostgroup.conf') if $config.hostgroup_conf.empty?
+    if $config.dhcp_conf.empty?
+      if isUnix
+        $config.dhcp_conf = File.expand_path("/etc/dhcpd.conf.hosts")
+      else
+        $config.dhcp_conf = File.expand_path("dhcp_import.txt")
+      end
+    end
+
+    if $config.dhcp_type.empty?
+      if isWindows
+        $config.dhcp_type = 'ms'
+      else
+        $config.dhcp_type = 'isc'
+      end
+    end
+
+    $BACKUPDIR = File.join($config.myshn_path, 'backup/wimport', $TIMESTAMP)
+
+    case command
+      when 'import'
+        run_update = !File.exists?($config.gimport_file)
+        if File.exists?(File.join($config.myshn_path, 'cached/mc.semaphore'))
+          run_update = true
+          File.delete(File.join($config.myshn_path, 'cached/mc.semaphore'))
+        end
+        if run_update and File.basename($config.import_file) == 'wimport_data'
+          $config.gimport_only = true
+          update_wimport
+        end
+        import_workstations
+      when 'update'
+        update_wimport
+      else
+        fatal "Unbekanntes Kommando #{command}!"
+    end
+  end
+
+  def import_workstations
+    info "Führe Workstation-Import durch:"
+    info "  * Lese #{$config.import_file}"
+    rows = ImportData.new($config.import_file)
+    rows.normalize
+    errors = rows.errors + rows.verify
+    if not errors.empty?
+      puts
+      error "Fehler beim Einlesen:"
+      errors.each { |e| $stderr.puts "  #{e}" }
+      exit(-1)
+    end
+
+    info "  * Lege Sicherheitskopien an (#{$TIMESTAMP})"
+    err  = !backup($config.import_file)
+    err |= !backup($config.dhcp_conf)
+    err |= !backup($config.rembo_conf) if rows.header.index("REMBOOPT") and isUnix
+    err |= !backup($config.hostgroup_conf) unless $config.hostgroup_conf.nil? or $config.hostgroup_conf.empty?
+    fatal "Keine Änderungen vorgenommen!" if err
+
+    if not $config.dhcp_conf.to_s.empty?
+      info "  * Schreibe DHCP Konfiguration #{$config.dhcp_conf}"
+      File.open($config.dhcp_conf, 'w') do
+        |out|
+        rows.each do
+          |row|
+          next if row.IPADDRESS.empty? or row.MACADDRESS.empty? or row.HOSTNAME.empty?
+          if row.ENTRY.empty? or row.ENTRY.index("D")
+            if $config.dhcp_type =~ /^isc$/i
+              out.puts "host #{row.HOSTNAME} {"
+              out.puts "  hardware ethernet #{row.MACADDRESS};"
+              out.puts "  fixed-address #{row.IPADDRESS};";
+              out.puts "  option host-name \"#{row.HOSTNAME}\";";
+              if not row.DHCPOPT.empty?
+                row.DHCPOPT.split(';').each { |o| out.puts "  #{o.strip};" if not o.strip.empty? }
+              end
+              out.puts "}"
+            elsif $config.dhcp_type == 'ms'
+              next if row.NETMASK.empty?
+              scope = int_to_ip(ip_to_int(row.IPADDRESS) & ip_to_int(row.NETMASK))
+              out.puts "Dhcp Server Scope #{scope} Add reservedip #{row.IPADDRESS} #{row.MACADDRESS.delete(':')} \"#{row.HOSTNAME}\" \"#{row.HOSTNAME}\" \"DHCP\""
+              out.puts "Dhcp Server Scope #{scope} Set reservedoptionvalue #{row.IPADDRESS} 12 STRING \"#{row.HOSTNAME}\""
+            end
+          end
+        end
+      end
+    end
+
+    # rembo.conf
+    if rows.header.index("REMBOOPT") and not $config.rembo_conf.empty?
+      if $config.rembo_conf =~ /HKEY/
+        info "  * Schreibe Rembo Konfiguration: [Registry]"
+      else
+        info "  * Schreibe Rembo Konfiguration: #{$config.rembo_conf}"
+      end
+      options = Hash.new
+      rows.each_rembo_host do
+        |row|
+        options[row.REMBOOPT] = Array.new if options[row.REMBOOPT].nil?
+        options[row.REMBOOPT] << row
+      end
+      lines = Array.new
+      if isWindows
+        if $config.option['REMOVEOBSOLETEHOSTS']
+          reg_delete_key($config.rembo_conf, 'Hosts')
+          reg_create($config.rembo_conf, "Hosts")
+        end
+        reg_keys($config.rembo_conf+'\Groups').each do
+          |group|
+          reg_delete_key($config.rembo_conf+"\\Groups", group) if group =~ /^import/
+        end
+      end
+      options.keys.sort.each do
+        |opt|
+        name = ''
+        name = name + 'u' if opt =~ /unicast/i
+        name = name + 'n' if opt =~ /noudma/i
+        name = name + 'a' if opt =~ /admin/i
+        name = name + 'c' if opt =~ /nocache/i
+        if name.empty?
+          name = 'import'
+        else
+          name = "import_#{name}"
+        end
+
+        if isUnix
+          lines.push "GROUP #{name} {"
+          lines.push '  StartPage "cache://global/myshn/bin/start.shtml"'
+          lines.push "  Options #{opt}" if !opt.empty?
+          lines.push ""
+          options[opt].each do
+            |row|
+            lines.push "  Host #{row.MACADDRESS}   # IP: #{row.IPADDRESS.ljust(15)}  Name: #{row.HOSTNAME}"
+          end
+          lines.push "}"
+        else
+          optmask = 0
+          optmask |= 1 if name =~ /import_.*a/
+          optmask |= 8 if name =~ /import_.*u/
+          optmask |= 16 if name =~ /import_.*n/
+          optmask |= 32 if name =~ /import_.*c/
+
+          reg_delete_key($config.rembo_conf+'\Groups', name)
+          reg_create($config.rembo_conf+'\Groups', name)
+          reg_write($config.rembo_conf+"\\Groups\\"+name, "StartPage", "cache://global/myshn/bin/start.shtml")
+          if optmask.zero?
+            reg_delete_value($config.rembo_conf+"\\Groups\\"+name, "Options")
+          else
+            reg_write($config.rembo_conf+"\\Groups\\"+name, "Options", optmask.to_s)
+          end
+
+          reg_create($config.rembo_conf,"Hosts")
+          options[opt].each do
+            |row|
+            reg_delete_key($config.rembo_conf+"\\Hosts", "ip_#{row.IPADDRESS}")
+            reg_create($config.rembo_conf+"\\Hosts", "ip_#{row.IPADDRESS}")
+            reg_write($config.rembo_conf+"\\Hosts\\ip_#{row.IPADDRESS}", "Group", name)
+          end
+        end
+      end
+      if isUnix
+        rc = File.readlines($config.rembo_conf)
+        File.open($config.rembo_conf, "w") do
+          |out|
+          rc.each do
+            |line|
+            out.puts line
+            if line =~ /^\s*(#.*WIMPORT|#####)/
+              out.puts lines
+              break
+            end
+          end
+        end
+      end
+    end
+
+    # hostgroup.conf
+    if not $config.hostgroup_conf.to_s.empty?
+      gimport = []
+      if File.exists?($config.gimport_file)
+        File.readlines($config.gimport_file).each_with_index do
+          |line,n|
+          line = line.chomp.strip
+          next if line =~ /^($|#)/ # Skip empty and comment lines
+
+          if line =~ /^\s*GROUP\s+([^\s]+)/i
+            gimport << {"id" => $1, "label" => "", "type" => "", "batchid" => "", "member" => []}
+            next
+          end
+          if gimport.size == 0
+            fatal "Schlüsselwort ausserhalb Gruppendefinition in Zeile #{n+1} von #{$config.gimport_file}"
+            next
+          end
+          if line =~ /^\s*(Label|Type|BatchID)\s+(.+)/i
+            gimport[gimport.size-1][$1.downcase] = $2;
+            next
+          end
+          if line =~ /Member\s+([^\s]+)/i
+            next if gimport.size == 0
+            gimport[gimport.size-1]["member"] << $1
+            next
+          end
+          fatal "Unbekanntes Schlüsselwort in Zeile #{n+1} von #{$config.gimport_file}"
+        end
+      end
+
+      info "  * Schreibe mySHN Gruppenkonfiguration: #{$config.hostgroup_conf}"
+      File.open($config.hostgroup_conf, 'w') do
+        |out|
+        File.readlines($config.hostgroup_header).each { |line| out.puts line } if File.exists?($config.hostgroup_header)
+
+        hg_i = Hash.new
+        hg_m = Hash.new
+        hg_r = Hash.new
+        rows.each_rembo_host do
+          |row|
+          if not row.IMAGEGROUP.empty?
+            row.IMAGEGROUP.each do
+              |g|
+              hg_i[g.downcase] = { "id" => g, "member" => [] } if hg_i[g.downcase].nil?
+              hg_i[g.downcase]["member"] << row.HOSTNAME
+            end
+          end
+          if not row.MANAGEGROUP.empty?
+            row.MANAGEGROUP.each do
+              |g|
+              hg_m[g.downcase] = { "id" => g, "member" => [] } if hg_m[g.downcase].nil?
+              hg_m[g.downcase]["member"] << row.HOSTNAME
+            end
+          end
+          if not row.ROOM.empty? and not $config.option["NOROOMGROUPS"]
+            room = row.ROOM
+            hg_r[room.downcase] = { "id" => room, "member" => [] } if hg_r[room.downcase].nil?
+            hg_r[room.downcase]["member"] << row.HOSTNAME
+          end
+        end
+
+        groups = []
+        gimport.each do
+          |group|
+          groups << group["id"].downcase
+        end
+        groups = (groups + hg_r.keys + hg_i.keys + hg_m.keys).uniq
+        groups.each do
+          |group|
+          members = []
+          name = ""
+          label = ""
+          type = nil
+          batchid = ""
+          gimport.each do
+            |g|
+            if g["id"].downcase == group
+              members << g["member"]
+              label = g["label"]
+              label = g["id"] if label.empty?
+              name = g["id"]
+              type = g["type"] unless g["type"].empty?
+              batchid = g["batchid"]
+              break
+            end
+          end
+
+          if hg_r[group]
+            hg_r[group]["member"].each { |member| members << "HOSTNAME:#{member}" }
+            hg_r.delete(group)
+            type = "" if type.nil?
+          end
+          if hg_i[group]
+            hg_i[group]["member"].each { |member| members << "HOSTNAME:#{member}" }
+            hg_i.delete(group)
+            type = "" if type.nil?
+          end
+          if hg_m[group]
+            hg_m[group]["member"].each { |member| members << "HOSTNAME:#{member}" }
+            hg_m.delete(group)
+            type = "manage,settings" if type.nil?
+          end
+          members.uniq!
+
+          name = group if name.empty?
+          label = name if label.empty?
+
+          members.flatten!
+          if members.size > 0
+            out.puts "HostGroup #{name}"
+            out.puts "{"
+            out.puts "  Label #{label}"
+            out.puts "  Type #{type}" if not type.nil? and not type.empty?
+            out.puts "  BatchID #{batchid}" if not batchid.empty?
+            out.puts
+            members.flatten.each do
+              |m|
+              out.puts "  Member #{m}"
+            end
+            out.puts "}"
+          end
+        end
+
+        hg_r.keys.sort.each do
+          |key|
+          if hg_r[key].size > 0
+            out.puts "HostGroup #{key}"
+            out.puts "{"
+            out.puts "  Label #{key}"
+            hg_r[key].each do
+              |host|
+              out.puts "  Member HOSTNAME:#{host}"
+            end
+            out.puts "}"
+          end
+        end
+        hg_i.keys.sort.each do
+          |key|
+          if hg_i[key].size > 0
+            out.puts "HostGroup #{key}"
+            out.puts "{"
+            out.puts "  Label #{key}"
+            hg_i[key].each do
+              |host|
+              out.puts "  Member HOSTNAME:#{host}"
+            end
+            out.puts "}"
+          end
+        end
+        hg_m.keys.sort.each do 
+          |key|
+          if hg_m[key].size > 0
+            out.puts "HostGroup #{key}"
+            out.puts "{"
+            out.puts "  Label #{key}"
+            out.puts "  Type manage,settings"
+            hg_m[key].each do
+              |host|
+              out.puts "  Member HOSTNAME:#{host}"
+            end
+            out.puts "}"
+          end
+        end
+        puts File.readlines($config.hostgroup_footer) if File.exists?($config.hostgroup_footer)
+      end
+    end
+
+    hosts_path = File.join($config.myshn_path, 'hosts')
+    Dir.mkdir(hosts_path) if !File.exists?(hosts_path)
+    dirs = Array.new
+    Dir.new(hosts_path).each do
+      |d|
+      dirs.push(d) if d =~ /^[0-9a-f]{12}$/
+      d = File.join(hosts_path, d)
+      File.delete(File.join(d, 'printer.txt')) if File.exists?(File.join(d, 'printer.txt'))
+      File.delete(File.join(d, 'resolution.txt')) if File.exists?(File.join(d, 'resolution.txt'))
+    end
+
+    rows.each do
+      |row|
+        next if row.header.index("ENTRY") and row.ENTRY !~ /R/
+        d = File.join(hosts_path, row.MACADDRESS.delete(':'))
+        Dir.mkdir(d) if !File.exists?(d)
+        if not row.PRINTER.empty?
+          File.open(File.join(d, 'printer.txt'),"w") {
+            |f|
+            f.puts row.PRINTER
+          }
+        end
+        if not row.RESOLUTION.empty?
+          File.open(File.join(d, 'resolution.txt'),"w") {
+            |f|
+            f.puts row.RESOLUTION
+          }
+        end
+    end
+
+    # FIXME:
+    # Remove old hosts directories not listed anymore or disabled
+    #remove = Array.new
+    #remove += dirs - macs.keys if $config.flags['REMOVEOBSOLETEHOSTS']
+    #remove -= macs_disabled if !$config.flags['REMOVEDISABLEDHOSTS']
+    #if remove.size > 0
+    #  remove.each do
+    #    |d|
+    #    dir = File.join(hosts_path, d)
+    #    puts "Entferne #{dir}"
+    #    FileUtils.rm_r(dir)
+    #  end
+    #end
+
+    $config.plugin.each do
+      |plugin|
+      begin
+        eval(File.read(plugin))
+      rescue
+        error "Fehler beim evaluieren von #{plugin}: "+$!
+      end
+    end
+
+    if isWindows
+      if $config.dhcp_import
+        info "  * Importiere DHCP Konfiguration"
+        system('netsh.exe', '-f', syspath($config.dhcp_conf))
+      end
+
+      tmp = File.expand_path(File.join(ENV["TEMP"], "netclnt.tmp"))
+      File.open(tmp, "w") { |f| f.puts "reload "+ENV["COMPUTERNAME"] }
+      app = "#{$config.rembo_path}/misc/netclnt.exe"
+      print "  * "
+      system(syspath(app), '-f', syspath(tmp))
+      File.delete(tmp)
+    end
+
+    # Command to run after import
+    $config.after_import.each do
+      |cmd|
+      begin
+        out = `#{cmd} 2>&1`
+        puts out if not out.empty?
+      rescue
+        error "Fehler beim evaluieren von #{plugin}: "+$!
+      end
+    end
+  end
+
+
+  def update_wimport
+    info "Führe Update der gimport_data durch:"
+    fatal "Update der gimport_data nur bei Verwendung der Original wimport_data" if File.basename($config.import_file) != 'wimport_data'
+    fatal "Die Importdatei ist nicht lesbar!" if not File.readable?($config.import_file.to_s)
+    error "Die HostGroup ist nicht lesbar!" if not File.readable?($config.hostgroup_conf.to_s)
+
+    group = ""
+    groups = {}
+    groupnames = []
+    info "  * Lese #{$config.hostgroup_conf}"
+    File.readlines($config.hostgroup_conf).each do
+      |line|
+      line.chomp!
+
+      if line =~ /^\s*HostGroup\s+([^\s]+)/
+        group = $1;
+        if not groups[group]
+          groups[group] = {
+            "label"   => "",
+            "type"    => "",
+            "member"  => [],
+            "batchid" => ""
+          }
+          groupnames << group
+        end
+        next
+      end
+      if line =~ /^\s*(Label|Type|BatchID)\s+(.+)/i
+        next if not groups[group]
+        groups[group][$1.downcase] = $2;
+        next
+      end
+      if line =~ /^\s*Member\s+([^\s]+)/i
+        next if not groups[group]
+        groups[group]['member'] << $1
+        next
+      end
+      group = '' if line =~ /^\s*\}\s*$/
+    end
+
+    backup($config.gimport_file)
+    info "  * Schreibe #{$config.gimport_file}"
+    File.open($config.gimport_file, "w") do
+      |out|
+      groupnames.each do
+        |group|
+        out.puts "GROUP #{group}"
+        out.puts "\tLabel "+groups[group]["label"] unless groups[group]["label"].empty?
+        out.puts "\tType "+groups[group]["type"] unless groups[group]["type"].empty?
+        out.puts "\tBatchID "+groups[group]["batchid"] unless groups[group]["batchid"].empty?
+
+        groups[group]["member"].each do
+          |member|
+          out.puts "\tMember #{member}" if member =~ /(\?|\*)/ or group =~ /^Rechneraufnahme$/i
+        end
+      end
+    end
+
+    return true if $config.gimport_only
+
+    info "  * Lese #{$config.import_file}"
+    rows = ImportData.new($config.import_file)
+    rows.normalize
+    errors = rows.errors + rows.verify
+    if not errors.empty?
+      puts
+      error "Fehler beim Einlesen:"
+      errors.each { |e| $stderr.puts "  #{e}" }
+      exit(-1)
+    end
+
+    rows.each_rembo_host do
+      |row|
+      ingroup = [];
+      groupnames.each do
+        |group|
+        groups[group]["member"].each do
+          |member|
+          if (member =~ /^HOSTNAME:#{row.HOSTNAME.downcase}$/i or member =~ /^IP:#{row.IPADDRESS}$/i or member =~ /^MAC:#{row.MACADDRESS.delete(":")}$/i)
+            ingroup << group
+            break
+          end
+        end
+      end
+      row.IMAGEGROUP = ingroup.uniq.join(",")
+    end
+
+    backup($config.import_file)
+    info "  * Schreibe #{$config.import_file}"
+    File.open($config.import_file, "w") do
+      |out|
+      rows.each(true) do
+        |row|
+        out.puts row.csv
+      end
+    end
+  end
+end
+
+
+##############################################################################
+#                               Main code                                    #
+##############################################################################
+class MyAdmin
+  def initialize
+    $config = OpenStruct.new({
+      :command               => [],
+      :config_file           => "",
+      :import_file           => "",
+      :field_mapping         => "",
+      :output_file           => "",
+      :rembo_path            => "",
+      :myshn_path            => "",
+      :rembo_conf            => "",
+      :dhcp_conf             => "",
+      :hostgroup_conf        => "",
+      :hostgroup_header      => "",
+      :hostgroup_footer      => "",
+      :dhcp_type             => "",
+      :dhcp_import           => false,
+      :gimport_only          => false,
+      :option                => {},
+      :plugin                => [],
+      :after_import          => []
+    })
+
+    # Initialize command line parser
+    op = OptionParser.new
+    op.banner = _("Syntax: #{$0} [OPTIONEN]...")
+    op.separator ""
+    op.separator _("Gültige Optionen:")
+    op.separator ""
+
+    op.on("-c", "--create-config SYSTEM1[/SIZE],SYSTEM2,...",
+          _("Erzeugt eine mySHN config Datei mit den angebenen"),
+          _("Systemen."),
+          _("Ist der Parameter --output-file nicht gesetzt,"),
+          _("wird die Konfiguration auf STDOUT ausgegeben."),
+          _("Beispiel: win98,winxp/10G,linux/4000M")) do
+      |arg|
+      $config.command << [ "create-config", arg ]
+    end
+
+    op.on("-O", "--output-file DATEI",
+          _("Gibt die Datei an, in welche die config Datei"),
+          _("von -c geschrieben wird.")) do
+      |arg|
+      $config.output_file = arg
+    end
+
+    op.separator ""
+
+    op.on("-p", "--password [BENUTZER[,KENNWORT]]",
+        _("Setzt das mySHN Kennwort von BENUTZER. Werden"),
+        _("Benutzer oder Kennwort nicht angegeben,"),
+        _("erscheint ein Prompt.")) do
+      |arg|
+      $config.command << [ "change-password", arg ]
+    end
+
+    op.on("-U", "--user-file DATEI",
+          _("Gibt die Datei an, in der das Benutzerkennwort"),
+          _("geändert werden soll."),
+          syspath("Default: <myshn>/user.conf")) do
+      |arg|
+      $config.user_file = arg
+    end
+
+    if defined?(RUBYSCRIPT2EXE_APPEXE)
+      op.separator ""
+
+      op.on("-e DATEI",
+            _("Führt den in DATEI gespeicherten Ruby Code aus.")) do
+        |arg|
+        $config.command << [ "execute", arg ]
+      end
+    end
+
+    op.separator ""
+
+    op.on("-i", "--import [DATEI]",
+        _("Erzeuge DHCP Reservierungen sowie Rembo / mySHN"),
+        _("Gruppendefinitionen anhand der Einträge in DATEI."),
+        syspath("Default: <rembo>/files/global/wimport_data")) do
+      |arg|
+      $config.import_file = arg if not arg.nil?
+      $config.command << [ "import" ]
+    end
+
+    op.separator ""
+
+    op.on("-u", "--update-wimport",
+        _("Erzeugt gimport_data und passt wimport_data"),
+        _("anhand der Einträge in hostgroup.conf an.")) do
+      $config.command << [ "update" ]
+    end
+    op.on("--gimport-only",
+        _("Erzeugt bei -u nur die gimport_data und lässt"),
+        _("die wimport_data unverändert.")) do
+      $config.gimport_only = true
+    end
+    op.separator ""
+    text = [
+          "--config-file DATEI",
+        _("Pfad zur myadmin Konfigurationsdatei")
+    ]
+    text << _("Default: #{DEFAULT_CONFIG}") if not DEFAULT_CONFIG.empty?
+
+    op.on(*text) do
+      |arg|
+      @command.config_file = arg.to_s
+    end
+    if isWindows
+      op.separator ""
+      op.on("--dhcp-import",
+          _("Übernehme neue Reservierungen nach dem Import"),
+          _("automatisch via netsh.exe")) do
+        $config.dhcp_import = true
+      end
+    end
+    op.separator ""
+    op.on("--dhcp-type TYP",
+        _("Art der DHCP Importdatei"),
+        _("Gültige Typen:"),
+        _("    ms     - Microsoft DHCP Server"),
+        _("    isc    - ISC DHCP Server"),
+        _("Default: ms unter Windows, sonst isc")) do
+      |arg|
+      $config.dhcp_type = arg
+    end
+    op.separator ""
+    text = [
+        "--rembo-path PFAD",
+      _("Pfad zum Rembo-Installationsverzeichnis")
+    ]
+    text << _("Default: automatische Erkennung") if isWindows
+    op.on(*text) do
+      |arg|
+      $config.rembo_path = arg.to_s
+    end
+    op.separator ""
+    op.on("--myshn-path PFAD",
+        _("Pfad zum mySHN-Installationsverzeichnis"),
+        _("Default: <rembo>/files/global/myshn")) do
+      |arg|
+      $config.myshn_path = arg.to_s
+    end
+    if isUnix
+      op.separator ""
+      op.on("--rembo-conf PFAD",
+          _("Pfad zur rembo.conf"),
+          _("Default: <rembo>/rembo.conf")) do
+        |arg|
+        $config.rembo_conf = arg.to_s
+      end
+    end
+    op.separator ""
+    op.on("--dhcp-conf DATEI",
+        _("Schreibe DHCP Konfiguration in diese Datei."),
+        _("Default: dhcp_import.txt")) do
+      |arg|
+      $config.dhcp_conf = arg.to_s
+    end
+    op.separator ""
+    op.on("--hostgroup-conf DATEI",
+        _("Pfad zur hostgroup.conf"),
+        _("Default: <myshn>/hostgroup.conf")) do
+      |arg|
+      $config.hostgroup_conf = arg.to_s
+    end
+    op.separator ""
+    op.on("--hostgroup-header DATEI",
+        _("Dateikopf für die hostgroup.conf")) do
+      |arg|
+      $config.hostgroup_header = arg.to_s
+    end
+    op.separator ""
+    op.on("--hostgroup-footer DATEI",
+        _("Dateifuss für die hostgroup.conf")) do
+      |arg|
+      $config.hostgroup_footer = arg.to_s
+    end
+    op.separator ""
+    op.on("--field-mapping DATEI",
+        _("Pfad zur field_mapping.conf")) do
+      |arg|
+      $config.field_mapping = arg.to_s
+    end
+    op.separator ""
+    text = [
+        "--dhcp-type isc|ms",
+      _("Typ des DHCP Servers"),
+      _("isc = ISC DHCP, MS = Microsoft DHCP")
+    ]
+    if isWindows
+      text << _("Default: ms")
+    else
+      text << _("Default: isc")
+    end
+    op.on(*text) do
+      |arg|
+      $config.field_mapping = arg.to_s
+    end
+    if isWindows
+      op.separator ""
+      op.on("--dhcp-import",
+          _("Führe automatischen DHCP Import durch.")) do
+        |arg|
+        $config.dhcp_import = true
+      end
+    end
+    op.separator ""
+    op.on("--after-import DATEI",
+        _("Lade im Anschluß an den Import das mit DATEI"),
+        _("angegebene Plugin und evaluiere den Ruby Code"),
+        _("im aktuellen Kontext.")) do
+      |arg|
+      $config.after_import << arg
+    end
+    op.separator ""
+    op.on("--plugin DATEI",
+        _("Rufe im Anschluß an den Import das mit DATEI"),
+        _("angegebene Programm auf."),
+        _("Beispiel: /etc/init.d/dhcp3-server restart")) do
+      |arg|
+      $config.plugin << arg
+    end
+    op.separator ""
+    op.on("--option OPTIONEN",
+        _("Setzt Optionen für den Import. Mehrere Optionen"),
+        _("können durch Komma getrennt angegeben werden."),
+        _("Gültige Optionen sind:"),
+        " ",
+        _("RemoveObsoleteHosts: Lösche Verzeichnisse nicht"),
+        _("gelisteter Rechner aus mySHN."),
+        " ",
+        _("RemoveDisabledHosts: Lösche Verzeichnisse"),
+        _("deaktivierter Rechner aus mySHN.")) do
+      |arg|
+      arg.to_s.split(',').each { |opt| $config.option[opt.strip.upcase] = true }
+    end
+
+    #  :plugin                => [],
+    #  :after_import          => []
+
+    op.summary_indent = " "
+    op.summary_width = 29
+    begin
+      op.parse!
+    rescue
+      text = $!.to_s
+      text.gsub!("invalid option:", "Ungültige Option:")
+      text.gsub!("missing argument:", "Fehlender Parameter:")
+      text.gsub!("ambiguous option:", "Mehrdeutige Option:")
+      puts "Fehler: #{text}"
+      puts
+      puts op
+      exit(-1)
+    end
+    run
+  end
+
+  def run
+    $config.command.each do
+      |cmd|
+      case cmd[0]
+        when 'create-config':
+          create_config(cmd[1])
+        when 'change-password':
+          change_password(cmd[1])
+        when 'execute':
+          load(File.expand_path(cmd[1]), true)
+        when 'import'
+          WorkstationImport.new('import')
+        when 'update'
+          WorkstationImport.new('update')
+        else
+          fatal "Unbekannter Befehle '#{cmd[0]}'!"
+      end
+    end
+  end
+
+  def change_password(user)
+    WorkstationImport.new("init")
+    userconf = $config.user_file.to_s
+    if userconf.empty?
+      if not $config.myshn_path.to_s.empty?
+        userconf = File.join($config.myshn_path, "user.conf")
+      else
+        userconf = File.join($config.rembo_path.to_s, "files/global/myshn/user.conf")
+      end
+    end
+    fatal "Kann #{userconf} nicht lesen!" if not File.readable?(userconf)
+    fatal "Kann #{userconf} nicht schreiben!" if not File.writable?(userconf)
+
+    user, pass = user.to_s.split(/,/, 2)
+    user = user || ''
+    user.strip!
+    if user.empty?
+      print _("Benutzername: ")
+      user = $stdin.gets.chomp.strip
+      if user.empty?
+        puts _("Kennwortänderung abgebrochen.")
+        return
+      end
+    end
+    puts _("Ändere Kennwort für '#{user}'...")
+    if pass.nil?
+      print _("Neues Kennwort (Leer = Konto deaktivieren, Strg+C = Abbrechen): ")
+      pass = $stdin.gets.chomp.strip
+    else
+      pass = pass || '' 
+      pass.strip!
+    end
+    pass = "MD5:"+MD5.new(pass).to_s if not pass.empty?
+
+    modified = false
+    lines = File.readlines(userconf)
+    curuser = ''
+    lines.each_with_index do
+      |line,i|
+      lines[i].chomp!
+      curuser = line.strip.split(/\s+/,2)[1] || '' if line =~ /^\s*User/i
+      if curuser.downcase == user.downcase and line =~ /^(\s*)Password/i
+        lines[i] = "#{$1}Password #{pass}"
+        modified = true
+      end
+    end
+    if modified
+      fatal "Backup fehlgeschlagen. Keine Veränderung vorgenommen." if not backup(userconf)
+      File.open(userconf, 'wb') do
+        |out|
+        lines.each { |line| out.print line+"\r\n" }
+      end
+      if pass.empty?
+        puts _("Das Konto wurde deaktiviert.")
+      else
+        puts _("Das Kennwort wurde geändert.")
+      end
+    else
+      puts _("Der Benutzer wurde nicht gefunden.")
+    end
+  end
+
+  def create_config(list)
+  template_unit = <<EOT_UNIT
+Unit $unit
+{
+  Size $size
+}
+EOT_UNIT
+
+unit_names = { 'win98' => 'u_win98C', 'win2000pro' => 'u_win2000proC', 'winxp' => 'u_winxpC', 'linux' => 'u_linuxroot' }
+
+template_system = Hash.new
+template_system['win98'] = <<EOT_WIN98
+System $system
+{
+  Type Windows 98
+  Label Windows 98
+
+  Partition C
+  {
+    UseUnit $unit
+    FileSystem FAT32
+  }
+}
+EOT_WIN98
+
+template_system['win2000pro'] = <<EOT_WIN2000PRO
+System $system
+{
+  Type Windows 2000 Pro
+  Label Windows 2000 Pro
+
+  Partition C
+  {
+    UseUnit $unit
+    FileSystem FAT32
+  }
+}
+EOT_WIN2000PRO
+
+template_system['winxp'] = <<EOT_WINXP
+System $system
+{
+  Type Windows XP
+  Label Windows XP
+
+  Partition C
+  {
+    UseUnit $unit
+    FileSystem FAT32
+  }
+}
+EOT_WINXP
+
+template_system['linux'] = <<EOT_LINUX
+System $system
+{
+  Type Linux
+  Label Linux
+
+  Kernel /vmlinuz
+  InitRD /initrd.img
+  #KernelParam apm=poweroff
+
+  # Patche den Rechnernamen
+  PatchGeneric if (FileExists(DEVROOT+"/etc/hostname")) SaveText(HostName, DEVROOT+"/etc/hostname");
+  PatchGeneric if (FileExists(DEVROOT+"/etc/HOSTNAME")) SaveText(HostName, DEVROOT+"/etc/HOSTNAME");
+
+  Partition root
+  {
+    UseUnit $unit
+    FileSystem EXT2
+  }
+  Partition swap
+  {
+    UseUnit u_linuxswap
+    Type swap
+    NoHeal
+    DefaultImageType none
+  }
+}
+EOT_LINUX
+
+    units = []
+    systems = []
+    used_unit = {}
+    units << "# Beziehe globale Einstellungen mit ein\n"
+    units << "@include ?{$ROOT$}/global.conf\n"
+    units << "\n"
+    units << '#'*78+"\n"
+    units << '#'+"Partitionierung".center(76)+"#\n"
+    units << '#'*78+"\n"
+    systems << '#'*78+"\n"
+    systems << '#'+"Systemdefinition".center(76)+"#\n"
+    systems << '#'*78+"\n"
+    list.split(',').each do
+      |system|
+      system.strip!
+      system, size = system.split('/', 2)
+      system = system.downcase.strip
+      next if system.empty?
+      unit = unit_names[system]
+      utext = template_unit
+      stext = template_system[system]
+      next unless unit
+      if used_unit[unit].nil?
+        used_unit[unit] = 2
+      else
+        used_unit[unit] += 1
+        system = system+(used_unit[unit]-1).to_s
+        unit = unit+(used_unit[unit]-1).to_s
+      end
+      size = '5000M' if size.nil? or size.strip.empty?
+      utext = utext.gsub('$unit', unit).gsub('$size', size)
+      stext = stext.gsub('$unit', unit).gsub('$system', system)
+      units << utext
+      systems << stext
+    end
+    units << "Unit u_linuxswap\n{\n  Size 256M\n}\n" if used_unit['u_linuxroot']
+    units << "\n"
+    systems << "\n"
+    systems << "# Lade Dateifilter fuer die Imageerzeugung.\n"
+    systems << "@plugin {$ROOT$}/bin/filter.rbc\n"
+    systems << "\n"
+    systems << "# Beziehe statische Einstellungen mit ein.\n"
+    systems << "@include {$ROOT$}/shared.conf\n"
+    out = $stdout
+    if not $config.output_file.empty?
+      begin
+        out = File.open($config.output_file, "w") 
+      rescue
+        fatal "Fehler beim Schreiben von #{$config.output_file}: #{$!}"
+      end
+    end
+    units.each { |unit| out.puts unit }
+    systems.each { |system| out.puts system }
+    out.close if out != $stdout
+  end
+end
+
+$0 = RUBYSCRIPT2EXE_APPEXE if defined?(RUBYSCRIPT2EXE_APPEXE)
+if not defined?(REQUIRE2LIB)
+  MyAdmin.new
+end

@@ -1,0 +1,43 @@
+#!/bin/sh
+#
+
+. /usr/share/debconf/confmodule
+
+log() {
+    logger -t 20linuxmuster "$@"
+}
+
+# compute disk size
+for i in a b c d e f g h; do
+  dsize=`fdisk -l | grep Disk | grep [hs]d$i | cut -f3 -d " " | cut -f1 -d"."`
+  [ -n "$dsize" ] && break
+done
+if [ -z "$dsize" ]; then
+  dsize=20
+  log "Cannot determine disk size, setting it to 20G!"
+elif [ "$dsize" -lt 40 ]; then
+  dsize=20
+  log "Setting disk size to 20G."
+elif [ "$dsize" -lt 60 ]; then
+  dsize=40
+  log "Setting disk size to 40G."
+elif [ "$dsize" -lt 80 ]; then
+  dsize=60
+  log "Setting disk size to 60G."
+elif [ "$dsize" -lt 120 ]; then
+  dsize=80
+  log "Setting disk size to 80G."
+elif [ "$dsize" -lt 160 ]; then
+  dsize=120
+  log "Setting disk size to 120G."
+elif [ "$dsize" -lt 200 ]; then
+  dsize=160
+  log "Setting disk size to 160G."
+else
+  dsize=200
+  log "Setting disk size to 200G."
+fi
+
+db_set autopartkit/partition_table "/etc/autopartkit/linuxmuster.table.$dsize"
+
+exit 0

@@ -1,0 +1,32 @@
+# stop networking at all
+/etc/init.d/networking stop 1>> $LOGDIR/setup.log 2>> $LOGDIR/setup.log
+
+# kill network devices if they are not down already
+# first shutdown the interfaces
+for i in `ifconfig -a | grep -i ethernet | sort -r | awk '{ print $1 }' -`; do
+  ifconfig $i down 1>> $LOGDIR/setup.log 2>> $LOGDIR/setup.log
+done
+# then delete the bridges
+for i in `brctl show | grep ^br | grep -v ^bridge | awk '{ print $1 }' -`; do
+  brctl delbr $i 1>> $LOGDIR/setup.log 2>> $LOGDIR/setup.log
+done
+
+# wait for the devices to come down
+sleep 3
+
+# stop firewall
+/etc/init.d/linuxmuster-base stop
+
+# we don't need this
+[ -e /etc/network/if-pre-up.d/uml-utilities ] && chmod 644 /etc/network/if-pre-up.d/uml-utilities
+
+# write servername to /etc/hostname
+echo $servername > /etc/hostname
+
+# copy interfaces template according to fwconfig
+cp -f interfaces.$fwconfig interfaces
+
+# patch linuxmuster-base defaults
+sed -e "s/^IFACE=.*/IFACE=$intern/
+        s/^START_LINUXMUSTER=.*/START_LINUXMUSTER=yes/" /etc/default/linuxmuster-base > /etc/default/linuxmuster-base.tmp
+cp -f /etc/default/linuxmuster-base.tmp /etc/default/linuxmuster-base && rm -f /etc/default/linuxmuster-base.tmp

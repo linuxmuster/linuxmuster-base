@@ -1,0 +1,184 @@
+Template: linuxmuster-base/intro
+Type: note
+Description: Hinweise zur Installation
+ ####################################################################\n
+ # ACHTUNG: TESTVERSION! KEINE INSTALLATION AUF PRODUKTIVSYSTEMEN!! #\n
+ ####################################################################\n
+ \n
+ Fuer die im folgenden weitgehend automatisch ablaufende Installation\n
+ benoetigen Sie einige Daten, die automatisch in den Installations-\n
+ prozess miteinbezogen werden. Dies sind:\n
+ - der Name des Servers (z.B. server)\n
+ - die Internet-Domaene des Schulnetzes (z.B linuxmuster.local)\n
+ - die interne IP-Struktur Ihres Schulnetzes\n
+ - Haben Sie einen Internetzugang? Wenn ja:\n
+ - Zugang ueber Router oder DSL?\n
+ - die externe IP-Adresse des Servers (entfaellt bei DSL)\n
+ - die Subnetzmaske der externen IP-Adresse (entfaellt bei DSL)\n
+ - die IP-Adresse des Default-Gateways (Routers) (entfaellt bei DSL)\n
+ - die IP-Adresse(n) des/der DNS-Forwarders\n
+ - ggf. die Adresse des Mailservers beim Provider (z.B.: mail.belwue.de)\n
+ - ggf. die DSL-Zugangsdaten\n
+ - Passwoerter der administrativen User
+
+Template: linuxmuster-base/country
+Type: string
+Default: DE
+Description: Laenderkuerzel?
+ Geben Sie das Laenderkuerzel in Grossbuchstaben ein.\n
+ Es sind nur 2 Zeichen erlaubt.
+
+Template: linuxmuster-base/state
+Type: string
+Default: BW
+Description: Bundesland, Staat, Provinz?
+ Geben Sie die Bezeichnung fuer das Bundesland ein.
+
+Template: linuxmuster-base/location
+Type: string
+Default: Musterstadt
+Description: Schulort?
+ Geben Sie den Schulort ein.
+
+Template: linuxmuster-base/schoolname
+Type: string
+Default: Musterschule
+Description: Schulname?
+ Geben Sie den Schulnamen ein.
+
+Template: shared/organization
+Type: string
+Description: Organization?
+ Enthaelt den Schulnamen.
+
+Template: linuxmuster-base/servername
+Type: string
+Default: server
+Description: Hostname des Servers?
+ Geben Sie den Hostnamen des Servers ein.\n
+ Es sind nur Buchstaben, Ziffern und das Minuszeichen erlaubt.
+
+Template: linuxmuster-base/domainname
+Type: string
+Default: linuxmuster.local
+Description: Internet-Domaene des Schulnetzes?
+ Geben Sie den Domaenennamen des Schulnetzes ein.\n
+ Es sind nur Buchstaben, Ziffern, Minuszeichen und Punkte\n
+ erlaubt.
+
+Template: linuxmuster-base/workgroup
+Type: string
+Default: SCHULE
+Description: Samba-Domaene des Schulnetzes?
+ Geben Sie die Samba-Domaene des Schulnetzes ein.\n
+ Es sind nur Buchstaben erlaubt.
+
+Template: linuxmuster-base/fwconfig
+Type: select
+Choices: integrated, dedicated
+Default: integrated
+Description: Ein- oder Zwei-Server-Installation?
+ Waehlen Sie den Typ der Firewall:\n
+ 'integrated' fuer die Ein-Server-Installation mit integriertem IPCop.\n
+ 'dedicated' fuer die Zwei-Server-Installation mit dediziertem IPCop.
+
+Template: linuxmuster-base/externtype
+Type: select
+Choices: static, dhcp, pppoe
+Default: static
+Description: Externe Internetanbindung?
+ Waehlen Sie aus, wie Ihr Server an das Internet angebunden ist.\n
+ static: Statische IP-Adresse\n
+ dhcp:   Per DHCP bezogene IP-Adresse\n
+ pppoe:  Internet per DSL
+
+Template: linuxmuster-base/externip
+Type: string
+Description: Externe IP-Adresse des Servers?
+ Geben Sie die externe IP-Adresse des Servers ein.
+
+Template: linuxmuster-base/externmask
+Type: string
+Description: Externe Netzmaske?
+ Geben Sie die externe Netzmaske fuer die Anbindung an das Internet ein.
+
+Template: linuxmuster-base/gatewayip
+Type: string
+Description: IP-Adresse des Gateways/Routers?
+ Geben Sie die IP-Adresse des Gateways/Routers ein.
+
+Template: linuxmuster-base/dnsforwarders
+Type: string
+Description: IP-Adresse der/des DNS-Server/s?
+ Geben Sie die IP-Adresse(n) der/des DNS-Server/s ein.\n
+ Es koennen zwei Adressen getrennt durch Leerzeichen
+ eingegeben werden.\n
+ Die Adressen der BelWue-DNS-Server sind z. Bsp. 129.143.2.1 129.143.2.4
+
+Template: linuxmuster-base/dsluser
+Type: string
+Description: DSL-Benutzerkennung?
+ Die Benutzerkennung ist bei T-Online so aufgebaut:\n
+ Anschlusskennung+T-Onlinenummer+#+Suffix+@t-online.de\n
+ z.B.: 000123456789520012345678#0001@t-online.de
+
+Template: linuxmuster-base/dslpasswd
+Type: password
+Description: DSL-Kennwort?
+ Bei einem T-Online-Zugang ist hier das persoenliche
+ Kennwort einzutragen.
+
+Template: linuxmuster-base/smtprelay
+Type: string
+Description: SMTP relay host?
+ Geben Sie ein, ueber welchen Mailserver E-Mail
+ verschickt und empfangen werden soll.\n
+ Bsp.: mail.belwue.de
+
+Template: linuxmuster-base/adminpw
+Type: password
+Description: Administrator-Passwort?
+ Geben Sie das Passwort fuer den User administrator ein.
+
+Template: linuxmuster-base/pgmadminpw
+Type: password
+Description: Programm-Administrator-Passwort?
+ Geben Sie das Passwort fuer den Programm-Administrator pgmadmin ein.
+
+Template: linuxmuster-base/wwwadminpw
+Type: password
+Description: Web-Administrator-Passwort?
+ Geben Sie das Passwort fuer den Web-Administrator wwwadmin ein.
+
+Template: linuxmuster-base/ipcoppw
+Type: password
+Description: IPCop-Administrator-Passwort?
+ Geben Sie ein Administrator-Passwort fuer den IPCop ein.\n
+ Das Passwort ist gueltig fuer root und admin (integrierte Firewall)\n
+ bzw. wird zur Konfiguration des dedizierten IPCop-Servers verwendet.
+
+Template: linuxmuster-base/sambasid
+Type: string
+Description: SID fuer samba?
+ Keine Eingabe.
+
+Template: linuxmuster-base/internmask
+Type: string
+Default: 255.240.0.0
+Description: Interne Netzmaske?
+ Keine Eingabe.
+
+Template: linuxmuster-base/internmask_short
+Type: string
+Default: 12
+Description: Interne Netzmaske?
+ Keine Eingabe.
+
+Template: linuxmuster-base/internsubrange
+Type: select
+Choices: 16-31, 32-47, 48-63, 64-79, 80-95, 96-111, 112-127, 128-143, 144-159, 160-175, 176-191, 192-207, 208-223, 224-239
+Description: Interner Adressbereich?
+ Waehlen Sie den Adressbereich fuer das interne Netz aus:\n
+ 16-31: 10.16.0.0 - 10.31.255.255\n
+ 32-47: 10.32.0.0 - 10.47.255.255\n
+ usw.\n

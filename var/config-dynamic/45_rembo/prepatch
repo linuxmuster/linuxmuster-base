@@ -1,0 +1,26 @@
+if [ "$1" = "--first" ]; then
+
+  # patch rembo.conf with nb password
+  sed -e "s/^NetPassword.*/NetPassword \"$adminpw\"/" /etc/rembo/rembo.conf > /etc/rembo/rembo.conf.tmp
+  cp -f /etc/rembo/rembo.conf.tmp /etc/rembo/rembo.conf && rm -f /etc/rembo/rembo.conf.tmp
+
+  # create emtpy wimport_data
+  [ -f /var/lib/rembo/files/global/wimport_data ] && rm -f /var/lib/rembo/files/global/wimport_data
+  touch /var/lib/rembo/files/global/wimport_data
+
+else
+
+  # prevent user.conf from being patched completely
+  mv user.conf.target user.conf.tmp
+
+  # patch userconf only with altered domain name
+  sed -e "s/eMail $ADMINISTRATOR@.*/eMail $ADMINISTRATOR@$domainname/" /var/lib/myshn/user.conf > /var/lib/myshn/user.conf.tmp
+  cp -f /var/lib/myshn/user.conf.tmp /var/lib/myshn/user.conf && rm -f /var/lib/myshn/user.conf.tmp
+
+fi
+
+# patch rembo.conf with workgroup and startpage
+sed -e "s/^AuthLocalDomain.*/AuthLocalDomain $workgroup \{/
+        s/StartPage.*/StartPage \"$REMBOSTARTPAGE\"/
+        s/^Interfaces.*/Interfaces $serverip/" /etc/rembo/rembo.conf > /etc/rembo/rembo.conf.tmp
+cp -f /etc/rembo/rembo.conf.tmp /etc/rembo/rembo.conf && rm -f /etc/rembo/rembo.conf.tmp

@@ -1,0 +1,173 @@
+#!/bin/sh
+# logs when users login and logout
+
+#set -x
+
+# source linuxmuster defaults
+. /usr/share/linuxmuster/config/dist.conf || exit 1
+
+# source helperfunctions
+. $HELPERFUNCTIONS || exit 1
+
+# parsing parameters
+getopt $*
+
+usage() {
+  echo
+  echo "Usage: samba-userlog.sh --log=<in|out>"
+  echo "                        --username=<userlogin>"
+  echo "                        --hostname=<hostname>"
+  echo "                        --homedir=<homedirectory>"
+  echo
+  exit 1
+}
+
+# test parameters
+[[ "$log" != "in" && "$log" != "out" ]] && usage
+[[ -z "$hostname" ]] && usage
+[[ -z "$username" ]] && usage
+[[ -z "$homedir" ]] && usage
+
+#  test if hostname is an ip address
+if validip $hostname; then
+  get_hostname $hostname
+  [ -n "$RET" ] && hostname=$RET
+fi
+
+# test for some dirs if account is not a workstation
+if [[ "$hostname" != "$username" && "$log" = "in" ]]; then
+
+  # check for teacher or domadmin
+  check_teacher $username && teacher=yes
+  test "$username" = "$ADMINISTRATOR" && admin=yes
+
+  # cups-pdf
+  if [ ! -d "$homedir/cups-pdf" ]; then
+    mkdir $homedir/cups-pdf
+    chown $username $homedir/cups-pdf
+    chmod 700 $homedir/cups-pdf
+  fi
+
+  # private_html
+  [ -L "$homedir/public_html" ] && rm $homedir/public_html
+  if [ -d "$homedir/public_html" ]; then
+    mv $homedir/public_html $homedir/private_html
+  else
+    if [ ! -d "$homedir/private_html" ]; then
+      mkdir $homedir/private_html
+    fi
+  fi
+  chown $username:www-data $homedir/private_html
+  chmod 2750 $homedir/private_html
+
+  # check if .htaccess is present
+  if [ ! -f "$homedir/private_html/.htaccess" ]; then
+    # check if user is student
+    usertype=`smbldap-usershow $username | grep homeDirectory | awk -F\/ '{ print $3 }'`
+    echo "AuthType Basic" > $homedir/private_html/.htaccess
+    echo "AuthName \"private_html\"" >> $homedir/private_html/.htaccess
+    echo "SSLRequireSSL" >> $homedir/private_html/.htaccess
+    if [ "$usertype" = "students" ]; then
+      echo "Require user $username $ADMINISTRATOR" >> $homedir/private_html/.htaccess
+      echo "Require group $TEACHERSGROUP" >> $homedir/private_html/.htaccess
+    else
+      echo "Require user $username" >> $homedir/private_html/.htaccess
+    fi
+    chown www-data:www-data $homedir/private_html/.htaccess
+    chmod 400 $homedir/private_html/.htaccess
+  fi
+
+  # link to students home for teachers and administrator
+  if [[ -n "$STUDENTSHOME" && -d "$STUDENTSHOME" ]]; then
+    [ -e "$homedir/$STUDENTSLINK" ] && rm -rf $homedir/$STUDENTSLINK
+    [[ -n "$teacher" || -n "$admin" ]] && ln -s $STUDENTSHOME $homedir/$STUDENTSLINK
+  fi
+
+  # link to share dirs for administrator
+  if [[ -n "$SHAREHOME" && -d "$SHAREHOME" && -n "$admin" ]]; then
+    [ -L "$homedir/$SHARELINK" ] || ln -s $SHAREHOME $homedir/$SHARELINK
+  fi
+
+  # link to myshn folder for domadmins (obsolet)
+  #if [[ -n "$MYSHNDIR" && -d "$MYSHNDIR" ]]; then
+  #  [ -e "$homedir/$MYSHNLINK" ] && rm -rf $homedir/$MYSHNLINK
+  #  [ -n "$admin" ] && ln -s $MYSHNDIR $homedir/$MYSHNLINK
+  #fi
+
+fi
+
+# change host password if user is a host
+if [[ "$hostname" = "$username" && "$log" = "in" ]]; then
+
+  password=`pwgen -s 8 1`
+  echo -e "$password\n$password\n" | smbldap-passwd $hostname
+
+fi
+
+# check if there are valid logins in cache file
+check_logins() {
+
+  [ -s "$cachefile" ] || return
+
+  for i in `cat $cachefile`; do
+
+    if ! smbstatus -b -d 0 -u $i | grep -qw $i | grep -qw $hostname; then
+
+      grep -vw $i $cachefile > $cachefile.tmp
+      mv $cachefile.tmp $cachefile
+
+    fi
+
+  done
+
+} # check_logins
+
+# only if host account exists
+if id $hostname &> /dev/null; then
+
+  # create cachefile and lock cachefile
+  [ -d "$LOGINCACHE" ] || mkdir -p $LOGINCACHE
+  cachefile=$LOGINCACHE/$hostname
+  lockflag=$cachefile.lock
+  touch $cachefile || cancel "Cannot create $cachefile!"
+  lockfile $lockflag
+
+  if [ "$log" = "in" ]; then
+
+    check_logins
+
+    if ! grep -qw $username $cachefile; then
+      echo $username >> $cachefile || cancel "Cannot write to $cachefile!"
+      chmod 644 $cachefile
+    fi
+
+    prep=on
+
+  else
+
+    grep -vw $username $cachefile > $cachefile.tmp
+    [ -e "$cachefile.tmp" ] || cancel "Cannot create $cachefile.tmp!"
+    mv $cachefile.tmp $cachefile || cancel "Cannot move $cachefile.tmp!"
+
+    if [ -s "$cachefile" ]; then
+      chmod 644 $cachefile
+    else
+      rm -f $cachefile || cancel "Cannot delete $cachefile!"
+    fi
+
+    prep=from
+
+  fi
+
+  rm -f $lockflag || exit 1
+
+fi
+
+# log to userlog
+lockfile $USERLOG.lock
+echo "$DATETIME $username logs $log $prep machine $hostname" >> $USERLOG
+rm -f $USERLOG.lock
+
+echo "log$log of user $username $prep host $hostname successfully logged!"
+
+exit 0

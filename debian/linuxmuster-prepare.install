@@ -1,0 +1,5 @@
+prepare/autopartkit.d/*			usr/lib/autopartkit.d/
+prepare/prebaseconfig.d/*		usr/lib/prebaseconfig.d/
+prepare/share/inittab.install		usr/share/linuxmuster/
+prepare/autopartkit/*			etc/autopartkit/
+prepare/etc/*				etc/

@@ -1,0 +1,262 @@
+#!/bin/sh
+#
+# manages subversion repositories
+
+#set -x
+
+# source linuxmuster defaults
+. /usr/share/linuxmuster/config/dist.conf || exit 1
+
+# source helperfunctions
+. $HELPERFUNCTIONS || exit 1
+
+# parsing parameters
+getopt $*
+
+
+usage() {
+  echo
+  echo "Usage: linuxmuster-svn   <--create --group=gid> [--teacher=uid] [--reponame=name]"
+  echo "                         <--drop --group=gid> [--teacher=uid] [--reponame=name]"
+  echo "                         <--cleanup>"
+  echo "                         <--list>"
+  echo
+  exit 1
+}
+
+
+# test options
+[ -z "$reponame" ] && reponame=$group
+[[ -n "$create" && -n "$drop" ]] && usage
+[[ -n "$create" && -n "$list" ]] && usage
+[[ -n "$create" && -n "$cleanup" ]] && usage
+[[ -n "$drop" && -n "$list" ]] && usage
+[[ -n "$drop" && -n "$cleanup" ]] && usage
+[[ -n "$list" && -n "$cleanup" ]] && usage
+if [ -n "$create" ]; then
+  [ -z "$group" ] && usage
+  check_string "$reponame" || cancel "Fatal: Bad reponame!"
+elif  [ -n "$drop" ]; then
+  [ -z "$reponame" ] && usage
+  check_string "$reponame" || cancel "Fatal: Bad reponame!"
+else
+  [[ -z "$cleanup" && -z "$list" ]] && usage
+fi
+
+
+# check valid teacher
+if [ -n "$teacher" ]; then
+
+  check_teacher $teacher || cancel "$teacher is not a teacher!"
+
+fi # check valid teacher
+
+
+# check valid group
+if [ -n "$group" ]; then
+
+  check_group $group $teacher || cancel "Group $group is not valid or $teacher is not in $group!"
+
+fi # check valid group
+
+
+# if not invoked by schulkonsole with --teacher
+[ -z "$teacher" ] && teacher=root
+
+
+# path to apache configuration file
+repoconf=$SVNCONFDIR/$reponame
+
+
+# check lockfile
+if ! checklock; then
+
+  echo "Timed out! No repository created!"
+  exit 1
+
+fi
+
+
+# begin logging
+[ -z "$list" ] && echo "##############################################################################" | tee -a $REPOLOG
+
+
+##########
+# CREATE #
+##########
+if [ -n "$create" ]; then
+
+  echo "SVN repository creation started by teacher $teacher on `date`" | tee -a $REPOLOG
+
+  #  check if repo already exists
+  if [ -d "$SVNROOT/$reponame" ]; then
+
+    echo "SVN Repository $reponame does already exist! Skipping!" | tee -a $REPOLOG
+
+  else
+
+    # default vars
+    repotmpparent=/var/tmp/svn.$$
+    repotmp=$repotmpparent/$reponame
+
+    # create repo
+    svnadmin create $SVNROOT/$reponame || cancel "Failed to create svn repository $reponame in $SVNROOT!" $REPOLOG
+
+    # create README file
+    mkdir -p $repotmp
+    echo "Repository Name: $reponame" > $repotmp/README
+    echo "Gruppe         : $group" >> $repotmp/README
+    echo "erstellt       : `date`" >> $repotmp/README
+
+    # import README into repo
+    svn import $repotmp file://$SVNROOT/$reponame -m "Repository erstellt."
+
+    # remove temporary working copy
+    rm -rf $repotmpparent
+
+    # logging
+    echo "New Repository $SVNROOT/$reponame created." | tee -a $REPOLOG
+
+  fi
+
+  # apache user has to be owner of repository
+  chown www-data:www-data $SVNROOT -R
+
+  # create apache configuration
+  echo "<Location /svn/$reponame>" > $repoconf
+  echo "  DAV svn" >> $repoconf
+  echo "  SVNPath /var/lib/svn/$reponame" >> $repoconf
+  echo "  AuthType Basic" >> $repoconf
+  echo "  AuthName \"SVN Repository $reponame\"" >> $repoconf
+  echo "  <LimitExcept GET PROPFIND OPTIONS REPORT>" >> $repoconf
+  echo "    Require group $group" >> $repoconf
+  echo "  </LimitExcept>" >> $repoconf
+  echo "</Location>" >> $repoconf
+
+  # logging
+  echo "SVN repository creation finished by teacher $teacher on `date`" | tee -a $REPOLOG
+
+fi # create
+
+
+########
+# DROP #
+########
+if [ -n "$drop" ]; then
+
+  # logging
+  echo "SVN repository dropping started by teacher $teacher on `date`" | tee -a $REPOLOG
+
+  # delete svn repo dir
+  if [ -d "$SVNROOT/$reponame" ]; then
+
+    rm -rf $SVNROOT/$reponame
+    echo "Repository $SVNROOT/$reponame removed." | tee -a $REPOLOG
+
+  else
+
+    echo "Repository $SVNROOT/$reponame does not exist! Skipping." | tee -a $REPOLOG
+
+  fi
+
+  chown www-data:www-data $SVNROOT -R
+
+  # delete apache configuration
+  if [ -e "$repoconf" ]; then
+
+    rm -f $repoconf
+    echo "Apache repository configuration for $reponame removed!" | tee -a $REPOLOG
+
+  else
+
+    echo "Apache repository configuration for $reponame does not exist! Skipping." | tee -a $REPOLOG
+
+  fi
+
+  # logging
+  echo "SVN repository dropping finished by teacher $teacher on `date`" | tee -a $REPOLOG
+
+fi # DROP
+
+
+###########
+# CLEANUP #
+###########
+if [ -n "$cleanup" ]; then
+
+  # logging
+  echo "SVN repository cleanup started on `date`" | tee -a $REPOLOG
+
+  # parse $SVNCONFDIR for repo definitions
+  check_emtpy_dir $SVNCONFDIR
+  if [ "$RET" != "0" ]; then
+
+    cd $SVNCONFDIR
+    for reponame in *; do
+
+      group=`grep "Require group" $reponame | awk '{ print $3 }'`
+
+      if ! check_group $group; then
+
+        rm -f $reponame
+        echo "Apache repository configuration for $reponame removed!" | tee -a $REPOLOG
+
+        if [ -d "$SVNROOT/$reponame" ]; then
+
+          rm -rf $SVNROOT/$reponame
+          echo "SVN repository $SVNROOT/$reponame removed!" | tee -a $REPOLOG
+
+        fi # -d $reponame
+
+      fi # check_group
+
+    done # parsing $SVNCONFDIR
+
+  fi # check_empty_dir
+
+  # logging
+  echo "SVN repository cleanup finished on `date`" | tee -a $REPOLOG
+
+fi # cleanup
+
+
+########
+# LIST #
+########
+if [ -n "$list" ]; then
+
+  # parse $SVNROOT
+  check_emtpy_dir $SVNCONFDIR
+  if [ "$RET" != "0" ]; then
+
+    cd $SVNCONFDIR
+    for reponame in *; do
+
+      [ -f "$reponame" ] && echo $reponame
+
+    done # parse $SVNCONFDIR
+
+  fi # check_empty_dir
+
+fi # list
+
+
+if [ -z "$list" ]; then
+
+  # reload apache
+  /etc/init.d/apache2 reload
+
+  # create chora configuration
+  create_chora_conf
+
+  # finish logging
+  echo "##############################################################################" | tee -a $REPOLOG
+
+fi
+
+
+# release lockflag
+rm $lockflag || exit 1
+
+
+exit 0

@@ -1,0 +1,6 @@
+# patch miniserv.conf with servername
+sed -e "s/^host=.*/host=$servername/" /etc/webmin/miniserv.conf > /etc/webmin/miniserv.conf.tmp
+cp -f /etc/webmin/miniserv.conf.tmp /etc/webmin/miniserv.conf && rm -f /etc/webmin/miniserv.conf.tmp
+
+# start webmin
+/etc/init.d/webmin start

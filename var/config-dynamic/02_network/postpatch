@@ -1,0 +1,173 @@
+# delete interfaces template after patching
+rm -f interfaces
+
+# only root may have access
+chmod 600 /etc/ipcop.settings
+
+# things to do on fresh installation
+if [[ "$1" = "--first" || "$update_fw" = "yes" ]]; then
+
+  if [ "$fwconfig" = "integrated" ]; then
+    echo "  Building integrated ipcop ..."
+    /usr/share/linuxmuster-ipcop/build-uml.sh
+  else
+    echo "  Building dedicated ipcop installation package ..."
+    /usr/share/linuxmuster-ipcop/build-pkg.sh
+  fi
+
+fi
+
+# start networking
+/etc/init.d/nameif
+/etc/init.d/networking start
+
+# start firewall
+/etc/init.d/linuxmuster-base start
+
+# set host and domain name
+hostname $servername.$domainname
+
+# start portmapper
+/etc/init.d/portmap start
+
+# start inetd
+/etc/init.d/inetd start
+
+# read linuxmuster-ipcop default config
+. /usr/share/linuxmuster-ipcop/config
+
+# copy ipcop default file to temporary file which will be patched
+cp -f /etc/default/linuxmuster-ipcop /etc/default/linuxmuster-ipcop.tmp
+
+if [ "$fwconfig" = "integrated" ]; then
+
+  # setting ipcop ram to 128mb if server ram is greater than 1 mio kb
+  MEM=64M
+  [[ $memtotal -gt 1000000 ]] && MEM=128M
+
+  # patch ipcop default file with mem and start variables
+  sed -e "s/^START_IPCOP=.*/START_IPCOP=yes/
+          s/^MEM=.*/MEM=${MEM}/" /etc/default/linuxmuster-ipcop.tmp > /etc/default/linuxmuster-ipcop
+
+  # check for modifications to apply
+  if [[ "$1" != "--first" && "$update_fw" != "yes" ]]; then
+
+    if [[ "$update_certs" = "yes" || "$update_ipcop_uml" = "yes" ]]; then
+      echo "  Mounting ipcop image ..."
+      mntpoint=/var/tmp/linuxmuster-ipcop.$$
+      mkdir -p $mntpoint || exit 1
+      mount -o loop $ipcopimg $mntpoint || exit 1
+      mkdir -p $mntpoint/tmp/linuxmuster || exit 1
+      mounted=yes
+    fi
+
+    if [ "$update_certs" = "yes" ]; then
+      echo "  Creating new OpenVPN certificates for integrated ipcop ..."
+      cp -a $commondir/install $mntpoint/tmp/linuxmuster
+      cp -a $settings $mntpoint/tmp/linuxmuster/settings
+      cp -a $commondir/templates $mntpoint/tmp/linuxmuster
+      install=yes
+    fi
+
+    if [ "$update_ipcop_uml" = "yes" ]; then
+      echo "  Updating integrated ipcop network settings ..."
+      cp -a $commondir/install $mntpoint/tmp/linuxmuster
+      cp -a $settings $mntpoint/tmp/linuxmuster/settings
+      cp -a $umldir/network $mntpoint/tmp/linuxmuster
+      install=yes
+    fi
+
+    if [ "$install" = "yes" ]; then
+      echo "  Applying new settings to integrated ipcop ..."
+      chroot $mntpoint /tmp/linuxmuster/install /tmp/linuxmuster
+      rm -rf $mntpoint/tmp/linuxmuster
+    fi
+
+    if [ "$update_ipcop_cert" = "yes" ]; then
+      echo "  Creating new https certificate for integrated ipcop ..."
+      chroot $mntpoint /usr/local/bin/httpscert new
+    fi
+
+    if [ "$mounted" = "yes" ]; then
+      echo "  Umounting ipcop image ..."
+      umount $mntpoint
+    fi
+
+  fi
+
+  # finally start firewall again
+  /etc/init.d/linuxmuster-ipcop start
+
+else
+
+  # patch ipcop default file not start the service
+  sed -e 's/^START_IPCOP=.*/START_IPCOP=no/' /etc/default/linuxmuster-ipcop.tmp > /etc/default/linuxmuster-ipcop
+
+  # do this on first time install or firewall change
+  if [[ "$1" = "--first" || "$update_fw" = "yes" ]]; then
+
+    [ -e /root/.ssh/known_hosts ] && rm /root/.ssh/known_hosts
+
+#    if ping -c 2 $ipcopip &> /dev/null; then
+
+      # upload setup package to dedicated ipcop
+      echo "  Uploading installation package to dedicated ipcop ..."
+      $SCRIPTSDIR/ipcop-upload-pkg.exp $ipcoppw $pkgcachedir/$pkgname $ipcopip || exit 1
+
+      # upload setup package to dedicated ipcop
+      echo "  Installing package ..."
+      $SCRIPTSDIR/ipcop-install-pkg.exp $ipcoppw $pkgname $ipcopip || exit 1
+      ssh -p 222 $ipcopip rm /tmp/$pkgname || exit 1
+      echo "  Rebooting ipcop ..." 
+      ssh -p 222 $ipcopip /sbin/reboot || exit
+
+#    else
+
+#      echo "No Connection to IPCop! Aborting installation!"
+#      exit 1
+
+#    fi
+
+  else # check for modifications to apply
+
+#    if ping -c 2 ipcop &> /dev/null; then
+
+      # patching dedicated IPCop configuration
+      if [ "$update_certs" = "yes" ]; then
+        echo "  Creating new OpenVPN certificates for dedicated ipcop ..."
+        scp -P 222 $commondir/install root@$ipcopip:/tmp || exit 1
+        scp -P 222 $settings root@$ipcopip:/tmp/settings || exit 1
+        scp -P 222 -r $commondir/templates root@$ipcopip:/tmp || exit 1
+        ssh -p 222 $ipcopip /tmp/install /tmp || exit 1
+        ssh -p 222 $ipcopip rm -rf /tmp/templates || exit 1
+        ssh -p 222 $ipcopip rm /tmp/install || exit 1
+        ssh -p 222 $ipcopip rm /tmp/settings || exit 1
+        reboot=yes
+      fi
+
+      # creating new apache certificate
+      if [ "$update_ipcop_cert" = "yes" ]; then
+        echo "  Creating new https certificate for dedicated ipcop ..."
+        ssh -p 222 $ipcopip /usr/local/bin/httpscert new || exit 1
+        reboot=yes
+      fi
+
+      # rebooting IPCop
+      if [ "$reboot" = "yes" ]; then
+        echo "  Rebooting ipcop ..." 
+        ssh -p 222 $ipcopip /sbin/reboot || exit 1
+      fi
+
+#    else
+
+#      echo "No Connection to IPCop! Aborting configuration!"
+#      exit 1
+
+#    fi
+
+  fi
+
+fi
+
+# delete ipcop default tmp file
+rm -f /etc/default/linuxmuster-ipcop.tmp

@@ -1,0 +1,7 @@
+etc/apache2/repositories
+etc/skel/windows/cups-pdf
+var/backup/linuxmuster
+var/cache/linuxmuster
+var/cache/linuxmuster/logins
+var/lib/svn
+var/log/linuxmuster

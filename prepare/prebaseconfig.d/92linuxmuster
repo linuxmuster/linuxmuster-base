@@ -1,0 +1,20 @@
+#!/bin/sh
+# tweak stage 2 of installation
+
+timezone=`debconf-get tzconfig/choose_country_zone_multiple`
+
+if [ -n "$timezone" ]; then
+
+  chroot /target /bin/ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
+
+fi
+
+preseed=`debconf-get preseed/file | cut -d "/" -f4`
+
+if [ "$preseed" = "auto" -o "$preseed" = "expert" ]; then
+
+  chroot /target /usr/share/linuxmuster/scripts/patch_fstab.pl
+
+  cp /usr/share/linuxmuster/inittab.install /target/etc/inittab
+
+fi

@@ -1,0 +1,43 @@
+if [ "$1" = "--first" ]; then
+  # first time or fresh install
+
+  # test if moodle is correctly configured
+  if ! dpkg -l | grep moodle | grep ^ii; then
+    dpkg --configure moodle
+  fi
+
+  # drop horde db on first time install
+  dropdb -U postgres moodle
+  dropuser -U postgres moodle
+
+  # create new db and user
+  createuser -U postgres -A -D moodle
+  createdb -U postgres -O moodle -E UTF8 moodle
+
+  # create random password
+  randompw=`pwgen -s 8 1`
+
+  # set random password for db access
+  psql -U postgres -d template1 -qc "ALTER USER moodle WITH PASSWORD '"$randompw"';"
+
+  # patch dbpass & admin login
+  sed -e "s/\$CFG->dbpass =.*/\$CFG->dbpass = \'$randompw\';/" /etc/moodle/config.php > /etc/moodle/config.php.tmp
+  cp -f /etc/moodle/config.php.tmp /etc/moodle/config.php && rm -f /etc/moodle/config.php.tmp
+
+  # unset random password
+  unset randompw
+
+  # create upload virus quarantine dir
+  [ -d /var/lib/moodle/quarantine ] || mkdir -p /var/lib/moodle/quarantine
+  chown www-data:www-data /var/lib/moodle/quarantine
+
+else
+
+  # prevent psql file from being patched
+  mv moodle.psql.target moodle.psql.tmp
+
+fi
+
+# patch wwwroot
+sed -e "s/\$CFG->wwwroot =.*/\$CFG->wwwroot = \'http:\/\/$servername.$domainname\/moodle\';/" /etc/moodle/config.php > /etc/moodle/config.php.tmp
+cp -f /etc/moodle/config.php.tmp /etc/moodle/config.php && rm -f /etc/moodle/config.php.tmp

@@ -1,0 +1,19 @@
+/etc/init.d/mysql start
+
+if [ "$1" = "--first" ]; then
+
+  $SCRIPTSDIR/create-horde-db.sh
+
+  if [ ! -f /root/.my.cnf ]; then
+    myrootpw=`pwgen -s 8 1`
+    mysqladmin -u root password $myrootpw
+    echo "[client]" > /root/.my.cnf
+    echo "user            = root" >> /root/.my.cnf
+    echo "password        = $myrootpw" >> /root/.my.cnf
+    echo "[mysqladmin]" >> /root/.my.cnf
+    echo "user            = root" >> /root/.my.cnf
+    echo "password        = $myrootpw" >> /root/.my.cnf
+    chmod 600 /root/.my.cnf
+  fi
+
+fi

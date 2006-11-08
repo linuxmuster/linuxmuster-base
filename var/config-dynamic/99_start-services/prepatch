@@ -1,0 +1,29 @@
+# set time
+/etc/init.d/ntpdate restart
+
+# repair permissions for root's scheduled cron jobs
+chown root:crontab /var/spool/cron/crontabs/root
+chmod 600 /var/spool/cron/crontabs/root
+
+# start services not yet started
+services="atd cron ntp-server ssh"
+for service in $services; do
+  /etc/init.d/$service start
+done
+
+# update clamav
+su -c /usr/bin/freshclam clamav
+
+# upgrade pear packages
+pear upgrade Archive_Tar Console_Getopt DB HTTP Mail Net_SMTP Net_Socket XML_Parser XML_RPC
+
+# test ssh connection to uml ipcop and restart proxy
+if [[ "$fwconfig" = "integrated" && "$1" = "--first" ]]; then
+  if ping -c 2 $ipcopip &> /dev/null; then
+    $SCRIPTSDIR/ipcop-test-ssh.exp $ipcopip
+  fi
+fi
+
+# set installed flag
+touch $INSTALLED
+

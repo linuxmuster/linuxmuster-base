@@ -1,0 +1,23 @@
+{
+    "skyrix_id" = "server-ogo";
+    LSAttachmentPath = "/var/lib/opengroupware.org/documents";
+    LSAuthLDAPServer = localhost;
+    LSAuthLDAPServerRoot = "ou=accounts,dc=linuxmuster,dc=local";
+    LSConnectionDictionary = {
+        databaseName = ogo;
+        hostName = localhost;
+        password = "";
+        port = 5432;
+        userName = ogo;
+    };
+    LSNewsImagesPath = "/var/lib/opengroupware.org/news_images/";
+    LSNewsImagesUrl = "/NewsImages-ogo";
+    Languages = (
+        German
+    );
+    SkyFSPath = "/var/lib/opengroupware.org/skyfs";
+    SkyLogoutURL = "/OpenGroupware";
+    TimeZoneName = MET;
+    imap_host = localhost;
+    UseSkyrixLoginForImap = YES;
+}

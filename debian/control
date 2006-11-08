@@ -1,0 +1,21 @@
+Source: linuxmuster-base
+Section: debian-linuxmuster
+Priority: optional
+Maintainer: Thomas Schmitt <schmitt@lmz-bw.de>
+Build-Depends: debhelper (>= 4.0.0)
+Standards-Version: 3.6.0
+
+Package: linuxmuster-base
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, dialog, dpkg, expect, pwgen, hostname, perl, procmail, ruby, libsysadm-install-perl, libenv-bash-perl, libimap-admin-perl, libterm-readkey-perl, linuxmuster-tasks, linuxmuster-non-free, linuxmuster-server, linuxmuster-common, linuxmuster-desktop, sed, ntp-server, mondo (>= 2.20)
+Conflicts: exim4, apache
+Description: Linux-Musterloesung configuration scripts
+ This package provides configuration scripts for the Linux-Musterloesung
+
+Package: linuxmuster-prepare
+Priority: optional
+Section: debian-installer
+XC-Package-Type: udeb
+Architecture: all
+Depends: ${shlibs:Depends}, mounted-partitions, fdisk-udeb, prebaseconfig, localechooser, user-setup-udeb, cdrom-detect, sarge-support, hw-detect, mdcfg-utils, save-logs
+Description: Konfiguration der Linux-Musterloesung

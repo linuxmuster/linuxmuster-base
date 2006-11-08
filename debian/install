@@ -1,0 +1,5 @@
+doc/*				usr/share/doc/linuxmuster-base/
+etc/*				etc/linuxmuster/
+sbin/*				usr/sbin/
+share/*				usr/share/linuxmuster/
+var/*				var/lib/linuxmuster/

@@ -1,0 +1,634 @@
+#!/bin/sh
+# creates mysql user databases
+
+#set -x
+
+
+# source linuxmuster defaults
+. /usr/share/linuxmuster/config/dist.conf || exit 1
+
+
+# source helperfunctions
+. $HELPERFUNCTIONS || exit 1
+
+
+# parsing parameters
+getopt $*
+
+
+usage() {
+  echo
+  echo "Usage: linuxmuster-mysql <--create --group=gid --teacher=uid>"
+  echo "                         <--drop --group=gid --teacher=uid>"
+  echo "                         <--cleanup>"
+  echo "                         <--list> [--group=gid|--user=uid]"
+  echo
+  exit 1
+}
+
+
+# test options
+[[ -n "$create" && -n "$drop" ]] && usage
+[[ -n "$create" && -n "$list" ]] && usage
+[[ -n "$create" && -n "$cleanup" ]] && usage
+[[ -n "$drop" && -n "$list" ]] && usage
+[[ -n "$drop" && -n "$cleanup" ]] && usage
+[[ -n "$list" && -n "$cleanup" ]] && usage
+if [[ -n "$create" || -n "$drop" ]]; then
+  [ -z "$teacher" ] && usage
+  [ -z "$group" ] && usage
+else
+  [[ -z "$cleanup" && -z "$list" ]] && usage
+fi
+if [ -n "$list" ]; then
+  [[ -n "$group" && -n "$user" ]] && usage
+fi
+
+
+# check valid teacher
+if [ -n "$teacher" ]; then
+
+  check_teacher $teacher || cancel "User $teacher is not a teacher!"
+
+fi # check valid teacher
+
+
+# check valid group
+if [ -n "$group" ]; then
+
+  check_group $group $teacher || cancel "Group $group is not valid!"
+
+  # check if group is a project
+  check_project $group && project="yes"
+
+fi # check valid group
+
+
+# set lockfile
+if ! checklock; then
+
+  echo "Timed out! No database created!"
+  exit 1
+
+fi
+
+
+# default vars
+logtmp="/var/tmp/create_userdb.$$"
+servername=`hostname`
+domainname=`dnsdomainname`
+mailfooter="Zugangs-URL  : https://${servername}.${domainname}/phpmyadmin"
+
+# get mysql users
+dbuserlist=`echo "select user from user where 1" | mysql -s mysql | grep ^_`
+
+# fetch grouplist
+dbgrouplist=`mysqlshow | awk '{ print $2 }' | grep ^c_`
+
+# database prefixes
+students_prefix="s_${group}"
+teachers_prefix="t_${group}"
+common_prefix="c_${group}"
+
+
+# write to logfile
+write_log() {
+
+  msg="$1"
+  msga="$2"
+  [ -n "$msg" ] && echo "$msg" | tee -a $logtmp
+  [ -n "$msga" ] && echo "$msga" >> $logtmp.admin
+  unset msg
+  unset msga
+
+} # write_log
+
+
+# begin logging
+[ -z "$list" ] && write_log "##############################################################################"
+
+
+##########
+# CREATE #
+##########
+if [ -n "$create" ]; then
+
+  msg="MySQL Database creation started by teacher $teacher on `date`"
+  msga="$msg"
+  write_log "$msg" "$msga"
+
+  for username in $members; do
+
+    # set dbusername
+    dbusername="_${username}"
+
+    # reset counters
+    unset user_created
+    unset db_created
+    unset is_teacher
+
+    # check if user exists
+    if ! id $username &> /dev/null; then
+
+      msg="$username does not exist! Skipping!"
+      msga="$msg"
+      write_log "$msg" "$msga"
+      members=`echo $members | sed -e "s/$username//"`
+      continue
+
+    fi # check if user exists
+
+    # check if id is greater or equal than 10000
+    uidnr=`id -ru $username`
+    if [ "$uidnr" -lt 10000 ]; then
+
+      msg="Uid of user $username is less than 10.000! Skipping"
+      msga="$msg"
+      write_log "$msg" "$msga"
+      members=`echo $members | sed -e "s/$username//"`
+      continue
+
+    fi # check if id is greater or equal than 10000
+
+    # check if user is then invoking teacher, collect the students in $students
+    # and create the appropriate database
+    if `id $username | grep -qw $TEACHERSGROUP`; then
+
+      # check if user is the invoking teacher or if group is a project
+      if [[ "$username" = "$teacher" || -n "$project" ]]; then
+
+        dbname="${teachers_prefix}${dbusername}"
+        is_teacher="yes"
+
+      else # skip other teachers in this group
+
+        continue
+
+      fi # check if user is the invoking teacher
+
+    else
+
+      dbname="${students_prefix}${dbusername}"
+      students="$students $username"
+
+    fi # check teacher
+
+    # check if user is already present in mysql
+    if echo $dbuserlist | grep -qw $dbusername; then
+
+      msg="User $username is already a mysql user. Skipping!"
+      msga="$msg"
+      write_log "$msg" "$msga"
+
+    else
+
+      dbpw=`pwgen -s 8 1`
+
+      if create_mysql_user $dbusername $dbpw; then
+
+        if [ -n "$is_teacher" ]; then
+          msg="Mysql user $dbusername successfully created."
+          msga="Mysql user $dbusername with password $dbpw successfully created."
+        else
+          msg="Mysql user $dbusername with password $dbpw successfully created."
+          msga="$msg"
+        fi
+        write_log "$msg" "$msga"
+        user_created=yes
+
+      else
+
+        msg="Creation of mysql user $dbusername failed!"
+        msga="$msg"
+        write_log "$msg" "$msga"
+
+      fi # create mysql user
+
+    fi # check mysql user
+
+    # check if database already exists
+    if mysqlshow | grep -qw $dbname; then
+
+      msg="Database $dbname exists already. Skipping!"
+      msga="$msg"
+      write_log "$msg" "$msga"
+
+    else
+
+      # creates db
+      if create_mysql_db $dbname; then
+
+        if grant_mysql_privileges $dbname $dbusername "Y"; then
+
+          msg="Database $dbname successfully created."
+          msga="$msg"
+          write_log "$msg" "$msga"
+          db_created=yes
+
+        else
+
+          msg="Creation of database $dbname failed!"
+          msga="$msg"
+          write_log "$msg" "$msga"
+          drop_mysql_db $dbname
+
+        fi # grant privileges
+
+      else
+
+        msg="Creation of database $dbname failed!"
+        msga="$msg"
+        write_log "$msg" "$msga"
+
+      fi # create db
+
+    fi # check database
+
+    # strip leading _ from dbusername
+    username=${dbusername#_}
+
+    # send e-mail with db account data
+    if [ -n "$user_created" ]; then
+
+      mail -s "Datenbank-Zugang erstellt" $username@$domainname <<EOF
+Benutzername : ${dbusername}
+Passwort     : ${dbpw}
+
+${mailfooter}
+EOF
+
+    fi # db account e-mail
+
+    # send e-mail with database info
+    if [ -n "$db_created" ]; then
+
+      mail -s "Datenbank ${dbname} erstellt" $username@$domainname <<EOF
+Gruppe:      : ${group}
+Datenbankname: ${dbname}
+Benutzername : ${dbusername}
+
+${mailfooter}
+EOF
+
+    fi
+
+  done # for username in members
+
+  # create common group database
+  unset db_created
+  dbname=${common_prefix}
+
+  # check if database already exists
+  if mysqlshow | grep -qw $dbname; then
+
+    msg="Database $dbname exists already. Skipping!"
+    msga="$msg"
+    write_log "$msg" "$msga"
+
+  else
+
+    # creates db
+    if create_mysql_db $dbname; then
+
+      msg="Database $dbname successfully created."
+      msga="$msg"
+      write_log "$msg" "$msga"
+
+    else
+
+      msg="Creation of database $dbname failed!"
+      msga="$msg"
+      write_log "$msg" "$msga"
+      db_created=no
+
+    fi # create db
+
+  fi # check db
+
+  # grant privileges on common group db if db was created
+  if [ -z "$db_created" ]; then
+
+    # grant readonly privileges for students
+    for username in $students; do
+
+      dbusername="_${username}"
+
+      if ! grant_mysql_privileges $dbname $dbusername "N"; then
+
+        msg="Fatal! Cannot grant access for user $dbusername to common group database $dbname!"
+        msga="$msg"
+        write_log "$msg" "$msga"
+
+      fi # grant students privileges
+
+    done # for username in students
+
+    # grant r/w privileges for the teacher
+    if ! grant_mysql_privileges $dbname _${teacher} "Y"; then
+
+      msg="Fatal! Cannot grant access for user _${teacher} to common group database $dbname!"
+      msga="$msg"
+      write_log "$msg" "$msga"
+
+    fi # grant teacher privileges
+
+  fi # db_created
+
+  # grant privileges to the teacher for students databases
+  for s in $students; do
+
+    dbname="${students_prefix}_${s}"
+
+    if ! grant_mysql_privileges $dbname _${teacher} "Y"; then
+
+      msg="Fatal! Cannot grant r/w access for teacher $teacher on student's database $dbname!"
+      msga="$msg"
+      write_log "$msg" "$msga"
+
+    fi # grant privileges
+
+  done # s in students
+
+  # close logfile
+  msg="MySQL Database creation finished by teacher $teacher on `date`"
+  msga="$msg"
+  write_log "$msg" "$msga"
+
+fi # creating databases
+
+
+########
+# DROP #
+########
+if [ -n "$drop" ]; then
+
+  msg="MySQL Database dropping started by teacher $teacher on `date`"
+  write_log "$msg"
+
+  # drop student dbs
+  count=0
+  for dbname in `mysqlshow | grep ${students_prefix} | awk '{ print $2 }'` $common_prefix; do
+
+    if drop_mysql_db $dbname; then
+
+      msg="Database $dbname successfully dropped!"
+      write_log "$msg"
+      let count+=1
+
+    else
+
+      msg="Failed to drop Database $dbname!"
+      write_log "$msg"
+
+    fi #
+
+  done # drop student dbs
+
+  # print summary
+  if [ "$count" -eq 0 ]; then
+
+    msg="No databases dropped."
+    write_log "$msg"
+
+  else
+
+    msg="Dropped $count databases."
+    write_log "$msg"
+
+  fi # summary
+
+  # close logfile
+  msg="MySQL Database dropping finished by teacher $teacher on `date`"
+  write_log "$msg"
+
+fi # DROP
+
+
+###########
+# CLEANUP #
+###########
+if [ -n "$cleanup" ]; then
+
+  msg="MySQL Database cleanup started on `date`"
+  write_log "$msg"
+
+  # check for orphaned db users
+  usercount=0
+  for dbusername in $dbuserlist; do
+
+    # strip leading _ from dbusername
+    username=${dbusername#_}
+
+    # check if user is a valid system user
+    if ! id $username &> /dev/null; then
+
+      msg="Mysql user $username is no system user."
+      write_log "$msg"
+
+      # drop mysql user
+      drop_mysql_user $dbusername
+      msg="Former mysql user $dbusername dropped!"
+      write_log "$msg"
+      let usercount+=1
+
+    fi # check user
+
+  done # dbusername in dbuserlist
+
+  # search for orphaned user database entries
+  entrycount=0
+  dblist=`echo "SELECT db FROM db" | mysql -s mysql | grep ^[s,t]_`
+  for db in $dblist; do
+
+    # extract username from database name
+    nr=`echo $db | sed -e 's/_/ /g' | wc -w`
+    username=`echo $db | cut -d "_" -f $nr`
+
+    # check if user is a valid system user
+    if ! id $username &> /dev/null; then
+
+      # delete db entry from db table
+      echo "DELETE FROM db WHERE db = '$db'" | mysql -s mysql
+      msg="Database $db successfully removed from db table!"
+      write_log "$msg"
+      let entrycount+=1
+
+    fi
+
+  done
+
+  # delete orphaned user dbs itself
+  dbcount=0
+  dblist=`mysqlshow | awk '{ print $2 }' | grep ^[s,t]_`
+  for db in $dblist; do
+
+    # extract username from database name
+    nr=`echo $db | sed -e 's/_/ /g' | wc -w`
+    username=`echo $db | cut -d "_" -f $nr`
+
+    # check if user is a valid system user
+    if ! id $username &> /dev/null; then
+
+      if drop_mysql_db $db | tee -a $logtmp; then
+        msg="Database of former mysql user _${username} successfully dropped!"
+        write_log "$msg"
+        let dbcount+=1
+      else
+        msg="Dropping of database $db failed!"
+        write_log "$msg"
+      fi
+
+    fi
+
+  done # db in dblist
+
+  # search for orphaned group database entries
+  dblist=`echo "SELECT db FROM db" | mysql -s mysql | grep ^c_`
+  for db in $dblist; do
+
+    # extract group name
+    group=${db#c_}
+
+    # check if group is a valid system group
+    if ! smbldap-groupshow $group &> /dev/null; then
+
+      # delete db entry from db table
+      echo "DELETE FROM db WHERE db = '$db'" | mysql -s mysql
+      msg="Database $db successfully removed from db table!"
+      write_log "$msg"
+      let entrycount+=1
+
+    fi
+
+  done
+
+  # search for orphaned group dbs
+  for db in $dbgrouplist; do
+
+    # extract group name
+    group=${db#c_}
+
+    # check if group is a valid system group
+    if ! smbldap-groupshow $group &> /dev/null; then
+
+      # drop group db
+      if drop_mysql_db $db | tee -a $logtmp; then
+        msg="Database of group $group successfully dropped."
+        write_log "$msg"
+        let dbcount+=1
+      else
+        msg="Dropping of database $db failed!"
+        write_log "$msg"
+      fi
+
+    fi # check system group
+
+  done # dbname in dbgrouplist
+
+  # print summary
+  write_log "$usercount db users dropped."
+  write_log "$entrycount db entries removed."
+  write_log "$dbcount databases dropped."
+
+  # close logfile
+  write_log "MySQL Database cleanup finished on `date`"
+
+fi # CLEANUP
+
+
+########
+# LIST #
+########
+if [ -n "$list" ]; then
+
+  # list groups for a user
+  if [ -n "$user" ]; then
+
+    dbusername="_${user}"
+    dblist=`echo "SELECT db FROM db WHERE user='$dbusername'" | mysql -s mysql | grep ^[s,t]_ | grep $dbusername`
+
+    for dbname in $dblist; do
+
+      echo $dbname
+
+    done
+
+  # list group databases
+  elif [ -n "$group" ]; then
+
+    mysqlshow | grep c_${group} | awk '{ print $2 }'
+    mysqlshow | grep _${group}_ | awk '{ print $2 }'
+
+  else
+
+    # list all groups for which exist databases
+    for dbname in $dbgrouplist; do
+
+      group=${dbname#c_}
+      echo $group
+
+    done # list all groups
+
+  fi
+
+fi # LIST
+
+
+# end of logging
+if [ -z "$list" ]; then
+
+  msg="##############################################################################"
+  [ -f "$logtmp.admin" ] && msga="$msg"
+  write_log "$msg" "$msga"
+
+fi
+
+
+# send e-mail to teacher and administrator
+if [[ -z "$list" && -z "$cleanup" ]]; then
+
+  cat $logtmp | mail -s "Datenbank-Log" $teacher@$domainname
+
+  if [ -s "$logtmp.admin" ]; then
+
+    cat $logtmp.admin | mail -s "Datenbank-Log" $ADMINISTRATOR@$domainname
+
+  else
+
+    cat $logtmp | mail -s "Datenbank-Log" $ADMINISTRATOR@$domainname
+
+  fi
+
+fi
+
+
+# send e-mail to administrator about cleanup
+[[ -z "$list" && -n "$cleanup" ]] && cat $logtmp | mail -s "Datenbank-Log" $ADMINISTRATOR@$domainname
+
+
+# append temporary logfile to main logfile
+if [ -s "$logtmp.admin" ]; then
+
+  cat $logtmp.admin >> $USERDBLOG
+
+  else
+
+    [ -s "$logtmp" ] && cat $logtmp >> $USERDBLOG
+
+fi
+
+
+# delete logfiles
+[ -e "$logtmp" ] && rm -rf $logtmp
+[ -e "$logtmp.admin" ] && rm -rf $logtmp.admin
+
+
+# secure permissions for logfile
+[ -e "$USERDBLOG" ] && chmod 600 $USERDBLOG
+
+
+# release lockfile
+rm $lockflag || exit 1
+
+
+exit 0

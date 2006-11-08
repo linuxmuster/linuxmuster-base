@@ -1,0 +1,17 @@
+# make script executable
+chmod 744 $SCRIPTSDIR/create-ssl-cert.sh
+
+# create new apache2 certificate with new data
+if [ "$1" = "--first" -o "$update_certs" = "yes" ]; then
+  $SCRIPTSDIR//create-ssl-cert.sh
+fi
+
+# things to do only on first installation
+if [ "$1" = "--first" ]; then
+
+  # create ssh key for root
+  [ -d /root/.ssh ] && rm -rf /root/.ssh
+  mkdir /root/.ssh
+  ssh-keygen -N "" -q -t dsa -f /root/.ssh/id_dsa
+
+fi

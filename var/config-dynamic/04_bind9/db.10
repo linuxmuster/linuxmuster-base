@@ -1,0 +1,10 @@
+$TTL	3600
+@	IN	SOA	@@servername@@.@@domainname@@. @@domainname@@. (
+			2004030801
+			3600
+			1800
+			604800
+			3600 )
+@		IN	NS	@@servername@@.@@domainname@@.
+@@serverrev_short@@		IN	PTR	@@servername@@.@@domainname@@.
+@@ipcoprev_short@@		IN	PTR	ipcop.@@domainname@@.

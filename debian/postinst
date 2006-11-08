@@ -1,0 +1,299 @@
+#! /bin/sh
+# postinst script for linuxmuster
+#
+# see: dh_installdeb(1)
+
+set -e
+
+# summary of how this script can be called:
+#        * <postinst> `configure' <most-recently-configured-version>
+#        * <old-postinst> `abort-upgrade' <new version>
+#        * <conflictor's-postinst> `abort-remove' `in-favour' <package>
+#          <new-version>
+#        * <deconfigured's-postinst> `abort-deconfigure' `in-favour'
+#          <failed-install-package> <version> `removing'
+#          <conflicting-package> <version>
+# for details, see http://www.debian.org/doc/debian-policy/ or
+# the debian-policy package
+#
+
+case "$1" in
+    configure)
+
+      # read linuxmuster defaults
+      . /usr/share/linuxmuster/config/dist.conf
+
+      # make dist.conf executable so that perl scripts can source it
+      chmod 755 /usr/share/linuxmuster/config/dist.conf
+
+      # check all necessary dirs and links and create them if needed
+      for i in $NETLOGONDIR $PROGSDIR $CDSDIR $BACKUPDIR $BACKUPMNTPOINT \
+               $LOGINCACHE $LOGDIR $SVNCONFDIR $SVNROOT $CLASSESWEBROOT \
+               $TEACHERSWEBROOT $STUDENTSWEBROOT $PROJECTSWEBROOT; do
+
+        [ -d "$i" ] || mkdir -p $i
+
+      done
+
+      # create and correct dirs and files
+      [ -d /etc/skel/windows ] && rm -rf /etc/skel/windows
+      [ -d /etc/skel/public_html ] && rm -rf /etc/skel/public_html
+      [ -d /etc/skel/private_html ] && rm -rf /etc/skel/private_html
+      [ -d /etc/skel/cups-pdf ] && rm -rf /etc/skel/cups-pdf
+      [ -d /var/lib/rembo/files/global ] || mkdir -p /var/lib/rembo/files/global
+      [ -e /var/lib/rembo/files/global/wimport_data ] || touch /var/lib/rembo/files/global/wimport_data
+      [ -e "$BLOCKEDHOSTSINTERNET" ] || touch $BLOCKEDHOSTSINTERNET
+      [ -e "$BLOCKEDHOSTSINTRANET" ] || touch $BLOCKEDHOSTSINTRANET
+      [ -e "$UNFILTEREDHOSTS" ] || touch $UNFILTEREDHOSTS
+
+      # dummy dhcpd.conf
+      if [ ! -f "$DHCPDCONF" ]; then
+        [ -d "${DHCPDCONF%/*}" ] || mkdir -p ${DHCPDCONF%/*}
+        touch $DHCPDCONF
+      fi
+
+      # upgrade tasks
+      if [ -e "$INSTALLED" ]; then
+
+        if ! . $HELPERFUNCTIONS; then
+          echo "Cannot read $HELPERFUNCTIONS!"
+          exit 1
+        fi
+
+        # check if smtprelay is in $NETWORKSETTINGS
+        if ! grep -q smtprelay $NETWORKSETTINGS; then
+          smtprelay=`echo get linuxmuster-base/smtprelay | debconf-communicate`
+          smtprelay=${smtprelay#[0-9] }
+          echo "smtprelay=\"$smtprelay\"" >> $NETWORKSETTINGS
+        fi
+
+        servername=`hostname`
+        domainname=`dnsdomainname`
+        date=`date`
+        workgroup=`echo get linuxmuster-base/workgroup | debconf-communicate`
+        workgroup=${workgroup#[0-9] }
+        internsub=`echo $serverip | awk -F. '{ print $2 }'`
+	serverrev_short=1.1.$internsub
+	ipcoprev_short=254.1.$internsub
+
+        # patch samba
+        sed -e "s/@@date@@/${date}/g
+                s/@@serverip@@/${serverip}/g
+                s/@@internmask@@/${internmask}/g
+                s/@@workgroup@@/${workgroup}/g
+                s/@@domadmin@@/${DOMADMIN}/g
+                s/@@administrator@@/${ADMINISTRATOR}/g
+                s/@@domadmins@@/${DOMADMINS}/g
+                s/@@teachersgroup@@/${TEACHERSGROUP}/g
+                s/@@basedn@@/${basedn}/g" $SMBCONFTEMPLATE > /etc/samba/smb.conf
+        /etc/init.d/samba force-reload
+
+        # restore samba ldap admin password
+        smbpasswd -w `cat /etc/ldap.secret`
+
+        # remove mem-cache mod from apache2
+        if [ -L /etc/apache2/mods-enabled/mem_cache.load ]; then
+          rm /etc/apache2/mods-enabled/mem_cache.load
+          apache_reload=yes
+        fi
+
+        # userdir.conf has changed
+        userdir_conf=/etc/apache2/mods-available/userdir.conf
+        if ! grep -q "# modified by linuxmuster-base-0.9-7" $userdir_conf; then
+          cp -f /var/lib/linuxmuster/config-static$userdir_conf $userdir_conf
+          apache_reload=yes
+        fi
+
+        # apache2 default has changed
+        apache_default=/etc/apache2/sites-available/default
+        if ! grep -q "/people/students" $apache_default; then
+          cp -f /var/lib/linuxmuster/config-static$apache_default $apache_default
+          apache_reload=yes
+        fi
+
+        # reload apache if necessary
+        [ "$apache_reload" = "yes" ] && /etc/init.d/apache2 force-reload
+
+        # repair ogo configuration
+        ogoconfig=/var/lib/opengroupware.org/.libFoundation/Defaults/NSGlobalDomain.plist
+        if ! grep -q LSAuthLDAPServer $ogoconfig; then
+          dbpasswd=`grep password $ogoconfig | awk -F= '{ print $2 }' | awk -F\; '{ print $1 }'`
+          cp -f /var/lib/linuxmuster/config-static$ogoconfig $ogoconfig
+          sed -e "s/\"skyrix_id\" =.*/\"skyrix_id\" = $servername-ogo;/
+                  s/LSAuthLDAPServerRoot =.*/LSAuthLDAPServerRoot = \"ou=accounts,$basedn\";/
+                  s/password =.*/password = $dbpasswd;/" $ogoconfig > $ogoconfig.tmp
+                  cp -f $ogoconfig.tmp $ogoconfig && rm -f $ogoconfig.tmp
+          chown ogo:ogo /var/lib/opengroupware.org -R
+          chmod 640 $ogoconfig
+          /etc/init.d/opengroupware.org restart
+        fi
+
+        # remove myshn management console from $PROGSDIR
+        [ -d "$PROGSDIR/myshn-mc" ] && rm -rf $PROGSDIR/myshn-mc
+
+        # fixing pam configuration
+        if grep ^account /etc/pam.d/login | grep -q pam_access.so; then
+  	  echo "pam configuration is up to date. :-)"
+        else
+          echo "Updating pam configuration ..."
+          cp -f /var/lib/linuxmuster/config-static/etc/pam.d/* /etc/pam.d
+          cp -f /var/lib/linuxmuster/config-static/etc/nsswitch.conf /etc
+          sed -e "s/@@administrator@@/$ADMINISTRATOR/" /var/lib/linuxmuster/config-dynamic/17_admins/access.conf > /etc/security/access.conf
+	  echo "ATTENTION!"
+	  echo "Only root and $ADMINISTRATOR are allowed to login on the server!"
+	  echo "To change this behaviour you have to edit /etc/security/access.conf!"
+        fi
+
+        # check if domadmin exists
+        if ! id $DOMADMIN &> /dev/null; then
+	  da_check=no
+	fi
+
+        # repair admin groups and accounts
+        $SCRIPTSDIR/repair-admins.sh
+
+	# ask for domadmin password if necessary
+	if [ -n "$da_check" ]; then
+	  echo "ATTENTION!"
+	  echo "$DOMADMIN is from now on the only user who has the right to add windows clients to the domain!"
+	  echo "You have to give him a password!"
+	  smbldap-passwd $DOMADMIN
+	fi
+
+        # update cron scripts
+        # ntpdate
+        if [ -e /etc/cron.hourly/ntpdate ]; then
+          echo "Removing ntpdate cron script ..."
+          rm /etc/cron.hourly/ntpdate
+        fi
+
+        # postfix
+        # updating main.cf
+        if ! grep -q smtp_sasl_auth_enable /etc/postfix/main.cf; then
+          echo "Preparing postfix configuration for smtp auth ..."
+          cp -f /etc/postfix/main.cf /etc/postfix/main.cf-dpkg.orig
+          sed -e "s/@@servername@@/${servername}/g
+                  s/@@domainname@@/${domainname}/g
+                  s/@@smtprelay@@/${smtprelay}/g
+                  s/@@internalnet@@/${internalnet}/g
+                  s/@@internmask_short@@/${internmask_short}/g" /var/lib/linuxmuster/config-dynamic/16_mail/main.cf > /etc/postfix/main.cf
+          postfix reload
+        fi
+        # write smtp_auth file
+        if [ ! -e /etc/postfix/smtp_auth ]; then
+          if [ -n "$smtprelay" ]; then
+            echo "# $smtprelay		username:password" > /etc/postfix/smtp_auth
+          else
+            echo "# change smtp.relay.host to the FQDN of your smtp relay host" > /etc/postfix/smtp_auth
+            echo "# and uncomment the next line to activate smtp authentication" >> /etc/postfix/smtp_auth
+            echo "# smtp.relay.host		username:password" >> /etc/postfix/smtp_auth
+          fi
+          chmod 600 /etc/postfix/smtp_auth
+        fi
+        # master.cf
+        if grep -q "# only used by postfix-tls" /etc/postfix/master.cf; then
+          cp /etc/postfix/master.cf /etc/postfix/master.cf-dpkg.orig
+          echo "Updating /etc/postfix/master.cf ..."
+          cp /var/lib/linuxmuster/config-static/etc/postfix/master.cf /etc/postfix
+          upgrade=yes
+        fi
+
+        # bind9
+        # permissions
+        chown root:bind /etc/bind
+        chmod 775 /etc/bind
+        chown root:bind /etc/bind/db.10
+        chown root:bind /etc/bind/db.linuxmuster
+        chmod 664 /etc/bind/db.10
+        chmod 664 /etc/bind/db.linuxmuster
+        # including rndc.key
+        if ! grep -q rndc-key /etc/bind/named.conf.linuxmuster; then
+          echo "Fixing ddns update ..."
+          /etc/init.d/bind9 stop
+	  bind_stopped=yes
+          cp /etc/bind/named.conf.linuxmuster /etc/bind/named.conf.linuxmuster.dpkg-orig
+          sed -e "s/@@domainname@@/${domainname}/g" /var/lib/linuxmuster/config-dynamic/04_bind9/named.conf.linuxmuster > /etc/bind/named.conf.linuxmuster
+          if [ ! -e /etc/bind/rndc.key ]; then
+            echo "Creating /etc/bind/rndc.key ..."
+            rndc-confgen -a -u bind
+          else
+            chown bind /etc/bind/rndc.key
+          fi
+        fi
+        # fix wrong reversed addresses
+	if grep -q 0.0.10 /etc/bind/db.10; then
+          echo "Fixing wrong reversed dns addresses ..."
+          cp /etc/bind/db.10 /etc/bind/db.10.dpkg-orig
+          cp /etc/bind/db.linuxmuster /etc/bind/db.linuxmuster.dpkg-orig
+	  [ -n "$bind_stopped" ] || /etc/init.d/bind9 stop
+	  bind_stopped=yes
+	  sed -e "s/@@domainname@@/${domainname}/g
+	          s/@@servername@@/${servername}/g
+	          s/@@serverrev_short@@/${serverrev_short}/
+	          s/@@ipcoprev_short@@/${ipcoprev_short}/" /var/lib/linuxmuster/config-dynamic/04_bind9/db.10 > /etc/bind/db.10
+	  sed -e "s/@@domainname@@/${domainname}/g
+	          s/@@servername@@/${servername}/g
+	          s/@@serverip@@/${serverip}/
+	          s/@@ipcopip@@/${ipcopip}/" /var/lib/linuxmuster/config-dynamic/04_bind9/db.linuxmuster > /etc/bind/db.linuxmuster
+	  # remove journaling files
+	  [ -e /etc/bind/db.10.jnl ] && rm /etc/bind/db.10.jnl
+	  [ -e /etc/bind/db.linuxmuster.jnl ] && rm /etc/bind/db.linuxmuster.jnl
+	fi
+        [ -n "$bind_stopped" ] && /etc/init.d/bind9 start
+
+        # dhcpd.conf
+        grep -q rndc-key /etc/dhcp3/dhcpd.conf || dhcpd_update=yes
+        grep -q "option ntp-servers" /etc/dhcp3/dhcpd.conf || dhcpd_update=yes
+        if [ -n "$dhcpd_update" ]; then
+          echo "Updating dhcp-server configuration ..."
+          cp /etc/dhcp3/dhcpd.conf /etc/dhcp3/dhcpd.conf-dpkg.orig
+          sed -e "s/@@servername@@/${servername}/g
+                  s/@@domainname@@/${domainname}/g
+                  s/@@serverip@@/${serverip}/g
+                  s/@@ipcopip@@/${ipcopip}/g
+                  s/@@broadcast@@/${broadcast}/g
+                  s/@@internalnet@@/${internalnet}/g
+                  s/@@internsub@@/${internsub}/g
+                  s/@@internmask@@/${internmask}/g" /var/lib/linuxmuster/config-dynamic/03_dhcp3-server/dhcpd.conf > /etc/dhcp3/dhcpd.conf
+          /etc/init.d/dhcp3-server restart
+        fi
+
+        # apt
+        cp -f /var/lib/linuxmuster/config-static/etc/apt/sources.list.online /etc/apt
+        [ -e /etc/apt/apt.conf ] && cp /etc/apt/apt.conf /etc/apt/apt.conf-dpkg.orig
+        echo "Updating /etc/apt/apt.conf ..."
+        cp -f /var/lib/linuxmuster/config-static/etc/apt/apt.conf /etc/apt
+        [ -e /etc/apt/preferences ] && cp /etc/apt/preferences /etc/apt/preferences-dpkg.orig
+        echo "Updating /etc/apt/preferences ..."
+        cp -f /var/lib/linuxmuster/config-static/etc/apt/preferences /etc/apt
+        if grep -q "^deb http" /etc/apt/sources.list; then
+          echo "Updating /etc/apt/sources.list ..."
+          cp -f /etc/apt/sources.list /etc/apt/sources.list-dpkg.orig
+          cp -f /etc/apt/sources.list.online /etc/apt/sources.list
+        fi
+
+        # important message if upgrade is necessary
+        if [ -n "$upgrade" ]; then
+          echo "IMPORTANT!"
+          echo "Be sure to make apt-get update and apt-get dist-upgrade very soon!"
+        fi
+
+      fi
+      ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+
+    ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+# dh_installdeb will replace this with shell code automatically
+# generated by other debhelper scripts.
+
+#DEBHELPER#
+
+exit 0

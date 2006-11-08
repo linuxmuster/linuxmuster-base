@@ -1,0 +1,186 @@
+#!/bin/sh
+
+# Source debconf library.
+. /usr/share/debconf/confmodule
+
+PRIORITY="critical"
+
+# source linuxmuster defaults
+. /usr/share/linuxmuster/config/dist.conf || exit 1
+
+# source helperfunctions
+. $HELPERFUNCTIONS || exit 1
+
+
+# source oldvalues if present
+if [ -e $OLDVALUES ]; then
+  . $OLDVALUES
+  oldvalues=yes
+fi
+
+if [ "$1" = "--first" ]; then
+  # intro
+  db_fset linuxmuster-base/intro seen false
+  db_input $PRIORITY linuxmuster-base/intro || true
+  db_go
+fi
+
+
+# data for certificates and workgroup
+for i in country state location schoolname workgroup; do
+  while [ -z "$INPUT" ]; do
+    db_fset linuxmuster-base/$i seen false
+    db_input $PRIORITY linuxmuster-base/$i || true
+    db_go
+    db_get linuxmuster-base/$i || true
+    INPUT=$RET
+  done
+  unset INPUT
+done
+db_set shared/organization $RET || true
+
+
+# intern network configuration
+# servername
+while ! (expr match "$SERVERNAME" '\([a-z0-9-]\+$\)'); do
+  db_fset linuxmuster-base/servername seen false
+  db_input $PRIORITY linuxmuster-base/servername || true
+  db_go
+  db_get linuxmuster-base/servername || true
+  SERVERNAME=$RET
+done
+
+
+# domainname
+while ! validdomain "$DOMAINNAME"; do
+  db_fset linuxmuster-base/domainname seen false
+  db_input $PRIORITY linuxmuster-base/domainname || true
+  db_go
+  db_get linuxmuster-base/domainname || true
+  DOMAINNAME=$RET
+done
+
+
+# intern subnet range
+db_fset linuxmuster-base/internsubrange seen false
+db_input $PRIORITY linuxmuster-base/internsubrange || true
+db_go
+
+
+# extern network configuration
+# dsl sub menu
+dslconfig() {
+  db_fset linuxmuster-base/dsluser seen false
+  db_input $PRIORITY linuxmuster-base/dsluser || true
+  db_go
+  db_fset linuxmuster-base/dslpasswd seen false
+  db_input $PRIORITY linuxmuster-base/dslpasswd || true
+  db_go
+}
+
+
+# dns forwarders
+dnsconfig() {
+  while true; do
+    db_fset linuxmuster-base/dnsforwarders seen false
+    db_input $PRIORITY linuxmuster-base/dnsforwarders || true
+    db_go
+    db_get linuxmuster-base/dnsforwarders || true
+    DNSFORWARDERS=$RET
+    BREAK=true
+    for i in $DNSFORWARDERS; do
+      if ! validip "$i"; then BREAK=false; fi
+    done
+    if [ "$BREAK" = "true" ]; then break; fi
+  done
+}
+
+
+# router sub menu
+routerconfig() {
+  for i in externip externmask gatewayip; do
+    IP=""
+    while ! validip "$IP"; do
+      db_fset linuxmuster-base/$i seen false
+      db_input $PRIORITY linuxmuster-base/$i || true
+      db_go
+      db_get linuxmuster-base/$i || true
+      IP=$RET
+      if [ "$i" = "externmask" ]; then break; fi
+    done
+  done
+  dnsconfig
+}
+
+
+# extern network sub menu
+externconfig() {
+  db_fset linuxmuster-base/externtype seen false
+  db_input $PRIORITY linuxmuster-base/externtype || true
+  db_go
+  db_get linuxmuster-base/externtype || true
+  case $RET in
+    static)
+      routerconfig
+      ;;
+    pppoe)
+      dslconfig
+      ;;
+    dhcp)
+      ;;
+  esac
+}
+
+
+# firewall
+db_fset linuxmuster-base/fwconfig seen false
+db_input $PRIORITY linuxmuster-base/fwconfig || true
+db_go
+db_get linuxmuster-base/fwconfig || true
+fwconfig=$RET
+# check if fwconfig has been modified
+if [ "$oldvalues" = "yes" ]; then
+  [ "$fwconfig" = "$fwconfig_old" ] || update_fw=yes
+fi
+# configure extern network if fwconfig is integrated
+[ "$fwconfig" = "integrated" ] && externconfig
+
+
+# smtp relay
+while ! validdomain "$SMTPRELAY"; do
+  db_fset linuxmuster-base/smtprelay seen false
+  db_input $PRIORITY linuxmuster-base/smtprelay || true
+  db_go
+  db_get linuxmuster-base/smtprelay || true
+  SMTPRELAY=$RET
+  if [ "$SMTPRELAY" = "" ]; then break; fi
+done
+
+
+if [ "$1" = "--first" ]; then
+  # passwords, asked only on installation
+  # Netzwerkberater
+  db_fset linuxmuster-base/adminpw seen false
+  db_input $PRIORITY linuxmuster-base/adminpw || true
+  db_go
+  # Web-Admin
+  db_fset linuxmuster-base/wwwadminpw seen false
+  db_input $PRIORITY linuxmuster-base/wwwadminpw || true
+  db_go
+  # LDAP-Admin
+  db_fset linuxmuster-base/pgmadminpw seen false
+  db_input $PRIORITY linuxmuster-base/pgmadminpw || true
+  db_go
+fi
+
+
+# ipcop passwd query
+if [[ "$1" = "--first" || "$update_fw" = "yes" ]]; then
+  db_fset linuxmuster-base/ipcoppw seen false
+  db_input $PRIORITY linuxmuster-base/ipcoppw || true
+  db_go
+fi
+
+
+# important: close debconf database
+db_stop

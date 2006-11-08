@@ -1,0 +1,1308 @@
+linuxmuster-base (0.9-44) testing; urgency=low
+
+  * changed default permissions in home share of smb.conf:
+    directory mask to 2755, create mask to 2644
+  * activated /etc/security/access.conf in pam configuration,
+    root and administrator only are allowed to login on console, kdm
+    and ssh.
+  * changed variable name $NBLOGIN to $ADMINISTRATOR
+  * changed variable name $PGMLOGIN to $PGMADMIN
+  * changed variable name $WALOGIN to $WWWADMIN
+  * added variable $DOMADMIN for domain admin user
+  * changed admin users in smb.conf to $DOMADMIN
+  * added shares for cifs linux clients in smb.conf
+  * removed client side support for mySHN ManagementConsole
+  * added $BACKUPMNTPOINT (default /media/backup) for linuxmuster-backup
+  * added "size 50k" and "tabooext + .gz" to logrotate file
+  * added cron job examples for linuxmuster-backup
+    (/var/spool/cron/crontabs/root), which are installed with
+    linuxmuster-setup --first
+  * fixed wrong reversed server and ipcop addresses in bind9 configuration
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 04 Nov 2006 16:54:28 +0100
+
+linuxmuster-base (0.9-43) testing; urgency=low
+
+  * removed group pgmadmins, moved user pgmadmin to group domadmins
+  * new variable $DOMADMINS which contains the domadmins group in dist.conf
+  * added --diff option to linuxmuster-backup again
+  * logging backup exit status to $LOGDIR/linuxmuster-backup.status
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 28 Oct 2006 18:58:39 +0200
+
+linuxmuster-base (0.9-42) testing; urgency=low
+
+  * further improvements in linuxmuster-backup
+    - keeping and cleaning up backup sets
+    - switched from differential to incremental backups
+  * added keepfull and keepinc options to /etc/linuxmuster/backup.conf
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 24 Oct 2006 14:30:19 +0200
+
+linuxmuster-base (0.9-41) testing; urgency=low
+
+  * bugfix in linuxmuster-backup which does not create the right commandline
+    when backupdevice was already mounted
+  * added unmount option to /etc/linuxmuster/backup.conf
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 21 Oct 2006 12:42:29 +0200
+
+linuxmuster-base (0.9-40) testing; urgency=low
+
+  * added detailed help and improvements to linuxmuster-backup
+  * added more options to /etc/linuxmuster/backup.conf
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 20 Oct 2006 16:19:07 +0200
+
+linuxmuster-base (0.9-39) testing; urgency=low
+
+  * added backup wrapper script linuxmuster-backup for mondo
+  * added /etc/linuxmuster/backup.conf for backup configuration
+  * added mondo (>= 2.20) to package dependencies
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 19 Oct 2006 22:38:48 +0200
+
+linuxmuster-base (0.9-38) testing; urgency=low
+
+  * fixed postinst patching false internal subnet into dhcpd.conf
+  * added option ntp-servers to dhcpd.conf
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 16 Oct 2006 15:58:29 +0200
+
+linuxmuster-base (0.9-37) testing; urgency=low
+
+  * modified postfix configuration according to version 2.3.3
+  * added pinning for backport's postfix to /etc/apt/preferences
+  * added testing source to /etc/apt/sources.list.online
+  * added pinning for testing's moodle to /etc/apt/preferences
+  * fixed ddns update in dhcp3-server and bind9 configuration
+  * removed hourly ntpdate updates from cron
+  * removed /etc/default/ntpdate from static configs so the package default
+    is valid now
+  * added ntp-server to dependencies
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 09 Oct 2006 09:42:27 +0200
+
+linuxmuster-base (0.9-36) testing; urgency=low
+
+  * changed debian server to ftp.de.debian.org in sources.list.online
+  * added backports to sources.list
+  * created /etc/apt/preferences to pin backport packages
+  * created /etc/apt.conf with sarge as default release
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 29 Sep 2006 11:35:05 +0200
+
+linuxmuster-base (0.9-35) testing; urgency=low
+
+  * fixed patching ipcop's squid.conf in internet_on_off.sh
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 27 Sep 2006 17:29:59 +0200
+
+linuxmuster-base (0.9-34) testing; urgency=low
+
+  * escaping slashes from dsluser variable in linuxmuster-patch
+  * piping stdout in /etc/cron.hourly/ntpdate to /dev/null
+  * preparing /etc/postfix/main.cf for smtp auth
+  * changed "PXEclient" to "PXEClient" in dhcpd.conf
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 22 Sep 2006 15:34:00 +0200
+
+linuxmuster-base (0.9-33) testing; urgency=low
+
+  * added several autopartkit partition tables to linuxmuster-prepare
+  * added links from finish-install.d to prebaseconfig.d
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 30 Aug 2006 13:39:50 +0200
+
+linuxmuster-base (0.9-32) testing; urgency=low
+
+  * moved myshn-mc programs per symlink to administrator's homedir
+  * fixed variable name STUDENTSHOME in dist.conf
+  * security improvements in various scripts
+  * removed creation of various skel dirs from postinst
+  * patch_fstab.pl quotes now the root partition if no /home or /var
+    was found
+  * removed myshn config files from config-static
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 25 Aug 2006 14:23:29 +0200
+
+linuxmuster-base (0.9-31) testing; urgency=low
+
+  * some modifications in smb.conf:
+    - removed students and myshn shares,
+    - added "unix extensions = no" to global section.
+  * added creation of links to students home in teachers' and
+    domadmins' home to samba-userlog
+  * added creation of link to myshn folder in domadmins' home
+    to samba-userlog
+  * fixed recognition of online status of dedicated ipcop during
+    linuxmuster-setup
+  * added variable ADMINSHOME to dist.conf
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 23 Aug 2006 20:46:03 +0200
+
+linuxmuster-base (0.9-30) testing; urgency=low
+
+  * added alternate cyrus-mbox script
+  * removed cyrus-user.pl
+  * cyrus password now stored in /etc/imap.secret
+  * added preinst script
+  * removed cyradmpw from templates and linuxmuster-config
+  * bugfixes in ipcop expect scripts concerning to dedicated installation
+  * added students share to smb.conf
+  * removed sophomorix.conf from config-static
+  * various fixes in linuxmuster-mysql
+  * added ipcop network colours to network type menu in assign_interfaces.sh
+    (closes T003-20060705)
+  * activated system wide bash_completion
+  * added coloured bash prompt and serveral command aliases to system wide bashrc
+    (closes FR001-20060803 and T005-20060725)
+  * added registry patches for Win98 (closes T004-20060725)
+  * added 'message_size_limit=10240000' to postfix' main.cf
+    (closes T023-20060725)
+  * fixed failed passwd for root (closes B0007-20060810)
+  * shorter server string in smb.conf (closes T008-20060725)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 10 Aug 2006 21:53:26 +0200
+
+linuxmuster-base (0.9-29) testing; urgency=low
+
+  * minor modifications in templates file
+  * changed item shortcuts in assign-interfaces.sh's dialog
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 21 Jul 2006 20:22:43 +0200
+
+linuxmuster-base (0.9-28) testing; urgency=low
+
+  * added Norman Meilick's workstation import scripts for mySHN v4.0
+  * additionally a bunch of modifications concerning to mySHN v4.0
+  * added myshn share to smb.conf
+  * removed linuxmuster-schulkonsole's permissions.conf from config-static
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 20 Jul 2006 17:33:04 +0200
+
+linuxmuster-base (0.9-27) testing; urgency=low
+
+  * modified moodle configuration for version 1.6
+  * removed support for uucp
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 19 Jul 2006 12:04:14 +0200
+
+linuxmuster-base (0.9-26) testing; urgency=low
+
+  * removed Opengroupware repositories from sources.list.online
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 18 Jul 2006 21:52:31 +0200
+
+linuxmuster-base (0.9-25) testing; urgency=low
+
+  * added in $SCRIPTSDIR/repair-admins.sh code to remove unnecessary wwwadmins group
+    which is possibly created by sophomorix
+  * added handling of veto files to home share in smb.conf
+  * added dependency to procmail because of lockfile
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 18 Jul 2006 15:35:34 +0200
+
+linuxmuster-base (0.9-24) testing; urgency=low
+
+  * fixed false gid for pgmadmin, repairing outsourced to $SCRIPTSDIR/repair-admins.sh
+  * added $SCRIPTSDIR/repair-admins.sh also to postinst
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 13 Jul 2006 16:13:41 +0200
+
+linuxmuster-base (0.9-23) testing; urgency=low
+
+  * fixed sophomorix command to set mailaliases for teachers
+  * deleting sophomorix share and cache folders on first time and new
+    installation
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 12 Jul 2006 15:22:25 +0200
+
+linuxmuster-base (0.9-22) testing; urgency=low
+
+  * fixed sophomorix command to set quota for administrators
+  * updated sophomorix.conf with samba_pw_must_change parameters
+  * added linuxmuster-desktop to package dependencies
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 10 Jul 2006 15:05:31 +0200
+
+linuxmuster-base (0.9-21) testing; urgency=low
+
+  * bug fixed in postinst script concerning to creation of dummy wimport_data file
+  * creating dummy schueler.txt and lehrer.txt for sophomorix to be able to
+    run sophomorix-quota for admins
+  * fixed setup sequence in config-dynamic
+  * fixed horde database not being created during stage 2
+  * moved reconfiguring locales from end to beginning of stage 2
+  * changed encoding of moodle database to latin9
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 05 Jul 2006 12:44:52 +0200
+
+linuxmuster-base (0.9-20) testing; urgency=low
+
+  * fixed executable permissions for dist.conf and networksettings
+  * changed drive mapping for samba pgm share from P: to K: keeping the old
+    mapping additionally in /home/samba/netlogon/login.bat.compat
+  * added option --reponame to linuxmuster-svn to be able to set a
+    repository name which is not identical to the group name
+  * --teacher is now optional in linuxmuster-svn
+  * fixed creating svn test repo during first time installation
+  * added check_string function to helperfunctions.sh to be able to test a
+    string if it contains special characters
+  * removed reparing of admin users from postinst
+  * fixed setting passwords for admin users
+  * fixed setting mailquota for admin users
+  * moved config_dynamic/90_users to config_dynamic/16_admins
+  * added administrator to teachers group
+  * updated quota handling for one or two partitions
+  * fixed setting timezone in linuxmuster-prepare.udeb
+  * added entry for www-data to /etc/aliases, quota mails are going to root
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 03 Jul 2006 20:26:10 +0200
+
+linuxmuster-base (0.9-19) testing; urgency=low
+
+  * exporting PATH in helperfunctions.sh
+  * setting samba account flags for administrator to [UX         ] in postinst
+    and config-dynamic
+  * updated schulkonsole's permissions.conf
+  * fixed error in linuxmuster-mysql if logfile is not yet present
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 23 Jun 2006 15:09:07 +0200
+
+linuxmuster-base (0.9-18) testing; urgency=low
+
+  * modified quota defaults
+  * added creating /tmp entry to patch_fstab.pl
+  * added partition.table for autopartkit to linuxmuster-prepare.udeb
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 21 Jun 2006 17:17:33 +0200
+
+linuxmuster-base (0.9-17) testing; urgency=low
+
+  * added default quota vlaues values for user and mail in sophomorix quota configuration
+  * deactived shell for users in sophomorix.conf
+  * activated random passwords for users in sophomorix.conf
+  * removed non-us source in sources.list.online
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 19 Jun 2006 18:49:23 +0200
+
+linuxmuster-base (0.9-16) testing; urgency=low
+
+  * changed dependency from host to hostname
+  * removed debian/config, moved handling of samba sid to linuxmuster-patch
+  * changed priority to critical in linuxmuster-config
+  * changed apache force-reload to reload in linuxmuster-svn
+  * changed waiting for lockfile to one second steps in helperfunctions.sh
+  * added debian-installer linuxmuster-prepare.udeb for tweaking installation stage 2 at the end of stage 1
+  * fixed ipcop-test-ssh.exp for spawning $env(SHELL), which is not present at first boot
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 17 Jun 2006 13:47:09 +0200
+
+linuxmuster-base (0.9-15) testing; urgency=low
+
+  * modified hourly ntpdate cron job, added sync to hwclock and pool.ntp.org
+    as second time server
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 29 May 2006 09:18:53 +0200
+
+linuxmuster-base (0.9-14) testing; urgency=low
+
+  * added "--list --teacher=uid" parameter combination to linuxmuster-mysql to list
+    the groups a teacher owns databases for
+  * added "--list --group=gid" parameter combination to linuxmuster-mysql to list
+    all databases for a group
+  * reworked svn scripts and concenated them to linuxmuster-svn
+  * improved MySQL database cleanup in linuxmuster-mysql
+  * renamed Administrator to administrator
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 27 May 2006 13:21:50 +0200
+
+linuxmuster-base (0.9-13) testing; urgency=low
+
+  * ip address to hostname conversion added to samba-userlog
+  * reworked mysql group databases scripts
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 19 May 2006 19:53:58 +0200
+
+linuxmuster-base (0.9-12) testing; urgency=low
+
+  * fixed several wrong paths in scripts
+  * fixed creation of mysql root password during installation if it was already
+    set before
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 17 May 2006 11:37:21 +0200
+
+linuxmuster-base (0.9-11) testing; urgency=low
+
+  * fixed random password for host account in import_workstations
+  * changed smbldap-passwd to smbpasswd in import_workstations
+  * fixed syntax error in urlfilter_on_off.sh
+  * changed permissions fo dist.conf to executable so Env::Bash can source it
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 16 May 2006 18:45:58 +0200
+
+linuxmuster-base (0.9-10) testing; urgency=low
+
+  * fixes and improvements in urlfilter_on_off.sh
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 14 May 2006 13:42:30 +0200
+
+linuxmuster-base (0.9-9) testing; urgency=low
+
+  * added code to update urlfilter's squidGuard.conf in urlfilter_on_off.sh
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 12 May 2006 20:37:53 +0200
+
+linuxmuster-base (0.9-8) testing; urgency=low
+
+  * minor fix in samba-userlog
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 12 May 2006 11:26:00 +0200
+
+linuxmuster-base (0.9-7) testing; urgency=low
+
+  * renamed public_html in user home to private_html(related to
+    apache2 userdir.conf, samba-userlog and postinst)
+  * added code to samba-userlog to detect dead logins in host cachefiles
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 11 May 2006 20:17:17 +0200
+
+linuxmuster-base (0.9-6) testing; urgency=low
+
+  * fixed reading workgroup from debconf
+  * added write list = @pgmadmins to pgm and cdrom shares in smb.conf
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 10 May 2006 20:01:49 +0200
+
+linuxmuster-base (0.9-5) testing; urgency=low
+
+  * samba-userlog creates now a new random password for the host user
+    when he logs in
+  * import_workstations creates now a random password for the host user
+  * changed writelist for shares pgm and cdrom to @pgmadmins
+  * changed uids for Administrator, pgmadmin, wwwadmin to 998, 999, 997
+  * created new groups pgmadmins, wwwadmin with gids 999, 997
+  * changed group ownership of $PROGSDIR and $CDSDIR to pgmadmins
+  * moved all people's webfolders to /var/www/people
+  * smb.conf will be patched on every package update
+  * fixed templates path in dist.conf
+  * signing packages with gpg key from now on
+  * removed .svn folders from package
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 10 May 2006 18:18:30 +0200
+
+linuxmuster-base (0.9-4) testing; urgency=low
+
+  * reworked mysql database scripts
+  * minor modifications in chora sources configuration
+  * changed create mask to 2640 and directory mask to 2750 for homes
+    share in smb.conf
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 01 May 2006 21:37:32 +0200
+
+linuxmuster-base (0.9-3) testing; urgency=low
+
+  * code cleanup in import_workstation scripts, workstation accounts which are
+    not defined in wimport_data were removed, empty room groups also
+  * added date header in smb.conf template
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 27 Apr 2006 22:17:05 +0200
+
+linuxmuster-base (0.9-2) testing; urgency=low
+
+  * added libenv-bash-perl to package dependencies
+  * added function ReadDistConf to helperfunctions.pl to provide variables
+    from /usr/share/linuxmuster/config/dist.conf to perl scripts
+  * moved scriptsdir from /usr/lib/linuxmuster/bin to /usr/share/linuxmuster/scripts
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 27 Apr 2006 18:24:06 +0200
+
+linuxmuster-base (0.9-1) testing; urgency=low
+
+  * modified apache2 userdir.conf according to linuxmuster home directory structure
+  * modified samba-userlog prexec-script to check and create public_html dir and
+    .htaccess file as long as sophomorix does not create it
+  * removed /etc/skel/cups-pdf as sophomorix will create it
+  * removed creation of _einsammeln folder from import_workstation_services.pl
+  * added webdav folders to apache2 default configuration
+  * creating webroot dirs under /var/www in postinst if not present
+  * added some variables to dist.conf
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 26 Apr 2006 09:46:19 +0200
+
+linuxmuster-base (0.8-17) testing; urgency=low
+
+  * added code to postinst to restore samba ldap admin passwd
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 25 Apr 2006 07:42:54 +0200
+
+linuxmuster-base (0.8-16) testing; urgency=low
+
+  * added code to postinst to repair broken OpenGroupware conmfiguration
+    on package upgrade
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 24 Apr 2006 21:44:49 +0200
+
+linuxmuster-base (0.8-15) testing; urgency=low
+
+  * removed mem-cache from /etc/apache2/mods-enabled
+  * restoring ldap admin password during linuxmuster-setup
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 24 Apr 2006 18:48:10 +0200
+
+linuxmuster-base (0.8-14) testing; urgency=low
+
+  * renamed samba-userlog.sh to samba-userlog
+  * added scripts to create and drop mysql user databases
+  * added option "JoinDomainRemote tunnel" to myshn default config
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 24 Apr 2006 14:53:39 +0200
+
+linuxmuster-base (0.8-13) testing; urgency=low
+
+  * added svn repository configuration & scripts
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 22 Apr 2006 13:25:32 +0200
+
+linuxmuster-base (0.8-12) testing; urgency=low
+
+  * added configuration for chora & passwd3 (horde)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 22 Apr 2006 01:11:13 +0200
+
+linuxmuster-base (0.8-11) testing; urgency=low
+
+  * added configuration for chora & passwd3 (horde)
+  * fixed double pgsql extension entry in php.ini
+  * fixed permissions under /etc/horde
+  * fixed authentication method for user ldap in pg_hba.conf (postgresql)
+  * added subversion & websvn configuration
+  * added phpmyadmin apache configuration
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 22 Apr 2006 01:11:13 +0200
+
+linuxmuster-base (0.8-10) testing; urgency=low
+
+  * added configuration for gollem1
+  * modified configuration for ingo1
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 20 Apr 2006 18:14:38 +0200
+
+linuxmuster-base (0.8-9) testing; urgency=low
+
+  * added mysql configuration
+  * changed horde backend to mysql
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 20 Apr 2006 10:31:36 +0200
+
+linuxmuster-base (0.8-8) testing; urgency=low
+
+  * more fixes in horde configuration
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 19 Apr 2006 14:23:00 +0200
+
+linuxmuster-base (0.8-7) testing; urgency=low
+
+  * added configuration for horde passwd & forwards
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 18 Apr 2006 15:52:00 +0200
+
+linuxmuster-base (0.8-6) testing; urgency=low
+
+  * updated horde configuration
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 17 Apr 2006 11:55:00 +0200
+
+linuxmuster-base (0.8-5) testing; urgency=low
+
+  * fixed empty ldapadminpw in horde config.php
+  * added creation of horde's kronolith, mnemo and nag tables
+  * moved first time ldap database creation over to sophomorix-setup-pgldap again
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 14 Apr 2006 11:58:00 +0200
+
+linuxmuster-base (0.8-4) testing; urgency=low
+
+  * added serverip variable to ipcop settings
+  * added ipcop connection tests to linuxmuster-setup
+  * added ipcop restartsquid command at end of linuxmuster-setup to make urlfilter active
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 13 Apr 2006 17:48:00 +0200
+
+linuxmuster-base (0.8-3) testing; urgency=low
+
+  * added installation of sophomorix db upgrades during linuxmuster-setup --first
+  * added cdrom share to smb.conf and login.bat
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 10 Apr 2006 22:22:00 +0200
+
+linuxmuster-base (0.8-2) testing; urgency=low
+
+  * added intermask_short (12) variable to templates
+  * modified network settings variables
+  * network settings are now stored in $NETWORKSETTINGS (/var/lib/linuxmuster/network.settings)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 08 Apr 2006 13:15:00 +0200
+
+linuxmuster-base (0.8-1) testing; urgency=low
+
+  * moved login cache to $CACHEDIR/logins ($LOGINCACHE)
+  * changed sequence of installation type choice (integrated/dedicated) in debconf question
+  * minor corrections in intro template
+  * changed internal netmask to 255.240.0.0
+  * second octett of internal ip is now configurable
+  * added debconf query and variables for internal net configuration
+  * changed group of $SAMBAHOME and of user pgmadmin to domadmins
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 07 Apr 2006 17:22:00 +0200
+
+linuxmuster-base (0.7-20) testing; urgency=low
+
+  * $PROGSDIR and $CDSDIR are now created by postinst if necessary
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 03 Apr 2006 22:34:00 +0200
+
+linuxmuster-base (0.7-19) testing; urgency=low
+
+  * fixed bugs in logon.bat and import_workstations_services.pl
+  * moved smb home from %H/windows to %H
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 03 Apr 2006 20:15:00 +0200
+
+linuxmuster-base (0.7-18) testing; urgency=low
+
+  * moved import_printers.sh script to /usr/sbin/import_printers
+  * moved smb home from %H/windows to %H
+  * modified netlogon scripts and added sleep.exe to have a delay in logon process
+  * samba-userlog.sh checks for presence of $home/cups-pdf directory
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 02 Apr 2006 17:25:00 +0200
+
+linuxmuster-base (0.7-17) testing; urgency=low
+
+  * added logging to user login and logout to $USERLOG again
+  * added logrotate for $LOGDIR
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 01 Apr 2006 11:42:00 +0200
+
+linuxmuster-base (0.7-16) testing; urgency=low
+
+  * added samba-userlog script again to be able to handle multiple users
+    logged in on the same machine
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 31 Mar 2006 16:59:00 +0200
+
+linuxmuster-base (0.7-15) testing; urgency=low
+
+  * removed samba-userlog script, job is done directly by preexec and
+    postexec commands in smb.conf, no more logging to $LOGDIR/user.log
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 30 Mar 2006 20:01:00 +0200
+
+linuxmuster-base (0.7-14) testing; urgency=low
+
+  * internal firewall rules are now set per runlevel script
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 30 Mar 2006 17:16:00 +0200
+
+linuxmuster-base (0.7-13) testing; urgency=low
+
+  * samba-userlog.sh logs username now per host to $CACHEDIR/$hostname
+  * setting firewall rules for loopback device during installation
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 30 Mar 2006 12:11:00 +0200
+
+linuxmuster-base (0.7-12) testing; urgency=low
+
+  * moved nameif script to /etc/init.d which is now started at boot time
+    in runlevel S at nr 40 before networking
+  * user logins and logoffs were supplementary logged in $LOGDIR/user.log
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 30 Mar 2006 08:17:00 +0200
+
+linuxmuster-base (0.7-11) testing; urgency=low
+
+  * fixed writing ldap password to /etc/ldap.secrets
+  * changed ldap password to a random password
+  * added password query for user pgmadmin
+  * added samba-userlog.sh script to scriptsdir which logs user login and
+    logoff and hostnames to $CACHEDIR/users.$room
+  * added samba-userlog.sh as root preexec and postexec scripts to home
+    share in smb.conf
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 29 Mar 2006 16:52:00 +0200
+
+linuxmuster-base (0.7-10) testing; urgency=low
+
+  * added cups PDF-Printer
+  * added internal firewall rule to allow access from internet
+  * moved home dirs of administrative accounts to /home/administrators
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 27 Mar 2006 12:48:00 +0200
+
+linuxmuster-base (0.7-9) testing; urgency=low
+
+  * changed admin user from nwberater to Administrator
+  * added pgmadmin user, group Administrators
+  * removed printers share from smb.conf, printers will be connected per http
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 24 Mar 2006 11:59:00 +0100
+
+linuxmuster-base (0.7-8) testing; urgency=low
+
+  * added printer access restriction capability
+  * which rooms and hosts do have access to which printers is now defined
+    in /etc/linuxmuster/printers
+  * script /usr/lib/linuxmuster/bin/import_printers.sh creates the cupsd.conf
+    extension /etc/cups/access.conf
+  * networking is now reloaded at the end of workstation import to reload
+    the internal firewall
+  * linuxmuster cache files are now emptied on linuxmuster-setup --first
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 13 Mar 2006 18:57:00 +0100
+
+linuxmuster-base (0.7-7) testing; urgency=low
+
+  * added intern firewall scripts
+  * removed old scripts from V2.2
+  * added installed flag to recognize a successfully installed Musterloesung
+    (defined in dist.conf)
+  * added more constants to dist.conf
+  * code cleanup in assign_interfaces script
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 09 Mar 2006 21:12:00 +0100
+
+linuxmuster-base (0.7-6) testing; urgency=low
+
+  * added internet_on_off.sh script to control client internet access
+  * added urlfilter_on_off.sh script to control client url filtering
+  * added helperfunctions.sh script for common used shell functions
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 06 Mar 2006 09:28:00 +0100
+
+linuxmuster-base (0.7-5) testing; urgency=low
+
+  * minor fixes in dedicated ipcop installation script
+  * making ipcop installation more verbose
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 04 Mar 2006 12:26:00 +0100
+
+linuxmuster-base (0.7-4) testing; urgency=low
+
+  * added expect scripts to be able to automatically configure
+    dedicated IPCop during installation
+  * added expect to package dependencies
+  * added ipcop password query template
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 03 Mar 2006 19:00:00 +0100
+
+linuxmuster-base (0.7-3) testing; urgency=low
+
+  * minor bug fixes
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 02 Mar 2006 21:58:00 +0100
+
+linuxmuster-base (0.7-2) testing; urgency=low
+
+  * server RAM greater than 1000000kb gives the ipcop uml 128mb RAM
+    (default 64mb)
+  * removed default dns ip addresses from templates
+  * removed --dontaskme and --askme parameters from linuxmuster-setup
+  * old configuration is now stored to compare which values have been
+    modified by linuxmuster-setup
+  * more modifications due to integrated and dedicated firewall setup
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 02 Mar 2006 19:44:00 +0100
+
+linuxmuster-base (0.7-1) testing; urgency=low
+
+  * modified extern network configuration, is now mostly done by
+    linuxmuster-ipcop package
+  * added template for firewall configuration (integrated|dedicated)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 01 Mar 2006 22:33:00 +0100
+
+linuxmuster-base (0.6-19) testing; urgency=low
+
+  * added parameter type=local to groupmapping creation command for
+    local windows group aliases
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 21 Feb 2006 15:08:00 +0100
+
+linuxmuster-base (0.6-18) testing; urgency=low
+
+  * added variable PRINTERADMINS to dist.conf to control which group
+    has permissions to add printers
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 21 Feb 2006 12:21:00 +0100
+
+linuxmuster-base (0.6-17) testing; urgency=low
+
+  * changed group sid for windows admin groups to S-1-5-32-$rid
+  * changed group membership for user administrator to administrators
+  * fixed servername in ipcop's advanced proxy configuration
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 21 Feb 2006 10:37:00 +0100
+
+linuxmuster-base (0.6-16) testing; urgency=low
+
+  * changed cipher in ipcop's openvpn server.conf to AES-128-CBC
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 20 Feb 2006 10:11:00 +0100
+
+linuxmuster-base (0.6-15) testing; urgency=low
+
+  * members of group printoperators are now cups and samba printer admins
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 20 Feb 2006 08:42:00 +0100
+
+linuxmuster-base (0.6-14) testing; urgency=low
+
+  * removed permission setting of device /dev/net/tun, this is now
+    done by ipcop package
+  * removed uml_switch from runlevels
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 19 Feb 2006 12:03:00 +0100
+
+linuxmuster-base (0.6-13) testing; urgency=low
+
+  * added ipcop dhcpd configuration
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 18 Feb 2006 18:15:00 +0100
+
+linuxmuster-base (0.6-12) testing; urgency=low
+
+  * added handling institutes entry in ldap database
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 15 Feb 2006 17:39:00 +0100
+
+linuxmuster-base (0.6-11) testing; urgency=low
+
+  * fixed patching of ipcop's host file
+  * fixed recognition of d-link four port nic
+  * changed administrator name in sophomorix quota.txt to nwberater
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 14 Feb 2006 19:39:00 +0100
+
+linuxmuster-base (0.6-10) testing; urgency=low
+
+  * fixed assign-interfaces.sh script, handling of already renamed
+    interfaces
+  * turned off debugging in odbc.ini and odbcinst.ini
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 13 Feb 2006 20:36:00 +0100
+
+linuxmuster-base (0.6-9) testing; urgency=low
+
+  * fixed intern ethernet interface name in dhcpd.conf
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 12 Feb 2006 13:55:00 +0100
+
+linuxmuster-base (0.6-8) testing; urgency=low
+
+  * minor fixes in nameif creation script, renamed to assign-interfaces.sh
+  * added handling of fourth interface dmz
+  * renamed ethernet interface names according to their connection type
+    to extern, intern, wlan, dmz
+  * removed ntp-server configuration (it's ipcop's job)
+  * added hourly ntpdate cron job for time sync with ipcop
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 11 Feb 2006 13:55:00 +0100
+
+linuxmuster-base (0.6-7) testing; urgency=low
+
+  * fixed ipcop certificate creation configuration
+  * changed blue and orange nets (ipcop) to 172.16.253 and 172.16.254
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 10 Feb 2006 13:27:00 +0100
+
+linuxmuster-base (0.6-6) testing; urgency=low
+
+  * modified smbldap.conf template with ldap slave port
+  * minor modifications depending on sophomorix cvs 060208
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 08 Feb 2006 11:47:00 +0100
+
+linuxmuster-base (0.6-5) testing; urgency=low
+
+  * setting device permissions for /dev/net/tun to ipcop:uml-net
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 08 Feb 2006 00:17:00 +0100
+
+linuxmuster-base (0.6-4) testing; urgency=low
+
+  * added configuration files for postgres
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 07 Feb 2006 22:58:00 +0100
+
+linuxmuster-base (0.6-3) testing; urgency=low
+
+  * added configuration for third network interface (wlan)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 07 Feb 2006 16:59:00 +0100
+
+linuxmuster-base (0.6-2) testing; urgency=low
+
+  * bugfixes in ldap configuration
+  * improved handling of samba sid during install on an already
+    configured samba system
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 06 Feb 2006 10:01:00 +0100
+
+linuxmuster-base (0.6-1) testing; urgency=low
+
+  * added ipcop configuration scripts
+  * removed configuration scripts for squid and shorewall
+  * modified sequence of start and stop services during setup
+  * added groupmapping configuration
+  * user database creation is now handled by linuxmuster-setup
+  * added script /usr/lib/linuxmuster/bin/update-db.sh to
+    modify basedn and workgroup in user database
+  * removed configuration of internip, is now hard coded
+  * removed predepends to apache2 and postgresql
+  * no more questions about dnsforwarders if extern device is
+    configured to dhcp
+  * added workgroup configuration to linuxmuster-config
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 04 Feb 2006 16:40:00 +0100
+
+linuxmuster-base (0.5-8) testing; urgency=low
+
+  * bugfixes in moodle and horde configuration
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 28 Dec 2005 10:30:00 +0100
+
+linuxmuster-base (0.5-7) testing; urgency=low
+
+  * changed database passwords for ldap, horde and moodle to randomly
+    created passwords
+  * only cyrus password will now be stored in debconf database
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 27 Dec 2005 14:52:00 +0100
+
+linuxmuster-base (0.5-6) testing; urgency=low
+
+  * bugfixes in ogo configuration
+  * added moodle configuration
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 26 Dec 2005 22:40:00 +0100
+
+linuxmuster-base (0.5-5) testing; urgency=low
+
+  * modified cups, horde & ogo configuration
+  * fixed bug in cyrus-user.pl
+    (endless loop if admin password does not match)
+  * created parameters for Netzwerkberater und Webadmin login names
+    in dist.conf
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 23 Dec 2005 12:08:00 +0100
+
+linuxmuster-base (0.5-4) testing; urgency=low
+
+  * patching sophomorix.sql for right ldap basedn as workaround
+  * modified import_workstation scripts for use of smbldap-tools
+  * modified horde configuration
+  * added cyrus imap configuration
+  * changed group admin to "Domain Admins" in smb.conf
+  * created Ogo configuration
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 22 Dec 2005 21:00:00 +0100
+
+linuxmuster-base (0.5-3) testing; urgency=low
+
+  * fixed uid 500 for user nwberater
+  * added user wwwadmin for administration of web applications (Horde, Ogo, Moodle)
+  * more bug fixes
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 21 Dec 2005 12:12:00 +0100
+
+linuxmuster-base (0.5-2) testing; urgency=low
+
+  * enabled include & rewrite modules in apache2
+  * minor bug fixes
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 20 Dec 2005 22:16:00 +0100
+
+linuxmuster-base (0.5-1) testing; urgency=low
+
+  * sources.list update
+  * added dependencies for linuxmuster meta packages
+  * added dependency for pwgen
+  * move package config script to /usr/lib/linuxmuster/bin/linuxmuster-config
+  * tagged package to non essential
+  * added opengroupware.org sources to sources.list
+  * removed mysqlpasswd and pgmadminpasswd from debconf
+  * added randomly created systempw to debconf used for database access
+  * added template to store samba sid in debconf db
+  * added configuration for horde3
+  * altered db configuration for moodle to postgres
+  * template for ldap admin password
+  * various configuration for postgres/ldap
+  * added user nwberater as Domain Admin
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 20 Dec 2005 20:07:00 +0100
+
+linuxmuster-base (0.4-3) testing; urgency=low
+
+  * changed samba init script runlevel start links nr from 20 to 21
+  * removed creating admin accounts
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 11 Aug 2005 17:21:00 +0200
+
+linuxmuster-base (0.4-2) testing; urgency=low
+
+  * added /etc/postgresql/pg_hba.conf to static configs
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 25 Jul 2005 17:10:00 +0200
+
+linuxmuster-base (0.4-1) testing; urgency=low
+
+  * prepared for use with ldap/pqsql
+  * added dynamic and static config files for ldap/pqsql
+  * opened ldap ports (389, 636) in internal firewall
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 25 Jul 2005 09:30:00 +0200
+
+linuxmuster-base (0.3-7) testing; urgency=low
+
+  * linuxmuster-base/schoolname will now be copied to
+    shared/organization
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 22 Jul 2005 13:12:00 +0200
+
+linuxmuster-base (0.3-6) testing; urgency=low
+
+  * some fixes in workstation import scripts concerning the
+    correct interpretation of commandline parameters
+  * added /etc/mkinitrd/modules to config-static, defining
+    modules used in initrd
+  * modified shorewall configuration making internal rules more
+    restrictive
+  * added kernel package make script
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 25 Apr 2005 18:17:00 +0200
+
+linuxmuster-base (0.3-5) testing; urgency=low
+
+  * changed preseeding for clamav-freshclam/autoupdate_freshclam to
+    'ipup.d' to prevent it from downloading new signatures during
+    installation
+  * added dynamic configuration for clamav-freshclam to change
+    clamav-freshclam/autoupdate_freshclam to 'cron' after networking
+    is configured
+  * added dialog to determine external and internal network interface
+    in config-dynamic/01_network
+  * added new sophomorix-add to config-static patched for automatic
+    creation of cyrus user mailbox (line 389)
+  * moved config-dynamic/70_admins to config-dynamic/33_admins to
+    create admin accounts before cups and samba are configured
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 20 Apr 2005 19:36:00 +0200
+
+linuxmuster-base (0.3-4) testing; urgency=low
+
+  * changed ip range for workstation import to 10.0.1.1 - 10.0.1.254
+  * changed groups and paths according to sophomorix-1.2.1
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 15 Apr 2005 16:06:00 +0200
+
+linuxmuster-base (0.3-3) testing; urgency=low
+
+  * fixed access for localhost in /etc/cups/cupsd.conf
+  * added automatic setup for cups-pdf printer
+  * printer adjustments in smb.conf
+  * added script /usr/lib/linuxmuster/bin/cups2smb.sh to make cups ppd
+    printer drivers available to samba
+  * added several group mappings to map unixgroups to nt domain groups
+    (see config-dynamic/70_admins/postpatch)
+  * added machines group for machine accounts
+  * added cups-pdf dir to /etc/skel
+  * code clean up in linuxmuster-patch.sh
+  * also cleaned up dynamic configs in /var/lib/linuxmuster
+  * output of dynamic config file patching goes now to
+    /var/log/linuxmuster/setup.log
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 6 Apr 2005 15:18:00 +0200
+
+linuxmuster-base (0.3-2) testing; urgency=low
+
+  * modified amavis configuration in conjunction with clamav & spamassassin
+  * added razor which is used by spamassassin
+  * renamed add-cyrus-user.pl to cyrus-user.pl and added option to be able
+    to delete a mailbox. Usage:
+    cyrus-user.pl -u USER [options]
+      options:
+        -c[reate]            create user mailbox
+        -d[elete]            delete user mailbox
+        -q[uota] <quota>     set quota for mailbox in KB, or MB, if suffixed with 'm'
+        -p[artition] <part>  partition on which to create mailbox. none = 'default'
+  * activated quota in sophomorix
+    defaults for /home in mb are (/etc/sophomorix/user/quota.txt):
+    workstations, students: 100
+    teachers: 500
+    admin: 5000
+    pgmadmin: 10000
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 30 Mar 2005 19:01:00 +0200
+
+linuxmuster-base (0.3-1) testing; urgency=low
+
+  * renamed config-templates & config-tasks to config-static & config-dynamic
+  * added static and dynamic config templates for apache2 enabling pam authentification
+    for use with htaccess files
+  * fixed *.target not found error in linuxmuster-setup if there is no target file
+    in config-dynamic subdirectory
+  * added create-ssl-cert.sh script to /usr/sbin to create the server side selfsigned
+    ssl certificates during setup.
+    certificates are used by apache2, cyrus21 and postfix.
+  * added debconf templates for ssl cert data: country, state, location & schoolname.
+  * added static config-template for /etc/moodle/apache.conf
+  * added .htaccess to /usr/share/moodle to let only admin access the pages since
+    moodle is unconfigured
+  * added code to set mysql root password in /usr/lib/linuxmuster/bin/linuxmuster-patch.sh
+  * added static & dynamic config-templates for cyrus21, moodle, mysql, horde2,imp3,
+    kronolith, mnemo, nag, sork, turba
+  * added configuration for clamav & amavisd-new
+  * added postfix-tls
+  * modified postfix configuration to work with cyrus & amavisd-new
+  * changed parameters for linuxmuster-setup:
+    --first     : does a first time installation with tasksel tasks, asks questions,
+                  stores answers in debconf database and overwrites static and dynamic
+                  configuration files with values stored in debconf database
+    --askme     : asks questions, stores answers in debconf database and overwrites
+                  dynamic configuration files with values stored in debconf database
+    --dontaskme : overwrites dynamic configuration files with values stored in debconf
+                  database without any question (attention!)
+    Without any parameter linuxmuster-setup will do nothing at all.
+    Patching will now be done in linuxmuster-patch.sh.
+  * added script /usr/lib/linuxmuster/bin/add-cyrus-user.pl
+    usage: add-cyrus-user.pl -u user [options]
+    options: -q quota (in kb)
+             -part partition (default="default")
+    To create users within cyrus you need the cyrus password which is the same as the
+    admin password. The script gets the admin password out of the debconf database.
+  * added a patched version of sophomorix-add which calls add-cyrus-user.pl on user
+    creation.
+  * added /usr/lib/linuxmuster/bin/patch_fstab.pl to patch /etc/fstab as d-i/late_command
+    (see /cdrom/cfg/auto and /cdrom/cfg/expert) with quota mount options for /home and
+    noatime option for /var.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 29 Mar 2005 19:48:00 +0200
+
+linuxmuster-base (0.2-8) testing; urgency=low
+
+  * changed MYSHNDIR to /var/lib/myshn
+  * moved /usr/share/linuxmuster/templates to /var/lib/linuxmuster/config-templates
+  * added config-templates for myshn (config, hostgroup.conf)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 19 Mar 2005 16:52:00 +0100
+
+linuxmuster-base (0.2-7) testing; urgency=low
+
+  * fixed creation of samba machine account in import_workstations_services.pl
+    due to smbpasswd bug
+  * adapted sophomorix paths to /usr/share/linuxmuster/config/dist.conf so that
+    user creation works for now
+  * removed
+    client schannel = No
+    server schannel = No
+    client signing = No
+    server signing = No
+    from smb.conf (default works)
+  * added
+    logon home = \\%L\%u\windows
+    passwd chat = *New*password* %n\n "*Re-enter new password*" %n\n "*Password*changed*"
+    passwd program = /usr/bin/passwd %u
+    to smb.conf
+  * added config-task for cups
+    cups is now configured for local net access
+    admin is added to lpadmin group and is now capable to login into cups web administration page
+  * fixed category Benutzerkonto in webmin
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 16 Mar 2005 18:10:00 +0100
+
+linuxmuster-base (0.2-6) testing; urgency=low
+
+  * fixed domain logon: machine accounts have to added with
+    smbpasswd -a -i machine$
+    changed in import_workstations_services.pl
+    
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 13 Mar 2005 11:11:00 +0100
+
+linuxmuster-base (0.2-5) testing; urgency=low
+
+  * added "net use * /delete /yes" at beginning of login.bat to delete
+    all shares before they are connected again
+  * added
+    client schannel = No
+    server schannel = No
+    client signing = No
+    server signing = No
+    to smb.conf
+  * changed "/etc/init.d/dhcp3-server force-reload" to
+    "/etc/init.d/dhcp3-server restart" in import_workstation_services.pl
+  * fixed adding machine account in import_workstation_services.pl
+    
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 12 Mar 2005 15:40:00 +0100
+
+linuxmuster-base (0.2-4) testing; urgency=low
+
+  * merged old smb.conf with original debian samba3 template
+  * added /etc/samba/smb.conf.global and /etc/samba/smb.conf.shares
+    which are included for custom configuration
+  * variable workgroup is now also patched unless there is yet no debconf
+    question for it (Default: SCHULE)
+  * added config-task quota because /etc/warnquota.conf needs to be
+    patched with domainname
+  * splitted config-tasks commands in pre- & postpatch because some servers
+    need to be stopped before their configuration is changed
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 11 Mar 2005 20:00:00 +0100
+
+linuxmuster-base (0.2-3) testing; urgency=low
+
+  * fixed endless loop in config script on input of extern netmask
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 10 Mar 2005 15:26:00 +0100
+
+linuxmuster-base (0.2-2) testing; urgency=low
+
+  * added webmin templates for categories and apache2
+  * added dhcp-support for external interface
+  * admin users are added if necessary
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 9 Mar 2005 18:18:00 +0100
+
+linuxmuster-base (0.2-1) testing; urgency=low
+
+  * added template for sheila system (rembo/partimage) and
+    workgroup
+  * removed setup.conf, all setup values are now stored in
+    debconf database
+  * added variable for rembo startpage in dist.conf
+  * added squid.conf & postfix to config-tasks
+    squid configured as a transparent proxy
+  * added script chpasswd.pl for easy password changing
+  * admin passwords are now changed on setup
+  * added shorewall configuration
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 7 Mar 2005 20:05:00 +0100
+
+linuxmuster-base (0.1-18) testing; urgency=low
+
+  * splitted linuxmuster-setup in linuxmuster-setup and 
+    linuxmuster-setup-stage2 to avoid problems with opened debconf
+    database files
+  * fixes in config-tasks
+  * added debaux-debconf dependency
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 4 Mar 2005 17:11:00 +0100
+
+linuxmuster-base (0.1-17) testing; urgency=low
+
+  * added linuxmuster-setup script and conffile patch tasks
+    in /var/lib/linuxmuster/config-tasks
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 2 Mar 2005 19:03:00 +0100
+
+linuxmuster-base (0.1-16) testing; urgency=low
+
+  * removed config
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 24 Feb 2005 15:46:00 +0100
+
+linuxmuster-base (0.1-15) testing; urgency=low
+
+  * fhs compliant changes
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 16 Feb 2005 16:33:00 +0100
+
+linuxmuster-base (0.1-14) testing; urgency=low
+
+  * improved config script
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 12 Feb 2005 14:42:00 +0100
+
+linuxmuster-base (0.1-13) testing; urgency=low
+
+  * rules file fixes
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 11 Feb 2005 11:42:00 +0100
+
+linuxmuster-base (0.1-12) testing; urgency=low
+
+  * added templates
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 11 Feb 2005 11:06:00 +0100
+
+linuxmuster-base (0.1-11) testing; urgency=low
+
+  * renamed package to linuxmuster-base
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 10 Feb 2005 16:56:00 +0100
+
+linuxmuster (0.1-10) testing; urgency=low
+
+  * removed Pre-Depends: mysql-server from control file
+  * replaced uw-imapd with cyrus21-imapd
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 9 Feb 2005 11:07:37 +0100
+
+linuxmuster (0.1-9) testing; urgency=low
+
+  * added WORKGROUP=schule variable to setup.conf
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 2 Feb 2005 08:07:37 +0100
+
+linuxmuster (0.1-8) testing; urgency=low
+
+  * added "Replaces: exim4" to control file
+  * added "Essential: yes" to control file
+  * added "Pre-Depends: mysql-server" to control file
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 2 Feb 2005 08:07:37 +0100
+
+linuxmuster (0.1-7) testing; urgency=low
+
+  * changed dependency to sophoromix2
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 2 Feb 2005 08:07:37 +0100
+
+linuxmuster (0.1-6) testing; urgency=low
+
+  * added more variables to dist.conf
+  * major code clean up to workstation import scripts
+  * added a lot of dependencies
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 31 Jan 2005 16:41:23 +0100
+
+linuxmuster (0.1-5) testing; urgency=low
+
+  * added helperfuncs.pl to scripts
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 28 Jan 2005 18:17:07 +0100
+
+linuxmuster (0.1-4) testing; urgency=low
+
+  * import_workstations_rembo.pl converted
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri,  28 Jan 2005 10:46:24 +0100
+
+linuxmuster (0.1-3) testing; urgency=low
+
+  * linking /etc/linuxmuster/workstations to $REMBODIR/files/global/wimport_data
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri,  28 Jan 2005 10:46:24 +0100
+
+linuxmuster (0.1-2) testing; urgency=low
+
+  * added several conffiles in /etc/linuxmuster
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri,  28 Jan 2005 10:46:24 +0100
+
+linuxmuster (0.1-1) testing; urgency=low
+
+  * initial release
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri,  21 Jan 2005 16:58:24 +0100
