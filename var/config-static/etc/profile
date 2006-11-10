@@ -19,6 +19,8 @@ if [ "$PS1" ]; then
   fi
 fi
 
+. /etc/environment
+
 . /etc/bash.bashrc
 
 export PATH

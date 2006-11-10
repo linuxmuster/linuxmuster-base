@@ -272,6 +272,13 @@ case "$1" in
           cp -f /etc/apt/sources.list.online /etc/apt/sources.list
         fi
 
+        # environment
+        if [ ! -e /etc/environment ]; then
+          echo "Updating /etc/environment ..."
+          cp -f /var/lib/linuxmuster/config-static/etc/environment /etc
+          cp -f /var/lib/linuxmuster/config-static/etc/profile /etc
+        fi
+
         # important message if upgrade is necessary
         if [ -n "$upgrade" ]; then
           echo "IMPORTANT!"

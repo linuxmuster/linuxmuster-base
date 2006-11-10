@@ -44,9 +44,7 @@ fi
 
 
 # domain admin account
-if id $DOMADMIN &> /dev/null; then
-  smbldap-usermod -a -u 996 -g 512 -d /dev/null -s /bin/false -c "Domain Admin" $DOMADMIN
-else
+if ! id $DOMADMIN &> /dev/null; then
   smbldap-useradd -a -u 996 -g 512 -d /dev/null -s /bin/false -c "Domain Admin" $DOMADMIN
 fi
 

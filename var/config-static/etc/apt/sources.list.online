@@ -7,8 +7,8 @@ deb http://security.debian.org sarge/updates main contrib non-free
 deb-src http://security.debian.org sarge/updates main contrib non-free
 
 # linuxmuster
-deb http://mine.support-netz.de/debian sarge contrib main non-free
-deb-src http://mine.support-netz.de/debian sarge main non-free
+deb http://pkg.lml.support-netz.de/lml30 sarge contrib main non-free
+deb-src http://pkg.lml.support-netz.de/lml30 sarge main non-free
 
 # backports
 deb http://www.backports.org/debian sarge-backports main contrib non-free

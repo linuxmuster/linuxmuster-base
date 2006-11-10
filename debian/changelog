@@ -1,3 +1,11 @@
+linuxmuster-base (0.9-45) testing; urgency=low
+
+  * fixed bug in linuxmuster-backup, does not find the last difflevel
+  * fixed missing LANG environment variable in /etc/environment
+  * modified linuxmuster repository address in sources.list
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 10 Nov 2006 16:36:24 +0100
+
 linuxmuster-base (0.9-44) testing; urgency=low
 
   * changed default permissions in home share of smb.conf:

@@ -185,10 +185,6 @@ includedirs=${includedirs//,/ }
 services=${services//,/ }
 
 
-# create isoprefix folder if necessary
-[ -d "$mountpoint/$isoprefix/$bfolder" ] || mkdir -p $mountpoint/$isoprefix/$bfolder
-
-
 # temp file for sorted services
 stmp=/var/tmp/tmp.services.$mypid
 [ -e "$stmp" ] && rm $stmp
@@ -326,6 +322,10 @@ case $btype in
 		;;
 
 esac
+
+
+# create backup folder if necessary
+[ -d "$mountpoint/$isoprefix/$bfolder" ] || mkdir -p $mountpoint/$isoprefix/$bfolder
 
 
 # starting mondoarchive
