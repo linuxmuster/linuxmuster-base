@@ -67,9 +67,14 @@ case "$1" in
           echo "smtprelay=\"$smtprelay\"" >> $NETWORKSETTINGS
         fi
 
+        # messages for config file headers
+        message1="Don\'t edit this file\, it will be overwritten on package upgrade\!"
+        message2="This file was modified by linuxmuster-setup on"
+        message3=`date`
+
+        # some variables we need for patching
         servername=`hostname`
         domainname=`dnsdomainname`
-        date=`date`
         workgroup=`echo get linuxmuster-base/workgroup | debconf-communicate`
         workgroup=${workgroup#[0-9] }
         internsub=`echo $serverip | awk -F. '{ print $2 }'`
@@ -77,7 +82,9 @@ case "$1" in
 	ipcoprev_short=254.1.$internsub
 
         # patch samba
-        sed -e "s/@@date@@/${date}/g
+        sed -e "s/@@message1@@/${message1}/g
+                s/@@message2@@/${message2}/g
+                s/@@message3@@/${message3}/g
                 s/@@serverip@@/${serverip}/g
                 s/@@internmask@@/${internmask}/g
                 s/@@workgroup@@/${workgroup}/g
