@@ -16,3 +16,10 @@ fi
 # secure permissions of config.php
 chown root:www-data /etc/moodle/config.php
 chmod 440 /etc/moodle/config.php
+
+# check config.php link
+if [ ! -L /usr/share/moodle/config.php ]; then
+  [ -e /usr/share/moodle/config.php ] && rm -rf /usr/share/moodle/config.php
+  ln -s /etc/moodle/config.php /usr/share/moodle/config.php
+fi
+

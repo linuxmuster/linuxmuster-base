@@ -13,6 +13,3 @@ deb-src http://pkg.lml.support-netz.de/lml30 sarge main non-free
 # backports
 deb http://www.backports.org/debian sarge-backports main contrib non-free
 deb-src http://www.backports.org/debian sarge-backports main contrib non-free
-
-# testing
-deb http://ftp.de.debian.org/debian/ testing main contrib non-free

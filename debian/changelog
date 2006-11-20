@@ -1,3 +1,10 @@
+linuxmuster-base (0.9-48) testing; urgency=low
+
+  * removed pinning for moodle from apt preferences and sources.list
+  * moved dependency to mondo and ntp-server to package linuxmuster-server
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 20 Nov 2006 19:19:51 +0100
+
 linuxmuster-base (0.9-47) testing; urgency=low
 
   * changed MaxJobsPerUser to 2 in cupsd.conf

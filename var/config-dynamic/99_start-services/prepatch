@@ -26,4 +26,3 @@ fi
 
 # set installed flag
 touch $INSTALLED
-

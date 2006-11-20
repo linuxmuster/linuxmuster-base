@@ -6,14 +6,6 @@ Package: *
 Pin: release a=testing
 Pin-Priority: 100
 
-Package: moodle
-Pin: release a=testing
-Pin-Priority: 999
-
-Package: moodle-book
-Pin: release a=testing
-Pin-Priority: 999
-
 Package: initramfs-tools
 Pin: release a=sarge-backports
 Pin-Priority: 999
