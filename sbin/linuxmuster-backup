@@ -15,6 +15,8 @@
 
 
 # default values
+mondocache=/var/cache/mondo-archive
+cachefiles="difflevel.0 mondo-restore.cfg mountlist.txt"
 verify=yes
 isoprefix=server
 mediasize=650
@@ -173,12 +175,6 @@ esac
 rl=`runlevel | awk '{ print $2 }'`
 
 
-# some dirs we need
-adminhome=$ADMINSHOME/$ADMINISTRATOR
-difflevel=/var/cache/mondo-archive/difflevel.0
-sdifflevel=$mountpoint/$isoprefix/$bfolder/difflevel
-
-
 # converting lists
 excludedirs=${excludedirs//,/ }
 includedirs=${includedirs//,/ }
@@ -256,39 +252,27 @@ echo "  compression=$compression"
 echo "  unmount=$unmount"
 echo "  btypeparam=$btypeparam"
 echo "  rtypeparam=$rtypeparam"
-echo "  adminisodir=$adminisodir"
 echo "  target=$target"
 echo
 
 
-# storing backup time
+# storing backup time in unix format
 backuptime=`date +%s`
 
 
-# restoring the difflevel according to backup type
+# determine last backup set
 case $btype in
 
 	diff)
 		# difflevel of last full backup
 		if sets=`ls -dr $mountpoint/$isoprefix/*-*_full`; then
 
-			lastfullset=`echo $sets | awk '{ print $1 }'`
-			echo "Found last full backup set in $lastfullset."
-			lastfulldifflevel=$lastfullset/difflevel
-			if [ -s "$lastfulldifflevel" ]; then
-
-				echo "Restoring difflevel from $lastfullset."
-				cp $lastfulldifflevel $difflevel
-
-			else
-
-				echo "No difflevel file found in $lastfullset! Cannot restore difflevel!"
-
-			fi
+			lastset=`echo $sets | awk '{ print $1 }'`
+			echo "Found last full backup set in $lastset."
 			
 		else
 
-			echo "Last full backup not found! Cannot restore difflevel!"
+			echo "Last full backup set not found!"
 
 		fi
 		;;
@@ -299,21 +283,10 @@ case $btype in
 
 			lastset=`echo $sets | awk '{ print $1 }'`
 			echo "Found last backup set in $lastset."
-			lastdifflevel=$lastset/difflevel
-			if [ -s "$lastdifflevel" ]; then
-
-				echo "Restoring difflevel from $lastset."
-				cp $lastdifflevel $difflevel
-
-			else
-
-				echo "No difflevel file found in $lastset! Cannot restore difflevel!"
-
-			fi
 			
 		else
 
-			echo "Last backup not found! Cannot restore difflevel!"
+			echo "Last backup set not found!"
 
 		fi
 		;;
@@ -324,8 +297,41 @@ case $btype in
 esac
 
 
+# restore mondo-archive cache if no full backup
+if [ "$btype" != "full" ]; then
+
+	if [ -d "$lastset/cache" ]; then
+
+		# test if all cachefiles are present
+		echo "Testing cachefiles in $lastset/cache ..."
+		STATUS=0
+		for i in $cachefiles; do
+			[ -e "$lastset/cache/$i" ] || STATUS=1
+		done
+
+		if [ "$STATUS" -eq 0 ]; then
+
+			echo "Restoring cache from $lastset/cache ..."
+			rsync -a --delete $lastset/cache/ $mondocache/
+
+		else
+
+			echo "At least one of $cachefiles is missing!"
+			echo "Cannot restore cache!"
+
+		fi
+
+	else
+
+		echo "$lastset/cache does not exist! Cannot restore cache!"
+
+	fi
+
+fi
+
+
 # create backup folder if necessary
-[ -d "$mountpoint/$isoprefix/$bfolder" ] || mkdir -p $mountpoint/$isoprefix/$bfolder
+[ -d "$mountpoint/$isoprefix/$bfolder/cache" ] || mkdir -p $mountpoint/$isoprefix/$bfolder/cache
 
 
 # starting mondoarchive
@@ -338,9 +344,9 @@ if [ "$status" = "0" ]; then
 
 	echo "mondoarchive finished successfully!"
 
-	# store difflevel
-	echo "Storing difflevel to $sdifflevel."
-	echo $backuptime > $sdifflevel
+	# store cache files
+	echo "Storing cache to $mountpoint/$isoprefix/$bfolder/cache ..."
+	rsync -a --delete $mondocache/ $mountpoint/$isoprefix/$bfolder/cache/
 
 	case $btype in
 
@@ -354,10 +360,13 @@ if [ "$status" = "0" ]; then
 
 		diff)
 			setstokeep=$keepdiff
+			# store difflevel
+			echo $backuptime > $mountpoint/$isoprefix/$bfolder/cache/difflevel.0
 			;;
 
 		inc)
 			setstokeep=$keepinc
+			echo $backuptime > $mountpoint/$isoprefix/$bfolder/cache/difflevel.0
 			;;
 
 	esac

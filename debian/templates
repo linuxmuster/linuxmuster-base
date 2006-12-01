@@ -2,7 +2,7 @@ Template: linuxmuster-base/intro
 Type: note
 Description: Hinweise zur Installation
  ####################################################################\n
- # ACHTUNG: TESTVERSION! KEINE INSTALLATION AUF PRODUKTIVSYSTEMEN!! #\n
+ # ACHTUNG: BETAVERSION! KEINE INSTALLATION AUF PRODUKTIVSYSTEMEN!! #\n
  ####################################################################\n
  \n
  Fuer die im folgenden weitgehend automatisch ablaufende Installation\n
@@ -135,27 +135,62 @@ Description: SMTP relay host?
  verschickt und empfangen werden soll.\n
  Bsp.: mail.belwue.de
 
+Template: linuxmuster-base/rootpw
+Type: password
+Description: Root-Passwort:
+ Auf den folgenden Seiten muessen Sie die Passwoerter fuer die
+ administrativen Benutzer root, administrator, pgmadmin,
+ wwwadmin und fuer den IPCop eingeben.
+ Achten Sie darauf, dass Sie sichere Passwoerter verwenden.
+ .
+ Geben Sie zunaechst das Passwort fuer root ein.
+
+Template: linuxmuster-base/rootpw_confirm
+Type: password
+Description: Bestaetigen Sie das Root-Passwort:
+ Geben Sie das Root-Passwort nochmals zur Bestaetigung ein.
+
 Template: linuxmuster-base/adminpw
 Type: password
-Description: Administrator-Passwort?
+Description: Administrator-Passwort:
  Geben Sie das Passwort fuer den User administrator ein.
+
+Template: linuxmuster-base/adminpw_confirm
+Type: password
+Description: Bestaetigen Sie das Administrator-Passwort:
+ Geben Sie das Passwort fuer administrator nochmals zur Bestaetigung ein.
 
 Template: linuxmuster-base/pgmadminpw
 Type: password
-Description: Programm-Administrator-Passwort?
+Description: Programm-Administrator-Passwort:
  Geben Sie das Passwort fuer den Programm-Administrator pgmadmin ein.
+
+Template: linuxmuster-base/pgmadminpw_confirm
+Type: password
+Description: Bestaetigen Sie das Programm-Administrator-Passwort:
+ Geben Sie das Passwort fuer pgmadmin nochmals zur Bestaetigung ein.
 
 Template: linuxmuster-base/wwwadminpw
 Type: password
-Description: Web-Administrator-Passwort?
+Description: Web-Administrator-Passwort:
  Geben Sie das Passwort fuer den Web-Administrator wwwadmin ein.
+
+Template: linuxmuster-base/wwwadminpw_confirm
+Type: password
+Description: Bestaetigen Sie das Web-Administrator-Passwort:
+ Geben Sie das Passwort fuer wwwadmin nochmals zur Bestaetigung ein.
 
 Template: linuxmuster-base/ipcoppw
 Type: password
-Description: IPCop-Administrator-Passwort?
+Description: IPCop-Administrator-Passwort:
  Geben Sie ein Administrator-Passwort fuer den IPCop ein.\n
  Das Passwort ist gueltig fuer root und admin (integrierte Firewall)\n
  bzw. wird zur Konfiguration des dedizierten IPCop-Servers verwendet.
+
+Template: linuxmuster-base/ipcoppw_confirm
+Type: password
+Description: Bestaetigen Sie das IPCop-Administrator-Passwort:
+ Geben Sie das Passwort fuer den IPCop-Administrator nochmals zur Bestaetigung ein.
 
 Template: linuxmuster-base/sambasid
 Type: string

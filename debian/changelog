@@ -1,9 +1,28 @@
+linuxmuster-base (0.9-49) testing; urgency=low
+
+  * removed testing from apt preferences
+  * added sarge pinnings for openssh-server and -client to apt preferences
+    (closes #97)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 27 Nov 2006 12:53:03 +0100
+
 linuxmuster-base (0.9-48) testing; urgency=low
 
   * removed pinning for moodle from apt preferences and sources.list
   * moved dependency to mondo and ntp-server to package linuxmuster-server
+  * added code for input of root password input in linuxmuster-config
+  * added code for password confirmation during first time setup
+  * added templates for root password and confirmation of all passwords
+  * loading cdrom tray on first boot before tasksel starts
+  * removed deb-src for pkg.lml.support-netz.de from sources.list.online
+  * added "deb http://pkg.lml.support-netz.de/lml30-updates ./" for
+    updates to sources.list.online
+  * fixed broken incremental backups in linuxmuster-backup
+  * linuxmuster-prepare: removed prebaseconfig and save-logs from package
+    dependencies, removed autopartkit templates, added finish-install.d,
+    fixes in 92linuxmuster script
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 20 Nov 2006 19:19:51 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 27 Nov 2006 12:53:03 +0100
 
 linuxmuster-base (0.9-47) testing; urgency=low
 

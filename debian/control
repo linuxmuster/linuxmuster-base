@@ -15,7 +15,7 @@ Description: Linux-Musterloesung configuration scripts
 Package: linuxmuster-prepare
 Priority: optional
 Section: debian-installer
-XC-Package-Type: udeb
 Architecture: all
-Depends: ${shlibs:Depends}, mounted-partitions, fdisk-udeb, prebaseconfig, localechooser, user-setup-udeb, cdrom-detect, sarge-support, hw-detect, mdcfg-utils, save-logs
+Depends: ${shlibs:Depends}, mounted-partitions, fdisk-udeb, localechooser, cdrom-detect, sarge-support, hw-detect, mdcfg-utils, finish-install
 Description: Konfiguration der Linux-Musterloesung
+XC-Package-Type: udeb

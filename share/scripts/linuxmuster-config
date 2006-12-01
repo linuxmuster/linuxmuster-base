@@ -157,29 +157,211 @@ while ! validdomain "$SMTPRELAY"; do
 done
 
 
+# admin passwords
 if [ "$1" = "--first" ]; then
-  # passwords, asked only on installation
-  # Netzwerkberater
-  db_fset linuxmuster-base/adminpw seen false
-  db_input $PRIORITY linuxmuster-base/adminpw || true
-  db_go
-  # Web-Admin
-  db_fset linuxmuster-base/wwwadminpw seen false
-  db_input $PRIORITY linuxmuster-base/wwwadminpw || true
-  db_go
-  # LDAP-Admin
-  db_fset linuxmuster-base/pgmadminpw seen false
-  db_input $PRIORITY linuxmuster-base/pgmadminpw || true
-  db_go
-fi
+
+	# root
+	STATE=1
+	while [ "$STATE"  != 0 ]; do
+
+		case "$STATE" in
+
+			1)
+				db_fset linuxmuster-base/rootpw seen false
+				db_input $PRIORITY linuxmuster-base/rootpw || true
+				db_go
+				db_get linuxmuster-base/rootpw || true
+				[ -n "$RET" ] && STATE=2
+				unset RET
+			;;
+
+			2)
+				db_fset linuxmuster-base/rootpw_confirm seen false
+				db_input $PRIORITY linuxmuster-base/rootpw_confirm || true
+				db_go
+				db_get linuxmuster-base/rootpw_confirm || true
+				if [ -n "$RET" ]; then
+					CONFIRM=$RET
+					db_get linuxmuster-base/rootpw || true
+					if [ "$RET" = "$CONFIRM" ]; then
+						STATE=0
+						echo root:$RET | chpasswd
+					else
+						STATE=1
+					fi
+					unset RET
+					unset CONFIRM
+					db_set linuxmuster-base/rootpw "" || true
+					db_set linuxmuster-base/rootpw_confirm "" || true
+				fi
+			;;
+
+		esac
+
+	done
+
+	# administrator
+	STATE=1
+	while [ "$STATE"  != 0 ]; do
+
+		case "$STATE" in
+
+			1)
+				db_fset linuxmuster-base/adminpw seen false
+				db_input $PRIORITY linuxmuster-base/adminpw || true
+				db_go
+				db_get linuxmuster-base/adminpw || true
+				[ -n "$RET" ] && STATE=2
+				unset RET
+			;;
+
+			2)
+				db_fset linuxmuster-base/adminpw_confirm seen false
+				db_input $PRIORITY linuxmuster-base/adminpw_confirm || true
+				db_go
+				db_get linuxmuster-base/adminpw_confirm || true
+				if [ -n "$RET" ]; then
+					CONFIRM=$RET
+					db_get linuxmuster-base/adminpw || true
+					if [ "$RET" = "$CONFIRM" ]; then
+						STATE=0
+					else
+						STATE=1
+						db_set linuxmuster-base/adminpw "" || true
+					fi
+					unset RET
+					unset CONFIRM
+					db_set linuxmuster-base/adminpw_confirm "" || true
+				fi
+			;;
+
+		esac
+
+	done
+
+	# pgmadmin
+	STATE=1
+	while [ "$STATE"  != 0 ]; do
+
+		case "$STATE" in
+
+			1)
+				db_fset linuxmuster-base/pgmadminpw seen false
+				db_input $PRIORITY linuxmuster-base/pgmadminpw || true
+				db_go
+				db_get linuxmuster-base/pgmadminpw || true
+				[ -n "$RET" ] && STATE=2
+				unset RET
+			;;
+
+			2)
+				db_fset linuxmuster-base/pgmadminpw_confirm seen false
+				db_input $PRIORITY linuxmuster-base/pgmadminpw_confirm || true
+				db_go
+				db_get linuxmuster-base/pgmadminpw_confirm || true
+				if [ -n "$RET" ]; then
+					CONFIRM=$RET
+					db_get linuxmuster-base/pgmadminpw || true
+					if [ "$RET" = "$CONFIRM" ]; then
+						STATE=0
+					else
+						STATE=1
+						db_set linuxmuster-base/pgmadminpw "" || true
+					fi
+					unset RET
+					unset CONFIRM
+					db_set linuxmuster-base/pgmadminpw_confirm "" || true
+				fi
+			;;
+
+		esac
+
+	done
+
+	# wwwadmin
+	STATE=1
+	while [ "$STATE"  != 0 ]; do
+
+		case "$STATE" in
+
+			1)
+				db_fset linuxmuster-base/wwwadminpw seen false
+				db_input $PRIORITY linuxmuster-base/wwwadminpw || true
+				db_go
+				db_get linuxmuster-base/wwwadminpw || true
+				[ -n "$RET" ] && STATE=2
+				unset RET
+			;;
+
+			2)
+				db_fset linuxmuster-base/wwwadminpw_confirm seen false
+				db_input $PRIORITY linuxmuster-base/wwwadminpw_confirm || true
+				db_go
+				db_get linuxmuster-base/wwwadminpw_confirm || true
+				if [ -n "$RET" ]; then
+					CONFIRM=$RET
+					db_get linuxmuster-base/wwwadminpw || true
+					if [ "$RET" = "$CONFIRM" ]; then
+						STATE=0
+					else
+						STATE=1
+						db_set linuxmuster-base/wwwadminpw "" || true
+					fi
+					unset RET
+					unset CONFIRM
+					db_set linuxmuster-base/wwwadminpw_confirm "" || true
+				fi
+			;;
+
+		esac
+
+	done
+
+fi # admin passwords
 
 
-# ipcop passwd query
+# ipcop password
 if [[ "$1" = "--first" || "$update_fw" = "yes" ]]; then
-  db_fset linuxmuster-base/ipcoppw seen false
-  db_input $PRIORITY linuxmuster-base/ipcoppw || true
-  db_go
-fi
+
+	STATE=1
+	while [ "$STATE"  != 0 ]; do
+
+		case "$STATE" in
+
+			1)
+				db_fset linuxmuster-base/ipcoppw seen false
+				db_input $PRIORITY linuxmuster-base/ipcoppw || true
+				db_go
+				db_get linuxmuster-base/ipcoppw || true
+				[ -n "$RET" ] && STATE=2
+				unset RET
+			;;
+
+			2)
+				db_fset linuxmuster-base/ipcoppw_confirm seen false
+				db_input $PRIORITY linuxmuster-base/ipcoppw_confirm || true
+				db_go
+				db_get linuxmuster-base/ipcoppw_confirm || true
+				if [ -n "$RET" ]; then
+					CONFIRM=$RET
+					db_get linuxmuster-base/ipcoppw || true
+					if [ "$RET" = "$CONFIRM" ]; then
+						STATE=0
+					else
+						STATE=1
+						db_set linuxmuster-base/ipcoppw "" || true
+					fi
+					unset RET
+					unset CONFIRM
+					db_set linuxmuster-base/ipcoppw_confirm "" || true
+				fi
+			;;
+
+		esac
+
+	done
+
+fi # ipcop password
 
 
 # important: close debconf database

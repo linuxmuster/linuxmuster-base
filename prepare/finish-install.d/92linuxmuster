@@ -1,15 +1,15 @@
 #!/bin/sh
-# tweak stage 2 of installation
+# tweaking stage 2 of installation
 
 timezone=`debconf-get tzconfig/choose_country_zone_multiple`
 
 if [ -n "$timezone" ]; then
 
-  chroot /target /bin/ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
+  echo "$timezone" > /target/etc/localtime
 
 fi
 
-preseed=`debconf-get preseed/file | cut -d "/" -f4`
+preseed=`debconf-get preseed/file | cut -d "/" -f6`
 
 if [ "$preseed" = "auto" -o "$preseed" = "expert" ]; then
 

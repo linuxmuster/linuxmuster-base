@@ -19,6 +19,9 @@ if [ "$opt" = "--first" ]; then
   # reconfigure package
   dpkg-reconfigure linuxmuster-base
 
+  # load cdrom tray
+  grep -q ^"deb cdrom" /etc/apt/sources.list && eject -t
+
   # installing depending tasks
   for i in common server non-free; do
     DEBIAN_FRONTEND=noninteractive /usr/bin/tasksel install linuxmuster-$i
