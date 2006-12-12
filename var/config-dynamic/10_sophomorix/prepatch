@@ -1,9 +1,22 @@
 # patching sophomorix.conf with schoolname, location and servername
-
 sed -e "s/^\$schul_name=.*/\$schul_name=\"${schoolname} ${location}\";/
         s/^\$smb_netbios_name =.*/\$smb_netbios_name = \"${servername}\";/" $SOPHOMORIXCONF > $SOPHOMORIXCONF.tmp
-
 mv $SOPHOMORIXCONF.tmp $SOPHOMORIXCONF
+
+if [ "$1" = "--first" ]; then
+
+  # changing user's default shell to /bin/bash
+  sed -e 's/^\$schueler_per_ssh=.*/\$schueler_per_ssh=\"yes\"\;/
+          s/^\$lehrer_per_ssh=.*/\$lehrer_per_ssh=\"yes\"\;/' $SOPHOMORIXCONF > $SOPHOMORIXCONF.tmp
+  mv $SOPHOMORIXCONF.tmp $SOPHOMORIXCONF
+
+  # repairing sophomorix slapd.conf template
+  if grep -q /var/run/slapd.args /usr/share/sophomorix/config-templates/ldap/slapd.conf.template; then
+    sed -e 's/^argsfile.*/argsfile        \/var\/run\/slapd\/slapd.args/' /usr/share/sophomorix/config-templates/ldap/slapd.conf.template > /usr/share/sophomorix/config-templates/ldap/slapd.conf.template.tmp
+    mv /usr/share/sophomorix/config-templates/ldap/slapd.conf.template.tmp /usr/share/sophomorix/config-templates/ldap/slapd.conf.template
+  fi
+
+fi
 
 # patch sophomorix pgldap.conf with workgroup, server, internip and domainname
 sed -e "s/^\$domainname=.*/\$domainname=\"${domainname}\";/

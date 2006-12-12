@@ -34,16 +34,6 @@ rm -f /var/lib/samba/wins.dat
 # only on fresh install
 if [ "$1" = "--first" ]; then
 
-  # create random db password
-  #randompw=`pwgen -s 8 1`
-  #ldapadminpw=`pwgen -s 8 1`
-
-  # patch sophomorix with ldappasswd
-  # obsolet with cvs 060208
-  #sed -e "s/^\$ldappassword=.*/\$ldappassword=\"$ldapadminpw\";/
-  #        s/^\$dbpassword=.*/\$dbpassword=\"$randompw\";/" /etc/sophomorix/pgldap/pgldap.conf > /etc/sophomorix/pgldap/pgldap.conf.tmp
-  #cp -f /etc/sophomorix/pgldap/pgldap.conf.tmp /etc/sophomorix/pgldap/pgldap.conf && rm -f /etc/sophomorix/pgldap/pgldap.conf.tmp
-
   # delete old userdata
   [[ -n "$ADMINSHOME" && -d "$ADMINSHOME" ]] && rm -rf $ADMINSHOME/*
   [[ -n "$TEACHERSHOME" && -d "$TEACHERSHOME" ]] && rm -rf $TEACHERSHOME/*
@@ -59,33 +49,8 @@ if [ "$1" = "--first" ]; then
   rm -rf /var/log/sophomorix/exam/*
   rm -rf /var/log/sophomorix/user/*
 
-  # drop old database
-  #droplang -U postgres plpgsql ldap
-  #dropdb -U postgres ldap
-  #dropuser -U postgres ldap
-
-  # patch sophomorix.sql with basedn
-  #sed -e "s/dc=linuxmuster\,dc=de/$basedn/g" $SOPHOMORIXSQL > $SOPHOMORIXSQL.patched
-
-  # create new database
-  #psql -U postgres template1 < /usr/share/sophomorix/config-templates/pg/sophomorix-admin.sql
-  #psql -U postgres ldap < /usr/share/sophomorix/config-templates/pg/sophomorix-lang.sql
-  #psql -U ldap ldap < $SOPHOMORIXSQL.patched
-  #rm -f $SOPHOMORIXSQL.patched
-  # install sophomorix db upgrades
-  #for i in /usr/share/sophomorix/config-templates/pg/upgrade/*.sql; do
-  #  psql -U ldap ldap < $i
-  #done
-
-  # alter db password for user ldap
-  #psql -U postgres -d template1 -qc "ALTER USER ldap WITH PASSWORD '"$randompw"';"
-
   # create new database
   sophomorix-setup-pgldap --new-database
-
-  # temporarily added
-  cp -f /var/lib/linuxmuster/config-static/etc/pam.d/common-password /etc/pam.d
-  cp -f /var/lib/linuxmuster/config-static/etc/nsswitch.conf /etc
 
   # fetch dbpasswd
   dbpasswd=`grep ^dbpasswd /etc/ldap/slapd.conf | awk '{ print $2 }' -`
@@ -97,32 +62,13 @@ if [ "$1" = "--first" ]; then
   chmod 400 /etc/linuxmuster/schulkonsole/db.conf*
   [ -L /etc/apache2/conf.d/schulkonsole ] || ln -s /etc/linuxmuster/schulkonsole/apache2.conf /etc/apache2/conf.d/schulkonsole
 
-  # patch odbc.ini with password
-  #sed -e "s/^Password=.*/Password=$randompw/" /etc/odbc.ini > /etc/odbc.ini.tmp
-  #cp -f /etc/odbc.ini.tmp /etc/odbc.ini && rm -f /etc/odbc.ini.tmp
-
-  # patch slapd.conf with passwords
-  #sed -e "s/^rootpw.*/rootpw          $ldapadminpw/
-  #        s/^dbpasswd.*/dbpasswd        $randompw/" /etc/ldap/slapd.conf > /etc/ldap/slapd.conf.tmp
-  #cp -f /etc/ldap/slapd.conf.tmp /etc/ldap/slapd.conf && rm -f /etc/ldap/slapd.conf.tmp
-
-  # patch smbldap_bind.conf with password
-  #sed -e "s/^masterPw=.*/masterPw=\"$ldapadminpw\"/" /etc/smbldap-tools/smbldap_bind.conf > /etc/smbldap-tools/smbldap_bind.conf.tmp
-  #cp -f /etc/smbldap-tools/smbldap_bind.conf.tmp /etc/smbldap-tools/smbldap_bind.conf && rm -f /etc/smbldap-tools/smbldap_bind.conf.tmp
-
-  # write ldapadminpw to ldap.secret
-  #echo "$ldapadminpw" > /etc/ldap.secret
-
-  # unset random pw
-  #unset randompw
-  #unset ldapadminpw
-
 fi
 
 # update user database with basedn and workgroup if necessary
 $SCRIPTSDIR/update-db.sh $basedn $workgroup "$schoolname"
 
 # secure permissions
-for i in /etc/ldap.secret /etc/odbc.ini /etc/ldap/slapd.conf /etc/smbldap-tools/smbldap_bind.conf /etc/sophomorix/pgldap/pgldap.conf; do
+for i in /etc/ldap.secret /etc/ldap/slapd.conf /etc/smbldap-tools/smbldap_bind.conf /etc/sophomorix/pgldap/pgldap.conf; do
   chmod 600 $i
 done
+chown openldap:openldap /etc/ldap/slapd.conf*

@@ -366,7 +366,7 @@ put_ipcop() {
 
 # create chora2 configuration
 create_chora_conf() {
-  check_emtpy_dir $SVNROOT
+  check_empty_dir $SVNROOT
   if [ "$RET" = "0" ]; then
     rm -f $CHORASOURCES &> /dev/null
   else
@@ -421,7 +421,7 @@ stringinstring() {
 }
 
 # checking if directory is empty, in that case it returns 0
-check_emtpy_dir() {
+check_empty_dir() {
   RET=$(ls -A1 $1 2>/dev/null | wc -l)
 }
 

@@ -417,8 +417,8 @@ done
 
 
 # linking backup mountpoint to administrator's home
-[ -L "$adminhome/_backup" ] && rm $adminhome/_backup
-ln -s $mountpoint $adminhome/_backup
+[ -L "$ADMINSHOME/$ADMINISTRATOR/_backup" ] && rm $ADMINSHOME/$ADMINISTRATOR/_backup
+ln -s $mountpoint $ADMINSHOME/$ADMINISTRATOR/_backup
 
 
 # unmounting backup media if requested

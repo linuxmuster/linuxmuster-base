@@ -10,6 +10,9 @@
 # check command line options
 opt=$1
 
+# turn shadow passwords on
+shadowconfig on
+
 # calling as base-config late command
 if [ "$opt" = "--first" ]; then
 

@@ -70,7 +70,7 @@ rows.each do
   if not hostname.empty? and not room.empty?
     if not (Etc.getpwnam(hostname) rescue false)
       info "  * Lege Stationskonto an: #{hostname}"
-      runcmd "smbldap-useradd -a -d '#{Config.WSHOME}/#{room}/#{hostname}' -c HostAccount -g '#{room}' -m -s /bin/false '#{hostname}'"
+      runcmd "smbldap-useradd -a -d '#{Config.WSHOME}/#{room}/#{hostname}' -c HostAccount -g '#{room}' -m -s /bin/bash '#{hostname}'"
       runcmd "echo -e '12345678\n12345678\n' | smbldap-passwd '#{hostname}'"
     end
   end

@@ -157,7 +157,7 @@ case "$1" in
 	fi
 
         # repair admin groups and accounts
-        $SCRIPTSDIR/repair-admins.sh
+        #$SCRIPTSDIR/repair-admins.sh
 
 	# ask for domadmin password if necessary
 	if [ -n "$da_check" ]; then
@@ -267,15 +267,15 @@ case "$1" in
 
         # apt
         cp -f /var/lib/linuxmuster/config-static/etc/apt/sources.list.online /etc/apt
-        [ -e /etc/apt/apt.conf ] && cp /etc/apt/apt.conf /etc/apt/apt.conf-dpkg.orig
+        [ -e /etc/apt/apt.conf ] && cp /etc/apt/apt.conf /etc/apt/apt.conf.dpkg-old
         echo "Updating /etc/apt/apt.conf ..."
         cp -f /var/lib/linuxmuster/config-static/etc/apt/apt.conf /etc/apt
-        [ -e /etc/apt/preferences ] && cp /etc/apt/preferences /etc/apt/preferences-dpkg.orig
+        [ -e /etc/apt/preferences ] && cp /etc/apt/preferences /etc/apt/preferences.dpkg-old
         echo "Updating /etc/apt/preferences ..."
         cp -f /var/lib/linuxmuster/config-static/etc/apt/preferences /etc/apt
         if grep -q "^deb http" /etc/apt/sources.list; then
           echo "Updating /etc/apt/sources.list ..."
-          cp -f /etc/apt/sources.list /etc/apt/sources.list-dpkg.orig
+          cp -f /etc/apt/sources.list /etc/apt/sources.list.dpkg-old
           cp -f /etc/apt/sources.list.online /etc/apt/sources.list
         fi
 
@@ -284,6 +284,74 @@ case "$1" in
           echo "Updating /etc/environment ..."
           cp -f /var/lib/linuxmuster/config-static/etc/environment /etc
           cp -f /var/lib/linuxmuster/config-static/etc/profile /etc
+        fi
+
+        # change user's default shell to /bin/bash
+        if [ "$(dpkg -l | grep sophomorix-bas | cut -f4 -d" ")" = "1.9.4-1" ]; then
+          echo "Changing user's default shell to /bin/bash ..."
+          # patch sophomorix.conf
+          cp $SOPHOMORIXCONF ${SOPHOMORIXCONF}.dpkg-old
+          sed -e 's/^\$schueler_per_ssh=.*/\$schueler_per_ssh=\"yes\"\;/
+                  s/^\$lehrer_per_ssh=.*/\$lehrer_per_ssh=\"yes\"\;/' ${SOPHOMORIXCONF}.dpkg-old > ${SOPHOMORIXCONF}
+          # patch user accounts
+          # teachers
+          if check_empty_dir $TEACHERSHOME; then
+            cd $TEACHERSHOME
+            for i in *; do
+              id $i &> /dev/null && smbldap-usermod -s /bin/bash $i
+            done
+          fi
+          # students
+          if check_empty_dir $STUDENTSHOME; then
+            cd $STUDENTSHOME
+            for i in *; do
+              if [ -d "$i" ]; then
+                cd $i
+                for j in *; do
+                  id $j &> /dev/null && smbldap-usermod -s /bin/bash $j
+                done
+                cd ..
+              fi
+            done
+          fi
+          # workstations
+          if check_empty_dir $WSHOME; then
+            cd $WSHOME
+            for i in *; do
+              if [ -d "$i" ]; then
+                cd $i
+                for j in *; do
+                  id $j &> /dev/null && smbldap-usermod -s /bin/bash $j
+                done
+                cd ..
+              fi
+            done
+          fi
+        fi # change user's default shell to /bin/bash
+
+        # shadow passwords
+        if [ ! -e /etc/shadow ]; then
+          shadowconfig on
+        fi
+
+        # webmin root password
+        wmrootpw=`grep ^root: /etc/webmin/miniserv.users | cut -f2 -d:`
+        if [ -z "$wmrootpw" ]; then
+          echo "Writing root password to /etc/webmin/miniserv.users ..."
+          rootpw=`grep ^root: /etc/shadow | cut -f2 -d:`
+          cp /etc/webmin/miniserv.users /etc/webmin/miniserv.users.dpkg-orig
+          echo "root:$rootpw" > /etc/webmin/miniserv.users
+          chmod 640 /etc/webmin/miniserv.users*
+          /etc/init.d/webmin restart
+        fi
+
+        # remove false link to backup mountpoint
+	[ -L /_backup ] && rm /_backup
+
+        # bug #96
+        if [ -L /usr/sbin/sendmail ]; then
+          echo "FATAL: Bug #96 detected!"
+          echo " You _have_ to reinstall postfix ASAP!"
         fi
 
         # important message if upgrade is necessary

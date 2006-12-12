@@ -1,10 +1,18 @@
 linuxmuster-base (0.9-49) testing; urgency=low
 
-  * removed testing from apt preferences
+  * removed testing branch from apt preferences
+  * added backport pinning for quilt to apt preferences
   * added sarge pinnings for openssh-server and -client to apt preferences
     (closes #97)
+  * added "APT::Cache-Limit 20000000;" to apt.conf
+  * doing some code cleanup concerning to stuff which is done by sophomorix now
+  * fixed missing webmin root password after installation (closes #100)
+  * turning shadow passwords on in postinst
+  * smb.conf: changed case sensitive from yes to auto  (closes #101)
+  * changed default shell for users to /bin/bash (closes #98)
+  * fixed administrator's link to mountpoint of backup media in linuxmuster-backup
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 27 Nov 2006 12:53:03 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 12 Dec 2006 19:12:35 +0100
 
 linuxmuster-base (0.9-48) testing; urgency=low
 
