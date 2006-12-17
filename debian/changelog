@@ -1,3 +1,10 @@
+linuxmuster-base (0.9-50) testing; urgency=low
+
+  * added code to repair permissions under /etc/ldap
+  * removed testing for user domadmin from postinst
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 16 Dec 2006 16:19:22 +0100
+
 linuxmuster-base (0.9-49) testing; urgency=low
 
   * removed testing branch from apt preferences

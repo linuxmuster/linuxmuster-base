@@ -11,10 +11,10 @@ if [ "$1" = "--first" ]; then
   mv $SOPHOMORIXCONF.tmp $SOPHOMORIXCONF
 
   # repairing sophomorix slapd.conf template
-  if grep -q /var/run/slapd.args /usr/share/sophomorix/config-templates/ldap/slapd.conf.template; then
-    sed -e 's/^argsfile.*/argsfile        \/var\/run\/slapd\/slapd.args/' /usr/share/sophomorix/config-templates/ldap/slapd.conf.template > /usr/share/sophomorix/config-templates/ldap/slapd.conf.template.tmp
-    mv /usr/share/sophomorix/config-templates/ldap/slapd.conf.template.tmp /usr/share/sophomorix/config-templates/ldap/slapd.conf.template
-  fi
+  #if grep -q /var/run/slapd.args /usr/share/sophomorix/config-templates/ldap/slapd.conf.template; then
+  #  sed -e 's/^argsfile.*/argsfile        \/var\/run\/slapd\/slapd.args/' /usr/share/sophomorix/config-templates/ldap/slapd.conf.template > /usr/share/sophomorix/config-templates/ldap/slapd.conf.template.tmp
+  #  mv /usr/share/sophomorix/config-templates/ldap/slapd.conf.template.tmp /usr/share/sophomorix/config-templates/ldap/slapd.conf.template
+  #fi
 
 fi
 

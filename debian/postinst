@@ -152,20 +152,20 @@ case "$1" in
         fi
 
         # check if domadmin exists
-        if ! id $DOMADMIN &> /dev/null; then
-	  da_check=no
-	fi
+        #if ! id $DOMADMIN &> /dev/null; then
+	#  da_check=no
+	#fi
 
         # repair admin groups and accounts
         #$SCRIPTSDIR/repair-admins.sh
 
 	# ask for domadmin password if necessary
-	if [ -n "$da_check" ]; then
-	  echo "ATTENTION!"
-	  echo "$DOMADMIN is from now on the only user who has the right to add windows clients to the domain!"
-	  echo "You have to give him a password!"
-	  smbldap-passwd $DOMADMIN
-	fi
+	#if [ -n "$da_check" ]; then
+	#  echo "ATTENTION!"
+	#  echo "$DOMADMIN is from now on the only user who has the right to add windows clients to the domain!"
+	#  echo "You have to give him a password!"
+	#  smbldap-passwd $DOMADMIN
+	#fi
 
         # update cron scripts
         # ntpdate
@@ -347,6 +347,14 @@ case "$1" in
 
         # remove false link to backup mountpoint
 	[ -L /_backup ] && rm /_backup
+
+        # openldap permissions
+        chown root:root /etc/ldap/ldap.conf
+        chmod 644 /etc/ldap/ldap.conf
+        chown root:root /etc/ldap/slapd.conf
+        chmod 600 /etc/ldap/slapd.conf
+        chown root:root /etc/odbc.ini
+        chmod 644  /etc/odbc.ini
 
         # bug #96
         if [ -L /usr/sbin/sendmail ]; then

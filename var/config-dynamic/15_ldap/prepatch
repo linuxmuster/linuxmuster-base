@@ -67,8 +67,12 @@ fi
 # update user database with basedn and workgroup if necessary
 $SCRIPTSDIR/update-db.sh $basedn $workgroup "$schoolname"
 
-# secure permissions
+# repair permissions
 for i in /etc/ldap.secret /etc/ldap/slapd.conf /etc/smbldap-tools/smbldap_bind.conf /etc/sophomorix/pgldap/pgldap.conf; do
   chmod 600 $i
 done
-chown openldap:openldap /etc/ldap/slapd.conf*
+chown root:root /etc/ldap/slapd.conf*
+chown root:root /etc/ldap/ldap.conf
+chmod 644 /etc/ldap/ldap.conf
+chown root:root /etc/odbc.ini
+chmod 644  /etc/odbc.ini
