@@ -5,3 +5,10 @@
 myadmin -i "/var/lib/rembo/files/global/wimport_data" --rembo-path "/var/lib/rembo" \
   --rembo-conf "$REMBOCONF" --myshn-path "$MYSHNDIR" --dhcp-conf "$DHCPDCONF" \
   --hostgroup-conf "$HOSTGROUPCONF" --plugin "$SCRIPTSDIR/wimport_lml.rb"
+
+# run this script for the package mlscripts (alternative to myshn)
+if [ -e "/usr/sbin/mlscripts-wsimport" ]
+then
+    echo "  * running  /usr/sbin/mlscripts-wsimport"
+    /usr/sbin/mlscripts-wsimport 
+fi
