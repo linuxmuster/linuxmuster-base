@@ -42,6 +42,18 @@ Package: module-init-tools
 Pin: release a=sarge-backports
 Pin-Priority: 999
 
+Package: nagios2
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: nagios-plugins-basic
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: nagios-plugins-standard
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
 Package: postfix
 Pin: release a=sarge-backports
 Pin-Priority: 999
