@@ -34,10 +34,16 @@ for i in country state location schoolname workgroup; do
     db_go
     db_get linuxmuster-base/$i || true
     INPUT=$RET
+    if [ "$i" = "schoolname" ]; then
+      db_set shared/organization $INPUT || true
+    fi
+    if [ "$i" = "workgroup" ]; then
+      WORKGROUP=${INPUT//[äöüßÄÖÜ ]/}
+      db_set linuxmuster-base/$i $WORKGROUP || true
+    fi
   done
   unset INPUT
 done
-db_set shared/organization $RET || true
 
 
 # intern network configuration
@@ -363,6 +369,9 @@ if [[ "$1" = "--first" || "$update_fw" = "yes" ]]; then
 
 fi # ipcop password
 
+
+# assign nics with extern, intern, wlan, dmz interfaces
+assign_nics
 
 # important: close debconf database
 db_stop

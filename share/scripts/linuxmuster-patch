@@ -9,7 +9,7 @@ echo "Reading debconf database ..."
 for i in country state location servername domainname schoolname dsluser dslpasswd \
          internmask internmask_short internsubrange fwconfig externtype externip externmask \
          gatewayip dnsforwarders smtprelay sambasid adminpw pgmadminpw wwwadminpw \
-         ipcoppw workgroup; do
+         ipcoppw workgroup mac_extern mac_intern mac_wlan mac_dmz; do
   RET=`echo get linuxmuster-base/$i | debconf-communicate`
   RET=${RET#[0-9] }
   if [ -n "$RET" ]; then eval $i="${RET// /\\ }"; fi
@@ -83,10 +83,14 @@ echo "ipcoporange=\"$ipcoporange\"" >> $NETWORKSETTINGS
 echo "ipcopovpn=\"$ipcopovpn\"" >> $NETWORKSETTINGS
 echo "basedn=\"$basedn\"" >> $NETWORKSETTINGS
 echo "smtprelay=\"$smtprelay\"" >> $NETWORKSETTINGS
+echo "mac_extern=$mac_extern" >> $NETWORKSETTINGS
+echo "mac_intern=$mac_intern" >> $NETWORKSETTINGS
+echo "mac_wlan=$mac_wlan" >> $NETWORKSETTINGS
+echo "mac_dmz=$mac_dmz" >> $NETWORKSETTINGS
 chmod 755 $NETWORKSETTINGS
 
-# assign network interfaces
-$SCRIPTSDIR/assign_interfaces.sh --type=$fwconfig --outfile=/etc/init.d/nameif || exit 1
+# assign network interfaces, deprecated
+#$SCRIPTSDIR/assign_interfaces.sh --type=$fwconfig --outfile=/etc/init.d/nameif || exit 1
 
 # define intern device
 if [ "$fwconfig" = "integrated" ]; then

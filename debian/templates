@@ -71,7 +71,8 @@ Type: string
 Default: SCHULE
 Description: Samba-Domaene des Schulnetzes?
  Geben Sie die Samba-Domaene des Schulnetzes ein.\n
- Es sind nur Buchstaben erlaubt.
+ Es sind nur Buchstaben erlaubt.\n
+ Keine Leerzeichen, Umlaute oder sonstige Sonderzeichen!
 
 Template: linuxmuster-base/fwconfig
 Type: select
@@ -182,15 +183,17 @@ Description: Bestaetigen Sie das Web-Administrator-Passwort:
 
 Template: linuxmuster-base/ipcoppw
 Type: password
-Description: IPCop-Administrator-Passwort:
- Geben Sie ein Administrator-Passwort fuer den IPCop ein.\n
- Das Passwort ist gueltig fuer root und admin (integrierte Firewall)\n
- bzw. wird zur Konfiguration des dedizierten IPCop-Servers verwendet.
+Description: IPCop-Root-Passwort:
+ Geben Sie das IPCop-Root-Passwort ein.\n
+ Bei der integrierten Variante wird dieses Passwort zusaetzlich fuer den\n
+ User admin zum Einloggen in das Webinterface verwendet.\n
+ Wurde IPCop dediziert installiert, ist hier das Root-Passwort\n
+ einzugeben, dass Sie bei der IPCop-Installation vergeben haben.
 
 Template: linuxmuster-base/ipcoppw_confirm
 Type: password
-Description: Bestaetigen Sie das IPCop-Administrator-Passwort:
- Geben Sie das Passwort fuer den IPCop-Administrator nochmals zur Bestaetigung ein.
+Description: Bestaetigen Sie das IPCop-Root-Passwort:
+ Geben Sie das Root-Passwort fuer den IPCop nochmals zur Bestaetigung ein.
 
 Template: linuxmuster-base/sambasid
 Type: string
@@ -217,3 +220,35 @@ Description: Interner Adressbereich?
  16-31: 10.16.0.0 - 10.31.255.255\n
  32-47: 10.32.0.0 - 10.47.255.255\n
  usw.\n
+
+Template: linuxmuster-base/nicmenu
+Type: select
+Choices: ${nic_choices}
+Description: Zuordnung der Netzwerkkarten
+ ${nic_desc}
+
+Template: linuxmuster-base/ifmenu
+Type: select
+Choices: ${if_choices}
+Description: ${if_desc}
+ Waehlen Sie die zutreffende Zuordnung fuer diese Netzwerkkarte mit den Pfeiltasten aus. Bestaetigen Sie die Auswahl wiederum mit ENTER.
+
+Template: linuxmuster-base/mac_extern
+Type: string
+Description: extern MAC
+ Keine Eingabe.
+
+Template: linuxmuster-base/mac_intern
+Type: string
+Description: intern MAC
+ Keine Eingabe.
+
+Template: linuxmuster-base/mac_wlan
+Type: string
+Description: wlan MAC
+ Keine Eingabe.
+
+Template: linuxmuster-base/mac_dmz
+Type: string
+Description: dmz MAC
+ Keine Eingabe.

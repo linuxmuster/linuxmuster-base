@@ -48,6 +48,9 @@ else
 
 fi
 
+# reconfiguring package to have all templates
+dpkg-reconfigure linuxmuster-base
+
 # calling as base-config late command
 case $opt in
 
@@ -58,9 +61,6 @@ case $opt in
 
     # delete installed flag
     [ -e "$INSTALLED" ] && rm -f $INSTALLED
-
-    # reconfigure package
-    dpkg-reconfigure linuxmuster-base
 
     # load cdrom tray
     grep -q ^"deb cdrom" /etc/apt/sources.list && eject -t
@@ -111,7 +111,7 @@ case $opt in
 esac
 
 # ask questions
-$SCRIPTSDIR/linuxmuster-config $opt
+$SCRIPTSDIR/linuxmuster-config $opt || exit 1
 
 # call configuration patch script
 $SCRIPTSDIR/linuxmuster-patch $opt

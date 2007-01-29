@@ -3,5 +3,3 @@ update-rc.d -f uml-utilities remove
 # move samba start to nr 21 and stop to 19
 update-rc.d -f samba remove
 update-rc.d samba start 21 2 3 4 5 . stop 19 0 1 6 .
-# add nameif
-update-rc.d nameif start 40 S .

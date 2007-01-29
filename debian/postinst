@@ -17,6 +17,33 @@ set -e
 # the debian-policy package
 #
 
+# Source debconf library.
+. /usr/share/debconf/confmodule
+
+db_version 2.0
+
+# check if all templates present
+for i in linuxmuster-base/intro linuxmuster-base/country linuxmuster-base/state \
+         linuxmuster-base/location linuxmuster-base/schoolname shared/organization \
+         linuxmuster-base/servername linuxmuster-base/domainname linuxmuster-base/workgroup \
+         linuxmuster-base/fwconfig linuxmuster-base/externtype linuxmuster-base/externip \
+         linuxmuster-base/externmask linuxmuster-base/gatewayip linuxmuster-base/dnsforwarders \
+         linuxmuster-base/dsluser linuxmuster-base/dslpasswd linuxmuster-base/smtprelay \
+         linuxmuster-base/rootpw linuxmuster-base/rootpw_confirm linuxmuster-base/adminpw \
+         linuxmuster-base/adminpw_confirm linuxmuster-base/pgmadminpw linuxmuster-base/pgmadminpw_confirm \
+         linuxmuster-base/wwwadminpw linuxmuster-base/wwwadminpw_confirm linuxmuster-base/ipcoppw \
+         linuxmuster-base/ipcoppw_confirm linuxmuster-base/sambasid linuxmuster-base/internmask \
+         linuxmuster-base/internmask_short linuxmuster-base/internsubrange linuxmuster-base/nicmenu \
+         linuxmuster-base/ifmenu linuxmuster-base/mac_extern linuxmuster-base/mac_intern \
+         linuxmuster-base/mac_wlan linuxmuster-base/mac_dmz; do
+
+	if ! db_get linuxmuster-base/$i; then
+		db_set linuxmuster-base/$i "" || true
+		db_go
+	fi
+
+done
+
 case "$1" in
     configure)
 
@@ -26,6 +53,9 @@ case "$1" in
       # make dist.conf executable so that perl scripts can source it
       chmod 755 /usr/share/linuxmuster/config/dist.conf
 
+      # only root may use helperfunctions.sh
+      chmod 600 $HELPERFUNCTIONS
+
       # check all necessary dirs and links and create them if needed
       for i in $NETLOGONDIR $PROGSDIR $CDSDIR $BACKUPDIR $BACKUPMNTPOINT \
                $LOGINCACHE $LOGDIR $SVNCONFDIR $SVNROOT $CLASSESWEBROOT \
@@ -34,6 +64,9 @@ case "$1" in
         [ -d "$i" ] || mkdir -p $i
 
       done
+
+      # add nic-setup script to runlevels
+      update-rc.d linuxmuster-nic-setup start 40 S .
 
       # create and correct dirs and files
       [ -d /etc/skel/windows ] && rm -rf /etc/skel/windows
@@ -62,7 +95,8 @@ case "$1" in
 
         # check if smtprelay is in $NETWORKSETTINGS
         if ! grep -q smtprelay $NETWORKSETTINGS; then
-          smtprelay=`echo get linuxmuster-base/smtprelay | debconf-communicate`
+          db_get linuxmuster/base smtprelay || true
+          smtprelay=$RET
           smtprelay=${smtprelay#[0-9] }
           echo "smtprelay=\"$smtprelay\"" >> $NETWORKSETTINGS
         fi
@@ -75,7 +109,8 @@ case "$1" in
         # some variables we need for patching
         servername=`hostname`
         domainname=`dnsdomainname`
-        workgroup=`echo get linuxmuster-base/workgroup | debconf-communicate`
+        db_get linuxmuster-base/workgroup || true
+        workgroup=$RET
         workgroup=${workgroup#[0-9] }
         internsub=`echo $serverip | awk -F. '{ print $2 }'`
 	serverrev_short=1.1.$internsub
@@ -362,6 +397,64 @@ case "$1" in
           echo " You _have_ to reinstall postfix ASAP!"
         fi
 
+        # bug #130, fixing slapd.conf
+        if ! grep -q ^password-hash /etc/ldap/slapd.conf; then
+          echo "Fixing slapd.conf (Bug #130) ..."
+          cp  /etc/ldap/slapd.conf /etc/ldap/slapd.conf.dpkg-old
+          sed -e '/^argsfile/a\
+password-hash   {CRYPT}' /etc/ldap/slapd.conf.dpkg-old > /etc/ldap/slapd.conf
+          chmod 600  /etc/ldap/slapd.conf*
+          /etc/init.d/slapd restart
+        fi
+
+        # bug #123, adding ipcop handling to /etc/init.d/networking
+        if ! grep -q ^doipcop /etc/init.d/networking; then
+          echo "Updating /etc/init.d/networking (Bug #123) ..."
+          cp /etc/init.d/networking /etc/init.d/networking.dpkg-dist
+          cp /var/lib/linuxmuster/config-static/etc/init.d/networking /etc/init.d
+        fi
+	[ -e /etc/init.d/networking.dpkg-dist ] && chmod 644 /etc/init.d/networking.dpkg-dist
+
+	# remove old nameif script and installing new linuxmuster-nic-setup
+	if [ -e /etc/init.d/nameif ]; then
+		echo "Fixing mac address handling (Bug #86) ..."
+		#  first save the mac assignments
+		mac_extern=`grep "^nameif extern" /etc/init.d/nameif | cut -f3 -d" "`
+		if [ -n "$mac_extern" ]; then
+			toupper $mac_extern
+			mac_extern=$RET
+			db_set linuxmuster-base/mac_extern $mac_extern || true
+		fi
+		mac_intern=`grep "^nameif intern" /etc/init.d/nameif | cut -f3 -d" "`
+		if [ -n "$mac_intern" ]; then
+			toupper $mac_intern
+			mac_intern=$RET
+			db_set linuxmuster-base/mac_intern $mac_intern || true
+		fi
+		mac_wlan=`grep "^nameif wlan" /etc/init.d/nameif | cut -f3 -d" "`
+		if [ -n "$mac_wlan" ]; then
+			toupper $mac_wlan
+			mac_wlan=$RET
+			db_set linuxmuster-base/mac_wlan $mac_wlan || true
+		fi
+		mac_dmz=`grep "^nameif dmz" /etc/init.d/nameif | cut -f3 -d" "`
+		if [ -n "$mac_dmz" ]; then
+			toupper $mac_dmz
+			mac_dmz=$RET
+			db_set linuxmuster-base/mac_dmz $mac_dmz || true
+		fi
+		# write them to network.settings
+		grep -v ^mac_ $NETWORKSETTINGS > $NETWORKSETTINGS.tmp
+		mv $NETWORKSETTINGS.tmp $NETWORKSETTINGS
+		echo "mac_extern=$mac_extern" >> $NETWORKSETTINGS
+		echo "mac_intern=$mac_intern" >> $NETWORKSETTINGS
+		echo "mac_wlan=$mac_wlan" >> $NETWORKSETTINGS
+		echo "mac_dmz=$mac_dmz" >> $NETWORKSETTINGS
+		update-rc.d -f nameif remove
+		mv /etc/init.d/nameif /etc/init.d/nameif.dpkg-old
+		chmod 644 /etc/init.d/nameif.dpkg-old
+	fi
+
         # important message if upgrade is necessary
         if [ -n "$upgrade" ]; then
           echo "IMPORTANT!"
@@ -385,5 +478,7 @@ esac
 # generated by other debhelper scripts.
 
 #DEBHELPER#
+
+db_stop
 
 exit 0

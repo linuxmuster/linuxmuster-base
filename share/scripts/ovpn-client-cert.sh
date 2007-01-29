@@ -33,6 +33,12 @@ usage() {
 [[ -n "$check" && -n "$download" ]] && usage
 if [ -n "$create" ]; then
 	[[ -z "$username" || -z "$password" ]] && usage
+	# pw length at least 6 characters
+	len=${#password}
+	if [ $len -lt 6 ]; then
+		echo "Password too short! It needs at least 6 characters!"
+		exit 2
+	fi
 elif [[ -n "$check" || -n "$download" ]]; then
 	[ -z "$username" ] && usage
 else

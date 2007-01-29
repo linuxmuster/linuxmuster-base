@@ -1,5 +1,5 @@
 # stop networking at all
-/etc/init.d/networking stop 1>> $LOGDIR/setup.log 2>> $LOGDIR/setup.log
+/etc/rcS.d/S40networking stop 1>> $LOGDIR/setup.log 2>> $LOGDIR/setup.log
 
 # kill network devices if they are not down already
 # first shutdown the interfaces

@@ -49,6 +49,15 @@ if [ "$1" = "--first" ]; then
   rm -rf /var/log/sophomorix/exam/*
   rm -rf /var/log/sophomorix/user/*
 
+  # fixing bug #130, if not yet done in sophomorix
+  template=/usr/share/sophomorix/config-templates/ldap/slapd.conf.template
+  if ! grep -q ^password-hash $template; then
+    echo "Fixing $template (Bug #130) ..."
+    cp $template ${template}.old
+    sed -e '/^argsfile/a\
+password-hash   {CRYPT}' ${template}.old > $template
+  fi
+
   # create new database
   sophomorix-setup-pgldap --new-database
 

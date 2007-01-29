@@ -387,6 +387,258 @@ create_chora_conf() {
 
 
 #################
+# nic setup     #
+#################
+discover_nics() {
+
+	n=0
+	# fetch all interfaces and their macs from /sys
+	for i in /sys/class/net/eth* /sys/class/net/wlan* /sys/class/net/intern /sys/class/net/extern /sys/class/net/dmz; do
+
+		[ -e $i/address ] || continue
+		address[$n]=`head -1 $i/address` || continue
+
+		if [ `expr length ${address[$n]}` -ne "17" ]; then
+			continue
+		else
+
+			toupper ${address[$n]}
+			address[$n]=$RET
+			id=`ls -1 -d $i/device/driver/0000:* 2> /dev/null`
+			id=`echo $id | awk '{ print $1 }' -`
+			id=${id#$i/device/driver/}
+
+			if [ -n "$id" ]; then
+
+				tmodel=`lspci | grep $id | awk -F: '{ print $4 $5 }' -`
+				tmodel=`expr "$tmodel" : '[[:space:]]*\(.*\)[[:space:]]*$'`
+				tmodel=${tmodel// /_}
+				model[$n]=${tmodel:0:38}
+
+			else
+
+				model[$n]="Unrecognized Ethernet Controller Device"
+
+			fi
+
+		fi
+
+		let n+=1
+
+	done
+	nr_of_nics=$n
+
+} # discover_nics
+
+
+create_nic_choices() {
+
+	n=0
+	unset NIC_CHOICES
+	while [ $n -lt $nr_of_nics ]; do
+		typ[$n]=""
+		if [ "${address[$n]}" = "$mac_extern" ]; then
+			typ[$n]=extern
+		elif [ "${address[$n]}" = "$mac_intern" ]; then
+			typ[$n]=intern
+		elif [ "${address[$n]}" = "$mac_wlan" ]; then
+			typ[$n]=wlan
+		elif [ "${address[$n]}" = "$mac_dmz" ]; then
+			typ[$n]=dmz
+		fi
+		menu[$n]="${model[$n]} ${address[$n]} ${typ[$n]}"
+		strip_spaces "${menu[$n]}"
+		menu[$n]="$RET"
+		if [ -n "$NIC_CHOICES" ]; then
+			NIC_CHOICES="${NIC_CHOICES}, ${menu[$n]}"
+		else
+			NIC_CHOICES="${menu[$n]}"
+			NIC_DEFAULT=$NIC_CHOICES
+		fi
+		let n+=1
+	done
+	[ "$fwconfig" = "integrated" ] && NIC_CHOICES="$NIC_CHOICES, , Fertig, , Abbrechen"
+
+} # create_nic_choices
+
+
+create_if_choices() {
+
+	n=0
+	IF_CHOICES="extern,intern,wlan,dmz"
+	while [ $n -lt $nr_of_nics ]; do
+		if [[ -n "${typ[$n]}" && "$CURTYP" != "${typ[$n]}" ]]; then
+			IF_CHOICES=${IF_CHOICES/${typ[$n]}/}
+			IF_CHOICES=${IF_CHOICES%,}
+			IF_CHOICES=${IF_CHOICES#,}
+			IF_CHOICES=${IF_CHOICES//,,/,}
+		fi
+		let n+=1
+	done
+	IF_CHOICES=${IF_CHOICES/extern/extern (ROT)}
+	IF_CHOICES=${IF_CHOICES/intern/intern (GRUEN)}
+	IF_CHOICES=${IF_CHOICES/wlan/wlan (BLAU)}
+	IF_CHOICES=${IF_CHOICES/dmz/dmz (ORANGE)}
+	IF_CHOICES=${IF_CHOICES//,/, }
+	IF_CHOICES="$IF_CHOICES, , keine Zuordnung"
+	IF_DEFAULT=`echo $IF_CHOICES | cut -f1 -d,`
+
+} # create_if_choices
+
+delete_mac() {
+
+	if [ "$CURMAC" = "$mac_extern" ]; then
+		unset mac_extern
+		db_set linuxmuster-base/mac_extern "" || true
+	elif [ "$CURMAC" = "$mac_intern" ]; then
+		unset mac_intern
+		db_set linuxmuster-base/mac_intern "" || true
+	elif [ "$CURMAC" = "$mac_wlan" ]; then
+		unset mac_wlan
+		db_set linuxmuster-base/mac_wlan "" || true
+	elif [ "$CURMAC" = "$mac_dmz" ]; then
+		unset mac_dmz
+		db_set linuxmuster-base/mac_dmz "" || true
+	fi
+
+} # delete_mac
+
+assign_nics() {
+
+	# first fetch all nics and macs from the system
+	nr_of_nics=0
+	discover_nics
+
+	# no nic no fun
+	if [ $nr_of_nics -lt 1 ]; then
+		echo " Sorry, no NIC found! Aborting!"
+		exit 1
+	fi
+
+	# at least two nics required for integrated firewall
+	if [[ "$fwconfig" = "integrated" && $nr_of_nics -lt 2 ]]; then
+		echo "Only one NIC found! You need at least 2!"
+		echo "Aborting installation!"
+		exit 1
+	fi
+
+	# there is only an internal interface in case of dedicated firewall
+	if [ "$fwconfig" = "dedicated" ]; then
+
+		db_set linuxmuster-base/mac_extern "" || true
+		db_set linuxmuster-base/mac_intern "" || true
+		db_set linuxmuster-base/mac_wlan "" || true
+		db_set linuxmuster-base/mac_dmz "" || true
+		# no questions necessary in this case
+		if [ $nr_of_nics -eq 1 ]; then
+			db_set linuxmuster-base/mac_intern ${address[0]} || true
+			return 0
+		fi
+
+		NIC_DESC="Welche Netzwerkkarte ist mit dem internen Netz verbunden? \
+			  Waehlen Sie die entsprechende Karte mit den Pfeiltasten aus. \
+			  Bestaetigen Sie die Auswahl mit ENTER."
+
+	else
+
+		db_get linuxmuster-base/mac_extern || true
+		mac_extern=$RET
+		db_get linuxmuster-base/mac_intern || true
+		mac_intern=$RET
+		db_get linuxmuster-base/mac_wlan || true
+		mac_wlan=$RET
+		db_get linuxmuster-base/mac_dmz || true
+		mac_dmz=$RET
+
+		NIC_DESC="Ordnen Sie die Netzwerkkarten den Interfaces extern, intern und ggf. wlan und dmz zu. \
+			  Es muessen mindestens ein externes und ein internes Interface definiert sein. \
+		          Waehlen Sie mit den Pfeiltasten eine Netzwerkkarte fuer die Zuordnung aus. \
+			  Bestaetigen Sie die Auswahl mit ENTER. Beenden Sie die Zuordnung mit <Fertig>."
+
+	fi
+
+	db_subst linuxmuster-base/nicmenu nic_desc $NIC_DESC
+
+	while true; do
+
+		create_nic_choices
+		db_fset linuxmuster-base/nicmenu seen false
+		db_subst linuxmuster-base/nicmenu nic_choices $NIC_CHOICES
+
+		unset choice
+		while [ -z "$choice" ]; do
+			db_set linuxmuster-base/nicmenu $NIC_DEFAULT || true
+			db_input $PRIORITY linuxmuster-base/nicmenu || true
+			db_go
+			db_get linuxmuster-base/nicmenu || true
+			choice="$RET"
+		done
+
+		[ "$choice" = "Abbrechen" ] && exit 1
+
+		if [ "$choice" = "Fertig" ]; then
+			if [[ -n "$mac_extern" && -n "$mac_intern" ]]; then
+				break
+			else
+				continue
+			fi
+		fi
+
+		CURMAC=`echo "$choice" | cut -f2 -d" "`
+		CURTYP=`echo "$choice" | cut -f3 -d" "`
+
+		if [ "$fwconfig" = "integrated" ]; then
+			create_if_choices
+			db_fset linuxmuster-base/ifmenu seen false
+			db_subst linuxmuster-base/ifmenu if_choices $IF_CHOICES
+			db_subst linuxmuster-base/ifmenu if_desc $choice
+			unset iftype
+			while [ -z "$iftype" ]; do
+				db_set linuxmuster-base/ifmenu $IF_DEFAULT || true
+				db_input $PRIORITY linuxmuster-base/ifmenu || true
+				db_go
+				db_get linuxmuster-base/ifmenu || true
+				iftype=`echo "$RET" | cut -f1 -d" "`
+			done
+			delete_mac
+		else
+			iftype=intern
+		fi
+
+		case $iftype in
+
+			extern)
+				mac_extern=$CURMAC
+				db_set linuxmuster-base/mac_extern $mac_extern || true
+				;;
+
+			intern)
+				mac_intern=$CURMAC
+				db_set linuxmuster-base/mac_intern $mac_intern || true
+				[ "$fwconfig" = "dedicated" ] && return 0
+				;;
+
+			wlan)
+				mac_wlan=$CURMAC
+				db_set linuxmuster-base/mac_wlan $mac_wlan || true
+				;;
+
+			dmz)
+				mac_dmz=$CURMAC
+				db_set linuxmuster-base/mac_dmz $mac_dmz || true
+				;;
+
+			*)
+				;;
+
+		esac
+
+	done
+
+} # assign_nics
+
+
+#################
 # miscellanious #
 #################
 
@@ -432,4 +684,18 @@ check_string() {
   else
     return 1
   fi
+}
+
+# converting string to lower chars
+tolower() {
+  unset RET
+  [ -z "$1" ] && return 1
+  RET=`echo $1 | tr A-Z a-z`
+}
+
+# converting string to lower chars
+toupper() {
+  unset RET
+  [ -z "$1" ] && return 1
+  RET=`echo $1 | tr a-z A-Z`
 }
