@@ -3,6 +3,9 @@
 # Source debconf library.
 . /usr/share/debconf/confmodule
 
+db_version 2.0
+db_title "Linux-Musterloesung 3.0"
+
 PRIORITY="critical"
 
 # source linuxmuster defaults
@@ -38,7 +41,7 @@ for i in country state location schoolname workgroup; do
       db_set shared/organization $INPUT || true
     fi
     if [ "$i" = "workgroup" ]; then
-      WORKGROUP=${INPUT//[äöüßÄÖÜ ]/}
+      WORKGROUP=${INPUT//[ï¿½ï¿½ï¿½ ]/}
       db_set linuxmuster-base/$i $WORKGROUP || true
     fi
   done

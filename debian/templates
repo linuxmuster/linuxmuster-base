@@ -1,10 +1,6 @@
 Template: linuxmuster-base/intro
 Type: note
 Description: Hinweise zur Installation
- ####################################################################\n
- # ACHTUNG: BETAVERSION! KEINE INSTALLATION AUF PRODUKTIVSYSTEMEN!! #\n
- ####################################################################\n
- \n
  Fuer die im folgenden weitgehend automatisch ablaufende Installation\n
  benoetigen Sie einige Daten, die automatisch in den Installations-\n
  prozess miteinbezogen werden. Dies sind:\n

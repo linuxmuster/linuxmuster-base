@@ -37,6 +37,9 @@ ipcopblue=@@ipcopblue@@
 ipcoporange=@@ipcoporange@@
 ipcopovpn=@@ipcopovpn@@
 
+# admin mac for BOT, per default server's internal mac
+adminmac=@@adminmac@@
+
 #########################################
 # Section II                            #
 # only needed for uml-ipcop             #

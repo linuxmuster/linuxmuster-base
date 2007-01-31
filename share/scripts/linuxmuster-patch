@@ -89,9 +89,6 @@ echo "mac_wlan=$mac_wlan" >> $NETWORKSETTINGS
 echo "mac_dmz=$mac_dmz" >> $NETWORKSETTINGS
 chmod 755 $NETWORKSETTINGS
 
-# assign network interfaces, deprecated
-#$SCRIPTSDIR/assign_interfaces.sh --type=$fwconfig --outfile=/etc/init.d/nameif || exit 1
-
 # define intern device
 if [ "$fwconfig" = "integrated" ]; then
 
@@ -103,12 +100,6 @@ if [ "$fwconfig" = "integrated" ]; then
 else
 
   intern=intern
-
-  # test if ipcop is online
-#  if ! ping -c 2 $ipcopip &> /dev/null; then
-#    echo "FATAL! Cannot connect to IPCop with IP $ipcopip!"
-#    exit 1
-#  fi
 
 fi
 
@@ -213,6 +204,7 @@ for i in /var/lib/linuxmuster/config-dynamic/*; do
               s/@@adminpw_md5@@/${adminpw_md5}/g
               s/@@cyradmpw@@/${cyradmpw}/g
               s/@@ipcoppw@@/${ipcopintpw}/g
+              s/@@adminmac@@/${mac_intern}/g
               s/@@sambasid@@/${sambasid}/g
               s/@@timezone@@/${timezone}/g
               s/@@domadmin@@/${DOMADMIN}/g

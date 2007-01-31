@@ -403,9 +403,19 @@ case "$1" in
           cp  /etc/ldap/slapd.conf /etc/ldap/slapd.conf.dpkg-old
           sed -e '/^argsfile/a\
 password-hash   {CRYPT}' /etc/ldap/slapd.conf.dpkg-old > /etc/ldap/slapd.conf
-          chmod 600  /etc/ldap/slapd.conf*
-          /etc/init.d/slapd restart
+          chmod 600 /etc/ldap/slapd.conf*
+          slapd_update=yes
         fi
+
+        # adding sizelimit statement to slapd.conf
+        if ! grep -q ^sizelimit /etc/ldap/slapd.conf; then
+          echo "Adding sizelimit statement to slapd.conf ..."
+          echo "sizelimit	-1" >> /etc/ldap/slapd.conf
+          chmod 600 /etc/ldap/slapd.conf
+          slapd_update=yes
+        fi
+
+        [ -n "$slapd_update" ] && /etc/init.d/slapd restart
 
         # bug #123, adding ipcop handling to /etc/init.d/networking
         if ! grep -q ^doipcop /etc/init.d/networking; then

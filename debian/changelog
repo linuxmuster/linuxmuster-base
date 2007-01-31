@@ -1,3 +1,28 @@
+linuxmuster-base (1.0-4) testing; urgency=low
+
+  * added mlscripts-wsimport (alternative to myshn) to import_workstations
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 31 Jan 2007 15:40:00 +0100
+
+linuxmuster-base (1.0-3) testing; urgency=low
+
+  * further optimations in save routine for mac addresses in helperfunctions.sh
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 31 Jan 2007 13:03:08 +0100
+
+linuxmuster-base (1.0-2) testing; urgency=low
+
+  * minor modifications in setup dialog
+  * fixed missing save routine for mac addresses in helperfunctions.sh
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 30 Jan 2007 15:50:31 +0100
+
+linuxmuster-base (1.0-1) testing; urgency=low
+
+  * added variable adminmac to icop settings template
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 29 Jan 2007 20:02:29 +0100
+
 linuxmuster-base (1.0-0) testing; urgency=low
 
   * reworked mac address handling for assigning nics to specific
@@ -7,7 +32,7 @@ linuxmuster-base (1.0-0) testing; urgency=low
     six chars at least
   * added sarge volatile repo to sources.list for recent clamav stuff
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 29 Jan 2007 17:58:44 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 29 Jan 2007 17:43:16 +0100
 
 linuxmuster-base (0.9-52) testing; urgency=low
 
