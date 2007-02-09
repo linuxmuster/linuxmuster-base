@@ -12,3 +12,10 @@ then
     echo "  * running  /usr/sbin/mlscripts-wsimport"
     /usr/sbin/mlscripts-wsimport 
 fi
+
+# run this script to set quota for added workstations
+if [ -e "/usr/sbin/sophomorix-quota" ]
+then
+    echo "  * running  /usr/sbin/sohomorix-quota"
+    /usr/sbin/sophomorix-quota --workstation
+fi
