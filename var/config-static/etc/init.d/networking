@@ -90,7 +90,7 @@ case "$1" in
           grep -qE '^(nfs[1234]?|smbfs|ncp|ncpfs|coda|cifs)$'; then
             echo "NOT deconfiguring network interfaces: network shares still mounted."
         else
-	    dopicop stop
+	    doipcop stop
             echo -n "Deconfiguring network interfaces..."
             ifdown -a --exclude=lo
 	    echo "done."

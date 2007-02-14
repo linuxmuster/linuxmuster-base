@@ -1,4 +1,5 @@
-debian/linuxmuster-nic-setup	/etc/init.d/
+init/linuxmuster-base		/etc/init.d/
+init/linuxmuster-nic-setup	/etc/init.d/
 doc/*				usr/share/doc/linuxmuster-base/
 etc/*				etc/linuxmuster/
 sbin/*				usr/sbin/

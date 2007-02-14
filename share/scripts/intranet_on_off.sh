@@ -10,6 +10,15 @@
 # source helperfunctions
 . $HELPERFUNCTIONS || exit 1
 
+# source internal interface
+. /etc/default/linuxmuster-base || exit 1
+
+# exit if internal firewall is not active
+if [ "$START_LINUXMUSTER" != "yes" ]; then
+	echo "Internal Firewall is deactivated! Aborting!"
+	exit 1
+fi
+
 # parsing parameters
 getopt $*
 
@@ -17,6 +26,7 @@ usage() {
   echo
   echo "Usage: intranet_on_off.sh --trigger=<on|off>"
   echo "                          --hostlist=<host1,host2,...,hostn>"
+  echo "                          --maclist=<mac1,mac2,...,macn>"
   echo
   echo "  trigger:  trigger on or off"
   echo "  maclist:  comma separated list of mac addresses"
@@ -51,6 +61,38 @@ rollback() {
   cancel "$1 Old firewall rules successfully restored!"
 }
 
+
+# delete rules for blocked mac
+delete_rules() {
+  [ -f "$BLOCKEDPORTS" ] || return
+  while read proto portrange; do
+    [ "${proto:0:1}" = "#" ] && continue
+    [[ -z "$portrange" || -z "$proto" ]] && continue
+    portrange=${portrange//,/ }
+    for p in $portrange; do
+      iptables -D IN-$IFACE -p $proto -m mac --mac-source ${mac[$n]} --dport $p -j ACCEPT
+    done
+  done <$BLOCKEDPORTS
+}
+
+# create rules for released macs
+insert_rules() {
+  [ -f "$BLOCKEDPORTS" ] || return
+  insert_nr=`iptables -L IN-$IFACE --line-numbers | grep -m1 MAC | awk '{ print $1 }'`
+  n=0
+  while [[ $n -lt $nr_of_macs  ]]; do
+    while read proto portrange; do
+      [ "${proto:0:1}" = "#" ] && continue
+      [[ -z "$portrange" || -z "$proto" ]] && continue
+      portrange=${portrange//,/ }
+      for p in $portrange; do
+        iptables -I IN-$IFACE $insert_nr -p $proto -m mac --mac-source ${mac[$n]} --dport $p -j ACCEPT
+      done
+    done <$BLOCKEDPORTS
+    let n+=1
+  done
+}
+
 # add macs to blocked hosts file
 if [ "$trigger" = "off" ]; then
 
@@ -60,6 +102,7 @@ if [ "$trigger" = "off" ]; then
   while [[ $n -lt $nr_of_macs  ]]; do
     if ! grep -q ${mac[$n]} $BLOCKEDHOSTSINTRANET; then
       echo ${mac[$n]} >> $BLOCKEDHOSTSINTRANET.new || rollback "Cannot write $BLOCKEDHOSTSINTRANET.new!"
+      delete_rules
     fi
     let n+=1
   done
@@ -80,13 +123,11 @@ else # remove macs from blocked hosts file
       echo $line >> $BLOCKEDHOSTSINTRANET.new || rollback "Cannot write $BLOCKEDHOSTSINTRANET!"
     fi
   done <$BLOCKEDHOSTSINTRANET
+  insert_rules
 
 fi
 
 mv $BLOCKEDHOSTSINTRANET.new $BLOCKEDHOSTSINTRANET || rollback "Cannot write $BLOCKEDHOSTSINTRANET!"
-
-# reloading firewall
-/etc/init.d/linuxmuster-base force-reload || rollback "Cannot reload network!"
 
 # delete files
 rm -f $CACHEDIR/*.bak

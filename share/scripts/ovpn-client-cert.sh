@@ -32,11 +32,15 @@ usage() {
 [[ -n "$create" && -n "$download" ]] && usage
 [[ -n "$check" && -n "$download" ]] && usage
 if [ -n "$create" ]; then
-	[[ -z "$username" || -z "$password" ]] && usage
-	# pw length at least 6 characters
+	[ -z "$username" ] && usage
+	if [ -z "$password" ]; then
+		# pw length at least 6 characters
+		echo -n "Password (at least 6 characters): "
+		read password
+	fi
 	len=${#password}
 	if [ $len -lt 6 ]; then
-		echo "Password too short! It needs at least 6 characters!"
+		echo "Password too short! Six characters at least!"
 		exit 2
 	fi
 elif [[ -n "$check" || -n "$download" ]]; then
@@ -54,6 +58,11 @@ if [[ -z "$uidnr" || "$uidnr" -lt 10000 ]]; then
 	exit 1
 
 fi
+
+
+# determine common name
+cn=`smbldap-usershow $username | grep ^displayName:`
+cn=${cn#displayName: }
 
 
 # check for certificate
@@ -120,12 +129,28 @@ download_cert() {
 create_cert() {
 
 	username=$1
-	password=$2
+	cn="$2"
+	commonname=${cn// /_}
+	password=$3
+
+	tmpdir=/var/tmp/create_cert.$$
+	mkdir -p $tmpdir
+	chmod 700 $tmpdir
+
+	echo "$password" > $tmpdir/$username.cred
+	chmod 600 $tmpdir/$username.cred
 
 	echo "Creating openvpn certificate for user $username ..."
         # check if task is locked
         checklock || exit 1
-	exec_ipcop /usr/local/bin/create-client-cert $username $password || cancel "Certificate creation for user $username failed!"
+	if ! put_ipcop $tmpdir/$username.cred /tmp/$username.cred; then
+		rm -rf $tmpdir
+		cancel "Upload of certificate data failed!"
+	fi
+	rm -rf $tmpdir
+	if ! exec_ipcop /usr/local/bin/create-client-cert $username $commonname; then
+		cancel "Certificate creation for user $username failed!"
+	fi
 	rm -f $lockflag
 	echo "openvpn certificate for user $username successfully created! :-)"
 
@@ -136,9 +161,10 @@ create_cert() {
 mail_admin() {
 
 	username=$1
+	cn="$2"
 
-	mail -s "OpenVPN-Zertifikat fuer Benutzer $username erstellt" ${ADMINISTRATOR}@localhost <<EOF
-Benutzer $username hat sich erfolgreich ein OpenVPN-Zertifikat erstellt.
+	mail -s "OpenVPN-Zertifikat fuer Benutzer $username ($cn) erstellt" ${ADMINISTRATOR}@localhost <<EOF
+Benutzer $username ($cn) hat sich erfolgreich ein OpenVPN-Zertifikat erstellt.
 Das Zertifikat muss jedoch noch durch den Administrator freigeschaltet werden.
 Siehe https://ipcop:445/cgi-bin/ovpnmain.cgi
 
@@ -153,11 +179,11 @@ if [ -n "$create" ]; then
 	if [ $cert_status -eq 0 ]; then
 		echo "User $username has already a certificate! Skipping creation!"
 	else
-		create_cert $username $password
+		create_cert $username "$cn" $password
 	fi
 
 	download_cert $username
-	mail_admin $username
+	mail_admin $username "$cn"
 
 fi # create certificate
 

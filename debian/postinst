@@ -65,7 +65,8 @@ case "$1" in
 
       done
 
-      # add nic-setup script to runlevels
+      # add startup scripts to runlevels
+      update-rc.d linuxmuster-base defaults
       update-rc.d linuxmuster-nic-setup start 40 S .
 
       # create and correct dirs and files
@@ -423,6 +424,11 @@ password-hash   {CRYPT}' /etc/ldap/slapd.conf.dpkg-old > /etc/ldap/slapd.conf
           cp /etc/init.d/networking /etc/init.d/networking.dpkg-dist
           cp /var/lib/linuxmuster/config-static/etc/init.d/networking /etc/init.d
         fi
+	# fixing typo in /etc/init.d/networking
+        if grep -q dopicop /etc/init.d/networking; then
+          echo "Fixing typo in /etc/init.d/networking ..."
+          cp /var/lib/linuxmuster/config-static/etc/init.d/networking /etc/init.d
+        fi
 	[ -e /etc/init.d/networking.dpkg-dist ] && chmod 644 /etc/init.d/networking.dpkg-dist
 
 	# remove old nameif script and installing new linuxmuster-nic-setup
@@ -472,6 +478,15 @@ password-hash   {CRYPT}' /etc/ldap/slapd.conf.dpkg-old > /etc/ldap/slapd.conf
         fi
 
       fi
+
+      # restoring internal firewall
+      . /etc/default/linuxmuster-base
+      if [ "$START_LINUXMUSTER" = "yes" ]; then
+        if ! iptables -L | grep -q "state RELATED,ESTABLISHED"; then
+          /etc/init.d/linuxmuster-base start
+        fi
+      fi
+
       ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

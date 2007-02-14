@@ -505,18 +505,12 @@ delete_mac() {
 
 } # delete_mac
 
-write_settings() {
+save_macs() {
 
 	db_set linuxmuster-base/mac_extern $mac_extern || true
 	db_set linuxmuster-base/mac_intern $mac_intern || true
 	db_set linuxmuster-base/mac_wlan $mac_wlan || true
 	db_set linuxmuster-base/mac_dmz $mac_dmz || true
-	grep -v ^mac_ $NETWORKSETTINGS > $NETWORKSETTINGS.tmp
-	mv $NETWORKSETTINGS.tmp $NETWORKSETTINGS
-	echo "mac_extern=$mac_extern" >> $NETWORKSETTINGS
-	echo "mac_intern=$mac_intern" >> $NETWORKSETTINGS
-	echo "mac_wlan=$mac_wlan" >> $NETWORKSETTINGS
-	echo "mac_dmz=$mac_dmz" >> $NETWORKSETTINGS
 
 } # write_settings
 
@@ -653,7 +647,16 @@ assign_nics() {
 
 	done
 
-	write_settings
+        # unset not assigned interfaces
+        OIFS=$IFS
+        IFS=,
+        ifaces=`for i in $NIC_CHOICES; do echo $i | awk '{ print $3 }'; done`
+        IFS=$OIFS
+        stringinstring extern "$ifaces" || mac_extern=""
+        stringinstring wlan "$ifaces" || mac_wlan=""
+        stringinstring dmz "$ifaces" || mac_dmz=""
+
+	save_macs
 
 } # assign_nics
 

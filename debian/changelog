@@ -1,3 +1,29 @@
+linuxmuster-base (1.0-6) testing; urgency=low
+
+  * fixed orphaned mac address after using nic_setup.sh with decreased
+    number of nics
+  * optimized workstation import which uses now directly the ldap
+    database to query groups, hostnames and machines
+  * added quota to be set for host accounts during workstation import
+  * added random password to be set for host accounts during workstation import
+  * optimzed internal firewall init script not to reload whole firewall
+    when mac addresses of clients have changed, implemented new option "reload"
+  * added dependency for libpgsql-ruby1.8 to control file
+  * preventing init script to restart internal firewall on package upgrade
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 14 Feb 2007 11:58:18 +0100
+
+linuxmuster-base (1.0-5) testing; urgency=low
+
+  * fixed typo in /etc/init.d/networking
+  * reworked ovpn-client-cert.sh to read user password from stdin for
+    security reasons
+  * ovpn-client-cert.sh now fetches the user's realname and commits it
+    as common name to OpenVPN
+  * changed UserGroup in rembo.conf template to "rembo"
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 08 Feb 2007 18:37:44 +0100
+
 linuxmuster-base (1.0-4) testing; urgency=low
 
   * added mlscripts-wsimport (alternative to myshn) to import_workstations

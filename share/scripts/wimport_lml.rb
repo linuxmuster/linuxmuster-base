@@ -5,11 +5,12 @@ require "etc"
 Config = ConfigClass.new
 
 MACHINE_PASSWORD = 12345678
-ROOM_UID = Etc.getpwnam(Config.ADMINISTRATOR).uid
+HOST_PASSWORD = `pwgen -s 8 1`
+#ROOM_UID = get_uid(Config.ADMINISTRATOR)
 #ROOM_GID = Etc.getgrnam(Config.ADMINISTRATOR).gid
-ROOM_GID = Etc.getgrnam('root').gid
+#ROOM_GID = Etc.getgrnam('root').gid
 ROOM_DIRMODE = "0775"
-HOST_GID = Etc.getgrnam(Config.TEACHERSGROUP).gid
+#HOST_GID = get_gid(Config.TEACHERSGROUP)
 HOST_DIRMODE = "0775"
 
 
@@ -46,50 +47,58 @@ runcmd "chmod 640 /var/lib/myshn/hostgroup.conf"
 runcmd "chmod 600 /etc/rembo/rembo.conf"
 
 # Force reload of affected services
-info "  * Reload betroffener Dienste"
+info "  * Reload betroffener Dienste (kann bei vielen Workstations etwas dauern)"
 info "     - Firewall"
-runcmd("/etc/init.d/linuxmuster-base force-reload", "nonzero-all")
+runcmd("/etc/init.d/linuxmuster-base reload", "nonzero-all")
 info "     - DHCP-Server"
 runcmd("/etc/init.d/dhcp3-server force-reload", "nonzero-all")
 info "     - Rembo-Server"
 runcmd("/etc/init.d/rembo reload", "nonzero-all")
 
 # Iterate over hosts ('rows' is inherited from myadmin)
+rooms_processed = Hash.new
+res_groups, res_hosts, res_machines = get_hostgroups
 rows.each do
   |row|
   hostname = row.HOSTNAME.downcase
   room = row.ROOM.downcase
 
   # Create room group if it doesn't exist
-  if not (Etc.getgrnam(room) rescue false)
-    info "  * Lege Raum an: #{room}"
-    runcmd "smbldap-groupadd -a '#{room}'"
+  if not rooms_processed[room]
+    if not check_group(res_groups, room)
+      info "  * Lege Raum an: #{room}"
+      runcmd "smbldap-groupadd -a '#{room}'"
+    end
+    rooms_processed[room] = true
   end
 
   # Create workstation account if it doesn't exist
   if not hostname.empty? and not room.empty?
-    if not (Etc.getpwnam(hostname) rescue false)
+    if not check_host(res_hosts, hostname)
       info "  * Lege Stationskonto an: #{hostname}"
       runcmd "smbldap-useradd -a -d '#{Config.WSHOME}/#{room}/#{hostname}' -c HostAccount -g '#{room}' -m -s /bin/bash '#{hostname}'"
-      runcmd "echo -e '12345678\n12345678\n' | smbldap-passwd '#{hostname}'"
+      runcmd "echo -e '#{HOST_PASSWORD}\n#{HOST_PASSWORD}\n' | smbldap-passwd '#{hostname}'"
+      # Create workstation home if it doesn't exist
+      path = "#{Config.WSHOME}/#{room}/#{hostname}"
+      runcmd "mkdir -p '#{path}'" if not File.directory?(path)
+      # set permissions
+      begin
+        #uid = get_uid(hostname)
+        #runcmd "chown '#{uid}.#{HOST_GID}' '#{path}'"
+        runcmd "chown '#{hostname}.#{Config.TEACHERSGROUP}' '#{path}'"
+        runcmd "chmod '#{HOST_DIRMODE}' '#{path}'"
+      rescue
+        error "Fehler beim Setzen der Berechtigungen auf #{path}: #{$!}"
+      end
+      # set quota
+      info "  * Setze quota: #{hostname}"
+      runcmd "sophomorix-quota -u #{hostname}"
     end
   end
 
-  # Create workstation home if it doesn't exist
-  path = "#{Config.WSHOME}/#{room}/#{hostname}"
-  runcmd "mkdir -p '#{path}'" if not File.directory?(path)
-
-  # set permissions
-  begin
-    uid = Etc.getpwnam(hostname).uid
-    runcmd "chown '#{uid}.#{HOST_GID}' '#{path}'"
-    runcmd "chmod '#{HOST_DIRMODE}' '#{path}'"
-  rescue
-     error "Fehler beim Setzen der Berechtigungen auf #{path}: #{$!}"
-  end
 
   # Create Samba machine trust account if it doesn't exist
-  if not (Etc.getpwnam("#{hostname}$") rescue false)
+  if not check_machine(res_machines, "#{hostname}$")
     info "  * Lege Samba Computerkonto an: #{hostname}$"
     runcmd "smbldap-useradd -w -g 515 -c Computer -d /dev/null -s /bin/false '#{hostname}$'"
     runcmd "smbpasswd -a -m '#{hostname}'"
@@ -109,8 +118,8 @@ Dir.glob("#{Config.WSHOME}/*/*").each do
   hostname = File.basename(hostpath)
   if not hostnames[hostname.downcase]
     puts "  * Entferne Stationskonto: #{hostname}"
-    begin Etc.getpwnam hostname; runcmd "smbldap-userdel '#{hostname}'" rescue nil end
-    begin Etc.getpwnam "#{hostname}$"; runcmd "smbldap-userdel '#{hostname}$'" rescue nil end
+    begin check_host(res_hosts, hostname); runcmd "smbldap-userdel '#{hostname}'" rescue nil end
+    begin check_machine(res_machines, "#{hostname}$"); runcmd "smbldap-userdel '#{hostname}$'" rescue nil end
     runcmd "rm -rf '#{hostpath}'"
   end
 end
@@ -120,7 +129,7 @@ Dir.glob("#{Config.WSHOME}/*").each do
   room = File.basename(roompath)
   if not rooms[room.downcase]
     puts "  * Entferne Raum: #{room}"
-    begin Etc.getgrnam room; runcmd "smbldap-groupdel '#{room}'" rescue nil end
+    begin check_group(res_groups, room); runcmd "smbldap-groupdel '#{room}'" rescue nil end
     runcmd "rm -rf '#{roompath}'"
 
     classes = Config.CLASSROOMS

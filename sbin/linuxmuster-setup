@@ -49,7 +49,7 @@ else
 fi
 
 # reconfiguring package to have all templates
-dpkg-reconfigure linuxmuster-base
+#dpkg-reconfigure linuxmuster-base
 
 # calling as base-config late command
 case $opt in

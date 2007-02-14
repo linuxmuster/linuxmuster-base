@@ -4,14 +4,13 @@
 case "$1" in
 	upgrade)
 
+		# create imap.secret file
 		if debconf-show linuxmuster-base | grep -q cyradmpw; then
 			. /usr/share/debconf/confmodule
 			db_get linuxmuster-base/cyradmpw
 			imapsecret="$RET"
 			db_stop
 		fi
-
-		# create imap.secret file
 		if [ -n "$imapsecret" ]; then
 			if [ ! -e /etc/imap.secret ]; then
 				echo $imapsecret > /etc/imap.secret

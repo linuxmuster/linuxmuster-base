@@ -1,0 +1,205 @@
+#!/bin/bash
+# internal firewall script
+# 13.02.2007 by Thomas Schmitt for Linux-Musterloesung
+# LMZ Baden-Wuerttemberg, <schmitt@lmz-bw.de>
+
+# source default settings
+. /etc/default/linuxmuster-base || exit 1
+
+# check if we are allowed to start
+[ "$START_LINUXMUSTER" = "yes" ] || exit 0
+
+# source linuxmuster defaults
+. /usr/share/linuxmuster/config/dist.conf || exit 1
+
+# source helperfunctions
+. $HELPERFUNCTIONS || exit 1
+
+# create $BLOCKEDHOSTSINTRANET if necessary
+[ -e "$BLOCKEDHOSTSINTRANET" ] || touch $BLOCKEDHOSTSINTRANET
+
+# read mac addresses
+macs=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $4 }' -`
+
+stop_firewall() {
+
+
+  echo -n "Stopping internal firewall"
+
+  # clear chains
+  iptables -D INPUT -i $IFACE -j IN-$IFACE
+  iptables -F IN-$IFACE
+  iptables -X IN-$IFACE
+
+  echo "."
+
+}
+
+start_firewall() {
+
+    # don't do this when reloading
+    if [ -z "$reload" ]; then
+
+      # clear chains if there are any
+      if iptables -L IN-$IFACE &> /dev/null; then stop_firewall; fi
+
+      echo -n "Starting internal firewall"
+
+      # create new chains
+      iptables -N IN-$IFACE
+      iptables -A INPUT -i $IFACE -j IN-$IFACE
+
+      # accept stated connections
+      iptables -A IN-$IFACE -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+      # accept ipcop
+      iptables -A IN-$IFACE -s $ipcopip/32 -j ACCEPT
+
+      # accept from internet
+      iptables -A IN-$IFACE -s ! $internalnet/$internmask_short -j ACCEPT
+
+      # read mandatory open ports
+      if [ -f "$BASEPORTS" ]; then
+        while read proto portrange; do
+          [ "${proto:0:1}" = "#" ] && continue
+          [[ -z "$portrange" || -z "$proto" ]] && continue
+          portrange=${portrange//,/ }
+          for p in $portrange; do
+            iptables -A IN-$IFACE -p $proto --dport $p -j ACCEPT
+          done
+        done <$BASEPORTS
+      fi
+
+    fi # don't do this when reloading
+
+    # read allowed ports
+    if [ -f "$ALLOWEDPORTS" ]; then
+      while read proto portrange; do
+        [ "${proto:0:1}" = "#" ] && continue
+        [[ -z "$portrange" || -z "$proto" ]] && continue
+        portrange=${portrange//,/ }
+        for p in $portrange; do
+          for m in $macs; do
+            if [ -n "$reload" ]; then
+              validmac $m && iptables -I IN-$IFACE $insert_nr -p $proto -m mac --mac-source $m --dport $p -j ACCEPT
+            else
+              validmac $m && iptables -A IN-$IFACE -p $proto -m mac --mac-source $m --dport $p -j ACCEPT
+            fi
+          done
+        done
+      done <$ALLOWEDPORTS
+    fi
+
+    # strip blocked mac addresses
+    for m in `cat $BLOCKEDHOSTSINTRANET`; do
+      macs=${macs/$m/}
+    done
+
+    # allow blocked ports
+    if [ -f "$BLOCKEDPORTS" ]; then
+      while read proto portrange; do
+        [ "${proto:0:1}" = "#" ] && continue
+        [[ -z "$portrange" || -z "$proto" ]] && continue
+        portrange=${portrange//,/ }
+        for p in $portrange; do
+          for m in $macs; do
+            if [ -n "$reload" ]; then
+              validmac $m && iptables -I IN-$IFACE $insert_nr -p $proto -m mac --mac-source $m --dport $p -j ACCEPT
+            else
+              validmac $m && iptables -A IN-$IFACE -p $proto -m mac --mac-source $m --dport $p -j ACCEPT
+            fi
+          done
+        done
+      done <$BLOCKEDPORTS
+    fi
+
+    # don't do this when reloading
+    if [ -z "$reload" ]; then
+
+      # ICMP: accept ping
+      iptables -A IN-$IFACE -p icmp --icmp-type 8 -j ACCEPT
+
+      # reject the rest
+      iptables -A IN-$IFACE -j REJECT
+
+      echo "."
+
+    fi
+
+}
+
+
+reload_firewall() {
+
+    echo -n "Reloading internal firewall"
+
+    # fetch all macs which have rules
+    active_macs=`iptables -L IN-$IFACE | grep MAC | awk '{ print $7 }' | sort -u`
+
+    # delete rules with macs not in wimport_data
+    for m in $active_macs; do
+      if ! stringinstring $m "$macs"; then
+        active_macs=${active_macs/$m/}
+        rules_to_delete=`iptables -L IN-$IFACE --line-numbers | grep $m | awk '{ print $1 }' | sort -rn`
+        for r in $rules_to_delete; do
+          iptables -D IN-$IFACE $r
+        done
+      fi
+    done
+    strip_spaces "$active_macs"
+    active_macs="$RET"
+
+    # filter out macs which have already rules
+    if [ -n "$active_macs" ]; then
+
+      for m in $macs; do
+        stringinstring $m "$active_macs" && macs=${macs/$m/}
+      done
+      strip_spaces "$macs"
+      macs="$RET"
+
+    fi
+
+    # start firewall if there are any macs without rules remaining
+    if [ -n "$macs" ]; then
+
+      # rule nr for inserting
+      insert_nr=`iptables -L IN-$IFACE --line-numbers | grep -m1 MAC | awk '{ print $1 }'`
+
+      # start
+      reload=yes
+      start_firewall
+
+    fi
+
+    echo "."
+
+}
+
+
+case "$1" in
+
+  start)
+    start_firewall
+    ;;
+
+  stop)
+    stop_firewall
+    ;;
+
+  reload)
+    reload_firewall
+    ;;
+
+  restart|force-reload)
+    stop_firewall
+    start_firewall
+    ;;
+
+  *)
+    echo "Usage: $0 <start|stop|reload|restart|force-reload>"
+    ;;
+
+esac
+
+exit 0
