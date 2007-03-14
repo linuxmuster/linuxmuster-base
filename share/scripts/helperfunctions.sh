@@ -80,54 +80,6 @@ isinteger () {
 # check parameter values #
 ##########################
 
-# check if user is teacher
-check_teacher() {
-  if `id $1 | grep -qw $TEACHERSGROUP`; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-# check if user is teacher
-check_admin() {
-  if `id $1 | grep -qw $DOMADMINS`; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-# check for valid group, group members and if teacher is set, for teacher membership
-check_group() {
-  unset RET
-  group=$1
-  teacher=$2
-
-  gidnr=`smbldap-groupshow $group | grep gidNumber: | awk '{ print $2 }'`
-  [ -z "$gidnr" ] && return 1
-  [ "$gidnr" -lt 10000 ] && return 1
-
-  # fetch group members
-  if get_group_members $group; then
-    members=$RET
-  else
-    return 1
-  fi
-
-  # cancel if group has no members
-  [ -z "$members" ] && return 1
-
-  # check if teacher is in group
-  if [ -n "$teacher" ]; then
-    if ! echo "$members" | grep -qw $teacher; then
-      return 1
-    fi
-  fi
-
-  return 0
-}
-
 # check valid domain name
 validdomain() {
   if (expr match "$1" '\([a-z0-9-]\+\(\.[a-z0-9-]\+\)\+$\)') &> /dev/null; then
@@ -202,6 +154,10 @@ create_mysql_db() {
 # create a mysql database and grant privileges to a user
 drop_mysql_db() {
   if mysqladmin -f drop $1; then
+    mysql <<EOF
+USE mysql;
+DELETE FROM db WHERE db='$1';
+EOF
     return 0
   else
     return 1
@@ -661,26 +617,128 @@ assign_nics() {
 } # assign_nics
 
 
-#################
-# miscellanious #
-#################
+########
+# ldap #
+########
+
+# get uid number for user
+# username=$1
+get_uidnumber() {
+  unset RET
+  RET=`psql -U ldap -d ldap -t -c "select uidnumber from posix_account where uid = '$1';"`
+}
+
+# get group number for group name
+# group=$1
+get_gidnumber() {
+  unset RET
+  RET=`psql -U ldap -d ldap -t -c "select gidnumber from groups where gid = '$1';"`
+}
+
+# get user's primary group
+# username=$1
+get_pgroup() {
+  unset T_RET
+  unset RET
+  T_RET=`psql -U ldap -d ldap -t -c "select gidnumber from posix_account where uid = '$1';"`
+  RET=`psql -U ldap -d ldap -t -c "select gid from groups where gidnumber = '$T_RET';"`
+}
+
+# get homedir for user
+# username=$1
+get_homedir() {
+  unset RET
+  RET=`psql -U ldap -d ldap -t -c "select homedirectory from posix_account where uid = '$1';"`
+}
+
+# get realname for user
+# username=$1
+get_realname() {
+  unset RET
+  RET=`psql -U ldap -d ldap -t -c "select gecos from posix_account where uid = '$1';"`
+}
 
 # get group members from ldab db
+# group=$1
 get_group_members() {
   unset RET
-  group=$1
-  RET=`psql -U ldap -d ldap -t -c "select uid from memberdata where adminclass = '$group' or gid = '$group';"`
+  RET=`psql -U ldap -d ldap -t -c "select uid from memberdata where adminclass = '$1' or gid = '$1';"`
 }
 
 # check if group is a project
+# group=$1
 check_project() {
   unset RET
-  group=$1
-  RET=`psql -U ldap -d ldap -t -c "select gid from projectdata where gid = '$group';"`
+  RET=`psql -U ldap -d ldap -t -c "select gid from projectdata where gid = '$1';"`
   strip_spaces $RET
-  [ "$RET" = "$group" ] && return 0
+  [ "$RET" = "$1" ] && return 0
   return 1
 }
+
+# check for valid group, group members and if teacher is set, for teacher membership
+# group=$1, teacher=$2
+check_group() {
+  # check valid gid
+  unset RET
+  get_gidnumber $1
+  [ -z "$RET" ] && return 1
+  [ "$RET" -lt 10000 ] && return 1
+
+  # fetch group members to $RET, return 1 if there are no members
+  unset RET
+  get_group_members $1 || return 1
+  [ -z "$RET" ] && return 1
+
+  # check if teacher is in group
+  if [ -n "$2" ]; then
+    if ! echo "$RET" | grep -qw $2; then
+      return 1
+    fi
+  fi
+
+  return 0
+}
+
+# check if account exists
+# username=$1
+check_id() {
+  unset RET
+  RET=`psql -U ldap -d ldap -t -c "select uid from posix_account where uid = '$1';"`
+  if [ -n "$RET" ]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+# check if user is teacher
+# teacher=$1
+check_teacher() {
+  unset RET
+  get_group_members $TEACHERSGROUP
+  if echo "$RET" | grep -qw $1; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+# check if user is teacher
+# admin=$1
+check_admin() {
+  unset RET
+  get_group_members $DOMADMINS
+  if echo "$RET" | grep -qw $1; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+
+#################
+# miscellanious #
+#################
 
 # stripping trailing and leading spaces
 strip_spaces() {

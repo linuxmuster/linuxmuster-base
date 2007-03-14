@@ -20,6 +20,7 @@ usage() {
   echo
   echo "Usage: linuxmuster-mysql <--create --group=gid --teacher=uid>"
   echo "                         <--drop --group=gid --teacher=uid>"
+  echo "                         <--drop --dbname=database>"
   echo "                         <--cleanup>"
   echo "                         <--list> [--group=gid|--user=uid]"
   echo
@@ -34,9 +35,14 @@ usage() {
 [[ -n "$drop" && -n "$list" ]] && usage
 [[ -n "$drop" && -n "$cleanup" ]] && usage
 [[ -n "$list" && -n "$cleanup" ]] && usage
-if [[ -n "$create" || -n "$drop" ]]; then
+if [ -n "$create" ]; then
   [ -z "$teacher" ] && usage
   [ -z "$group" ] && usage
+elif [ -n "$drop" ]; then
+    if [ -z "$dbname" ]; then
+      [ -z "$teacher" ] && usage
+      [ -z "$group" ] && usage
+    fi
 else
   [[ -z "$cleanup" && -z "$list" ]] && usage
 fi
@@ -56,10 +62,14 @@ fi # check valid teacher
 # check valid group
 if [ -n "$group" ]; then
 
-  check_group $group $teacher || cancel "Group $group is not valid!"
+  check_group $group $teacher || cancel "Group $group is not valid or $teacher is not in $group!"
 
   # check if group is a project
   check_project $group && project="yes"
+
+  # fetch group members
+  get_group_members $group
+  groupmembers=$RET
 
 fi # check valid group
 
@@ -117,7 +127,7 @@ if [ -n "$create" ]; then
   msga="$msg"
   write_log "$msg" "$msga"
 
-  for username in $members; do
+  for username in $groupmembers; do
 
     # set dbusername
     dbusername="_${username}"
@@ -128,31 +138,32 @@ if [ -n "$create" ]; then
     unset is_teacher
 
     # check if user exists
-    if ! id $username &> /dev/null; then
+    if ! check_id $username; then
 
       msg="$username does not exist! Skipping!"
       msga="$msg"
       write_log "$msg" "$msga"
-      members=`echo $members | sed -e "s/$username//"`
+      groupmembers=`echo $groupmembers | sed -e "s/$username//"`
       continue
 
     fi # check if user exists
 
     # check if id is greater or equal than 10000
-    uidnr=`id -ru $username`
+    get_uidnumber $username
+    uidnr=$RET
     if [ "$uidnr" -lt 10000 ]; then
 
       msg="Uid of user $username is less than 10.000! Skipping"
       msga="$msg"
       write_log "$msg" "$msga"
-      members=`echo $members | sed -e "s/$username//"`
+      groupmembers=`echo $groupmembers | sed -e "s/$username//"`
       continue
 
     fi # check if id is greater or equal than 10000
 
-    # check if user is then invoking teacher, collect the students in $students
+    # check if user is the invoking teacher, collect the students in $students
     # and create the appropriate database
-    if `id $username | grep -qw $TEACHERSGROUP`; then
+    if check_teacher $username; then
 
       # check if user is the invoking teacher or if group is a project
       if [[ "$username" = "$teacher" || -n "$project" ]]; then
@@ -272,7 +283,7 @@ EOF
 
     fi
 
-  done # for username in members
+  done # for username in groupmembers
 
   # create common group database
   unset db_created
@@ -362,44 +373,73 @@ fi # creating databases
 ########
 if [ -n "$drop" ]; then
 
-  msg="MySQL Database dropping started by teacher $teacher on `date`"
-  write_log "$msg"
+  # drop given db directly
+  if [ -n "$dbname" ]; then
 
-  # drop student dbs
-  count=0
-  for dbname in `mysqlshow | grep ${students_prefix} | awk '{ print $2 }'` $common_prefix; do
+    # check valid dbnames
+    if stringinstring $dbname "horde mysql test"; then
 
-    if drop_mysql_db $dbname; then
-
-      msg="Database $dbname successfully dropped!"
-      write_log "$msg"
-      let count+=1
+      msg="You are not allowed to drop $dbname!"
 
     else
 
-      msg="Failed to drop Database $dbname!"
-      write_log "$msg"
+      if drop_mysql_db $dbname; then
 
-    fi #
+        msg="Database $dbname successfully dropped!"
 
-  done # drop student dbs
+      else
 
-  # print summary
-  if [ "$count" -eq 0 ]; then
+        msg="Failed to drop Database $dbname!"
 
-    msg="No databases dropped."
+      fi
+
+    fi
+
     write_log "$msg"
 
+  # dropping group dbs by teacher
   else
 
-    msg="Dropped $count databases."
+    msg="MySQL Database dropping started by teacher $teacher on `date`"
     write_log "$msg"
 
-  fi # summary
+    # drop student dbs
+    count=0
+    for dbname in `mysqlshow | grep ${students_prefix} | awk '{ print $2 }'` $common_prefix; do
 
-  # close logfile
-  msg="MySQL Database dropping finished by teacher $teacher on `date`"
-  write_log "$msg"
+      if drop_mysql_db $dbname; then
+
+        msg="Database $dbname successfully dropped!"
+        write_log "$msg"
+        let count+=1
+
+      else
+
+        msg="Failed to drop Database $dbname!"
+        write_log "$msg"
+
+      fi #
+
+    done # drop student dbs
+
+    # print summary
+    if [ "$count" -eq 0 ]; then
+
+      msg="No databases dropped."
+      write_log "$msg"
+
+    else
+
+      msg="Dropped $count databases."
+      write_log "$msg"
+
+    fi # summary
+
+    # close logfile
+    msg="MySQL Database dropping finished by teacher $teacher on `date`"
+    write_log "$msg"
+
+  fi # dbname
 
 fi # DROP
 
@@ -420,7 +460,7 @@ if [ -n "$cleanup" ]; then
     username=${dbusername#_}
 
     # check if user is a valid system user
-    if ! id $username &> /dev/null; then
+    if ! check_id $username; then
 
       msg="Mysql user $username is no system user."
       write_log "$msg"
@@ -445,7 +485,7 @@ if [ -n "$cleanup" ]; then
     username=`echo $db | cut -d "_" -f $nr`
 
     # check if user is a valid system user
-    if ! id $username &> /dev/null; then
+    if ! check_id $username; then
 
       # delete db entry from db table
       echo "DELETE FROM db WHERE db = '$db'" | mysql -s mysql
@@ -467,7 +507,7 @@ if [ -n "$cleanup" ]; then
     username=`echo $db | cut -d "_" -f $nr`
 
     # check if user is a valid system user
-    if ! id $username &> /dev/null; then
+    if ! check_id $username; then
 
       if drop_mysql_db $db | tee -a $logtmp; then
         msg="Database of former mysql user _${username} successfully dropped!"
@@ -490,7 +530,7 @@ if [ -n "$cleanup" ]; then
     group=${db#c_}
 
     # check if group is a valid system group
-    if ! smbldap-groupshow $group &> /dev/null; then
+    if ! check_group $group; then
 
       # delete db entry from db table
       echo "DELETE FROM db WHERE db = '$db'" | mysql -s mysql
@@ -509,7 +549,7 @@ if [ -n "$cleanup" ]; then
     group=${db#c_}
 
     # check if group is a valid system group
-    if ! smbldap-groupshow $group &> /dev/null; then
+    if ! check_group $group; then
 
       # drop group db
       if drop_mysql_db $db | tee -a $logtmp; then
@@ -587,7 +627,11 @@ fi
 # send e-mail to teacher and administrator
 if [[ -z "$list" && -z "$cleanup" ]]; then
 
-  cat $logtmp | mail -s "Datenbank-Log" $teacher@$domainname
+  if [ -n "$teacher" ]; then
+
+    cat $logtmp | mail -s "Datenbank-Log" $teacher@$domainname
+
+  fi
 
   if [ -s "$logtmp.admin" ]; then
 

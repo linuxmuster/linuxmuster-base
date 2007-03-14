@@ -50,8 +50,10 @@ case "$1" in
       # read linuxmuster defaults
       . /usr/share/linuxmuster/config/dist.conf
 
-      # make dist.conf executable so that perl scripts can source it
+      # make configs executable so that perl scripts can source it
       chmod 755 /usr/share/linuxmuster/config/dist.conf
+      chmod 755 /etc/linuxmuster/backup.conf
+      chmod 755 /etc/default/linuxmuster-base
 
       # only root may use helperfunctions.sh
       chmod 600 $HELPERFUNCTIONS
@@ -470,21 +472,21 @@ password-hash   {CRYPT}' /etc/ldap/slapd.conf.dpkg-old > /etc/ldap/slapd.conf
 		mv /etc/init.d/nameif /etc/init.d/nameif.dpkg-old
 		chmod 644 /etc/init.d/nameif.dpkg-old
 	fi
+	
+        # restoring internal firewall
+        . /etc/default/linuxmuster-base
+        if [ "$START_LINUXMUSTER" = "yes" ]; then
+          if ! iptables -L | grep -q "$FIREWALLTEST"; then
+            /etc/init.d/linuxmuster-base start
+          fi
+        fi
 
-        # important message if upgrade is necessary
+	# important message if upgrade is necessary
         if [ -n "$upgrade" ]; then
           echo "IMPORTANT!"
           echo "Be sure to make apt-get update and apt-get dist-upgrade very soon!"
         fi
 
-      fi
-
-      # restoring internal firewall
-      . /etc/default/linuxmuster-base
-      if [ "$START_LINUXMUSTER" = "yes" ]; then
-        if ! iptables -L | grep -q "state RELATED,ESTABLISHED"; then
-          /etc/init.d/linuxmuster-base start
-        fi
       fi
 
       ;;
@@ -507,3 +509,4 @@ esac
 db_stop
 
 exit 0
+

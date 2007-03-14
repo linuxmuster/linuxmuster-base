@@ -62,6 +62,14 @@ Package: quilt
 Pin: release a=sarge-backports
 Pin-Priority: 999
 
+Package: rrdtool
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: librrds-perl
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
 Package: udev
 Pin: release a=sarge-backports
 Pin-Priority: 999

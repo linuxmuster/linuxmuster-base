@@ -5,6 +5,12 @@ services="atd cron webmin rembo quota opengroupware.org apache2 cupsys \
           ssh samba slapd postgresql nscd linuxmuster-ipcop uml-utilities\
           portmap inetd bind9 dhcp3-server"
 
+# temporarily deactivated
+#services="nagios2 atd cron webmin rembo quota opengroupware.org apache2 cupsys \
+#          clamav-daemon cyrus21 postfix saslauthd amavis mysql ntp-server\
+#          ssh samba slapd postgresql nscd linuxmuster-ipcop uml-utilities\
+#          portmap inetd bind9 dhcp3-server"
+
 for service in $services; do
 
   /etc/init.d/$service stop

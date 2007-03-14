@@ -1,3 +1,27 @@
+linuxmuster-base (1.0-8) testing; urgency=low
+
+  * added Aptitude::Recommends-Important "false"; to apt.conf to prevent
+    aptitude from automatically installing packages recommends
+  * added target directory test to linuxmuster-backup
+  * changed "create mask" and "directory mask" to "force create mode" and
+    "force directory mode" for netlogon, pgm and cdrom shares in smb.conf
+  * added --drop --dbname=database as parameters to linuxmuster-mysql to
+    be able to drop databases by name directly
+  * making /etc/linuxmuster/backup.conf and /etc/default/linuxmuster-base
+    executable that they can be parsed by per scripts
+  * various optimations concerning to ldap database queries
+  * added logging of user's realname, primary group and ip address to samba-userlog
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 14 Mar 2007 15:40:45 +0100
+
+linuxmuster-base (1.0-7) testing; urgency=low
+
+  * added FIREWALLTEST variable to dist.conf
+  * intranet_on_off.sh is now aborting when internal firewall is not running
+  * added backports pinning for rrdtool and librrds-perl to apt preferences
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 15 Feb 2007 17:54:16 +0100
+
 linuxmuster-base (1.0-6) testing; urgency=low
 
   * fixed orphaned mac address after using nic_setup.sh with decreased
@@ -12,7 +36,7 @@ linuxmuster-base (1.0-6) testing; urgency=low
   * preventing init script to restart internal firewall on package upgrade
   * adding option "sizelimit -1" to slapd.conf
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 14 Feb 2007 12:29:27 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 14 Feb 2007 21:04:25 +0100
 
 linuxmuster-base (1.0-5) testing; urgency=low
 

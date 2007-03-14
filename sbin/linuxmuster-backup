@@ -122,7 +122,7 @@ echo "$mypid" > $mypidfile
 
 # exit with error
 error() {
-	echo "An error occured! Exiting!"
+	echo "$1 Exiting!"
 	rm $mypidfile
 	exit 1
 } # error
@@ -130,7 +130,9 @@ error() {
 
 # create mountpoint if necessary
 [ -d "$mountpoint" ] || mkdir -p $mountpoint
-
+if [ ! -d "$mountpoint" ]; then
+	error "Mountpoint $mountpoint does not exist!"
+fi 
 
 # check if backupdevice is already mounted
 if mount | grep "$backupdevice" | grep -q "$mountpoint"; then
@@ -147,7 +149,8 @@ case $restoremethod in
     hd)
 	if [ -z "$mounted" ]; then
 	    echo "Trying to mount $backupdevice on $mountpoint ..."
-	    mount $backupdevice $mountpoint || error
+	    mount $backupdevice $mountpoint || error "Cannot mount $backupdevice!"
+	    mounted=yes
 	fi
 	rtypeparam="-i"
 	target=$mountpoint/$isoprefix/$bfolder
@@ -156,7 +159,8 @@ case $restoremethod in
     nfs)
 	if [ -z "$mounted" ]; then
 	    echo "Trying to mount $backupdevice on $mountpoint ..."
-	    mount -t nfs -o rsize=8192,wsize=8192 $backupdevice $mountpoint || error
+	    mount -t nfs -o rsize=8192,wsize=8192 $backupdevice $mountpoint || error "Cannot mount $backupdevice!"
+	    mounted=yes
 	fi
 	rtypeparam="-n $backupdevice"
 	target=$isoprefix/$bfolder
@@ -168,7 +172,12 @@ case $restoremethod in
 	;;
 
 esac
-[ -z "$mounted" ] && echo "$backupdevice successfully mounted on $mountpoint!"
+
+if [ -n "$mounted" ]; then
+	echo "$backupdevice successfully mounted on $mountpoint!"
+else
+	error "$backupdevice not mounted!"
+fi
 
 
 # storing runlevel
@@ -332,6 +341,10 @@ fi
 
 # create backup folder if necessary
 [ -d "$mountpoint/$isoprefix/$bfolder/cache" ] || mkdir -p $mountpoint/$isoprefix/$bfolder/cache
+if [ ! -d "$mountpoint/$isoprefix/$bfolder/cache" ]; then
+	[ -d "$mountpoint/$isoprefix/$bfolder" ] && rm -rf $mountpoint/$isoprefix/$bfolder
+	error "Mountpoint $mountpoint/$isoprefix/$bfolder/cache does not exist!"
+fi 
 
 
 # starting mondoarchive

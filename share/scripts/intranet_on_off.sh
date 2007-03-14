@@ -17,6 +17,11 @@
 if [ "$START_LINUXMUSTER" != "yes" ]; then
 	echo "Internal Firewall is deactivated! Aborting!"
 	exit 1
+else
+	if ! iptables -L | grep -q "$FIREWALLTEST"; then
+		echo "Internal Firewall is not running! Aborting!"
+		exit 1
+	fi
 fi
 
 # parsing parameters

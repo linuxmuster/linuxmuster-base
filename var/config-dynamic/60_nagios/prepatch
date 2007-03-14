@@ -1,0 +1,10 @@
+# temporarily deactivated
+# configure linuxmuster-nagios
+#if [ "$1" = "--first" ]; then
+
+#	DEBIAN_FRONTEND=noninteractive dpkg-reconfigure linuxmuster-nagios-base
+
+#fi
+
+#/etc/init.d/nagios2 start
+
