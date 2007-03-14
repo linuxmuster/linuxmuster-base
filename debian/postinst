@@ -88,9 +88,14 @@ case "$1" in
         touch $DHCPDCONF
       fi
 
-      # adding system group nvram
-      if ! grep -q ^nvram: /etc/group; then
-        addgroup --system nvram
+      # system groups and users which are needed by udevd
+      for i in fuse nvram rdma scanner tss; do
+        if ! grep -q ^${i}: /etc/group; then
+          addgroup --system $i
+        fi
+      done
+      if ! grep -q ^tss: /etc/passwd; then
+        adduser --system --no-create-home --ingroup tss --disabled-login tss
       fi
 
       # upgrade tasks

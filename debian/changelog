@@ -1,10 +1,10 @@
 linuxmuster-base (1.0-9) testing; urgency=low
 
-  * adding system group nvram to prevent udev from asking ldap during boot
+  * adding various system groups to prevent udev from asking ldap during boot
   * added port 242 for schulkonsole to apache2 port.conf
   * added port 242 also to /etc/linuxmuster/blocked_ports
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 14 Mar 2007 20:44:41 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 14 Mar 2007 22:22:20 +0100
 
 linuxmuster-base (1.0-8) testing; urgency=low
 
