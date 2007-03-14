@@ -88,6 +88,11 @@ case "$1" in
         touch $DHCPDCONF
       fi
 
+      # adding system group nvram
+      if ! grep -q ^nvram: /etc/group; then
+        addgroup --system nvram
+      fi
+
       # upgrade tasks
       if [ -e "$INSTALLED" ]; then
 
@@ -153,6 +158,13 @@ case "$1" in
         apache_default=/etc/apache2/sites-available/default
         if ! grep -q "/people/students" $apache_default; then
           cp -f /var/lib/linuxmuster/config-static$apache_default $apache_default
+          apache_reload=yes
+        fi
+
+        # apache2 adding port 242 for schulkonsole
+        apache_ports=/etc/apache2/ports.conf
+        if ! grep -q 242 $apache_ports; then
+          cp -f /var/lib/linuxmuster/config-static$apache_ports $apache_ports
           apache_reload=yes
         fi
 

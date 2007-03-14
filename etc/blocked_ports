@@ -5,4 +5,4 @@
 
 # protocoll (udp|tcp)  list of ports/services
 
-tcp ftp-data,ftp,ssh,smtp,imaps,www,https,999
+tcp ftp-data,ftp,ssh,smtp,imaps,www,242,https,999
