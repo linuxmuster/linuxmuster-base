@@ -43,12 +43,13 @@ if {$force_conservative} {
 
 set password [lrange $argv 0 0] 
 set pkg [lrange $argv 1 1]
-set ipcopip [lrange $argv 2 2]
+set destdir [lrange $argv 2 2]
+set ipcopip [lrange $argv 3 3]
 set timeout -1
 spawn /bin/bash
 match_max 100000
 expect "*# "
-send -- "scp -P 222 $pkg $ipcopip:/tmp\r"
+send -- "scp -P 222 -r $pkg $ipcopip:$destdir\r"
 expect {
 "The authenticity of host '$ipcopip ($ipcopip)' can't be established.\r
 RSA key fingerprint is *.\r

@@ -108,62 +108,36 @@ else
 
     [ -e /root/.ssh/known_hosts ] && rm /root/.ssh/known_hosts
 
-#    if ping -c 2 $ipcopip &> /dev/null; then
-
-      # upload setup package to dedicated ipcop
-      echo "  Uploading installation package to dedicated ipcop ..."
-      $SCRIPTSDIR/ipcop-upload-pkg.exp $ipcoppw $pkgcachedir/$pkgname $ipcopip || exit 1
-
-      # upload setup package to dedicated ipcop
-      echo "  Installing package ..."
-      $SCRIPTSDIR/ipcop-install-pkg.exp $ipcoppw $pkgname $ipcopip || exit 1
-      ssh -p 222 $ipcopip rm /tmp/$pkgname || exit 1
-      echo "  Rebooting ipcop ..." 
-      ssh -p 222 $ipcopip /sbin/reboot || exit
-
-#    else
-
-#      echo "No Connection to IPCop! Aborting installation!"
-#      exit 1
-
-#    fi
+    # modify dedicated ipcop completely
+    /usr/share/linuxmuster-ipcop/restore-dedicated.sh --first $ipcoppw
 
   else # check for modifications to apply
 
-#    if ping -c 2 ipcop &> /dev/null; then
+    # patching dedicated IPCop configuration
+    if [ "$update_certs" = "yes" ]; then
+      echo "  Creating new OpenVPN certificates for dedicated ipcop ..."
+      scp -P 222 $commondir/install root@$ipcopip:/tmp || exit 1
+      scp -P 222 $settings root@$ipcopip:/tmp/settings || exit 1
+      scp -P 222 -r $commondir/templates root@$ipcopip:/tmp || exit 1
+      ssh -p 222 $ipcopip /tmp/install /tmp || exit 1
+      ssh -p 222 $ipcopip rm -rf /tmp/templates || exit 1
+      ssh -p 222 $ipcopip rm /tmp/install || exit 1
+      ssh -p 222 $ipcopip rm /tmp/settings || exit 1
+      reboot=yes
+    fi
 
-      # patching dedicated IPCop configuration
-      if [ "$update_certs" = "yes" ]; then
-        echo "  Creating new OpenVPN certificates for dedicated ipcop ..."
-        scp -P 222 $commondir/install root@$ipcopip:/tmp || exit 1
-        scp -P 222 $settings root@$ipcopip:/tmp/settings || exit 1
-        scp -P 222 -r $commondir/templates root@$ipcopip:/tmp || exit 1
-        ssh -p 222 $ipcopip /tmp/install /tmp || exit 1
-        ssh -p 222 $ipcopip rm -rf /tmp/templates || exit 1
-        ssh -p 222 $ipcopip rm /tmp/install || exit 1
-        ssh -p 222 $ipcopip rm /tmp/settings || exit 1
-        reboot=yes
-      fi
+    # creating new apache certificate
+    if [ "$update_ipcop_cert" = "yes" ]; then
+      echo "  Creating new https certificate for dedicated ipcop ..."
+      ssh -p 222 $ipcopip /usr/local/bin/httpscert new || exit 1
+      reboot=yes
+    fi
 
-      # creating new apache certificate
-      if [ "$update_ipcop_cert" = "yes" ]; then
-        echo "  Creating new https certificate for dedicated ipcop ..."
-        ssh -p 222 $ipcopip /usr/local/bin/httpscert new || exit 1
-        reboot=yes
-      fi
-
-      # rebooting IPCop
-      if [ "$reboot" = "yes" ]; then
-        echo "  Rebooting ipcop ..." 
-        ssh -p 222 $ipcopip /sbin/reboot || exit 1
-      fi
-
-#    else
-
-#      echo "No Connection to IPCop! Aborting configuration!"
-#      exit 1
-
-#    fi
+    # rebooting IPCop
+    if [ "$reboot" = "yes" ]; then
+      echo "  Rebooting ipcop ..." 
+      ssh -p 222 $ipcopip /sbin/reboot || exit 1
+    fi
 
   fi
 

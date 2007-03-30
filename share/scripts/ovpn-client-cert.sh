@@ -61,8 +61,8 @@ fi
 
 
 # determine common name
-cn=`smbldap-usershow $username | grep ^displayName:`
-cn=${cn#displayName: }
+get_realname $username
+cn="$RET [$username]"
 
 
 # check for certificate

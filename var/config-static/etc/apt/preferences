@@ -38,6 +38,10 @@ Package: make
 Pin: release a=sarge-backports
 Pin-Priority: 999
 
+Package: mdadm
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
 Package: module-init-tools
 Pin: release a=sarge-backports
 Pin-Priority: 999

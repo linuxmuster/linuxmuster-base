@@ -1,3 +1,12 @@
+linuxmuster-base (1.0-10) testing; urgency=low
+
+  * added backports pinning for mdadm to /etc/apt/preferences
+  * added user's login to OpenVPN certificate's common name to avoid
+    problems with double realnames
+  * improved ipcop's upload scripts
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 30 Mar 2007 19:46:34 +0200
+
 linuxmuster-base (1.0-9) testing; urgency=low
 
   * adding various system groups to prevent udev from asking ldap during boot
