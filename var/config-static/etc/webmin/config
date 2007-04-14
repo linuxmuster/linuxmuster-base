@@ -1,0 +1,15 @@
+os_type=debian-linux
+os_version=3.0
+real_os_type=Debian GNU/Linux
+real_os_version=3.1
+path=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
+logfiles=1
+logtime=168
+log=1
+logmodules=
+logusers=
+logclear=
+find_pid_command=/bin/ps -C NAME h -o%p
+theme=debiantheme
+lang_root=de
+theme_root=debiantheme

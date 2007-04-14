@@ -1,10 +1,3 @@
-if [ "$1" != "--first" ]; then
-
-  # prevent chora2.sourceroots.php from being patched
-  mv chora2.sourceroots.php.target chora2.sourceroots.php.target.tmp
-
-fi
-
 # patch horde config.php with basedn and domainname
 sed -e "s/\$conf\['auth'\]\['admins'\] =.*/\$conf\['auth'\]\['admins'\] = array\('$WWWADMIN'\);/
         s/\$conf\['problems'\]\['email'\] =.*/\$conf\['problems'\]\['email'\] = '$WWWADMIN@$domainname';/

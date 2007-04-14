@@ -120,8 +120,16 @@ case "$1" in
         message3=`date`
 
         # some variables we need for patching
-        servername=`hostname`
+        servername=`hostname -s`
         domainname=`dnsdomainname`
+        db_get linuxmuster-base/country || true
+        country=$RET
+        db_get linuxmuster-base/state || true
+        state=$RET
+        db_get linuxmuster-base/location || true
+        location=$RET
+        db_get linuxmuster-base/schoolname || true
+        schoolname=$RET
         db_get linuxmuster-base/workgroup || true
         workgroup=$RET
         workgroup=${workgroup#[0-9] }
@@ -172,6 +180,21 @@ case "$1" in
           cp -f /var/lib/linuxmuster/config-static$apache_ports $apache_ports
           apache_reload=yes
         fi
+
+	# create new certificate skript and create new certificate
+	if [ ! -e "$SCRIPTSDIR/create-ssl-cert.sh" ]; then
+		echo "Creating new server certificate ..."
+		sed -e "s/@@country@@/${country}/
+			s/@@state@@/${state}/
+			s/@@location@@/${location}/
+			s/@@schoolname@@/${schoolname}/
+			s/@@servername@@/${servername}/
+			s/@@domainname@@/${domainname}/g
+			s/@@administrator@@/${ADMINISTRATOR}/" /var/lib/linuxmuster/config-dynamic/01_certificates/create-ssl-cert.sh > $SCRIPTSDIR/create-ssl-cert.sh
+		chmod 744 $SCRIPTSDIR/create-ssl-cert.sh
+		$SCRIPTSDIR/create-ssl-cert.sh
+		apache_reload=yes
+	fi
 
         # reload apache if necessary
         [ "$apache_reload" = "yes" ] && /etc/init.d/apache2 force-reload
@@ -388,17 +411,16 @@ case "$1" in
         if [ ! -e /etc/shadow ]; then
           shadowconfig on
         fi
-
-        # webmin root password
-        wmrootpw=`grep ^root: /etc/webmin/miniserv.users | cut -f2 -d:`
-        if [ -z "$wmrootpw" ]; then
-          echo "Writing root password to /etc/webmin/miniserv.users ..."
-          rootpw=`grep ^root: /etc/shadow | cut -f2 -d:`
-          cp /etc/webmin/miniserv.users /etc/webmin/miniserv.users.dpkg-orig
-          echo "root:$rootpw" > /etc/webmin/miniserv.users
-          chmod 640 /etc/webmin/miniserv.users*
-          /etc/init.d/webmin restart
-        fi
+	
+	# fixing webmin unix authentication
+	if ! grep -q "root:x:0::" /etc/webmin/miniserv.users; then
+		echo "Fixing webmin unix authentication for root ..."
+		cp /etc/webmin/miniserv.users /etc/webmin/miniserv.users.dpkg-orig
+		cp /var/lib/linuxmuster/config-static/etc/webmin/* /etc/webmin
+		chown root:shadow /etc/webmin/miniserv.users*
+		chmod 640 /etc/webmin/miniserv.users*
+		/etc/init.d/webmin restart
+	fi
 
         # remove false link to backup mountpoint
 	[ -L /_backup ] && rm /_backup
@@ -488,8 +510,20 @@ password-hash   {CRYPT}' /etc/ldap/slapd.conf.dpkg-old > /etc/ldap/slapd.conf
 		update-rc.d -f nameif remove
 		mv /etc/init.d/nameif /etc/init.d/nameif.dpkg-old
 		chmod 644 /etc/init.d/nameif.dpkg-old
+
 	fi
-	
+
+	# adding root cron jobs for ovpn-client-cert
+	if grep -q /usr/sbin/ovpn-client-cert /var/spool/cron/crontabs/root; then
+		echo "Removing ovpn-client-cert from cron jobs ..."
+		grep -v ovpn-client-cert /var/spool/cron/crontabs/root >> /var/spool/cron/crontabs/root.tmp
+		mv /var/spool/cron/crontabs/root.tmp /var/spool/cron/crontabs/root
+	fi
+	if ! grep -q linuxmuster-ovpn /var/spool/cron/crontabs/root; then
+		echo "Adding linuxmuster-ovpn cron jobs ..."
+		grep linuxmuster-ovpn /var/lib/linuxmuster/config-static/var/spool/cron/crontabs/root >> /var/spool/cron/crontabs/root
+	fi
+
         # restoring internal firewall
         . /etc/default/linuxmuster-base
         if [ "$START_LINUXMUSTER" = "yes" ]; then

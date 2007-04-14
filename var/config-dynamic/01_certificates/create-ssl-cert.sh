@@ -1,15 +1,10 @@
 #!/bin/sh
-# create ssl certificate
-# fr Linux Musterl�ung 3.0
-# 04.02.06 Thomas Schmitt <schmitt@lmz-bw.de>
+# create ssl certificate script
+# for Linux Musterloesung 3.0
+# 12.04.07 Thomas Schmitt <schmitt@lmz-bw.de>
 
-[ -z "$SSLDir" ] && SSLDir=/etc/ssl/private
-SSLCertificateFile=$SSLDir/server.crt
-SSLCertificateKeyFile=$SSLDir/server.key
-SSLCertificateCSRFile=$SSLDir/server.csr
-SSLPemFile=$SSLDir/server.pem
-Days=3650
-
+# modify this to your needs
+days=3650
 country="@@country@@"
 state="@@state@@"
 location="@@location@@"
@@ -17,6 +12,13 @@ schoolname="@@schoolname@@"
 section="Linux-Musterloesung"
 [ -z "$myname" ] && myname="@@servername@@.@@domainname@@"
 mymail="@@administrator@@@@@domainname@@"
+
+# from here on nothing has to be modified
+[ -z "$SSLDir" ] && SSLDir=/etc/ssl/private
+SSLCertificateFile=$SSLDir/server.crt
+SSLCertificateKeyFile=$SSLDir/server.key
+SSLCertificateCSRFile=$SSLDir/server.csr
+SSLPemFile=$SSLDir/server.pem
 
 echo
 echo "################################################################"
@@ -28,7 +30,7 @@ echo
 openssl genrsa -out $SSLCertificateKeyFile 1024 
 chmod 600 $SSLCertificateKeyFile
 echo -e "$country\n$state\n$location\n$schoolname\n$section\n$myname\n$mymail\n\n\n" | openssl req -new -key $SSLCertificateKeyFile -out $SSLCertificateCSRFile
-openssl x509 -req -days $Days -in $SSLCertificateCSRFile -signkey $SSLCertificateKeyFile -out $SSLCertificateFile
+openssl x509 -req -days $days -in $SSLCertificateCSRFile -signkey $SSLCertificateKeyFile -out $SSLCertificateFile
 mv -f $SSLPemFile $SSLPemFile.old 2> /dev/null 1>/dev/null
 cp $SSLCertificateKeyFile $SSLPemFile
 cat $SSLCertificateFile >> $SSLPemFile
@@ -39,7 +41,7 @@ if [ "$SSLDir" = "/etc/ssl/private" ]; then
   chown root:sasl $SSLDir
 fi
 echo
-echo "ssl certificate was created in $SSLDir and is $Days valid."
+echo "ssl certificate was created in $SSLDir and is $days days valid."
 echo
 
 exit 0

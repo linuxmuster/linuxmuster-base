@@ -1,3 +1,36 @@
+linuxmuster-base (1.0-12) testing; urgency=low
+
+  * added link from $SCRIPTSDIR/create-client-cert.sh to /usr/sbin/linuxmuster-ovpn
+  * added example cron jobs for /usr/sbin/linuxmuster-ovpn
+  * create-client-cert.sh: user's OpenVPN folder will be deleted when purging his
+    certificate
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 14 Apr 2007 09:08:02 +0200
+
+linuxmuster-base (1.0-11) testing; urgency=low
+
+  * added pinning for cyrus 2.2 to /etc/apt/preferences
+  * modified cyrus.conf for 2.2, added squatter
+  * added cyrus upgrade script
+  * modified create-client-cert.sh to read days an openvpn client certificate
+    is valid from /etc/linuxmuster/clientcert.conf, where validity periods
+    for admins, teachers and others are defined, added various new options:
+    o --list: list all user certificates
+    o --show: show information about a user certificate
+    o --purge: purge a user or all group members certificates
+    o --activate: activate a user or all group members certificates
+    o --deactivate: deactivate a user or all group members certificates
+    o --cleanup: deactivates certificates of attic users and purges certificates
+                 of deleted users
+    o --purgeallstudentcerts: purges all student certificates
+  * fixing webmin unix authentication for root
+  * deactivated root cron jobs for linuxmuster-backup
+  * added root cron jobs for ovpn-client-cert --cleanup and --purgeallstudentcerts
+    (deactivated by default)
+  * bugfixed server certificate creation script
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 13 Apr 2007 20:04:45 +0200
+
 linuxmuster-base (1.0-10) testing; urgency=low
 
   * added backports pinning for mdadm to /etc/apt/preferences

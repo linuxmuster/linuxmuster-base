@@ -10,6 +10,22 @@ Package: openssh-client
 Pin: release a=sarge
 Pin-Priority: 999
 
+Package: cyrus22-admin
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: cyrus22-common
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: cyrus22-imapd
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: cyrus22-pop3d
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
 Package: initramfs-tools
 Pin: release a=sarge-backports
 Pin-Priority: 999
@@ -22,7 +38,27 @@ Package: klibc-utils
 Pin: release a=sarge-backports
 Pin-Priority: 999
 
+Package: libcyrus-imap-perl22
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
 Package: libklibc
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: librrds-perl
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: libsasl2
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: libsasl2-dev
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: libsasl2-modules
 Pin: release a=sarge-backports
 Pin-Priority: 999
 
@@ -70,7 +106,7 @@ Package: rrdtool
 Pin: release a=sarge-backports
 Pin-Priority: 999
 
-Package: librrds-perl
+Package: sasl2-bin
 Pin: release a=sarge-backports
 Pin-Priority: 999
 

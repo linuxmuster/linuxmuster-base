@@ -658,7 +658,14 @@ get_realname() {
   RET=`psql -U ldap -d ldap -t -c "select gecos from posix_account where uid = '$1';"`
 }
 
-# get group members from ldab db
+# get primary group members from ldab db
+# group=$1
+get_pgroup_members() {
+  unset RET
+  RET=`psql -U ldap -d ldap -t -c "select uid from memberdata where adminclass = '$1';"`
+}
+
+# get all group members from ldab db
 # group=$1
 get_group_members() {
   unset RET
@@ -723,7 +730,7 @@ check_teacher() {
   fi
 }
 
-# check if user is teacher
+# check if user is admin
 # admin=$1
 check_admin() {
   unset RET

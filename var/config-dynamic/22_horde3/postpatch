@@ -1,2 +1,0 @@
-# restore chora2.sourceroots.php
-[ -e chora2.sourceroots.php.target.tmp ] && mv chora2.sourceroots.php.target.tmp chora2.sourceroots.php.target
