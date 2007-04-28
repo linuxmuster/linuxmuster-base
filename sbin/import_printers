@@ -55,6 +55,8 @@ while read printer roomlist hostlist; do
       fi
     fi
   done
+  # allow server
+  echo "  Allow From $serverip" >> $ACCESSCONF.new || cancel "Cannot write $ACCESSCONF.new!"
   echo "</Location>" >> $ACCESSCONF.new || cancel "Cannot write $ACCESSCONF.new!"
 done <$PRINTERS
 

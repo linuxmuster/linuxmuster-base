@@ -10,6 +10,30 @@ Package: openssh-client
 Pin: release a=sarge
 Pin-Priority: 999
 
+Package: cupsomatic-ppd
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: cupsys
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: cupsys-client
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: cupsys-common
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: cupsys-driver-gimpprint
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: cupsys-driver-gutenprint
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
 Package: cyrus22-admin
 Pin: release a=sarge-backports
 Pin-Priority: 999
@@ -26,6 +50,26 @@ Package: cyrus22-pop3d
 Pin: release a=sarge-backports
 Pin-Priority: 999
 
+Package: foomatic-db
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: foomatic-db-engine
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: foomatic-filters
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: foomatic-filters-ppds
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: foomatic-db-gutenprint
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
 Package: initramfs-tools
 Pin: release a=sarge-backports
 Pin-Priority: 999
@@ -38,7 +82,23 @@ Package: klibc-utils
 Pin: release a=sarge-backports
 Pin-Priority: 999
 
+Package: libcupsimage2
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: libcupsys2
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: libcupsys2-gnutls10
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
 Package: libcyrus-imap-perl22
+Pin: release a=sarge-backports
+Pin-Priority: 999
+
+Package: libgutenprint2
 Pin: release a=sarge-backports
 Pin-Priority: 999
 

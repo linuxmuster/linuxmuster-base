@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # config script for Linux-Musterloesung
 #
 # Thomas Schmitt <schmitt@lmz-bw.de>
@@ -136,8 +136,9 @@ if [ -z "$sambasid" ]; then
 
 fi
 
-# substitute spaces in schoolname
+# substitute spaces in schoolname and location
 schoolname=${schoolname// /_}
+location=${location// /_}
 
 # escaping /
 REMBOSTARTPAGE=${REMBOSTARTPAGE//\//\\\/}

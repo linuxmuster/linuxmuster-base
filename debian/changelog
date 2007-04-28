@@ -1,3 +1,25 @@
+linuxmuster-base (1.0-14) testing; urgency=low
+
+  * removed cups-pdf folder creation in user's home from samba-userlog
+  * updated cups printers.conf for PDF-Printer
+  * upgrading cups-pdf printer driver during postinst
+  * added Server-IP to printer access definitions
+    (/usr/sbin/import_printers -> /etc/cups/access.conf)
+  * fixed check_empty_dir function in helperfunctions.sh
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 28 Apr 2007 13:20:06 +0200
+
+linuxmuster-base (1.0-13) testing; urgency=low
+
+  * fixed bug in create-client-cert.sh (certificates could not be
+    deactivated) (closes #201)
+  * fixing /etc/clamav/freshclam.conf (closes #200)
+  * increased lease time values in /etc/dhcp3/dhcpd.conf (closes #197)
+  * upgraded cups to 1.2.7 and added backports stuff to /etc/apt/preferences
+  * fixed spaces in location, substituted by _ in linuxmuster-patch (closes #193)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 25 Apr 2007 16:43:33 +0200
+
 linuxmuster-base (1.0-12) testing; urgency=low
 
   * added link from $SCRIPTSDIR/create-client-cert.sh to /usr/sbin/linuxmuster-ovpn

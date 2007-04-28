@@ -41,13 +41,6 @@ if [[ "$hostname" != "$username" && "$log" = "in" ]]; then
   check_teacher $username && teacher=yes
   check_admin $username && admin=yes
 
-  # cups-pdf
-  if [ ! -d "$homedir/cups-pdf" ]; then
-    mkdir $homedir/cups-pdf
-    chown $username $homedir/cups-pdf
-    chmod 700 $homedir/cups-pdf
-  fi
-
   # private_html
   [ -L "$homedir/public_html" ] && rm $homedir/public_html
   if [ -d "$homedir/public_html" ]; then

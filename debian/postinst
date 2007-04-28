@@ -340,8 +340,36 @@ case "$1" in
                   s/@@internalnet@@/${internalnet}/g
                   s/@@internsub@@/${internsub}/g
                   s/@@internmask@@/${internmask}/g" /var/lib/linuxmuster/config-dynamic/03_dhcp3-server/dhcpd.conf > /etc/dhcp3/dhcpd.conf
-          /etc/init.d/dhcp3-server restart
         fi
+
+	# increasing lease time in dhcpd.conf
+	if grep -q ^"default-lease-time 600;" /etc/dhcp3/dhcpd.conf; then
+		echo "Increasing default-lease-time from 600 to 86400 secs ..."
+		sed -e 's/^default-lease-time 600;/default-lease-time 86400;/' /etc/dhcp3/dhcpd.conf > /etc/dhcp3/dhcpd.conf.tmp
+		mv /etc/dhcp3/dhcpd.conf.tmp /etc/dhcp3/dhcpd.conf
+		dhcpd_update="yes"
+	fi
+	if grep -q ^"max-lease-time 7200;" /etc/dhcp3/dhcpd.conf; then
+		echo "Increasing max-lease-time from 7200 to 86400 secs ..."
+		sed -e 's/^max-lease-time 7200;/max-lease-time 86400;/' /etc/dhcp3/dhcpd.conf > /etc/dhcp3/dhcpd.conf.tmp
+		mv /etc/dhcp3/dhcpd.conf.tmp /etc/dhcp3/dhcpd.conf
+		dhcpd_update="yes"
+	fi
+	if grep -q "default-lease-time 60;" /etc/dhcp3/dhcpd.conf; then
+		echo "Increasing default-lease-time from 60 to 3600 secs ..."
+		sed -e 's/default-lease-time 60;/default-lease-time 3600;/' /etc/dhcp3/dhcpd.conf > /etc/dhcp3/dhcpd.conf.tmp
+		mv /etc/dhcp3/dhcpd.conf.tmp /etc/dhcp3/dhcpd.conf
+		dhcpd_update="yes"
+	fi
+	if grep -q "max-lease-time 60;" /etc/dhcp3/dhcpd.conf; then
+		echo "Increasing max-lease-time from 60 to 3600 secs ..."
+		sed -e 's/max-lease-time 60;/max-lease-time 3600;/' /etc/dhcp3/dhcpd.conf > /etc/dhcp3/dhcpd.conf.tmp
+		mv /etc/dhcp3/dhcpd.conf.tmp /etc/dhcp3/dhcpd.conf
+		dhcpd_update="yes"
+	fi
+
+        [ -n "$dhcpd_update" ] && /etc/init.d/dhcp3-server restart
+
 
         # apt
         cp -f /var/lib/linuxmuster/config-static/etc/apt/sources.list.online /etc/apt
@@ -522,6 +550,53 @@ password-hash   {CRYPT}' /etc/ldap/slapd.conf.dpkg-old > /etc/ldap/slapd.conf
 	if ! grep -q linuxmuster-ovpn /var/spool/cron/crontabs/root; then
 		echo "Adding linuxmuster-ovpn cron jobs ..."
 		grep linuxmuster-ovpn /var/lib/linuxmuster/config-static/var/spool/cron/crontabs/root >> /var/spool/cron/crontabs/root
+	fi
+
+	# fixing freshclam.conf
+	if ! grep -q ^"NotifyClamd /etc/clamav/clamd.conf" /etc/clamav/freshclam.conf; then
+		echo "Fixing /etc/clamav/freshclam.conf ..."
+		cp -f /var/lib/linuxmuster/config-static/etc/clamav/freshclam.conf /etc/clamav
+	fi
+
+	# cups upgrade
+	if ! grep -q "# 28.04.2007" /etc/cups/cupsd.conf; then
+		echo "Upgrading CUPS configuration!"
+		cp /etc/cups/cupsd.conf /etc/cups/cupsd.conf.dpkg-old
+		sed -e "s/@@printeradmins@@/${PRINTERADMINS}/
+		        s/@@serverip@@/${serverip}/" /var/lib/linuxmuster/config-dynamic/34_cups/cupsd.conf > /etc/cups/cupsd.conf
+		# cups-pdf upgrade
+		for i in `find /home -type d -name cups-pdf`; do
+			if check_empty_dir $i; then
+				rm -rf $i
+			else
+				p=${i%cups-pdf}PDF
+				mv $i $p
+			fi
+		done
+		cups_restart=yes
+	fi
+	# restoring PDF-Printer
+	if [ ! -f /etc/cups/ppd/PDF-Printer.ppd ]; then
+		echo "Restoring PDF-Printer driver ..."
+		cp /var/lib/linuxmuster/config-static/etc/cups/ppd/PDF-Printer.ppd /etc/cups/ppd
+		cups_restart=yes
+	fi
+	# restoring PDF-Printer definition
+	if ! grep -q PDF-Printer /etc/cups/printers.conf; then
+		echo "Restoring PDF-Printer definition ..."
+		cat /var/lib/linuxmuster/config-static/etc/cups/printers.conf | grep -v ^# >> /etc/cups/printers.conf
+		cups_restart=yes
+	fi
+	# upgrading cups-pdf printer driver
+	if [ -f /usr/share/ppd/cups-pdf/PostscriptColor.ppd ]; then
+		if ! diff -q /usr/share/ppd/cups-pdf/PostscriptColor.ppd /etc/cups/ppd/PDF-Printer.ppd &> /dev/null; then
+			echo "Upgrading cups-pdf printer driver ..."
+			cp /usr/share/ppd/cups-pdf/PostscriptColor.ppd /etc/cups/ppd/PDF-Printer.ppd
+			cups_restart=yes
+		fi
+	fi
+	if [ -n "$cups_restart" ]; then
+			/etc/init.d/cupsys force-reload || true
 	fi
 
         # restoring internal firewall

@@ -76,6 +76,25 @@ others_certperiod=365
 [ -e /etc/linuxmuster/clientcert.conf ] && . /etc/linuxmuster/clientcert.conf
 
 
+# compute common name for cert
+get_commonname() {
+
+	if [ -z "$username" ]; then
+		unset cn
+		return
+	fi
+
+	get_realname $username
+	if [ -z "$RET" ]; then
+		unset cn
+		return
+	fi
+
+	cn="${username} - $RET"
+
+}
+
+
 if [ -n "$username" ]; then
 
 	# valid user check
@@ -88,8 +107,7 @@ if [ -n "$username" ]; then
 	fi
 
 	# determine common name
-	get_realname $username
-	cn="$RET [$username]"
+	get_commonname
 
 	# check for certificate
 	cert_status=1; msg=no
@@ -126,7 +144,6 @@ write_config() {
 
 	configfile=$1
 	remote=$2
-	username=$3
 
 	echo "#OpenVPN Server conf" > $configfile
 	echo "tls-client" >> $configfile
@@ -147,8 +164,6 @@ write_config() {
 # download certificate function
 download_cert() {
 
-	username=$1
-
 	tmpdir=/var/tmp/download_cert.$$
 	mkdir -p $tmpdir
         checklock || exit 1
@@ -157,9 +172,9 @@ download_cert() {
 	get_ipcop /var/ipcop/ovpn/settings $tmpdir/settings || cancel "Certificate download for user $username failed!"
 	. $tmpdir/settings
 
-	write_config $tmpdir/${username}-TO-IPCop-RED.ovpn $ROOTCERT_HOSTNAME $username
-	[ "$ENABLED_BLUE" = "on" ] && write_config $tmpdir/${username}-TO-IPCop-BLUE.ovpn ${ipcopblue}.254 $username
-	[ "$ENABLED_ORANGE" = "on" ] && write_config $tmpdir/${username}-TO-IPCop-ORANGE.ovpn ${ipcoporange}.254 $username
+	write_config $tmpdir/${username}-TO-IPCop-RED.ovpn $ROOTCERT_HOSTNAME
+	[ "$ENABLED_BLUE" = "on" ] && write_config $tmpdir/${username}-TO-IPCop-BLUE.ovpn ${ipcopblue}.254
+	[ "$ENABLED_ORANGE" = "on" ] && write_config $tmpdir/${username}-TO-IPCop-ORANGE.ovpn ${ipcoporange}.254
 
 	get_homedir $username
 	homedir=$RET
@@ -180,10 +195,7 @@ download_cert() {
 # create certificate function
 create_cert() {
 
-	username=$1
-	cn="$2"
 	commonname=${cn// /_}
-	password=$3
 
 	tmpdir=/var/tmp/create_cert.$$
 	mkdir -p $tmpdir
@@ -221,9 +233,6 @@ create_cert() {
 # mail to admin about certificate creation
 mail_admin() {
 
-	username=$1
-	cn="$2"
-
 	mail -s "OpenVPN-Zertifikat fuer Benutzer $cn erstellt" ${ADMINISTRATOR}@localhost <<EOF
 Benutzer $cn hat sich erfolgreich ein OpenVPN-Zertifikat erstellt.
 Das Zertifikat muss jedoch noch durch den Administrator freigeschaltet werden.
@@ -240,11 +249,11 @@ if [ -n "$create" ]; then
 	if [ $cert_status -eq 0 ]; then
 		echo "User $username has already a certificate! Skipping creation!"
 	else
-		create_cert $username "$cn" $password
+		create_cert
 	fi
 
-	download_cert $username
-	mail_admin $username "$cn"
+	download_cert
+	mail_admin
 
 fi # create certificate
 
@@ -267,9 +276,10 @@ fi
 
 # extracting username from ovpnconfig
 get_certuser() {
-	certuser=`echo $line | awk -F, '{ print $4 }'`
-	certuser=`echo $certuser | awk -F\[ '{ print $2 }'`
-	certuser=`echo $certuser | awk -F\] '{ print $1 }'`
+	cn=`echo $line | awk -F, '{ print $4 }'`
+	certuser=`echo $cn | awk '{ print $1 }'`
+	schar=`echo $cn | awk '{ print $2 }'`
+	[ "$schar" = "-" ] || unset certuser
 }
 
 
@@ -390,7 +400,7 @@ if [[ -n "$activate" || -n "$deactivate" ]]; then
 			touch $tmpdir/ovpnconfig
 			echo "Executing certificate configuration update ..."
 			put_ipcop $tmpdir/ovpnconfig /var/ipcop/ovpn/ovpnconfig
-			#exec_ipcop /usr/local/bin/openvpnctrl -r
+			exec_ipcop /usr/local/bin/openvpnctrl -r
 		fi
 
 	fi
@@ -436,17 +446,17 @@ if [ -n "$purge" ]; then
 
 		for username in $groupmembers; do
 
-			if grep -q "\[$username\]" $tmpdir/ovpnconfig; then
+			if grep -q ",$username - " $tmpdir/ovpnconfig; then
 
 				echo "Purging OpenVPN certificate for $username ..."
 				changed=yes
 
 				# delete user from ovpnconfig
-				grep -v "\[$username\]" $tmpdir/ovpnconfig > $tmpdir/ovpnconfig.new
+				grep -v ",$username - " $tmpdir/ovpnconfig > $tmpdir/ovpnconfig.new
 				mv $tmpdir/ovpnconfig.new $tmpdir/ovpnconfig
 
 				# delete user from index.txt
-				grep -v "\[$username\]" $tmpdir/index.txt > $tmpdir/index.txt.new
+				grep -v "CN=$username - " $tmpdir/index.txt > $tmpdir/index.txt.new
 				mv $tmpdir/index.txt.new $tmpdir/index.txt
 
 				# delete certificate files
@@ -467,6 +477,7 @@ if [ -n "$purge" ]; then
 			echo "Executing certificate configuration update ..."
 			put_ipcop $tmpdir/ovpnconfig /var/ipcop/ovpn/ovpnconfig
 			put_ipcop $tmpdir/index.txt /var/ipcop/ovpn/certs/index.txt
+			exec_ipcop /usr/local/bin/openvpnctrl -r
 		fi
 
 	else
@@ -567,7 +578,7 @@ if [[ -n "$cleanup" || -n "$purgeallstudentcerts" ]]; then
 
 			if [ -n "$purge_cert" ]; then
 				echo " Purging OpenVPN certificate for $certuser!"
-				grep -v "\[$certuser\]" $tmpdir/index.txt > $tmpdir/index.txt.tmp
+				grep -v "CN=$certuser - " $tmpdir/index.txt > $tmpdir/index.txt.tmp
 				mv $tmpdir/index.txt.tmp $tmpdir/index.txt
 				exec_ipcop /bin/rm /var/ipcop/ovpn/certs/${certuser}cert.pem
 				exec_ipcop /bin/rm /var/ipcop/ovpn/certs/${certuser}.p12
@@ -584,7 +595,7 @@ if [[ -n "$cleanup" || -n "$purgeallstudentcerts" ]]; then
 			echo "Executing certificate configuration update ..."
 			put_ipcop $tmpdir/ovpnconfig.new /var/ipcop/ovpn/ovpnconfig
 			put_ipcop $tmpdir/index.txt /var/ipcop/ovpn/certs/index.txt
-			#exec_ipcop /usr/local/bin/openvpnctrl -r
+			exec_ipcop /usr/local/bin/openvpnctrl -r
 		fi
 
 	fi
