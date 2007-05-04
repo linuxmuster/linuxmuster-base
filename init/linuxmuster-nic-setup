@@ -2,11 +2,13 @@
 #
 # assign nics to interfaces on boot
 # Thomas Schmitt <schmitt@lmz-bw.de>
+# 03.05.2007
 #
 
 # source linuxmuster stuff
 . /usr/share/linuxmuster/config/dist.conf || exit 1
 . $HELPERFUNCTIONS || exit 1
+
 
 # network.settings present?
 if [ -e "$NETWORKSETTINGS" ]; then
@@ -16,7 +18,8 @@ else
 	exit 0
 fi
 
-check_valid_macs() {
+
+nic_setup() {
 
 	echo -n "Checking for changed mac addresses ..."
 
@@ -44,49 +47,60 @@ check_valid_macs() {
 	
 	if [ -z "$nic_setup" ]; then
 		echo " OK!"
-		return 0
 	else
 		echo
-		return 1
+		echo "Mac addresses have changed. Starting nic setup ..."
+		$SCRIPTSDIR/nic_setup.sh
+		. $NETWORKSETTINGS
 	fi	
 
 }
+
+
+assign_macs() {
+
+	# first assign them to temporary interfaces
+	[ -n "$mac_extern" ] && nameif eth_tmp0 $mac_extern
+	[ -n "$mac_intern" ] && nameif eth_tmp1 $mac_intern
+	[ -n "$mac_wlan" ] && nameif eth_tmp2 $mac_wlan
+	[ -n "$mac_dmz" ] && nameif eth_tmp3 $mac_dmz
+
+	# and then make the real assignment
+	if [ -n "$mac_extern" ]; then
+		echo "Assigning $mac_extern to extern ..."
+		nameif extern $mac_extern
+	fi
+	if [ -n "$mac_intern" ]; then
+		echo "Assigning $mac_intern to intern ..."
+		nameif intern $mac_intern
+	fi
+	if [ -n "$mac_wlan" ]; then
+		echo "Assigning $mac_wlan to wlan ..."
+		nameif wlan $mac_wlan
+	fi
+	if [ -n "$mac_dmz" ]; then
+		echo "Assigning $mac_dmz to dmz ..."
+		nameif dmz $mac_dmz
+	fi
+
+}
+
 
 # name interfaces
 case $1 in
 
 	start)
 
-		# check for changed mac addresses
-		if ! check_valid_macs; then
-			echo "Mac addresses have changed. Starting nic setup ..."
-			$SCRIPTSDIR/nic_setup.sh
-			. $NETWORKSETTINGS
-		fi
+		# called on boot
+		nic_setup
+		assign_macs
 
-		# first assign them to temporary interfaces
-		[ -n "$mac_extern" ] && nameif eth_tmp0 $mac_extern
-		[ -n "$mac_intern" ] && nameif eth_tmp1 $mac_intern
-		[ -n "$mac_wlan" ] && nameif eth_tmp2 $mac_wlan
-		[ -n "$mac_dmz" ] && nameif eth_tmp3 $mac_dmz
+		;;
 
-		# and then make the real assignment
-		if [ -n "$mac_extern" ]; then
-			echo "Assigning $mac_extern to extern ..."
-			nameif extern $mac_extern
-		fi
-		if [ -n "$mac_intern" ]; then
-			echo "Assigning $mac_intern to intern ..."
-			nameif intern $mac_intern
-		fi
-		if [ -n "$mac_wlan" ]; then
-			echo "Assigning $mac_wlan to wlan ..."
-			nameif wlan $mac_wlan
-		fi
-		if [ -n "$mac_dmz" ]; then
-			echo "Assigning $mac_dmz to dmz ..."
-			nameif dmz $mac_dmz
-		fi
+	assign)
+
+		# called by linuxmuster-setup
+		assign_macs
 
 		;;
 

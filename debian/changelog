@@ -1,3 +1,27 @@
+linuxmuster-base (1.0-17) testing; urgency=low
+
+  * fixing debian/default not beeing installed
+  * calling dpkg-reconfigure linuxmuster-base at the end of linuxmuster-setup
+    to fix things which are not yet fixed
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 04 May 2007 21:52:12 +0200
+
+linuxmuster-base (1.0-16) testing; urgency=low
+
+  * fixed init script for parsing /etc/default/linuxmuster-base
+  * added internet connection check to cyrus-upgrade script
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 03 May 2007 22:29:14 +0200
+
+linuxmuster-base (1.0-15) testing; urgency=low
+
+  * administrator is now allowed to create an OpenVPN client cert
+  * added configuration support for linuxmuster-nagios-base and
+    linuxmuster-nagios-grapher
+  * minor bugfixes concerning to cd installation
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 03 May 2007 10:06:10 +0200
+
 linuxmuster-base (1.0-14) testing; urgency=low
 
   * removed cups-pdf folder creation in user's home from samba-userlog

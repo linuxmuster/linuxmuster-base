@@ -6,10 +6,12 @@ if [ "$1" = "--first" ]; then
   sleep 10
 
   # delete old mailboxes
-  users=`ls /var/spool/cyrus/mail/*/user/ | grep -v :`
-  for i in $users; do
-    $SCRIPTSDIR/cyrus-mbox -d $i
-  done
+  if ls /var/spool/cyrus/mail/*/user/ &> /dev/null; then
+    users=`ls /var/spool/cyrus/mail/*/user/ | grep -v :`
+    for i in $users; do
+      $SCRIPTSDIR/cyrus-mbox -d $i
+    done
+  fi
 
   # repair admin groups and administrators
   $SCRIPTSDIR/repair-admins.sh

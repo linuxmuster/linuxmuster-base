@@ -97,13 +97,18 @@ get_commonname() {
 
 if [ -n "$username" ]; then
 
-	# valid user check
-	uidnr=`id -ru $username`
-	if [[ -z "$uidnr" || "$uidnr" -lt 10000 ]]; then
+	# administrator is valid
+	if [ "$username" != "$ADMINISTRATOR" ]; then
+
+	    # valid user check
+	    uidnr=`id -ru $username`
+	    if [[ -z "$uidnr" || "$uidnr" -lt 10000 ]]; then
 
 		echo "No valid username!"
 		exit 1
 
+	    fi
+	    
 	fi
 
 	# determine common name

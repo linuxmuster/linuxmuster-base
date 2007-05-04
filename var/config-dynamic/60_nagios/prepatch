@@ -1,10 +1,10 @@
-# temporarily deactivated
 # configure linuxmuster-nagios
-#if [ "$1" = "--first" ]; then
 
-#	DEBIAN_FRONTEND=noninteractive dpkg-reconfigure linuxmuster-nagios-base
+#sed -e "s/^SERVERPING_HOST=.*/SERVERPING_HOST=\"${servername}\"/" /etc/linuxmuster/nagios.conf >  /etc/linuxmuster/nagios.conf.tmp
+#mv /etc/linuxmuster/nagios.conf.tmp /etc/linuxmuster/nagios.conf
 
-#fi
+linuxmuster-nagios-setup
 
-#/etc/init.d/nagios2 start
-
+# starting nagios2 again
+/etc/init.d/nagios2 start
+/etc/init.d/nagios-grapher start

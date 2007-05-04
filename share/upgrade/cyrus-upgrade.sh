@@ -10,6 +10,12 @@ if ! dpkg -l | grep -q "ii  cyrus21-common"; then
 	exit 0
 fi
 
+# checking internet connection
+if ! ping -c2 www.backports.org &> /dev/null; then
+	echo "No connection to www.backports.org! Aborting!"
+	exit 1
+fi
+
 # stopping cyrmaster
 /etc/init.d/cyrus21 stop
 

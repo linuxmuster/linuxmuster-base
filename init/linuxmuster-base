@@ -4,7 +4,7 @@
 # LMZ Baden-Wuerttemberg, <schmitt@lmz-bw.de>
 
 # source default settings
-. /etc/default/linuxmuster-base || exit 1
+[ -f /etc/default/linuxmuster-base ] && . /etc/default/linuxmuster-base
 
 # check if we are allowed to start
 [ "$START_LINUXMUSTER" = "yes" ] || exit 0

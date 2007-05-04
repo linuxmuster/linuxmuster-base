@@ -18,7 +18,7 @@ if [[ "$1" = "--first" || "$update_fw" = "yes" ]]; then
 fi
 
 # start networking
-/etc/init.d/linuxmuster-nic-setup start
+/etc/init.d/linuxmuster-nic-setup assign
 /etc/rcS.d/S40networking start
 
 # start firewall

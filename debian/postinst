@@ -53,7 +53,7 @@ case "$1" in
       # make configs executable so that perl scripts can source it
       chmod 755 /usr/share/linuxmuster/config/dist.conf
       chmod 755 /etc/linuxmuster/backup.conf
-      chmod 755 /etc/default/linuxmuster-base
+      [ -e /etc/default/linuxmuster-base ] && chmod 755 /etc/default/linuxmuster-base
 
       # only root may use helperfunctions.sh
       chmod 600 $HELPERFUNCTIONS

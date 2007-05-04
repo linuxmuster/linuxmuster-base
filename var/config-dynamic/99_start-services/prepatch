@@ -12,7 +12,8 @@ for service in $services; do
 done
 
 # update clamav
-su -c /usr/bin/freshclam clamav
+#su -c /usr/bin/freshclam clamav
+freshclam
 
 # upgrade pear packages
 pear upgrade Archive_Tar Console_Getopt DB HTTP Mail Net_SMTP Net_Socket XML_Parser XML_RPC
@@ -26,3 +27,6 @@ fi
 
 # set installed flag
 touch $INSTALLED
+
+# reconfiguring package to fix what has been not yet fixed
+dpkg-reconfigure linuxmuster-base

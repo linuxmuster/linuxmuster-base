@@ -7,7 +7,7 @@ chmod 664 /etc/bind/db.10
 chmod 664 /etc/bind/db.linuxmuster
 
 # delete journaling files
-rm /etc/bind/*.jnl
+ls /etc/bind/*.jnl &> /dev/null && rm /etc/bind/*.jnl
 
 # start the service
 /etc/init.d/bind9 start

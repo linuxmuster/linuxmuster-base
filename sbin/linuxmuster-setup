@@ -28,7 +28,7 @@ usage() {
 if [ -e /etc/inittab.real ]; then
 
   # reread inittab
-  rm /etc/inittab.real
+  mv /etc/inittab.real /etc/inittab
   telinit q
 
 else

@@ -6,4 +6,4 @@ sophomorix-class --class teachers --mailalias
 /etc/init.d/amavis start
 /etc/init.d/postfix start
 /etc/init.d/saslauthd start
-/etc/init.d/cyrus21 start
+/etc/init.d/cyrus2.2 start
