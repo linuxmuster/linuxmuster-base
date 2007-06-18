@@ -181,6 +181,12 @@ case "$1" in
           apache_reload=yes
         fi
 
+	# removing schulkonsole's obsolete apache2 configuration
+	if [ -L /etc/apache2/conf.d/schulkonsole ]; then
+		rm /etc/apache2/conf.d/schulkonsole
+          apache_reload=yes
+        fi
+
 	# create new certificate skript and create new certificate
 	if [ ! -e "$SCRIPTSDIR/create-ssl-cert.sh" ]; then
 		echo "Creating new server certificate ..."
@@ -616,6 +622,15 @@ password-hash   {CRYPT}' /etc/ldap/slapd.conf.dpkg-old > /etc/ldap/slapd.conf
 		if [ -e /etc/rc2.d/S20cyrus21 ]; then
 			update-rc.d -f cyrus21 remove
 		fi
+	fi
+
+	# updating schulkonsole's db.conf
+	if grep -q ^"Username=ldap" /etc/linuxmuster/schulkonsole/db.conf; then
+		echo "Updating database configuration for linuxmuster-schulkonsole ..."
+		cp /var/lib/linuxmuster/config-static/etc/linuxmuster/schulkonsole/db.conf /etc/linuxmuster/schulkonsole/db.conf.obsolete
+		cp /var/lib/linuxmuster/config-static/etc/linuxmuster/schulkonsole/db.conf /etc/linuxmuster/schulkonsole
+		chown www-data:www-data /etc/linuxmuster/schulkonsole/db.conf*
+		chmod 600 /etc/linuxmuster/schulkonsole/db.conf*
 	fi
 
         # restoring internal firewall

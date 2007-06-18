@@ -72,14 +72,12 @@ if [ "$1" = "--first" ]; then
   sophomorix-setup-pgldap --new-database --slapd-standalone
 
   # fetch dbpasswd
-  dbpasswd=`grep ^dbpasswd /etc/ldap/slapd.conf | awk '{ print $2 }' -`
+  #dbpasswd=`grep ^dbpasswd /etc/ldap/slapd.conf | awk '{ print $2 }' -`
 
   # patch schulkonsole db.conf with password
-  sed -e "s/^Password=.*/Password=$dbpasswd/" /etc/linuxmuster/schulkonsole/db.conf > /etc/linuxmuster/schulkonsole/db.conf.tmp
-  cp -f /etc/linuxmuster/schulkonsole/db.conf.tmp /etc/linuxmuster/schulkonsole/db.conf && rm -f /etc/linuxmuster/schulkonsole/db.conf.tmp
-  chown www-data:www-data /etc/linuxmuster/schulkonsole/*
-  chmod 400 /etc/linuxmuster/schulkonsole/db.conf*
-  [ -L /etc/apache2/conf.d/schulkonsole ] || ln -s /etc/linuxmuster/schulkonsole/apache2.conf /etc/apache2/conf.d/schulkonsole
+  #sed -e "s/^Password=.*/Password=$dbpasswd/" /etc/linuxmuster/schulkonsole/db.conf > /etc/linuxmuster/schulkonsole/db.conf.tmp
+  #cp -f /etc/linuxmuster/schulkonsole/db.conf.tmp /etc/linuxmuster/schulkonsole/db.conf && rm -f /etc/linuxmuster/schulkonsole/db.conf.tmp
+  #[ -L /etc/apache2/conf.d/schulkonsole ] || ln -s /etc/linuxmuster/schulkonsole/apache2.conf /etc/apache2/conf.d/schulkonsole
 
 else
 
@@ -93,8 +91,12 @@ fi
 for i in /etc/ldap.secret /etc/ldap/slapd.conf /etc/smbldap-tools/smbldap_bind.conf /etc/sophomorix/pgldap/pgldap.conf; do
   chmod 600 $i
 done
+
+chown www-data:www-data /etc/linuxmuster/schulkonsole/*
+chmod 400 /etc/linuxmuster/schulkonsole/db.conf*
 chown root:root /etc/ldap/slapd.conf*
 chown root:root /etc/ldap/ldap.conf
 chmod 644 /etc/ldap/ldap.conf
-chown root:root /etc/odbc.ini
-chmod 644  /etc/odbc.ini
+#chown root:root /etc/odbc.ini
+#chmod 644  /etc/odbc.ini
+
