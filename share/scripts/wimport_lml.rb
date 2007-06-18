@@ -5,7 +5,7 @@ require "etc"
 Config = ConfigClass.new
 
 MACHINE_PASSWORD = 12345678
-HOST_PASSWORD = `pwgen -s 8 1`
+HOST_PASSWORD = 'pwgen -s 8 1'
 #ROOM_UID = get_uid(Config.ADMINISTRATOR)
 #ROOM_GID = Etc.getgrnam(Config.ADMINISTRATOR).gid
 #ROOM_GID = Etc.getgrnam('root').gid
@@ -64,20 +64,23 @@ rows.each do
   room = row.ROOM.downcase
 
   # Create room group if it doesn't exist
-  if not rooms_processed[room]
-    if not check_group(res_groups, room)
-      info "  * Lege Raum an: #{room}"
-      runcmd "smbldap-groupadd -a '#{room}'"
-    end
-    rooms_processed[room] = true
-  end
+# not necessary because non existent groups were created with the user account
+#  if not rooms_processed[room]
+#    if not check_group(res_groups, room)
+#      info "  * Lege Raum an: #{room}"
+#      runcmd "smbldap-groupadd -a '#{room}'"
+#    end
+#    rooms_processed[room] = true
+#  end
 
   # Create workstation account if it doesn't exist
   if not hostname.empty? and not room.empty?
     if not check_host(res_hosts, hostname)
       info "  * Lege Stationskonto an: #{hostname}"
-      runcmd "smbldap-useradd -a -d '#{Config.WSHOME}/#{room}/#{hostname}' -c HostAccount -g '#{room}' -m -s /bin/bash '#{hostname}'"
-      runcmd "echo -e '#{HOST_PASSWORD}\n#{HOST_PASSWORD}\n' | smbldap-passwd '#{hostname}'"
+#      runcmd "smbldap-useradd -a -d '#{Config.WSHOME}/#{room}/#{hostname}' -c HostAccount -g '#{room}' -m -s /bin/bash '#{hostname}'"
+      runcmd "sophomorix-useradd --examaccount '#{hostname}' --unix-group '#{room}'"
+#      runcmd "echo -e '#{HOST_PASSWORD}\n#{HOST_PASSWORD}\n' | smbldap-passwd '#{hostname}'"
+      runcmd "sophomorix-passwd -u '#{hostname}' --pass '#{HOST_PASSWORD}'"
       # Create workstation home if it doesn't exist
       path = "#{Config.WSHOME}/#{room}/#{hostname}"
       runcmd "mkdir -p '#{path}'" if not File.directory?(path)
@@ -100,10 +103,12 @@ rows.each do
   # Create Samba machine trust account if it doesn't exist
   if not check_machine(res_machines, "#{hostname}$")
     info "  * Lege Samba Computerkonto an: #{hostname}$"
-    runcmd "smbldap-useradd -w -g 515 -c Computer -d /dev/null -s /bin/false '#{hostname}$'"
-    runcmd "smbpasswd -a -m '#{hostname}'"
-    runcmd "echo -e '#{MACHINE_PASSWORD}\n#{MACHINE_PASSWORD}\n' | smbldap-passwd '#{hostname}$'"
-    runcmd "smbldap-usermod -H '[WX]' '#{hostname}$'"
+#    runcmd "smbldap-useradd -w -g 515 -c Computer -d /dev/null -s /bin/false '#{hostname}$'"
+#    runcmd "smbpasswd -a -m '#{hostname}'"
+#    runcmd "echo -e '#{MACHINE_PASSWORD}\n#{MACHINE_PASSWORD}\n' | smbldap-passwd '#{hostname}$'"
+#    runcmd "smbldap-usermod -H '[WX]' '#{hostname}$'"
+    runcmd "sophomorix-useradd --computer '#{hostname}$'"
+    runcmd "sophomorix-passwd -u '#{hostname}$' --pass '#{MACHINE_PASSWORD}'"
   end
 end
 
@@ -118,8 +123,10 @@ Dir.glob("#{Config.WSHOME}/*/*").each do
   hostname = File.basename(hostpath)
   if not hostnames[hostname.downcase]
     puts "  * Entferne Stationskonto: #{hostname}"
-    begin check_host(res_hosts, hostname); runcmd "smbldap-userdel '#{hostname}'" rescue nil end
-    begin check_machine(res_machines, "#{hostname}$"); runcmd "smbldap-userdel '#{hostname}$'" rescue nil end
+#    begin check_host(res_hosts, hostname); runcmd "smbldap-userdel '#{hostname}'" rescue nil end
+#    begin check_machine(res_machines, "#{hostname}$"); runcmd "smbldap-userdel '#{hostname}$'" rescue nil end
+    begin check_host(res_hosts, hostname); runcmd "sophomorix-kill --killuser '#{hostname}'" rescue nil end
+    begin check_machine(res_machines, "#{hostname}$"); runcmd "sophomorix-kill --killuser '#{hostname}$'" rescue nil end
     runcmd "rm -rf '#{hostpath}'"
   end
 end
@@ -129,7 +136,8 @@ Dir.glob("#{Config.WSHOME}/*").each do
   room = File.basename(roompath)
   if not rooms[room.downcase]
     puts "  * Entferne Raum: #{room}"
-    begin check_group(res_groups, room); runcmd "smbldap-groupdel '#{room}'" rescue nil end
+#    begin check_group(res_groups, room); runcmd "smbldap-groupdel '#{room}'" rescue nil end
+    begin check_group(res_groups, room); runcmd "sophomorix-groupdel --room '#{room}'" rescue nil end
     runcmd "rm -rf '#{roompath}'"
 
     classes = Config.CLASSROOMS

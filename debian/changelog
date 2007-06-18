@@ -1,3 +1,18 @@
+linuxmuster-base (1.0-18) testing; urgency=low
+
+  * added example configs extraschueler.txt, extrakurse.txt, entfernen.txt
+    and sperrklassen.txt in /etc/sophomorix/user
+  * fixed logrotate configuration
+  * various modifications concerning to sophomorix' slapd-standalone
+  * changed HostAccount to ExamAccount in helper.rb
+  * changed sophomorix-passwd parameter --workstation to --examaccount in wimport_lml.rb
+  * moving cupsys' init start nr to 21
+  * fixed ip handling in urlfilter_on_off.sh (closes #255)
+  * fixed random host password creation in wimport_lml.rb
+  * removing old cyrus21 runlevel links on postinst
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 15 Jun 2007 15:37:53 +0200
+
 linuxmuster-base (1.0-17) testing; urgency=low
 
   * fixing debian/default not beeing installed

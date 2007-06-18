@@ -595,8 +595,27 @@ password-hash   {CRYPT}' /etc/ldap/slapd.conf.dpkg-old > /etc/ldap/slapd.conf
 			cups_restart=yes
 		fi
 	fi
+	# fixing cupsys init start nr
+	if [ -e /etc/rc2.d/S20cupsys ]; then
+		echo "Fixing cupsys' init start nr ..."
+		update-rc.d -f cupsys remove
+		update-rc.d cupsys start 21 2 3 4 5 . stop 19 0 1 6 .
+		cups_restart=yes
+	fi
 	if [ -n "$cups_restart" ]; then
 			/etc/init.d/cupsys force-reload || true
+	fi
+
+	# extraschueler.txt, extrakurse.txt
+	for i in extraschueler.txt extrakurse.txt entfernen.txt sperrklassen.txt; do
+		[ -e "/etc/sophomorix/user/$i" ] || cp /var/lib/linuxmuster/config-static/etc/sophomorix/user/$i /etc/sophomorix/user
+	done
+
+        # removing old cyrus21 runlevel links
+	if [ -e /etc/rc2.d/S20cyrus2.2 ]; then
+		if [ -e /etc/rc2.d/S20cyrus21 ]; then
+			update-rc.d -f cyrus21 remove
+		fi
 	fi
 
         # restoring internal firewall

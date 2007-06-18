@@ -33,6 +33,10 @@ checklock || exit 1
 # check if urlfilter is active at all
 check_urlfilter || cancel "Urlfilter is not active!"
 
+# tmpdir & file
+tmpdir=/var/tmp/urlfilter.$$
+tmpfile=$tmpdir/unfilter.tmp
+
 # parse hostlist
 n=0
 OIFS=$IFS
@@ -63,12 +67,31 @@ nr_of_ips=$m
 get_ipcop /var/ipcop/urlfilter/settings $CACHEDIR/urlfilter.settings &> /dev/null || cancel "Download of urlfilter settings failed!"
 . $CACHEDIR/urlfilter.settings &> /dev/null || cancel "Cannot read urlfilter settings!"
 
+# strip ip from $UNFILTERED_CLIENTS
+strip_ip() {
+
+  ip=$1
+  [ -z "$ip" ] && return
+
+  [ -d "$tmpdir" ] || mkdir -p $tmpdir
+  [ -e "$tmpfile" ] && rm $tmpfile
+
+  for i in $UNFILTERED_CLIENTS; do
+    echo $i >> $tmpfile
+  done
+
+  grep -vw $ip $tmpfile > ${tmpfile}.new
+
+  UNFILTERED_CLIENTS=`cat ${tmpfile}.new`
+
+} # strip_ip
+
 # add ips to unfiltered clients
 if [ "$trigger" = "off" ]; then
 
   n=0
   while [[ $n -lt $nr_of_ips ]]; do
-    stringinstring "${ip[$n]}" "$UNFILTERED_CLIENTS" || UNFILTERED_CLIENTS="$UNFILTERED_CLIENTS ${ip[$n]}"
+    echo "$UNFILTERED_CLIENTS" | grep -wq ${ip[$n]} || UNFILTERED_CLIENTS="$UNFILTERED_CLIENTS ${ip[$n]}"
     let n+=1
   done
 
@@ -76,14 +99,14 @@ else # remove ip from list
 
   n=0
   while [[ $n -lt $nr_of_ips ]]; do
-    UNFILTERED_CLIENTS="${UNFILTERED_CLIENTS/${ip[$n]}/}"
+    echo "$UNFILTERED_CLIENTS" | grep -wq ${ip[$n]} && strip_ip ${ip[$n]}
     let n+=1
   done
 
 fi
 
 # remove serverip from ip list
-UNFILTERED_CLIENTS="${UNFILTERED_CLIENTS/$serverip/}"
+strip_ip $serverip
 
 # stripping spaces
 UNFILTERED_CLIENTS="${UNFILTERED_CLIENTS//  / }"
@@ -111,6 +134,7 @@ if [ -n "$UNFILTERED_CLIENTS" ]; then
 fi
 
 # end, delete lockfile and cache files
+[ -d "$tmpdir" ] && rm -rf $tmpdir
 rm -f $CACHEDIR/urlfilter.settings
 rm -f $lockflag || exit 1
 

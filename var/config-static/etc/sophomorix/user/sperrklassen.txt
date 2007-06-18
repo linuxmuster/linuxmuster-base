@@ -1,0 +1,13 @@
+# $Id: sperrklassen.txt,v 1.2 2006/04/22 14:14:12 jeffbeck Exp $
+# sophomorix-Konfigurationsdatei
+# Klassen deren Sperrdatum nicht erreicht ist, werden gesperrt, 
+# ABER NUR WENN sie noch nicht im System(=angelegt) sind !!!
+################################################################################
+# Achtung: Anlegedatum darf nicht nach dem Ende 
+# der Unix-Zeit (32-bit-OS) liegen (Jahr 2038)
+#
+# Bei Kommentaren muss das # am Zeilenanfang stehen!
+#
+# Das Beispiel sperrt alle Schüler der Klasse M1KB2T,
+# wenn die Systemzeit den 19.02.2002 noch nicht erreicht hat:
+# M1KB2T;19.02.2002;

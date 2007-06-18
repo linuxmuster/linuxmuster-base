@@ -1,0 +1,11 @@
+# $Id: extraschueler.txt,v 1.3 2006/04/22 14:14:12 jeffbeck Exp $
+# sophomorix-Konfigurationsdatei
+# Dies ist ein Kommentar
+# Das Datum muss standardmäßig im Bereich 1900 bis 2100 liegen
+# Sinnvoll für das Datum ist das Anlegedatum
+# Im Namen dürfen Buchstaben und Ziffern stehen
+# Beispiele:
+# vhs;multi;01;1.1.2004;               ergibt den user multi01 in der
+#                                      Klasse vhs
+# vhs;multi;01;2.1.2004;mu1;           ergibt den user mu1 in der
+#                                      Klasse vhs

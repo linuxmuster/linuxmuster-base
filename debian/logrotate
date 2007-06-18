@@ -1,9 +1,40 @@
-/var/log/linuxmuster/* {
+/var/log/linuxmuster/joindom.log {
      rotate 14
      weekly
      compress
      size 50k
      missingok
      notifempty
-     tabooext + .gz
+}
+/var/log/linuxmuster/repolog {
+     rotate 90
+     weekly
+     compress
+     size 50k
+     missingok
+     notifempty
+}
+/var/log/linuxmuster/setup.log {
+     rotate 90
+     weekly
+     compress
+     size 50k
+     missingok
+     notifempty
+}
+/var/log/linuxmuster/userlogins {
+     rotate 30
+     weekly
+     compress
+     size 50k
+     missingok
+     notifempty
+}
+/var/log/linuxmuster/userdblog {
+     rotate 90
+     weekly
+     compress
+     size 50k
+     missingok
+     notifempty
 }

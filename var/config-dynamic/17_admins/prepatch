@@ -13,14 +13,23 @@ if [ "$1" = "--first" ]; then
     done
   fi
 
-  # repair admin groups and administrators
-  $SCRIPTSDIR/repair-admins.sh
-
   # set passwords for admins
-  echo -e "$adminpw\n$adminpw\n" | smbldap-passwd -e $DOMADMIN
-  echo -e "$adminpw\n$adminpw\n" | smbldap-passwd -e $ADMINISTRATOR
-  echo -e "$pgmadminpw\n$pgmadminpw\n" | smbldap-passwd -e $PGMADMIN
-  echo -e "$wwwadminpw\n$wwwadminpw\n" | smbldap-passwd -e $WWWADMIN
+  #echo -e "$adminpw\n$adminpw\n" | smbldap-passwd -e $DOMADMIN
+  sophomorix-passwd --user $DOMADMIN --pass $adminpw
+  #echo -e "$adminpw\n$adminpw\n" | smbldap-passwd -e $ADMINISTRATOR
+  sophomorix-passwd --user $ADMINISTRATOR --pass $adminpw
+  #echo -e "$pgmadminpw\n$pgmadminpw\n" | smbldap-passwd -e $PGMADMIN
+  sophomorix-passwd --user $PGMADMIN --pass $pgmadminpw
+  #echo -e "$wwwadminpw\n$wwwadminpw\n" | smbldap-passwd -e $WWWADMIN
+  sophomorix-passwd --user $WWWADMIN --pass $wwwadminpw
+
+  # create mailboxes again
+  mailquota=`grep ^$ADMINISTRATOR $MAILQUOTACONF | awk -F: '{ print $2 }'`
+  $SCRIPTSDIR/cyrus-mbox -q $mailquota -c $ADMINISTRATOR
+  mailquota=`grep ^$PGMADMIN $MAILQUOTACONF | awk -F: '{ print $2 }'`
+  $SCRIPTSDIR/cyrus-mbox -q $mailquota -c $PGMADMIN
+  mailquota=`grep ^$WWWADMIN $MAILQUOTACONF | awk -F: '{ print $2 }'`
+  $SCRIPTSDIR/cyrus-mbox -q $mailquota -c $WWWADMIN
 
 else
 

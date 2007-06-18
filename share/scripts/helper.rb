@@ -93,10 +93,10 @@ def get_hostgroups()
   if (res_groups.status != PGresult::TUPLES_OK)
     raise PGerror,"Query for groups failed!"
   end
-  query = "SELECT uid FROM posix_account WHERE gecos='HostAccount';"
+  query = "SELECT uid FROM posix_account WHERE gecos='ExamAccount' OR gecos='HostAccount';"
   res_hosts = conn.exec(query)
   if (res_hosts.status != PGresult::TUPLES_OK)
-    raise PGerror,"Query for host accounts failed!"
+    raise PGerror,"Query for exam accounts failed!"
   end
   query = "SELECT uid FROM posix_account WHERE gecos='Computer';"
   res_machines = conn.exec(query)

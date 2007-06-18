@@ -28,6 +28,11 @@ cp -f /etc/ldap/slapd.conf.tmp /etc/ldap/slapd.conf && rm -f /etc/ldap/slapd.con
 sed -e "s/^masterDN=.*/masterDN=\"cn=admin,$basedn\"/" /etc/smbldap-tools/smbldap_bind.conf > /etc/smbldap-tools/smbldap_bind.conf.tmp
 cp -f /etc/smbldap-tools/smbldap_bind.conf.tmp /etc/smbldap-tools/smbldap_bind.conf && rm -f /etc/smbldap-tools/smbldap_bind.conf.tmp
 
+# patch sophomorix templates with current sid & samba domain
+sed -e "s/^sambaSID:.*/sambaSID: $sambasid/
+        s/^sambaDomainName:.*/sambaDomainName: $workgroup/" /usr/share/sophomorix/config-templates/ldap/standalone.ldif.template > /usr/share/sophomorix/config-templates/ldap/standalone.ldif.template.tmp
+cp -f /usr/share/sophomorix/config-templates/ldap/standalone.ldif.template.tmp /usr/share/sophomorix/config-templates/ldap/standalone.ldif.template && rm -f /usr/share/sophomorix/config-templates/ldap/standalone.ldif.template.tmp
+
 # clear samba browse cache
 rm -f /var/lib/samba/wins.dat
 
@@ -50,16 +55,21 @@ if [ "$1" = "--first" ]; then
   rm -rf /var/log/sophomorix/user/*
 
   # fixing bug #130, if not yet done in sophomorix
-  template=/usr/share/sophomorix/config-templates/ldap/slapd.conf.template
-  if ! grep -q ^password-hash $template; then
-    echo "Fixing $template (Bug #130) ..."
-    cp $template ${template}.old
-    sed -e '/^argsfile/a\
-password-hash   {CRYPT}' ${template}.old > $template
-  fi
+#  template=/usr/share/sophomorix/config-templates/ldap/slapd.conf.template
+#  if ! grep -q ^password-hash $template; then
+#    echo "Fixing $template (Bug #130) ..."
+#    cp $template ${template}.old
+#    sed -e '/^argsfile/a\
+#password-hash   {CRYPT}' ${template}.old > $template
+#  fi
+
+  # purge old ldap tree
+#  rm -rf /var/lib/ldap/*
+#  cp /usr/share/sophomorix/config-templates/bdb/DB_CONFIG /var/lib/ldap
+#  chown openldap:openldap /var/lib/ldap -R
 
   # create new database
-  sophomorix-setup-pgldap --new-database
+  sophomorix-setup-pgldap --new-database --slapd-standalone
 
   # fetch dbpasswd
   dbpasswd=`grep ^dbpasswd /etc/ldap/slapd.conf | awk '{ print $2 }' -`
@@ -71,10 +81,13 @@ password-hash   {CRYPT}' ${template}.old > $template
   chmod 400 /etc/linuxmuster/schulkonsole/db.conf*
   [ -L /etc/apache2/conf.d/schulkonsole ] || ln -s /etc/linuxmuster/schulkonsole/apache2.conf /etc/apache2/conf.d/schulkonsole
 
-fi
+else
 
-# update user database with basedn and workgroup if necessary
-$SCRIPTSDIR/update-db.sh $basedn $workgroup "$schoolname"
+  # update user database with basedn and workgroup if necessary
+  #$SCRIPTSDIR/update-db.sh $basedn $workgroup "$schoolname"
+  sophomorix-setup-pgldap --slapd-standalone
+  
+fi
 
 # repair permissions
 for i in /etc/ldap.secret /etc/ldap/slapd.conf /etc/smbldap-tools/smbldap_bind.conf /etc/sophomorix/pgldap/pgldap.conf; do
