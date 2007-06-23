@@ -6,13 +6,68 @@ Config = ConfigClass.new
 
 MACHINE_PASSWORD = 12345678
 HOST_PASSWORD = 'pwgen -s 8 1'
-#ROOM_UID = get_uid(Config.ADMINISTRATOR)
-#ROOM_GID = Etc.getgrnam(Config.ADMINISTRATOR).gid
-#ROOM_GID = Etc.getgrnam('root').gid
 ROOM_DIRMODE = "0775"
-#HOST_GID = get_gid(Config.TEACHERSGROUP)
 HOST_DIRMODE = "0775"
 
+# Iterate over hostnames to find double entries ('rows' is inherited from myadmin)
+hostnames_processed = Hash.new
+rows.each do
+  |row|
+  hostname = row.HOSTNAME.downcase
+
+  if hostname.empty?
+    next
+  end
+
+  # compare hostnames
+  if not hostnames_processed[hostname]
+    hostnames_processed[hostname] = true
+  else
+    info "  * Doppelten Hostnamen gefunden: #{hostname}"
+    info "  * Breche Verarbeitung ab!"
+    exit 1
+  end
+end
+
+# Iterate over ips to find double entries ('rows' is inherited from myadmin)
+ips_processed = Hash.new
+rows.each do
+  |row|
+  ip = row.IPADDRESS
+
+  if ip.empty?
+    next
+  end
+
+  # compare ips
+  if not ips_processed[ip]
+    ips_processed[ip] = true
+  else
+    info "  * Doppelte IP-Adresse gefunden: #{ip}"
+    info "  * Breche Verarbeitung ab!"
+    exit 1
+  end
+end
+
+# Iterate over macs to find double entries ('rows' is inherited from myadmin)
+macs_processed = Hash.new
+rows.each do
+  |row|
+  mac = row.MACADDRESS.downcase
+
+  if mac.empty?
+    next
+  end
+
+  # compare macs
+  if not macs_processed[mac]
+    macs_processed[mac] = true
+  else
+    info "  * Doppelte MAC-Adresse gefunden: #{mac}"
+    info "  * Breche Verarbeitung ab!"
+    exit 1
+  end
+end
 
 # Create mySHN group directory and config file
 default_config = "#{Config.MYSHNDIR}/default/config"
@@ -55,65 +110,33 @@ runcmd("/etc/init.d/dhcp3-server force-reload", "nonzero-all")
 info "     - Rembo-Server"
 runcmd("/etc/init.d/rembo reload", "nonzero-all")
 
+# get groups and accounts from database
+res_groups, res_roomgroups, res_hosts, res_machines = get_hostgroups
+
 # Iterate over hosts ('rows' is inherited from myadmin)
-rooms_processed = Hash.new
-res_groups, res_hosts, res_machines = get_hostgroups
 rows.each do
   |row|
   hostname = row.HOSTNAME.downcase
   room = row.ROOM.downcase
 
-  # Create room group if it doesn't exist
-# not necessary because non existent groups were created with the user account
-#  if not rooms_processed[room]
-#    if not check_group(res_groups, room)
-#      info "  * Lege Raum an: #{room}"
-#      runcmd "smbldap-groupadd -a '#{room}'"
-#    end
-#    rooms_processed[room] = true
-#  end
-
   # Create workstation account if it doesn't exist
   if not hostname.empty? and not room.empty?
     if not check_host(res_hosts, hostname)
-      info "  * Lege Stationskonto an: #{hostname}"
-#      runcmd "smbldap-useradd -a -d '#{Config.WSHOME}/#{room}/#{hostname}' -c HostAccount -g '#{room}' -m -s /bin/bash '#{hostname}'"
-      runcmd "sophomorix-useradd --examaccount '#{hostname}' --unix-group '#{room}'"
-#      runcmd "echo -e '#{HOST_PASSWORD}\n#{HOST_PASSWORD}\n' | smbldap-passwd '#{hostname}'"
-      runcmd "sophomorix-passwd -u '#{hostname}' --pass '#{HOST_PASSWORD}'"
-      # Create workstation home if it doesn't exist
-      path = "#{Config.WSHOME}/#{room}/#{hostname}"
-      runcmd "mkdir -p '#{path}'" if not File.directory?(path)
-      # set permissions
-      begin
-        #uid = get_uid(hostname)
-        #runcmd "chown '#{uid}.#{HOST_GID}' '#{path}'"
-        runcmd "chown '#{hostname}.#{Config.TEACHERSGROUP}' '#{path}'"
-        runcmd "chmod '#{HOST_DIRMODE}' '#{path}'"
-      rescue
-        error "Fehler beim Setzen der Berechtigungen auf #{path}: #{$!}"
+      res = create_account(hostname, room, Config.WSHOME, HOST_PASSWORD, MACHINE_PASSWORD, Config.TEACHERSGROUP, HOST_DIRMODE)
+    else
+      # check if room for hostname has changed
+      pgroup = get_pgroup(hostname)
+      if room != pgroup.downcase
+        info "  * Arbeitsstation #{hostname} ist umgezogen von Raum #{pgroup} nach Raum #{room}!"
+        res = remove_account(hostname, res_hosts, res_machines)
+        res = create_account(hostname, room, Config.WSHOME, HOST_PASSWORD, MACHINE_PASSWORD, Config.TEACHERSGROUP, HOST_DIRMODE)
       end
-      # set quota
-      info "  * Setze quota: #{hostname}"
-      runcmd "sophomorix-quota -u #{hostname}"
     end
-  end
-
-
-  # Create Samba machine trust account if it doesn't exist
-  if not check_machine(res_machines, "#{hostname}$")
-    info "  * Lege Samba Computerkonto an: #{hostname}$"
-#    runcmd "smbldap-useradd -w -g 515 -c Computer -d /dev/null -s /bin/false '#{hostname}$'"
-#    runcmd "smbpasswd -a -m '#{hostname}'"
-#    runcmd "echo -e '#{MACHINE_PASSWORD}\n#{MACHINE_PASSWORD}\n' | smbldap-passwd '#{hostname}$'"
-#    runcmd "smbldap-usermod -H '[WX]' '#{hostname}$'"
-    runcmd "sophomorix-useradd --computer '#{hostname}$'"
-    runcmd "sophomorix-passwd -u '#{hostname}$' --pass '#{MACHINE_PASSWORD}'"
   end
 end
 
 
-# Remove non-existing workstation accounts
+# Remove non-existing workstation accounts and room groups
 hostnames = Hash.new
 rooms = Hash.new
 rows.each { |row| hostnames[row.HOSTNAME.downcase] = true; rooms[row.ROOM.downcase] = true; }
@@ -122,36 +145,29 @@ Dir.glob("#{Config.WSHOME}/*/*").each do
   |hostpath|
   hostname = File.basename(hostpath)
   if not hostnames[hostname.downcase]
-    puts "  * Entferne Stationskonto: #{hostname}"
-#    begin check_host(res_hosts, hostname); runcmd "smbldap-userdel '#{hostname}'" rescue nil end
-#    begin check_machine(res_machines, "#{hostname}$"); runcmd "smbldap-userdel '#{hostname}$'" rescue nil end
-    begin check_host(res_hosts, hostname); runcmd "sophomorix-kill --killuser '#{hostname}'" rescue nil end
-    begin check_machine(res_machines, "#{hostname}$"); runcmd "sophomorix-kill --killuser '#{hostname}$'" rescue nil end
-    runcmd "rm -rf '#{hostpath}'"
+    res = remove_account(hostname, res_hosts, res_machines)
   end
 end
 
-Dir.glob("#{Config.WSHOME}/*").each do
-  |roompath|
-  room = File.basename(roompath)
-  if not rooms[room.downcase]
-    puts "  * Entferne Raum: #{room}"
-#    begin check_group(res_groups, room); runcmd "smbldap-groupdel '#{room}'" rescue nil end
-    begin check_group(res_groups, room); runcmd "sophomorix-groupdel --room '#{room}'" rescue nil end
-    runcmd "rm -rf '#{roompath}'"
+res_roomgroups.each do |tupl|
+  tupl.each do |room|
+    if not rooms[room.downcase]
+      puts "  * Entferne Raum: #{room}"
+      begin check_group(res_groups, room); runcmd "sophomorix-groupdel --room '#{room}'" rescue nil end
 
-    classes = Config.CLASSROOMS
-    File.open(Config.CLASSROOMS+".tmp", "w") do
-      |out|
-      File.readlines(Config.CLASSROOMS).each do
-        |line|
-        if line.chomp.strip.downcase != room.downcase
-          info "#{room} aus #{Config.CLASSROOMS} entfernt."
-        else
-          out.puts line
+      classes = Config.CLASSROOMS
+      File.open(Config.CLASSROOMS+".tmp", "w") do
+        |out|
+        File.readlines(Config.CLASSROOMS).each do
+          |line|
+          if line.chomp.strip.downcase != room.downcase
+            out.puts line
+          else
+            info "  * #{room} aus #{Config.CLASSROOMS} entfernt."
+          end
         end
       end
+      runcmd "mv '#{Config.CLASSROOMS}.tmp' '#{Config.CLASSROOMS}'"
     end
-    runcmd "mv '#{Config.CLASSROOMS}.tmp' '#{Config.CLASSROOMS}'"
   end
 end

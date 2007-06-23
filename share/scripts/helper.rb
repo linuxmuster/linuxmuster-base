@@ -85,13 +85,18 @@ end
 
 # postgres queries
 
-# get groups, hostaccounts and machine accounts
+# get groups, roomgroups, hostaccounts and machine accounts
 def get_hostgroups()
   conn = PGconn.connect("localhost", 5432, "", "", "ldap", "postgres", "")
   query = "SELECT gid FROM groups;"
   res_groups = conn.exec(query)
   if (res_groups.status != PGresult::TUPLES_OK)
     raise PGerror,"Query for groups failed!"
+  end
+  query = "SELECT DISTINCT gid FROM userdata WHERE homedirectory LIKE '/home/workstations/%' ORDER BY gid;"
+  res_roomgroups = conn.exec(query)
+  if (res_roomgroups.status != PGresult::TUPLES_OK)
+    raise PGerror,"Query for roomgroups failed!"
   end
   query = "SELECT uid FROM posix_account WHERE gecos='ExamAccount' OR gecos='HostAccount';"
   res_hosts = conn.exec(query)
@@ -104,7 +109,7 @@ def get_hostgroups()
     raise PGerror,"Query for machine accounts fails!"
   end
   conn.close
-  return res_groups, res_hosts, res_machines
+  return res_groups, res_roomgroups, res_hosts, res_machines
 end
 
 # check if group exists
@@ -183,4 +188,56 @@ def get_uid(username)
   else
     return FALSE
   end
+end
+
+# get user's primary group
+def get_pgroup(username)
+  conn = PGconn.connect("localhost", 5432, "", "", "ldap", "postgres", "")
+  query = "SELECT gidnumber FROM posix_account WHERE uid='#{username}';"
+  res = conn.exec(query)
+  vResult = res.getvalue(0, 0)
+  query = "SELECT gid FROM groups WHERE gidnumber='#{vResult}';"
+  res = conn.exec(query)
+  if (res.status != PGresult::TUPLES_OK)
+    raise PGerror,"Query for #{vResult} fails!"
+  end
+  conn.close
+  nResult = res.num_tuples
+  if nResult > 0
+    vResult = res.getvalue(0, 0)
+    return vResult
+  else
+    return FALSE
+  end
+end
+
+# create workstation accounts
+def create_account(hostname, room, wshome, hostpw, machinepw, teachersgroup, hostdirmode)
+  info "  * Lege Klassenarbeits-Account an: #{hostname}"
+  runcmd "sophomorix-useradd --examaccount '#{hostname}' --unix-group '#{room}'"
+  runcmd "sophomorix-passwd -u '#{hostname}' --pass '#{hostpw}'"
+  # Create workstation home if it doesn't exist
+  path = "#{wshome}/#{room}/#{hostname}"
+  runcmd "mkdir -p '#{path}'" if not File.directory?(path)
+  # set permissions
+  begin
+    runcmd "chown '#{hostname}.#{teachersgroup}' '#{path}'"
+    runcmd "chmod '#{hostdirmode}' '#{path}'"
+  rescue
+    error "Fehler beim Setzen der Berechtigungen auf #{path}: #{$!}"
+  end
+  # set quota
+  info "  * Setze quota: #{hostname}"
+  runcmd "sophomorix-quota -u #{hostname}"
+  info "  * Lege Maschinen-Account an: #{hostname}$"
+  runcmd "sophomorix-useradd --computer '#{hostname}$'"
+  runcmd "sophomorix-passwd -u '#{hostname}$' --pass '#{machinepw}'"
+end
+
+# remove workstation accounts
+def remove_account(hostname, res_hosts, res_machines)
+    puts "  * Entferne Klassenarbeits-Account: #{hostname}"
+    begin check_host(res_hosts, hostname); runcmd "sophomorix-kill --killuser '#{hostname}'" rescue nil end
+    puts "  * Entferne Maschinen-Account: #{hostname}$"
+    begin check_machine(res_machines, "#{hostname}$"); runcmd "sophomorix-kill --killuser '#{hostname}$'" rescue nil end
 end

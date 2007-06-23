@@ -149,10 +149,21 @@ case "$1" in
                 s/@@domadmins@@/${DOMADMINS}/g
                 s/@@teachersgroup@@/${TEACHERSGROUP}/g
                 s/@@basedn@@/${basedn}/g" $SMBCONFTEMPLATE > /etc/samba/smb.conf
-        /etc/init.d/samba force-reload
 
-        # restore samba ldap admin password
-        smbpasswd -w `cat /etc/ldap.secret`
+	# samba reload only if postgres and/or samba are running
+	if ps ax | grep slapd | grep -v grep &> /dev/null; then
+		if ps ax | grep smbd | grep -v grep &> /dev/null; then
+			/etc/init.d/samba force-reload
+	        	# restore samba ldap admin password
+        		smbpasswd -w `cat /etc/ldap.secret`
+		else
+			echo "Samba is not running! Skipping samba reload!"
+			echo "You have to restart samba after package update!"
+		fi
+	else
+		echo "The LDAP daemon (slapd) is not running! Skipping samba reload!"
+		echo "You have to reload samba after package update!"
+	fi
 
         # remove mem-cache mod from apache2
         if [ -L /etc/apache2/mods-enabled/mem_cache.load ]; then
@@ -203,7 +214,12 @@ case "$1" in
 	fi
 
         # reload apache if necessary
-        [ "$apache_reload" = "yes" ] && /etc/init.d/apache2 force-reload
+	if ps ax | grep apache2 | grep -v grep &> /dev/null; then
+	        [ "$apache_reload" = "yes" ] && /etc/init.d/apache2 force-reload
+	else
+		echo "Apache2 is not running! Skipping apache2 reload!"
+		echo "You have to reload apache2 service after package update!"
+	fi
 
         # repair ogo configuration
         ogoconfig=/var/lib/opengroupware.org/.libFoundation/Defaults/NSGlobalDomain.plist

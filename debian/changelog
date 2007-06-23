@@ -1,8 +1,26 @@
+linuxmuster-base (1.0-21) testing; urgency=low
+
+  * further improvements to workstations import (wimport_lml.rb):
+    - check for double hostnames, ips and mac addresses;
+    - hosts with unchanged hostname which where moved to another room
+      are now processed cleanly
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 22 Jun 2007 14:53:37 +0200
+
+linuxmuster-base (1.0-20) testing; urgency=low
+
+  * fixed samba reload in postinst, should only be reloaded if postgresql and
+    samba are currently running
+  * fixed apache2 reload in postinst, should only be reloaded if apache2 is currently running
+  * modified deletion of room groups im wimport_lml.rb according to new sophomorix with
+    standalone ldap
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 22 Jun 2007 14:53:37 +0200
+
 linuxmuster-base (1.0-19) testing; urgency=low
 
   * modified /etc/linuxmuster/schulkonsole/db.conf to use postgres user without password
   * removed schulkonsole's obsolete apache2 configuration /etc/apache2/conf.d/schulkonsole
-
 
  -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 18 Jun 2007 19:01:29 +0200
 
