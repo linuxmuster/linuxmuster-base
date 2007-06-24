@@ -1,3 +1,10 @@
+linuxmuster-base (1.0-22) testing; urgency=low
+
+  * added script remoteadmin.sh to create, remove, activate and deactivate
+    a remote administrator who can do support
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 23 Jun 2007 17:03:36 +0200
+
 linuxmuster-base (1.0-21) testing; urgency=low
 
   * further improvements to workstations import (wimport_lml.rb):
@@ -5,7 +12,7 @@ linuxmuster-base (1.0-21) testing; urgency=low
     - hosts with unchanged hostname which where moved to another room
       are now processed cleanly
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 22 Jun 2007 14:53:37 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 23 Jun 2007 17:03:36 +0200
 
 linuxmuster-base (1.0-20) testing; urgency=low
 
