@@ -87,6 +87,12 @@ else
   
 fi
 
+# repair slapd.conf
+if grep -q "by \* none" /etc/ldap/slapd.conf; then
+  sed -e 's/by \* none/by \* read/g' /etc/ldap/slapd.conf > /etc/ldap/slapd.conf.tmp
+  mv /etc/ldap/slapd.conf.tmp  /etc/ldap/slapd.conf
+fi
+
 # repair permissions
 for i in /etc/ldap.secret /etc/ldap/slapd.conf /etc/smbldap-tools/smbldap_bind.conf /etc/sophomorix/pgldap/pgldap.conf; do
   chmod 600 $i

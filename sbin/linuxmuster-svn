@@ -47,7 +47,8 @@ fi
 # check valid teacher
 if [ -n "$teacher" ]; then
 
-  check_teacher $teacher || cancel "$teacher is not a teacher!"
+  smbldap-groupshow $TEACHERSGROUP | grep memberUid: | grep -qw $teacher || cancel "$teacher is not a teacher!"
+  #check_teacher $teacher || cancel "$teacher is not a teacher!"
 
 fi # check valid teacher
 
@@ -55,7 +56,16 @@ fi # check valid teacher
 # check valid group
 if [ -n "$group" ]; then
 
-  check_group $group $teacher || cancel "Group $group is not valid or $teacher is not in $group!"
+  if [ -n "$teacher" ]; then
+
+    smbldap-groupshow $group | grep memberUid: | grep -qw $teacher || cancel "Group $group does not exist or $teacher is not in $group!"
+    #check_group $group $teacher || cancel "Group $group is not valid or $teacher is not in $group!"
+
+  else
+
+    smbldap-groupshow $group &> /dev/null || cancel "Group $group does not exist!"
+
+  fi
 
 fi # check valid group
 

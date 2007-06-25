@@ -1,9 +1,19 @@
+linuxmuster-base (1.0-23) testing; urgency=low
+
+  * updated moodle psql.dump for first time installation
+  * fixing slapd.conf with "by * read" instad of "by * none" to get
+    ldap authentication working again
+  * putting administrator into teachers group again
+  * changed group queries in linuxmuster-svn to smbldap-groupshow
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 25 Jun 2007 20:30:28 +0200
+
 linuxmuster-base (1.0-22) testing; urgency=low
 
   * added script remoteadmin.sh to create, remove, activate and deactivate
     a remote administrator who can do support
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 23 Jun 2007 17:03:36 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 24 Jun 2007 14:21:13 +0200
 
 linuxmuster-base (1.0-21) testing; urgency=low
 

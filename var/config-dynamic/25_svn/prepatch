@@ -4,7 +4,7 @@ if [ "$1" = "--first" ]; then
   rm -rf $SVNROOT/* &> /dev/null
   rm -rf $SVNCONFDIR/* &> /dev/null
   # create a test repo
-  linuxmuster-svn --create --group=teachers --reponame=test
+  linuxmuster-svn --create --group=$TEACHERSGROUP --reponame=test
 fi
 
 # create apache.conf for websvn

@@ -37,3 +37,6 @@ else
   mv access.conf.target access.conf.target.tmp
 
 fi
+
+# put administrator in teachersgroup
+smbldap-groupshow $TEACHERSGROUP | grep memberUid: | grep -qw $ADMINISTRATOR || smbldap-usermod -G $ADMINGROUP,$PRINTERADMINS,$TEACHERSGROUP $ADMINISTRATOR
