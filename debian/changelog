@@ -1,10 +1,16 @@
+linuxmuster-base (1.0-25) testing; urgency=low
+
+  * added --force parameter to sophomorix-passwd for domadmin
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 26 Jun 2007 10:39:21 +0200
+
 linuxmuster-base (1.0-24) testing; urgency=low
 
   * minor code optimations in postinst
   * moving config patch script from /var/lib/linuxmuster/config-dynamic/10_sophomorix
     to /var/lib/linuxmuster/config-dynamic/15_ldap
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 25 Jun 2007 20:30:28 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 26 Jun 2007 07:03:33 +0200
 
 linuxmuster-base (1.0-23) testing; urgency=low
 

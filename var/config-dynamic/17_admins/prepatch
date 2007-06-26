@@ -15,7 +15,7 @@ if [ "$1" = "--first" ]; then
 
   # set passwords for admins
   #echo -e "$adminpw\n$adminpw\n" | smbldap-passwd -e $DOMADMIN
-  sophomorix-passwd --user $DOMADMIN --pass $adminpw
+  sophomorix-passwd --force --user $DOMADMIN --pass $adminpw
   #echo -e "$adminpw\n$adminpw\n" | smbldap-passwd -e $ADMINISTRATOR
   sophomorix-passwd --user $ADMINISTRATOR --pass $adminpw
   #echo -e "$pgmadminpw\n$pgmadminpw\n" | smbldap-passwd -e $PGMADMIN
