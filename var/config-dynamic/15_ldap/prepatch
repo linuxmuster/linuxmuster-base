@@ -5,33 +5,53 @@
 [ -n "$sambasid" ] && net setlocalsid $sambasid
 
 # patch libnss-ldap.conf with basedn
+template=/etc/libnss-ldap.conf
 sed -e "s/^base.*/base $basedn/
-        s/^rootbinddn.*/rootbinddn cn=admin,$basedn/" /etc/libnss-ldap.conf > /etc/libnss-ldap.conf.tmp
-cp -f /etc/libnss-ldap.conf.tmp /etc/libnss-ldap.conf && rm -f /etc/libnss-ldap.conf.tmp
+        s/^rootbinddn.*/rootbinddn cn=admin,$basedn/" $template > ${template}.tmp
+mv ${template}.tmp $template
 
 # patch pam_ldap.conf with basedn
+template=/etc/pam_ldap.conf
 sed -e "s/^base.*/base $basedn/
-        s/^rootbinddn.*/rootbinddn cn=admin,$basedn/" /etc/pam_ldap.conf > /etc/pam_ldap.conf.tmp
-cp -f /etc/pam_ldap.conf.tmp /etc/pam_ldap.conf && rm -f /etc/pam_ldap.conf.tmp
+        s/^rootbinddn.*/rootbinddn cn=admin,$basedn/" $template > ${template}.tmp
+mv ${template}.tmp $template
 
 # patch ldap.conf with basedn
-sed -e "s/^BASE.*/BASE $basedn/" /etc/ldap/ldap.conf > /etc/ldap/ldap.conf.tmp
-cp -f /etc/ldap/ldap.conf.tmp /etc/ldap/ldap.conf && rm -f /etc/ldap/ldap.conf.tmp
+template=/etc/ldap/ldap.conf
+sed -e "s/^BASE.*/BASE $basedn/" $template > ${template}.tmp
+mv ${template}.tmp $template
 
 # patch slapd.conf with basedn
+template=/etc/ldap/slapd.conf
 sed -e "s/by dn=\"cn=admin.*/by dn=\"cn=admin,$basedn\" write/g
         s/^suffix.*/suffix          \"$basedn\"/
-        s/^rootdn.*/rootdn          \"cn=admin,$basedn\"/" /etc/ldap/slapd.conf > /etc/ldap/slapd.conf.tmp
-cp -f /etc/ldap/slapd.conf.tmp /etc/ldap/slapd.conf && rm -f /etc/ldap/slapd.conf.tmp
+        s/^rootdn.*/rootdn          \"cn=admin,$basedn\"/" $template > ${template}.tmp
+mv ${template}.tmp $template
 
 # patch smbldap_bind.conf with basedn
-sed -e "s/^masterDN=.*/masterDN=\"cn=admin,$basedn\"/" /etc/smbldap-tools/smbldap_bind.conf > /etc/smbldap-tools/smbldap_bind.conf.tmp
-cp -f /etc/smbldap-tools/smbldap_bind.conf.tmp /etc/smbldap-tools/smbldap_bind.conf && rm -f /etc/smbldap-tools/smbldap_bind.conf.tmp
+template=/etc/smbldap-tools/smbldap_bind.conf
+sed -e "s/^masterDN=.*/masterDN=\"cn=admin,$basedn\"/" $template > ${template}.tmp
+mv ${template}.tmp $template
 
-# patch sophomorix templates with current sid & samba domain
+# patching sophomorix.conf with schoolname, location and servername
+sed -e "s/^\$schul_name=.*/\$schul_name=\"${schoolname} ${location}\";/
+        s/^\$smb_netbios_name =.*/\$smb_netbios_name = \"${servername}\";/" $SOPHOMORIXCONF > $SOPHOMORIXCONF.tmp
+mv $SOPHOMORIXCONF.tmp $SOPHOMORIXCONF
+
+# patch sophomorix pgldap.conf with workgroup, server, internip and domainname
+template=/etc/sophomorix/pgldap/pgldap.conf
+sed -e "s/^\$domainname=.*/\$domainname=\"${domainname}\";/
+        s/^\$servername=.*/\$servername=\"${servername}\";/
+        s/^\$internip=.*/\$internip=\"${serverip}\";/
+        s/^\$smbworkgroup=.*/\$smbworkgroup=\"${workgroup}\";/" $template > ${template}.tmp
+mv ${template}.tmp $template
+
+# patch sophomorix slapd template with current sid & samba domain
+template=/usr/share/sophomorix/config-templates/ldap/slapd-standalone.conf.template
 sed -e "s/^sambaSID:.*/sambaSID: $sambasid/
-        s/^sambaDomainName:.*/sambaDomainName: $workgroup/" /usr/share/sophomorix/config-templates/ldap/standalone.ldif.template > /usr/share/sophomorix/config-templates/ldap/standalone.ldif.template.tmp
-cp -f /usr/share/sophomorix/config-templates/ldap/standalone.ldif.template.tmp /usr/share/sophomorix/config-templates/ldap/standalone.ldif.template && rm -f /usr/share/sophomorix/config-templates/ldap/standalone.ldif.template.tmp
+        s/^sambaDomainName:.*/sambaDomainName: $workgroup/
+        s/by \* none/by \* read/g" $template > ${template}.tmp
+mv ${template}.tmp $template
 
 # clear samba browse cache
 rm -f /var/lib/samba/wins.dat
@@ -54,43 +74,19 @@ if [ "$1" = "--first" ]; then
   rm -rf /var/log/sophomorix/exam/*
   rm -rf /var/log/sophomorix/user/*
 
-  # fixing bug #130, if not yet done in sophomorix
-#  template=/usr/share/sophomorix/config-templates/ldap/slapd.conf.template
-#  if ! grep -q ^password-hash $template; then
-#    echo "Fixing $template (Bug #130) ..."
-#    cp $template ${template}.old
-#    sed -e '/^argsfile/a\
-#password-hash   {CRYPT}' ${template}.old > $template
-#  fi
-
-  # purge old ldap tree
-#  rm -rf /var/lib/ldap/*
-#  cp /usr/share/sophomorix/config-templates/bdb/DB_CONFIG /var/lib/ldap
-#  chown openldap:openldap /var/lib/ldap -R
+  # changing user's default shell to /bin/bash
+  sed -e 's/^\$schueler_per_ssh=.*/\$schueler_per_ssh=\"yes\"\;/
+          s/^\$lehrer_per_ssh=.*/\$lehrer_per_ssh=\"yes\"\;/' $SOPHOMORIXCONF > $SOPHOMORIXCONF.tmp
+  mv $SOPHOMORIXCONF.tmp $SOPHOMORIXCONF
 
   # create new database
   sophomorix-setup-pgldap --new-database --slapd-standalone
 
-  # fetch dbpasswd
-  #dbpasswd=`grep ^dbpasswd /etc/ldap/slapd.conf | awk '{ print $2 }' -`
-
-  # patch schulkonsole db.conf with password
-  #sed -e "s/^Password=.*/Password=$dbpasswd/" /etc/linuxmuster/schulkonsole/db.conf > /etc/linuxmuster/schulkonsole/db.conf.tmp
-  #cp -f /etc/linuxmuster/schulkonsole/db.conf.tmp /etc/linuxmuster/schulkonsole/db.conf && rm -f /etc/linuxmuster/schulkonsole/db.conf.tmp
-  #[ -L /etc/apache2/conf.d/schulkonsole ] || ln -s /etc/linuxmuster/schulkonsole/apache2.conf /etc/apache2/conf.d/schulkonsole
-
 else
 
   # update user database with basedn and workgroup if necessary
-  #$SCRIPTSDIR/update-db.sh $basedn $workgroup "$schoolname"
   sophomorix-setup-pgldap --slapd-standalone
   
-fi
-
-# repair slapd.conf
-if grep -q "by \* none" /etc/ldap/slapd.conf; then
-  sed -e 's/by \* none/by \* read/g' /etc/ldap/slapd.conf > /etc/ldap/slapd.conf.tmp
-  mv /etc/ldap/slapd.conf.tmp  /etc/ldap/slapd.conf
 fi
 
 # repair permissions
@@ -103,6 +99,4 @@ chmod 400 /etc/linuxmuster/schulkonsole/db.conf*
 chown root:root /etc/ldap/slapd.conf*
 chown root:root /etc/ldap/ldap.conf
 chmod 644 /etc/ldap/ldap.conf
-#chown root:root /etc/odbc.ini
-#chmod 644  /etc/odbc.ini
 

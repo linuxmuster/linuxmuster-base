@@ -505,7 +505,12 @@ password-hash   {CRYPT}' /etc/ldap/slapd.conf.dpkg-old > /etc/ldap/slapd.conf
           slapd_update=yes
         fi
 
-	# repair slapd.conf
+	# fix ldap authentication
+	template=/usr/share/sophomorix/config-templates/ldap/slapd-standalone.conf.template
+	if grep -q "by \* none" $template; then
+	  sed -e 's/by \* none/by \* read/g' $template > ${template}.tmp
+	  mv ${template}.tmp $template
+	fi
 	if grep -q "by \* none" /etc/ldap/slapd.conf; then
 	  sed -e 's/by \* none/by \* read/g' /etc/ldap/slapd.conf > /etc/ldap/slapd.conf.tmp
 	  mv /etc/ldap/slapd.conf.tmp  /etc/ldap/slapd.conf
