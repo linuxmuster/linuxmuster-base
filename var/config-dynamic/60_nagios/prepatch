@@ -3,8 +3,14 @@
 #sed -e "s/^SERVERPING_HOST=.*/SERVERPING_HOST=\"${servername}\"/" /etc/linuxmuster/nagios.conf >  /etc/linuxmuster/nagios.conf.tmp
 #mv /etc/linuxmuster/nagios.conf.tmp /etc/linuxmuster/nagios.conf
 
-linuxmuster-nagios-setup
+if [ "$1" = "--first" ]; then
+  linuxmuster-nagios-setup --first --force
+else
+  linuxmuster-nagios-setup
+fi
 
 # starting nagios2 again
+/etc/init.d/nagios2 stop
 /etc/init.d/nagios2 start
-/etc/init.d/nagios-grapher start
+#/etc/init.d/nagios-grapher start
+

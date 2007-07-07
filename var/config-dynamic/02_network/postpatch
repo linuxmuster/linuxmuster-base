@@ -10,9 +10,9 @@ if [[ "$1" = "--first" || "$update_fw" = "yes" ]]; then
   if [ "$fwconfig" = "integrated" ]; then
     echo "  Building integrated ipcop ..."
     /usr/share/linuxmuster-ipcop/build-uml.sh
-  else
-    echo "  Building dedicated ipcop installation package ..."
-    /usr/share/linuxmuster-ipcop/build-pkg.sh
+#  else
+#    echo "  Building dedicated ipcop installation package ..."
+#    /usr/share/linuxmuster-ipcop/build-pkg.sh
   fi
 
 fi
@@ -109,7 +109,7 @@ else
     [ -e /root/.ssh/known_hosts ] && rm /root/.ssh/known_hosts
 
     # modify dedicated ipcop completely
-    /usr/share/linuxmuster-ipcop/restore-dedicated.sh --first $ipcoppw
+    /usr/share/linuxmuster-ipcop/restore-dedicated.sh --first "$ipcoppw"
 
   else # check for modifications to apply
 

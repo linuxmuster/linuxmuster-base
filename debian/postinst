@@ -22,6 +22,11 @@ set -e
 
 db_version 2.0
 
+releasenr=1
+releasename="paedML Linux 3.0"
+codename=Entaklemmer
+oldissue="Linux-Musterloesung 3.0 Build"
+
 # check if all templates present
 for i in linuxmuster-base/intro linuxmuster-base/country linuxmuster-base/state \
          linuxmuster-base/location linuxmuster-base/schoolname shared/organization \
@@ -617,6 +622,7 @@ password-hash   {CRYPT}' /etc/ldap/slapd.conf.dpkg-old > /etc/ldap/slapd.conf
 	# restoring PDF-Printer definition
 	if ! grep -q PDF-Printer /etc/cups/printers.conf; then
 		echo "Restoring PDF-Printer definition ..."
+		cp /etc/cups/printers.conf /etc/cups/printers.conf.dpkg-old
 		cat /var/lib/linuxmuster/config-static/etc/cups/printers.conf | grep -v ^# >> /etc/cups/printers.conf
 		cups_restart=yes
 	fi
@@ -662,6 +668,25 @@ password-hash   {CRYPT}' /etc/ldap/slapd.conf.dpkg-old > /etc/ldap/slapd.conf
 
 	# put administrator in teachersgroup
 	smbldap-groupshow $TEACHERSGROUP | grep memberUid: | grep -qw $ADMINISTRATOR || smbldap-usermod -G $ADMINGROUP,$PRINTERADMINS,$TEACHERSGROUP $ADMINISTRATOR
+
+	# provide paedML index.html
+	indexhtml=/var/www/apache2-default/index.html
+	template=${indexhtml}.tpl
+	if [ -e "$template" ]; then
+		if ! grep -q "$servername.$domainname" $indexhtml; then
+			[ -e "$indexhtml" ] && mv $indexhtml ${indexhtml}.dpkg-old
+			sed -e "s/@@servername@@/$servername/g
+			        s/@@domainname@@/$domainname/g" $template > $indexhtml
+		fi
+	fi
+
+	# updating release information
+	if grep -q "$oldissue" /etc/issue; then
+		buildnr=`cat /etc/issue | cut -f4 -d" "`
+		echo "$releasename / Release $releasenr / Build $buildnr / Codename $codename" > /etc/issue
+		cp /etc/issue /etc/issue.net
+		cat /etc/issue
+	fi
 
         # restoring internal firewall
         . /etc/default/linuxmuster-base

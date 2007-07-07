@@ -4,6 +4,12 @@
 # Thomas Schmitt <schmitt@lmz-bw.de>
 # GPL-2
 
+# read dist.conf
+. /usr/share/linuxmuster/config/dist.conf
+
+# read helperfunctions
+. $HELPERFUNCTIONS
+
 # read debconf database
 echo "Reading debconf database ..."
 for i in country state location servername domainname schoolname dsluser dslpasswd \
@@ -12,20 +18,28 @@ for i in country state location servername domainname schoolname dsluser dslpass
          ipcoppw workgroup mac_extern mac_intern mac_wlan mac_dmz; do
   RET=`echo get linuxmuster-base/$i | debconf-communicate`
   RET=${RET#[0-9] }
-  if [ -n "$RET" ]; then eval $i="${RET// /\\ }"; fi
+  esc_spec_chars "$RET"
+  eval $i=$RET
   unset RET
 done
 
-# clear admin user passwords from debconf db except cyradmpw
+# clear admin user passwords from debconf db
 for i in adminpw ipcoppw pgmadminpw wwwadminpw; do
   RET=`echo set linuxmuster-base/$i "" | debconf-communicate`
 done
 
-# compute md5sum for adminpw
-adminpw_md5=`echo -n "${adminpw}" | md5sum | cut -c -32`
+# escaping special characters in passwords
+esc_spec-chars "$adminpw"
+adminpw=$RET
+esc_spec-chars "$pgmadminpw"
+pgmadminpw=$RET
+esc_spec-chars "$wwwadminpw"
+wwwadminpw=$RET
+esc_spec-chars "$ipcoppw"
+ipcoppw=$RET
 
-# read dist.conf
-. /usr/share/linuxmuster/config/dist.conf
+# compute md5sum for adminpw
+adminpw_md5=`echo -n $adminpw | md5sum | cut -c -32`
 
 # check for modified values
 if [ "$1" != "--first" ]; then

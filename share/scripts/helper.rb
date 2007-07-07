@@ -231,7 +231,7 @@ def create_account(hostname, room, wshome, hostpw, machinepw, teachersgroup, hos
   runcmd "sophomorix-quota -u #{hostname}"
   info "  * Lege Maschinen-Account an: #{hostname}$"
   runcmd "sophomorix-useradd --computer '#{hostname}$'"
-  runcmd "sophomorix-passwd -u '#{hostname}$' --pass '#{machinepw}'"
+  runcmd "sophomorix-passwd --force -u '#{hostname}$' --pass '#{machinepw}'"
 end
 
 # remove workstation accounts

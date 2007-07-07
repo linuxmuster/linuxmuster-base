@@ -80,12 +80,12 @@ if [ "$1" = "--first" ]; then
   mv $SOPHOMORIXCONF.tmp $SOPHOMORIXCONF
 
   # create new database
-  sophomorix-setup-pgldap --new-database --slapd-standalone
+  sophomorix-setup-pgldap --new-database
 
 else
 
   # update user database with basedn and workgroup if necessary
-  sophomorix-setup-pgldap --slapd-standalone
+  sophomorix-setup-pgldap
   
 fi
 

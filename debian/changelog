@@ -1,3 +1,27 @@
+linuxmuster-base (1.1-2) testing; urgency=low
+
+  * improved special character handling in linuxmuster-patch variables
+  * added --force parameter to sophomorix-passwd command for machine account creation
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 07 Jul 2007 12:25:50 +0200
+
+linuxmuster-base (1.1-1) testing; urgency=low
+
+  * updated paedML index.html layout
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 29 Jun 2007 10:04:53 +0200
+
+linuxmuster-base (1.1-0) testing; urgency=low
+
+  * setup modifications concerning to sophomorix 1.9.25
+  * removed nagios-grapher from start-stop-services
+  * modified linuxmuster-nagios-setup with parameter "--first --force"
+    for first time installation
+  * providing paedML index.html
+  * updating /etc/issue with new release information
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 28 Jun 2007 20:40:14 +0200
+
 linuxmuster-base (1.0-25) testing; urgency=low
 
   * added --force parameter to sophomorix-passwd for domadmin

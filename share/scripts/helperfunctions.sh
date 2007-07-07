@@ -76,6 +76,18 @@ isinteger () {
 } # isinteger
 
 
+# escape special characters
+esc_spec_chars() {
+	RET="$1"
+	RET=${RET// /\\ }
+	RET=${RET//(/\\(}
+	RET=${RET//)/\\)}
+	RET=${RET//$/\\$}
+	RET=${RET//\!/\\!}
+	RET=${RET//\&/\\&}
+}
+
+
 ##########################
 # check parameter values #
 ##########################

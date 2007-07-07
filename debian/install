@@ -1,6 +1,7 @@
 init/linuxmuster-base		/etc/init.d/
 init/linuxmuster-nic-setup	/etc/init.d/
 doc/*				usr/share/doc/linuxmuster-base/
+html/*				var/www/apache2-default/
 etc/*				etc/linuxmuster/
 sbin/*				usr/sbin/
 share/*				usr/share/linuxmuster/
