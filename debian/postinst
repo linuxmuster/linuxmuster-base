@@ -666,8 +666,8 @@ password-hash   {CRYPT}' /etc/ldap/slapd.conf.dpkg-old > /etc/ldap/slapd.conf
 		chmod 600 /etc/linuxmuster/schulkonsole/db.conf*
 	fi
 
-	# put administrator in teachersgroup
-	smbldap-groupshow $TEACHERSGROUP | grep memberUid: | grep -qw $ADMINISTRATOR || smbldap-usermod -G $ADMINGROUP,$PRINTERADMINS,$TEACHERSGROUP $ADMINISTRATOR
+	# repair admin accounts and groupmappings
+	$SCRIPTSDIR/repair-admins.sh
 
 	# provide paedML index.html
 	indexhtml=/var/www/apache2-default/index.html
