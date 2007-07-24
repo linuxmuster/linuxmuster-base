@@ -1,3 +1,37 @@
+linuxmuster-base (1.1-7) testing; urgency=low
+
+  * added process locking to remoteadmin script
+  * added account activation to repair-admins.sh
+  * moved lockflag for linuxmuster scripts from /var/lock to /tmp
+  * restarting IPCop's squid at the end of first time installation
+  * added quota support for remoteadmin
+  * fixed creation of host password in wimport_lml.rb
+  * removing horde's passwd3 module and corresponding files
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 24 Jul 2007 15:50:04 +0200
+
+linuxmuster-base (1.1-6) testing; urgency=low
+
+  * fixed pinning for cupsys packages
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 21 Jul 2007 17:39:51 +0200
+
+linuxmuster-base (1.1-5) testing; urgency=low
+
+  * fixed check_urlfilter.sh, lockfile was not deleted
+  * fixed samba-userlog, samba sometimes logs users out although they
+    were still connected to shares
+  * added OpenVPN certificate creation to remoteadmin script
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 20 Jul 2007 18:00:42 +0200
+
+linuxmuster-base (1.1-4) testing; urgency=low
+
+  * modified path to mondorescue.iso in linuxmuster-backup
+    for mindi 2.22
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 14 Jul 2007 18:14:11 +0200
+
 linuxmuster-base (1.1-3) testing; urgency=low
 
   * removed duplicate passwd entries from smb.conf

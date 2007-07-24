@@ -688,6 +688,11 @@ password-hash   {CRYPT}' /etc/ldap/slapd.conf.dpkg-old > /etc/ldap/slapd.conf
 		cat /etc/issue
 	fi
 
+	# removing passwd3 files
+	[ -e /etc/horde/passwd3 ] && rm -rf /etc/horde/passwd3
+	[ -e /usr/share/horde3/passwd ] && rm -rf /usr/share/horde3/passwd
+	[ -e /usr/share/doc/passwd3 ] && rm -rf /usr/share/doc/passwd3
+
         # restoring internal firewall
         . /etc/default/linuxmuster-base
         if [ "$START_LINUXMUSTER" = "yes" ]; then

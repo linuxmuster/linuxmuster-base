@@ -6,7 +6,7 @@ export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 [ -f "$NETWORKSETTINGS" ] && . $NETWORKSETTINGS
 
 # lockfile
-lockflag=/var/lock/.linuxmuster.lock
+lockflag=/tmp/.linuxmuster.lock
 
 # date & time
 [ -e /bin/date ] && DATETIME=`date +%y%m%d-%H%M%S`
@@ -43,7 +43,7 @@ cancel() {
 # check lockfiles, wait a minute whether it will be freed
 checklock() {
   if [ -e "$lockflag" ]; then
-    echo "Found lockfile!"
+    echo "Found lockfile $lockflag!"
     n=0
     while [[ $n -lt $TIMEOUT ]]; do
       remaining=$(($(($TIMEOUT-$n))*10))

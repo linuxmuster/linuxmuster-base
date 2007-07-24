@@ -12,7 +12,8 @@
 . $HELPERFUNCTIONS
 
 # check if task is locked
-checklock || exit 1
+locker=/tmp/.remoteadmin.lock
+lockfile -l 60 $locker
 
 tmpdir=/var/tmp/${REMOTEADMIN}.$$
 mkdir -p $tmpdir
@@ -22,16 +23,76 @@ sudoerstr[0]="## begin linuxmuster $REMOTEADMIN ## DO NOT EDIT! ##"
 sudoerstr[1]="$REMOTEADMIN ALL=(ALL) ALL ## DO NOT EDIT! ##"
 sudoerstr[2]="## end linuxmuster $REMOTEADMIN ## DO NOT EDIT! ##"
 
+remove_quota_entry() {
+
+	# remove old entry if there is one
+	for i in $QUOTACONF $MAILQUOTACONF; do
+		if grep -qw ^$REMOTEADMIN $i; then
+			grep -vw $REMOTEADMIN $i > $tmpdir/quota.tmp
+			mv $tmpdir/quota.tmp $i
+		fi
+	done
+
+}
+
+set_quota_entry() {
+
+	remove_quota_entry
+
+	for i in $QUOTACONF $MAILQUOTACONF; do
+
+		# determine administrator quota
+		unset quota_value
+		quota_value=`grep -w ^$ADMINISTRATOR $i | awk '{ print $2 }'`
+
+		# writing new quota value for remoteadmin
+		[ -n "$quota_value" ] && echo "$REMOTEADMIN: $quota_value" >> $i
+
+	done
+
+}
+
 create_account() {
 
 	sophomorix-useradd --administrator $REMOTEADMIN --unix-group $DOMADMINS --shell /bin/sh --gecos "Remote Administrator" &> /dev/null
 	sophomorix-passwd --interactive --user $REMOTEADMIN
+	smbldap-usermod -H '[UX         ]' $REMOTEADMIN
+	set_quota_entry
+	$SCRIPTSDIR/cyrus-mbox -q $quota_value -c $REMOTEADMIN
+	sophomorix-quota --force --set -u $REMOTEADMIN &> /dev/null
+
+}
+
+create_cert() {
+
+	pwstatus=0
+	while [ "$pwstatus" = "0" ]; do
+		stty -echo
+		read -p "Please enter certificate password (6 chars at least): " certpw; echo
+		len=${#certpw}
+		if [ $len -lt 6 ]; then
+			stty echo
+			echo "Password too short! Six (6) characters at least!"
+		else
+			read -p "Please confirm certificate password: " certpw_confirm; echo
+			stty echo
+			if [ "$certpw" = "$certpw_confirm" ]; then
+				pwstatus=1
+			else
+				echo "Passwords do not match!"
+			fi
+		fi
+	done
+
+	linuxmuster-ovpn --create --username=$REMOTEADMIN --password="$certpw"
+	linuxmuster-ovpn --activate --username=$REMOTEADMIN
 
 }
 
 remove_account() {
 
 	sophomorix-kill --killuser $REMOTEADMIN  &> /dev/null
+	remove_quota_entry
 
 }
 
@@ -111,6 +172,8 @@ case $1 in
 		echo "Creating account for $REMOTEADMIN ..."
 		check_id $REMOTEADMIN && remove_account
 		create_account
+		linuxmuster-ovpn --check --username=$REMOTEADMIN && linuxmuster-ovpn --purge --username=$REMOTEADMIN
+		create_cert
 		grep -q $REMOTEADMIN /etc/sudoers && remove_from_sudoers
 		add_to_sudoers
 		do_accessconf add
@@ -131,6 +194,7 @@ case $1 in
 
 	--remove)
 		echo "Removing account for $REMOTEADMIN ..."
+		linuxmuster-ovpn --check --username=$REMOTEADMIN && linuxmuster-ovpn --purge --username=$REMOTEADMIN
 		check_id $REMOTEADMIN && remove_account
 		grep -q $REMOTEADMIN /etc/sudoers && remove_from_sudoers
 		do_accessconf
@@ -146,9 +210,15 @@ case $1 in
 		;;
 
 	--activate)
-		echo "Activating account for $REMOTEADMIN ..."
+		echo "Activating $REMOTEADMIN account ..."
 		if check_id $REMOTEADMIN; then
 			if sophomorix-passwd --interactive --user $REMOTEADMIN; then
+				smbldap-usermod -H '[UX         ]' $REMOTEADMIN
+				if linuxmuster-ovpn --check --username=$REMOTEADMIN; then
+					linuxmuster-ovpn --activate --username=$REMOTEADMIN
+				else
+					create_cert
+				fi
 				grep -q $REMOTEADMIN /etc/sudoers && remove_from_sudoers
 				add_to_sudoers
 				do_accessconf add
@@ -168,9 +238,12 @@ case $1 in
 		;;
 
 	--deactivate)
-		echo "Deactivating account for $REMOTEADMIN ..."
+		echo "Deactivating $REMOTEADMIN account ..."
 		if check_id $REMOTEADMIN; then
-			if sophomorix-passwd --user $REMOTEADMIN --pass "" &> /dev/null; then
+			secret_passwd=`pwgen -s 8 1`
+			if sophomorix-passwd --user $REMOTEADMIN --pass "$secret_passwd" &> /dev/null; then
+				linuxmuster-ovpn --deactivate --username=$REMOTEADMIN
+				smbldap-usermod -H '[DUX        ]' $REMOTEADMIN
 				grep -q $REMOTEADMIN /etc/sudoers && remove_from_sudoers
 				do_accessconf
 				grep -q $REMOTEADMIN /etc/webmin/* && remove_from_webmin
@@ -195,6 +268,6 @@ esac
 
 # remove lock and tmpdir
 rm -rf $tmpdir
-rm -f $lockflag || exit 1
+rm -f $locker
 
 exit $status

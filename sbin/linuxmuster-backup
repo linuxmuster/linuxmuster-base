@@ -365,9 +365,19 @@ if [ "$status" = "0" ]; then
 
 		full)
 			# copying mondorescue.iso to backup folder if it is a full backup
-			echo "Copying mondorescue.iso to $mountpoint/$isoprefix/$bfolder ..."
-			cp -a /root/images/mindi/mondorescue.iso $mountpoint/$isoprefix/$bfolder
-
+			if [ -f /var/cache/mindi/mondorescue.iso ]; then
+				# mindi 2.22, new location for mindi files
+				mondoiso=/var/cache/mindi/mondorescue.iso
+			elif [ -f /root/images/mindi/mondorescue.iso ]; then
+				mondoiso=/root/images/mindi/mondorescue.iso
+			fi
+			if [ -n "$mondoiso" ]; then
+				echo "Copying mondorescue.iso to $mountpoint/$isoprefix/$bfolder ..."
+				cp -a $mondoiso $mountpoint/$isoprefix/$bfolder
+			else
+				echo "Fatal! Cannot find mondorescue.iso!"
+				status=1
+			fi
 			setstokeep=$keepfull
 			;;
 

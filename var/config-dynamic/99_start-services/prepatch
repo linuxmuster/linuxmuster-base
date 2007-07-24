@@ -22,6 +22,7 @@ pear upgrade Archive_Tar Console_Getopt DB HTTP Mail Net_SMTP Net_Socket XML_Par
 if [[ "$fwconfig" = "integrated" && "$1" = "--first" ]]; then
   if ping -c 2 $ipcopip &> /dev/null; then
     $SCRIPTSDIR/ipcop-test-ssh.exp $ipcopip
+    exec_ipcop /usr/local/bin/restartsquid
   fi
 fi
 

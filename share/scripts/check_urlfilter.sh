@@ -10,12 +10,17 @@
 . $HELPERFUNCTIONS || exit 1
 
 # check if task is locked
-checklock || exit 1
+locker=/tmp/.check_urlfilter.lock
+lockfile -l 60 $locker
 
 if check_urlfilter; then
   echo "Urlfilter is active!"
-  exit 0
+  status=0
 else
   echo "Urlfilter is not active!"
-  exit 1
+  status=1
 fi
+
+rm -f $locker
+
+exit $status

@@ -14,18 +14,6 @@ Package: cupsomatic-ppd
 Pin: release a=sarge-backports
 Pin-Priority: 999
 
-Package: cupsys
-Pin: release a=sarge-backports
-Pin-Priority: 999
-
-Package: cupsys-client
-Pin: release a=sarge-backports
-Pin-Priority: 999
-
-Package: cupsys-common
-Pin: release a=sarge-backports
-Pin-Priority: 999
-
 Package: cupsys-driver-gimpprint
 Pin: release a=sarge-backports
 Pin-Priority: 999
@@ -79,18 +67,6 @@ Pin: release a=sarge-backports
 Pin-Priority: 999
 
 Package: klibc-utils
-Pin: release a=sarge-backports
-Pin-Priority: 999
-
-Package: libcupsimage2
-Pin: release a=sarge-backports
-Pin-Priority: 999
-
-Package: libcupsys2
-Pin: release a=sarge-backports
-Pin-Priority: 999
-
-Package: libcupsys2-gnutls10
 Pin: release a=sarge-backports
 Pin-Priority: 999
 

@@ -3,12 +3,29 @@
 # repair admin accounts and groupmappings
 #
 # Thomas Schmitt
-# 11.07.2007
+# 23.07.2007
 # <schmitt@lmz-bw.de>
 #
 
 # read linuxmuster defaults
 . /usr/share/linuxmuster/config/dist.conf
+
+# tmpdir
+tmpdir=/var/tmp/repair-admins.$$
+mkdir -p $tmpdir || exit 1
+tmpfile=$tmpdir/userdata
+
+# check if accounts are available
+for i in $DOMADMIN $ADMINISTRATOR $PGMADMIN; do
+	if ! id $i &> /dev/null; then
+		echo "No $i account found!"
+		exit 1
+	fi
+done
+
+# lock process
+locker=/tmp/.repair-admins.lock
+lockfile -l 60 $locker
 
 # fetch sambasid from debconf
 sambasid=`debconf-show linuxmuster-base | grep sambasid | cut -f2 -d:`
@@ -49,6 +66,7 @@ done
 
 # delete unnecessary groupmapping
 if net groupmap list | grep -q "Web Administrators"; then
+	echo "Removing groupmapping for Web Administrators ..."
 	net groupmap delete ntgroup="Web Administrators"
 fi
 
@@ -59,17 +77,31 @@ for i in "996 $DOMADMIN" "998 $ADMINISTRATOR" "999 $PGMADMIN"; do
 	uid=`echo $i | cut -f1 -d" "`
 	username=`echo $i | cut -f2 -d" "`
 	usersid=${sambasid}-${uid}
-	current_groupsid=`smbldap-usershow $username | grep sambaPrimaryGroupSID | cut -f2 -d" "`
-	current_usersid=`smbldap-usershow $username | grep sambaSID | cut -f2 -d" "`
+	smbldap-usershow $username > $tmpfile.$username
+	current_groupsid=`grep sambaPrimaryGroupSID $tmpfile.$username | cut -f2 -d" "`
+	current_usersid=`grep sambaSID $tmpfile.$username | cut -f2 -d" "`
 	[ "$current_groupsid" = "$groupsid" ] || modify=yes
 	[ "$current_usersid" = "$usersid" ] || modify=yes
 	if [ -n "$modify" ]; then
 		echo "Reparing sambaSID for user $username ..."
 		pdbedit -r -U $usersid -G $groupsid $username &> /dev/null
 	fi
+	modify=yes
+	grep -q "\[UX         \]" $tmpfile.$username && modify=no
+	grep -q "\[UX\]" $tmpfile.$username && modify=no
+	if [ "$modify" = "yes" ]; then
+		echo "Reactivating account $username ..."
+		smbldap-usermod -H '[UX         ]' $username
+	fi
 	unset modify
 done
 
 
 # put administrator in teachersgroup, if necessary
-smbldap-groupshow $TEACHERSGROUP | grep memberUid: | grep -qw $ADMINISTRATOR || smbldap-usermod -G $ADMINGROUP,$PRINTERADMINS,$TEACHERSGROUP $ADMINISTRATOR
+if ! smbldap-groupshow $TEACHERSGROUP | grep memberUid: | grep -qw $ADMINISTRATOR; then
+	echo "Adding $ADMINISTRATOR to group $TEACHERSGROUP ..."
+	smbldap-usermod -G $ADMINGROUP,$PRINTERADMINS,$TEACHERSGROUP $ADMINISTRATOR
+fi
+
+rm -f $locker
+rm -rf $tmpdir

@@ -46,13 +46,6 @@ sed -e "s/^\$domainname=.*/\$domainname=\"${domainname}\";/
         s/^\$smbworkgroup=.*/\$smbworkgroup=\"${workgroup}\";/" $template > ${template}.tmp
 mv ${template}.tmp $template
 
-# patch sophomorix slapd template with current sid & samba domain
-template=/usr/share/sophomorix/config-templates/ldap/slapd-standalone.conf.template
-sed -e "s/^sambaSID:.*/sambaSID: $sambasid/
-        s/^sambaDomainName:.*/sambaDomainName: $workgroup/
-        s/by \* none/by \* read/g" $template > ${template}.tmp
-mv ${template}.tmp $template
-
 # clear samba browse cache
 rm -f /var/lib/samba/wins.dat
 

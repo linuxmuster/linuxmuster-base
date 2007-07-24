@@ -28,6 +28,13 @@ usage() {
 [[ -z "$username" ]] && usage
 [[ -z "$homedir" ]] && usage
 
+# if shares are connected on logout do nothing
+if [ "$log" = "out" ]; then
+  if smbstatus -u $username | grep -w $hostname | grep -w ^$username &> /dev/null; then
+    exit 0
+  fi
+fi
+
 #  test if hostname is an ip address
 if validip $hostname; then
   get_hostname $hostname

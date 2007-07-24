@@ -5,7 +5,7 @@ require "etc"
 Config = ConfigClass.new
 
 MACHINE_PASSWORD = 12345678
-HOST_PASSWORD = 'pwgen -s 8 1'
+HOST_PASSWORD = `pwgen -s 8 1`
 ROOM_DIRMODE = "0775"
 HOST_DIRMODE = "0775"
 
