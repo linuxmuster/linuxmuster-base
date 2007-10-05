@@ -7,7 +7,7 @@
 #
 
 # should rembo startet at boot time
-START_REMBO="yes"
+START_REMBO=no
 
 # Additional options that are passed to the Daemon.
 DAEMON_OPTS="-c /etc/rembo/rembo.conf"

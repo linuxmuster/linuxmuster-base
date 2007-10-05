@@ -1,11 +1,16 @@
-$TTL	3600
-@	IN	SOA	@@servername@@.@@domainname@@. postmaster.@@domainname@@. (
+$ORIGIN .
+$TTL 3600       ; 1 hour
+@@domainname@@	IN SOA	@@servername@@.@@domainname@@. postmaster.@@domainname@@. (
 			2004030801
 			10800
 			3600
 			604800
-			38400 )
-@		IN	NS	@@servername@@.@@domainname@@.
-@		IN	MX	10	@@servername@@.@@domainname@@.
+			38400
+			)
+		NS	@@servername@@.@@domainname@@.
+		MX	10 @@servername@@.@@domainname@@.
+
+$ORIGIN @@domainname@@.
+$TTL 7200       ; 2 hours
 @@servername@@		IN	A	@@serverip@@
 ipcop		IN	A	@@ipcopip@@

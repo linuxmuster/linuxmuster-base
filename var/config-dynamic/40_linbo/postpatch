@@ -1,0 +1,15 @@
+# check if imaging method is linbo 
+if  [ "$imaging" = "linbo" ]; then
+
+	# start necessary services
+	/etc/init.d/atftpd start
+	/etc/init.d/rsync start
+
+fi
+
+# remove tftp from inetd.conf
+if grep -q tftp /etc/inetd.conf; then
+	backup_file /etc/inetd.conf
+	grep -v tftp /etc/inetd.conf > /var/tmp/inetd.conf
+	mv /var/tmp/inetd.conf /etc
+fi

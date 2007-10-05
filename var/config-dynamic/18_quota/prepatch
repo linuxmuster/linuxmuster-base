@@ -1,0 +1,10 @@
+if [ "$1" = "--modify" ]; then
+	# prevent warnquota.conf from being patched
+	mv warnquota.conf.target warnquota.conf.target.nopatch
+
+	if [ "$domainname" != "$domainname_old" ]; then
+		backup_file /etc/warnquota.conf
+		sed -e "s/@$domainname_old/@$domainname/g" -i /etc/warnquota.conf
+	fi
+
+fi

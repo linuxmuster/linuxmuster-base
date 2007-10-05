@@ -132,6 +132,13 @@ Description: SMTP relay host?
  verschickt und empfangen werden soll.\n
  Bsp.: mail.belwue.de
 
+Template: linuxmuster-base/imaging
+Type: select
+Choices: linbo, rembo
+Default: rembo
+Description: Imaging-Methode:
+ Waehlen Sie entweder LINBO oder Rembo/mySHN als die zu verwendende Imaging-Methode.
+
 Template: linuxmuster-base/rootpw
 Type: password
 Description: Root-Passwort:

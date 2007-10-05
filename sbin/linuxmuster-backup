@@ -24,6 +24,7 @@ excludedirs="/var/lib/uml/ipcop /var/tmp"
 compression=3
 keepfull=1
 keepinc=7
+unmount_shm=no
 
 
 # read config
@@ -57,6 +58,7 @@ usage() {
   echo "                                       if not set no service will be stopped."
   echo "--compression=3                      : compression level (0-9), 0 means no compression."
   echo "--unmount=yes|no                     : whether to unmount the backupdevice after backup."
+  echo "--unmount_shm=yes|no                 : whether to unmount shared memory during backup."
   echo "--keepfull=1                         : how many full backup sets to keep"
   echo "--keepdiff=1                         : how many differential backup sets to keep."
   echo "--keepinc=7                          : how many incremental backup sets to keep."
@@ -347,9 +349,17 @@ if [ ! -d "$mountpoint/$isoprefix/$bfolder/cache" ]; then
 fi 
 
 
+# unmounting shared memory, if requested
+[ "$unmount_shm" = "yes" ] && umount /dev/shm
+
+
 # starting mondoarchive
 nice -n 19 mondoarchive $btypeparam -p $isoprefix $rtypeparam -I "$includedirs" -E "$mountpoint $adminisodir $excludedirs" -N -d $target -s ${mediasize}m -F -$compression -L
 status=$?
+
+
+# mount shared memory again
+[ "$unmount_shm" = "yes" ] && mount -t tmpfs tmpfs /dev/shm
 
 
 # if mondoarchive exits cleanly

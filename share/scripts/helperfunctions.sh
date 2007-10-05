@@ -88,6 +88,20 @@ esc_spec_chars() {
 }
 
 
+# backup up files gzipped to /var/backup/linuxmuster
+backup_file() {
+	[ -z "$1" ] && return 1
+	[ -e "$1" ] || return 1
+	echo "Backing up $1 ..."
+	origfile=${1#\/}
+	backupfile=$BACKUPDIR/$origfile-$DATETIME.gz
+	origpath=`dirname $1`
+	origpath=${origpath#\/}
+	[ -d "$BACKUPDIR/$origpath" ] || mkdir -p $BACKUPDIR/$origpath
+	gzip -c $1 > $backupfile || return 1
+	return 0
+}
+
 ##########################
 # check parameter values #
 ##########################
@@ -782,7 +796,7 @@ check_empty_dir() {
 
 # check valid string without special characters
 check_string() {
-  if (expr match "$1" '\([a-z0-9-_]\+$\)') &> /dev/null; then
+  if (expr match "$1" '\([a-zA-Z0-9-_]\+$\)') &> /dev/null; then
     return 0
   else
     return 1

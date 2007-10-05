@@ -40,7 +40,7 @@ for i in linuxmuster-base/intro linuxmuster-base/country linuxmuster-base/state 
          linuxmuster-base/ipcoppw_confirm linuxmuster-base/sambasid linuxmuster-base/internmask \
          linuxmuster-base/internmask_short linuxmuster-base/internsubrange linuxmuster-base/nicmenu \
          linuxmuster-base/ifmenu linuxmuster-base/mac_extern linuxmuster-base/mac_intern \
-         linuxmuster-base/mac_wlan linuxmuster-base/mac_dmz; do
+         linuxmuster-base/mac_wlan linuxmuster-base/mac_dmz linuxmuster-base/imaging; do
 
 	if ! db_get linuxmuster-base/$i; then
 		db_set linuxmuster-base/$i "" || true
@@ -94,7 +94,7 @@ case "$1" in
       fi
 
       # system groups and users which are needed by udevd
-      for i in fuse nvram rdma scanner tss; do
+      for i in fuse kvm nvram rdma scanner tss; do
         if ! grep -q ^${i}: /etc/group; then
           addgroup --system $i
         fi
@@ -125,8 +125,11 @@ case "$1" in
         message3=`date`
 
         # some variables we need for patching
+        # added imaging (1.2-6)
         servername=`hostname -s`
         domainname=`dnsdomainname`
+        db_get linuxmuster-base/imaging || true
+        imaging=$RET
         db_get linuxmuster-base/country || true
         country=$RET
         db_get linuxmuster-base/state || true
@@ -171,24 +174,24 @@ case "$1" in
 	fi
 
         # remove mem-cache mod from apache2
-        if [ -L /etc/apache2/mods-enabled/mem_cache.load ]; then
-          rm /etc/apache2/mods-enabled/mem_cache.load
-          apache_reload=yes
-        fi
+#        if [ -L /etc/apache2/mods-enabled/mem_cache.load ]; then
+#          rm /etc/apache2/mods-enabled/mem_cache.load
+#          apache_reload=yes
+#        fi
 
         # userdir.conf has changed
-        userdir_conf=/etc/apache2/mods-available/userdir.conf
-        if ! grep -q "# modified by linuxmuster-base-0.9-7" $userdir_conf; then
-          cp -f /var/lib/linuxmuster/config-static$userdir_conf $userdir_conf
-          apache_reload=yes
-        fi
+#        userdir_conf=/etc/apache2/mods-available/userdir.conf
+#        if ! grep -q "# modified by linuxmuster-base-0.9-7" $userdir_conf; then
+#          cp -f /var/lib/linuxmuster/config-static$userdir_conf $userdir_conf
+#          apache_reload=yes
+#        fi
 
         # apache2 default has changed
-        apache_default=/etc/apache2/sites-available/default
-        if ! grep -q "/people/students" $apache_default; then
-          cp -f /var/lib/linuxmuster/config-static$apache_default $apache_default
-          apache_reload=yes
-        fi
+#        apache_default=/etc/apache2/sites-available/default
+#        if ! grep -q "/people/students" $apache_default; then
+#          cp -f /var/lib/linuxmuster/config-static$apache_default $apache_default
+#          apache_reload=yes
+#        fi
 
         # apache2 adding port 242 for schulkonsole
         apache_ports=/etc/apache2/ports.conf
@@ -240,9 +243,6 @@ case "$1" in
           /etc/init.d/opengroupware.org restart
         fi
 
-        # remove myshn management console from $PROGSDIR
-        [ -d "$PROGSDIR/myshn-mc" ] && rm -rf $PROGSDIR/myshn-mc
-
         # fixing pam configuration
         if grep ^account /etc/pam.d/login | grep -q pam_access.so; then
   	  echo "pam configuration is up to date. :-)"
@@ -256,22 +256,6 @@ case "$1" in
 	  echo "To change this behaviour you have to edit /etc/security/access.conf!"
         fi
 
-        # check if domadmin exists
-        #if ! id $DOMADMIN &> /dev/null; then
-	#  da_check=no
-	#fi
-
-        # repair admin groups and accounts
-        #$SCRIPTSDIR/repair-admins.sh
-
-	# ask for domadmin password if necessary
-	#if [ -n "$da_check" ]; then
-	#  echo "ATTENTION!"
-	#  echo "$DOMADMIN is from now on the only user who has the right to add windows clients to the domain!"
-	#  echo "You have to give him a password!"
-	#  smbldap-passwd $DOMADMIN
-	#fi
-
         # update cron scripts
         # ntpdate
         if [ -e /etc/cron.hourly/ntpdate ]; then
@@ -281,34 +265,34 @@ case "$1" in
 
         # postfix
         # updating main.cf
-        if ! grep -q smtp_sasl_auth_enable /etc/postfix/main.cf; then
-          echo "Preparing postfix configuration for smtp auth ..."
-          cp -f /etc/postfix/main.cf /etc/postfix/main.cf-dpkg.orig
-          sed -e "s/@@servername@@/${servername}/g
-                  s/@@domainname@@/${domainname}/g
-                  s/@@smtprelay@@/${smtprelay}/g
-                  s/@@internalnet@@/${internalnet}/g
-                  s/@@internmask_short@@/${internmask_short}/g" /var/lib/linuxmuster/config-dynamic/16_mail/main.cf > /etc/postfix/main.cf
-          postfix reload
-        fi
-        # write smtp_auth file
-        if [ ! -e /etc/postfix/smtp_auth ]; then
-          if [ -n "$smtprelay" ]; then
-            echo "# $smtprelay		username:password" > /etc/postfix/smtp_auth
-          else
-            echo "# change smtp.relay.host to the FQDN of your smtp relay host" > /etc/postfix/smtp_auth
-            echo "# and uncomment the next line to activate smtp authentication" >> /etc/postfix/smtp_auth
-            echo "# smtp.relay.host		username:password" >> /etc/postfix/smtp_auth
-          fi
-          chmod 600 /etc/postfix/smtp_auth
-        fi
-        # master.cf
-        if grep -q "# only used by postfix-tls" /etc/postfix/master.cf; then
-          cp /etc/postfix/master.cf /etc/postfix/master.cf-dpkg.orig
-          echo "Updating /etc/postfix/master.cf ..."
-          cp /var/lib/linuxmuster/config-static/etc/postfix/master.cf /etc/postfix
-          upgrade=yes
-        fi
+#        if ! grep -q smtp_sasl_auth_enable /etc/postfix/main.cf; then
+#          echo "Preparing postfix configuration for smtp auth ..."
+#          cp -f /etc/postfix/main.cf /etc/postfix/main.cf-dpkg.orig
+#          sed -e "s/@@servername@@/${servername}/g
+#                  s/@@domainname@@/${domainname}/g
+#                  s/@@smtprelay@@/${smtprelay}/g
+#                  s/@@internalnet@@/${internalnet}/g
+#                  s/@@internmask_short@@/${internmask_short}/g" /var/lib/linuxmuster/config-dynamic/16_mail/main.cf > /etc/postfix/main.cf
+#          postfix reload
+#        fi
+#        # write smtp_auth file
+#        if [ ! -e /etc/postfix/smtp_auth ]; then
+#          if [ -n "$smtprelay" ]; then
+#            echo "# $smtprelay		username:password" > /etc/postfix/smtp_auth
+#          else
+#            echo "# change smtp.relay.host to the FQDN of your smtp relay host" > /etc/postfix/smtp_auth
+#            echo "# and uncomment the next line to activate smtp authentication" >> /etc/postfix/smtp_auth
+#            echo "# smtp.relay.host		username:password" >> /etc/postfix/smtp_auth
+#          fi
+#          chmod 600 /etc/postfix/smtp_auth
+#        fi
+#        # master.cf
+#        if grep -q "# only used by postfix-tls" /etc/postfix/master.cf; then
+#          cp /etc/postfix/master.cf /etc/postfix/master.cf-dpkg.orig
+#          echo "Updating /etc/postfix/master.cf ..."
+#          cp /var/lib/linuxmuster/config-static/etc/postfix/master.cf /etc/postfix
+#          upgrade=yes
+#        fi
 
         # bind9
         # permissions
@@ -319,98 +303,102 @@ case "$1" in
         chmod 664 /etc/bind/db.10
         chmod 664 /etc/bind/db.linuxmuster
         # including rndc.key
-        if ! grep -q rndc-key /etc/bind/named.conf.linuxmuster; then
-          echo "Fixing ddns update ..."
-          /etc/init.d/bind9 stop
-	  bind_stopped=yes
-          cp /etc/bind/named.conf.linuxmuster /etc/bind/named.conf.linuxmuster.dpkg-orig
-          sed -e "s/@@domainname@@/${domainname}/g" /var/lib/linuxmuster/config-dynamic/04_bind9/named.conf.linuxmuster > /etc/bind/named.conf.linuxmuster
-          if [ ! -e /etc/bind/rndc.key ]; then
-            echo "Creating /etc/bind/rndc.key ..."
-            rndc-confgen -a -u bind
-          else
-            chown bind /etc/bind/rndc.key
-          fi
-        fi
-        # fix wrong reversed addresses
-	if grep -q 0.0.10 /etc/bind/db.10; then
-          echo "Fixing wrong reversed dns addresses ..."
-          cp /etc/bind/db.10 /etc/bind/db.10.dpkg-orig
-          cp /etc/bind/db.linuxmuster /etc/bind/db.linuxmuster.dpkg-orig
-	  [ -n "$bind_stopped" ] || /etc/init.d/bind9 stop
-	  bind_stopped=yes
-	  sed -e "s/@@domainname@@/${domainname}/g
-	          s/@@servername@@/${servername}/g
-	          s/@@serverrev_short@@/${serverrev_short}/
-	          s/@@ipcoprev_short@@/${ipcoprev_short}/" /var/lib/linuxmuster/config-dynamic/04_bind9/db.10 > /etc/bind/db.10
-	  sed -e "s/@@domainname@@/${domainname}/g
-	          s/@@servername@@/${servername}/g
-	          s/@@serverip@@/${serverip}/
-	          s/@@ipcopip@@/${ipcopip}/" /var/lib/linuxmuster/config-dynamic/04_bind9/db.linuxmuster > /etc/bind/db.linuxmuster
-	  # remove journaling files
-	  [ -e /etc/bind/db.10.jnl ] && rm /etc/bind/db.10.jnl
-	  [ -e /etc/bind/db.linuxmuster.jnl ] && rm /etc/bind/db.linuxmuster.jnl
-	fi
-        [ -n "$bind_stopped" ] && /etc/init.d/bind9 start
+#        if ! grep -q rndc-key /etc/bind/named.conf.linuxmuster; then
+#          echo "Fixing ddns update ..."
+#          /etc/init.d/bind9 stop
+#	  bind_stopped=yes
+#          cp /etc/bind/named.conf.linuxmuster /etc/bind/named.conf.linuxmuster.dpkg-orig
+#          sed -e "s/@@domainname@@/${domainname}/g" /var/lib/linuxmuster/config-dynamic/04_bind9/named.conf.linuxmuster > /etc/bind/named.conf.linuxmuster
+#          if [ ! -e /etc/bind/rndc.key ]; then
+#            echo "Creating /etc/bind/rndc.key ..."
+#            rndc-confgen -a -u bind
+#          else
+#            chown bind /etc/bind/rndc.key
+#          fi
+#        fi
+#        # fix wrong reversed addresses
+#	if grep -q 0.0.10 /etc/bind/db.10; then
+#          echo "Fixing wrong reversed dns addresses ..."
+#          cp /etc/bind/db.10 /etc/bind/db.10.dpkg-orig
+#          cp /etc/bind/db.linuxmuster /etc/bind/db.linuxmuster.dpkg-orig
+#	  [ -n "$bind_stopped" ] || /etc/init.d/bind9 stop
+#	  bind_stopped=yes
+#	  sed -e "s/@@domainname@@/${domainname}/g
+#	          s/@@servername@@/${servername}/g
+#	          s/@@serverrev_short@@/${serverrev_short}/
+#	          s/@@ipcoprev_short@@/${ipcoprev_short}/" /var/lib/linuxmuster/config-dynamic/04_bind9/db.10 > /etc/bind/db.10
+#	  sed -e "s/@@domainname@@/${domainname}/g
+#	          s/@@servername@@/${servername}/g
+#	          s/@@serverip@@/${serverip}/
+#	          s/@@ipcopip@@/${ipcopip}/" /var/lib/linuxmuster/config-dynamic/04_bind9/db.linuxmuster > /etc/bind/db.linuxmuster
+#	  # remove journaling files
+#	  [ -e /etc/bind/db.10.jnl ] && rm /etc/bind/db.10.jnl
+#	  [ -e /etc/bind/db.linuxmuster.jnl ] && rm /etc/bind/db.linuxmuster.jnl
+#	fi
+#       [ -n "$bind_stopped" ] && /etc/init.d/bind9 start
 
         # dhcpd.conf
-        grep -q rndc-key /etc/dhcp3/dhcpd.conf || dhcpd_update=yes
-        grep -q "option ntp-servers" /etc/dhcp3/dhcpd.conf || dhcpd_update=yes
-        if [ -n "$dhcpd_update" ]; then
-          echo "Updating dhcp-server configuration ..."
-          cp /etc/dhcp3/dhcpd.conf /etc/dhcp3/dhcpd.conf-dpkg.orig
-          sed -e "s/@@servername@@/${servername}/g
-                  s/@@domainname@@/${domainname}/g
-                  s/@@serverip@@/${serverip}/g
-                  s/@@ipcopip@@/${ipcopip}/g
-                  s/@@broadcast@@/${broadcast}/g
-                  s/@@internalnet@@/${internalnet}/g
-                  s/@@internsub@@/${internsub}/g
-                  s/@@internmask@@/${internmask}/g" /var/lib/linuxmuster/config-dynamic/03_dhcp3-server/dhcpd.conf > /etc/dhcp3/dhcpd.conf
-        fi
+#        grep -q rndc-key /etc/dhcp3/dhcpd.conf || dhcpd_update=yes
+#        grep -q "option ntp-servers" /etc/dhcp3/dhcpd.conf || dhcpd_update=yes
+#        if [ -n "$dhcpd_update" ]; then
+#          echo "Updating dhcp-server configuration ..."
+#          cp /etc/dhcp3/dhcpd.conf /etc/dhcp3/dhcpd.conf-dpkg.orig
+#          sed -e "s/@@servername@@/${servername}/g
+#                  s/@@domainname@@/${domainname}/g
+#                  s/@@serverip@@/${serverip}/g
+#                  s/@@ipcopip@@/${ipcopip}/g
+#                  s/@@broadcast@@/${broadcast}/g
+#                  s/@@internalnet@@/${internalnet}/g
+#                  s/@@internsub@@/${internsub}/g
+#                  s/@@internmask@@/${internmask}/g" /var/lib/linuxmuster/config-dynamic/03_dhcp3-server/dhcpd.conf > /etc/dhcp3/dhcpd.conf
+#        fi
 
-	# increasing lease time in dhcpd.conf
-	if grep -q ^"default-lease-time 600;" /etc/dhcp3/dhcpd.conf; then
-		echo "Increasing default-lease-time from 600 to 86400 secs ..."
-		sed -e 's/^default-lease-time 600;/default-lease-time 86400;/' /etc/dhcp3/dhcpd.conf > /etc/dhcp3/dhcpd.conf.tmp
-		mv /etc/dhcp3/dhcpd.conf.tmp /etc/dhcp3/dhcpd.conf
-		dhcpd_update="yes"
-	fi
-	if grep -q ^"max-lease-time 7200;" /etc/dhcp3/dhcpd.conf; then
-		echo "Increasing max-lease-time from 7200 to 86400 secs ..."
-		sed -e 's/^max-lease-time 7200;/max-lease-time 86400;/' /etc/dhcp3/dhcpd.conf > /etc/dhcp3/dhcpd.conf.tmp
-		mv /etc/dhcp3/dhcpd.conf.tmp /etc/dhcp3/dhcpd.conf
-		dhcpd_update="yes"
-	fi
-	if grep -q "default-lease-time 60;" /etc/dhcp3/dhcpd.conf; then
-		echo "Increasing default-lease-time from 60 to 3600 secs ..."
-		sed -e 's/default-lease-time 60;/default-lease-time 3600;/' /etc/dhcp3/dhcpd.conf > /etc/dhcp3/dhcpd.conf.tmp
-		mv /etc/dhcp3/dhcpd.conf.tmp /etc/dhcp3/dhcpd.conf
-		dhcpd_update="yes"
-	fi
-	if grep -q "max-lease-time 60;" /etc/dhcp3/dhcpd.conf; then
-		echo "Increasing max-lease-time from 60 to 3600 secs ..."
-		sed -e 's/max-lease-time 60;/max-lease-time 3600;/' /etc/dhcp3/dhcpd.conf > /etc/dhcp3/dhcpd.conf.tmp
-		mv /etc/dhcp3/dhcpd.conf.tmp /etc/dhcp3/dhcpd.conf
-		dhcpd_update="yes"
-	fi
+#	# increasing lease time in dhcpd.conf
+#	if grep -q ^"default-lease-time 600;" /etc/dhcp3/dhcpd.conf; then
+#		echo "Increasing default-lease-time from 600 to 86400 secs ..."
+#		sed -e 's/^default-lease-time 600;/default-lease-time 86400;/' /etc/dhcp3/dhcpd.conf > /etc/dhcp3/dhcpd.conf.tmp
+#		mv /etc/dhcp3/dhcpd.conf.tmp /etc/dhcp3/dhcpd.conf
+#		dhcpd_update="yes"
+#	fi
+#	if grep -q ^"max-lease-time 7200;" /etc/dhcp3/dhcpd.conf; then
+#		echo "Increasing max-lease-time from 7200 to 86400 secs ..."
+#		sed -e 's/^max-lease-time 7200;/max-lease-time 86400;/' /etc/dhcp3/dhcpd.conf > /etc/dhcp3/dhcpd.conf.tmp
+#		mv /etc/dhcp3/dhcpd.conf.tmp /etc/dhcp3/dhcpd.conf
+#		dhcpd_update="yes"
+#	fi
+#	if grep -q "default-lease-time 60;" /etc/dhcp3/dhcpd.conf; then
+#		echo "Increasing default-lease-time from 60 to 3600 secs ..."
+#		sed -e 's/default-lease-time 60;/default-lease-time 3600;/' /etc/dhcp3/dhcpd.conf > /etc/dhcp3/dhcpd.conf.tmp
+#		mv /etc/dhcp3/dhcpd.conf.tmp /etc/dhcp3/dhcpd.conf
+#		dhcpd_update="yes"
+#	fi
+#	if grep -q "max-lease-time 60;" /etc/dhcp3/dhcpd.conf; then
+#		echo "Increasing max-lease-time from 60 to 3600 secs ..."
+#		sed -e 's/max-lease-time 60;/max-lease-time 3600;/' /etc/dhcp3/dhcpd.conf > /etc/dhcp3/dhcpd.conf.tmp
+#		mv /etc/dhcp3/dhcpd.conf.tmp /etc/dhcp3/dhcpd.conf
+#		dhcpd_update="yes"
+#	fi
 
-        [ -n "$dhcpd_update" ] && /etc/init.d/dhcp3-server restart
+#        [ -n "$dhcpd_update" ] && /etc/init.d/dhcp3-server restart
 
 
         # apt
-        cp -f /var/lib/linuxmuster/config-static/etc/apt/sources.list.online /etc/apt
         [ -e /etc/apt/apt.conf ] && cp /etc/apt/apt.conf /etc/apt/apt.conf.dpkg-old
         echo "Updating /etc/apt/apt.conf ..."
         cp -f /var/lib/linuxmuster/config-static/etc/apt/apt.conf /etc/apt
         [ -e /etc/apt/preferences ] && cp /etc/apt/preferences /etc/apt/preferences.dpkg-old
         echo "Updating /etc/apt/preferences ..."
         cp -f /var/lib/linuxmuster/config-static/etc/apt/preferences /etc/apt
-        if grep -q "^deb http" /etc/apt/sources.list; then
-          echo "Updating /etc/apt/sources.list ..."
-          cp -f /etc/apt/sources.list /etc/apt/sources.list.dpkg-old
-          cp -f /etc/apt/sources.list.online /etc/apt/sources.list
-        fi
+	# checking for correct sources.list
+	while read line; do
+		[ "${line:0:3}" != "deb" ] && continue
+		if ! grep -q "$line" /etc/apt/sources.list; then
+			[ -z "$slist_changed" ] && gzip -c /etc/apt/sources.list > $BACKUPDIR/sources.list-$DATETIME.gz
+			echo "Adding $line to /etc/apt/sources.list ..."
+			echo "$line" >> /etc/apt/sources.list
+			slist_changed=yes
+		fi
+	done </var/lib/linuxmuster/config-static/etc/apt/sources.list.online
 
         # environment
         if [ ! -e /etc/environment ]; then
@@ -418,49 +406,6 @@ case "$1" in
           cp -f /var/lib/linuxmuster/config-static/etc/environment /etc
           cp -f /var/lib/linuxmuster/config-static/etc/profile /etc
         fi
-
-        # change user's default shell to /bin/bash
-        if [ "$(dpkg -l | grep sophomorix-bas | cut -f4 -d" ")" = "1.9.4-1" ]; then
-          echo "Changing user's default shell to /bin/bash ..."
-          # patch sophomorix.conf
-          cp $SOPHOMORIXCONF ${SOPHOMORIXCONF}.dpkg-old
-          sed -e 's/^\$schueler_per_ssh=.*/\$schueler_per_ssh=\"yes\"\;/
-                  s/^\$lehrer_per_ssh=.*/\$lehrer_per_ssh=\"yes\"\;/' ${SOPHOMORIXCONF}.dpkg-old > ${SOPHOMORIXCONF}
-          # patch user accounts
-          # teachers
-          if check_empty_dir $TEACHERSHOME; then
-            cd $TEACHERSHOME
-            for i in *; do
-              id $i &> /dev/null && smbldap-usermod -s /bin/bash $i
-            done
-          fi
-          # students
-          if check_empty_dir $STUDENTSHOME; then
-            cd $STUDENTSHOME
-            for i in *; do
-              if [ -d "$i" ]; then
-                cd $i
-                for j in *; do
-                  id $j &> /dev/null && smbldap-usermod -s /bin/bash $j
-                done
-                cd ..
-              fi
-            done
-          fi
-          # workstations
-          if check_empty_dir $WSHOME; then
-            cd $WSHOME
-            for i in *; do
-              if [ -d "$i" ]; then
-                cd $i
-                for j in *; do
-                  id $j &> /dev/null && smbldap-usermod -s /bin/bash $j
-                done
-                cd ..
-              fi
-            done
-          fi
-        fi # change user's default shell to /bin/bash
 
         # shadow passwords
         if [ ! -e /etc/shadow ]; then
@@ -489,41 +434,41 @@ case "$1" in
         chmod 644  /etc/odbc.ini
 
         # bug #96
-        if [ -L /usr/sbin/sendmail ]; then
-          echo "FATAL: Bug #96 detected!"
-          echo " You _have_ to reinstall postfix ASAP!"
-        fi
+#        if [ -L /usr/sbin/sendmail ]; then
+#          echo "FATAL: Bug #96 detected!"
+#          echo " You _have_ to reinstall postfix ASAP!"
+#        fi
 
         # bug #130, fixing slapd.conf
-        if ! grep -q ^password-hash /etc/ldap/slapd.conf; then
-          echo "Fixing slapd.conf (Bug #130) ..."
-          cp  /etc/ldap/slapd.conf /etc/ldap/slapd.conf.dpkg-old
-          sed -e '/^argsfile/a\
-password-hash   {CRYPT}' /etc/ldap/slapd.conf.dpkg-old > /etc/ldap/slapd.conf
-          slapd_update=yes
-        fi
+#        if ! grep -q ^password-hash /etc/ldap/slapd.conf; then
+#          echo "Fixing slapd.conf (Bug #130) ..."
+#          cp  /etc/ldap/slapd.conf /etc/ldap/slapd.conf.dpkg-old
+#          sed -e '/^argsfile/a\
+#password-hash   {CRYPT}' /etc/ldap/slapd.conf.dpkg-old > /etc/ldap/slapd.conf
+#          slapd_update=yes
+#        fi
 
         # adding sizelimit statement to slapd.conf
-        if ! grep -q ^sizelimit /etc/ldap/slapd.conf; then
-          echo "Adding sizelimit statement to slapd.conf ..."
-          echo "sizelimit	-1" >> /etc/ldap/slapd.conf
-          slapd_update=yes
-        fi
+#        if ! grep -q ^sizelimit /etc/ldap/slapd.conf; then
+#          echo "Adding sizelimit statement to slapd.conf ..."
+#          echo "sizelimit	-1" >> /etc/ldap/slapd.conf
+#          slapd_update=yes
+#        fi
 
 	# fix ldap authentication
-	template=/usr/share/sophomorix/config-templates/ldap/slapd-standalone.conf.template
-	if grep -q "by \* none" $template; then
-	  sed -e 's/by \* none/by \* read/g' $template > ${template}.tmp
-	  mv ${template}.tmp $template
-	fi
-	if grep -q "by \* none" /etc/ldap/slapd.conf; then
-	  sed -e 's/by \* none/by \* read/g' /etc/ldap/slapd.conf > /etc/ldap/slapd.conf.tmp
-	  mv /etc/ldap/slapd.conf.tmp  /etc/ldap/slapd.conf
-          slapd_update=yes
-	fi
+#	template=/usr/share/sophomorix/config-templates/ldap/slapd-standalone.conf.template
+#	if grep -q "by \* none" $template; then
+#	  sed -e 's/by \* none/by \* read/g' $template > ${template}.tmp
+#	  mv ${template}.tmp $template
+#	fi
+#	if grep -q "by \* none" /etc/ldap/slapd.conf; then
+#	  sed -e 's/by \* none/by \* read/g' /etc/ldap/slapd.conf > /etc/ldap/slapd.conf.tmp
+#	  mv /etc/ldap/slapd.conf.tmp  /etc/ldap/slapd.conf
+#         slapd_update=yes
+#	fi
 
         chmod 600 /etc/ldap/slapd.conf*
-        [ -n "$slapd_update" ] && /etc/init.d/slapd restart
+#        [ -n "$slapd_update" ] && /etc/init.d/slapd restart
 
         # bug #123, adding ipcop handling to /etc/init.d/networking
         if ! grep -q ^doipcop /etc/init.d/networking; then
@@ -580,39 +525,39 @@ password-hash   {CRYPT}' /etc/ldap/slapd.conf.dpkg-old > /etc/ldap/slapd.conf
 	fi
 
 	# adding root cron jobs for ovpn-client-cert
-	if grep -q /usr/sbin/ovpn-client-cert /var/spool/cron/crontabs/root; then
-		echo "Removing ovpn-client-cert from cron jobs ..."
-		grep -v ovpn-client-cert /var/spool/cron/crontabs/root >> /var/spool/cron/crontabs/root.tmp
-		mv /var/spool/cron/crontabs/root.tmp /var/spool/cron/crontabs/root
-	fi
-	if ! grep -q linuxmuster-ovpn /var/spool/cron/crontabs/root; then
-		echo "Adding linuxmuster-ovpn cron jobs ..."
-		grep linuxmuster-ovpn /var/lib/linuxmuster/config-static/var/spool/cron/crontabs/root >> /var/spool/cron/crontabs/root
-	fi
+#	if grep -q /usr/sbin/ovpn-client-cert /var/spool/cron/crontabs/root; then
+#		echo "Removing ovpn-client-cert from cron jobs ..."
+#		grep -v ovpn-client-cert /var/spool/cron/crontabs/root >> /var/spool/cron/crontabs/root.tmp
+#		mv /var/spool/cron/crontabs/root.tmp /var/spool/cron/crontabs/root
+#	fi
+#	if ! grep -q linuxmuster-ovpn /var/spool/cron/crontabs/root; then
+#		echo "Adding linuxmuster-ovpn cron jobs ..."
+#		grep linuxmuster-ovpn /var/lib/linuxmuster/config-static/var/spool/cron/crontabs/root >> /var/spool/cron/crontabs/root
+#	fi
 
 	# fixing freshclam.conf
-	if ! grep -q ^"NotifyClamd /etc/clamav/clamd.conf" /etc/clamav/freshclam.conf; then
-		echo "Fixing /etc/clamav/freshclam.conf ..."
-		cp -f /var/lib/linuxmuster/config-static/etc/clamav/freshclam.conf /etc/clamav
-	fi
+#	if ! grep -q ^"NotifyClamd /etc/clamav/clamd.conf" /etc/clamav/freshclam.conf; then
+#		echo "Fixing /etc/clamav/freshclam.conf ..."
+#		cp -f /var/lib/linuxmuster/config-static/etc/clamav/freshclam.conf /etc/clamav
+#	fi
 
 	# cups upgrade
-	if ! grep -q "# 28.04.2007" /etc/cups/cupsd.conf; then
-		echo "Upgrading CUPS configuration!"
-		cp /etc/cups/cupsd.conf /etc/cups/cupsd.conf.dpkg-old
-		sed -e "s/@@printeradmins@@/${PRINTERADMINS}/
-		        s/@@serverip@@/${serverip}/" /var/lib/linuxmuster/config-dynamic/34_cups/cupsd.conf > /etc/cups/cupsd.conf
-		# cups-pdf upgrade
-		for i in `find /home -type d -name cups-pdf`; do
-			if check_empty_dir $i; then
-				rm -rf $i
-			else
-				p=${i%cups-pdf}PDF
-				mv $i $p
-			fi
-		done
-		cups_restart=yes
-	fi
+#	if ! grep -q "# 28.04.2007" /etc/cups/cupsd.conf; then
+#		echo "Upgrading CUPS configuration!"
+#		cp /etc/cups/cupsd.conf /etc/cups/cupsd.conf.dpkg-old
+#		sed -e "s/@@printeradmins@@/${PRINTERADMINS}/
+#		        s/@@serverip@@/${serverip}/" /var/lib/linuxmuster/config-dynamic/34_cups/cupsd.conf > /etc/cups/cupsd.conf
+#		# cups-pdf upgrade
+#		for i in `find /home -type d -name cups-pdf`; do
+#			if check_empty_dir $i; then
+#				rm -rf $i
+#			else
+#				p=${i%cups-pdf}PDF
+#				mv $i $p
+#			fi
+#		done
+#		cups_restart=yes
+#	fi
 	# restoring PDF-Printer
 	if [ ! -f /etc/cups/ppd/PDF-Printer.ppd ]; then
 		echo "Restoring PDF-Printer driver ..."
@@ -673,7 +618,7 @@ password-hash   {CRYPT}' /etc/ldap/slapd.conf.dpkg-old > /etc/ldap/slapd.conf
 	indexhtml=/var/www/apache2-default/index.html
 	template=${indexhtml}.tpl
 	if [ -e "$template" ]; then
-		if ! grep -q "$servername.$domainname" $indexhtml; then
+		if ! grep "$servername.$domainname" $indexhtml &> /dev/null; then
 			[ -e "$indexhtml" ] && mv $indexhtml ${indexhtml}.dpkg-old
 			sed -e "s/@@servername@@/$servername/g
 			        s/@@domainname@@/$domainname/g" $template > $indexhtml
@@ -688,7 +633,7 @@ password-hash   {CRYPT}' /etc/ldap/slapd.conf.dpkg-old > /etc/ldap/slapd.conf
 		cat /etc/issue
 	fi
 
-	# removing passwd3 files
+	# removing passwd3 files (1.1-7)
 	[ -e /etc/horde/passwd3 ] && rm -rf /etc/horde/passwd3
 	[ -e /usr/share/horde3/passwd ] && rm -rf /usr/share/horde3/passwd
 	[ -e /usr/share/doc/passwd3 ] && rm -rf /usr/share/doc/passwd3
@@ -700,6 +645,41 @@ password-hash   {CRYPT}' /etc/ldap/slapd.conf.dpkg-old > /etc/ldap/slapd.conf
             /etc/init.d/linuxmuster-base start
           fi
         fi
+
+	# adding imaging variable (1.1-8)
+	if ! grep -q ^imaging $NETWORKSETTINGS; then
+		[ -n "$imaging" ] && echo "imaging=$imaging" >> $NETWORKSETTINGS
+	fi
+
+	# patch path to wimport_data in dist.conf (1.1-8)
+	if [ -n "$imaging" ]; then
+		case "$imaging" in
+			linbo|tivoli)
+				sed -e "s/^WIMPORTDATA=.*/WIMPORTDATA=\"\/etc\/linuxmuster\/workstations\"/" -i /usr/share/linuxmuster/config/dist.conf
+				;;
+			*)
+				sed -e "s/^WIMPORTDATA=.*/WIMPORTDATA=\"\$REMBOFILES\/files\/global\/wimport_data\"/" -i /usr/share/linuxmuster/config/dist.conf
+				;;
+		esac
+	fi
+
+	# update backup.conf (1.2-6)
+	if ! grep -q ^unmount_shm /etc/linuxmuster/backup.conf; then
+		echo "Adding new parameter unmount_shm to backup.conf ..."
+		cp /etc/linuxmuster/backup.conf /etc/linuxmuster/backup.conf.dpkg-old
+		echo >> /etc/linuxmuster/backup.conf
+		echo "# unmount shared memory during backup? yes or no." >> /etc/linuxmuster/backup.conf
+		echo "# may be helpfull if mindi is not able to unmount shm." >> /etc/linuxmuster/backup.conf
+		echo "unmount_shm=no" >> /etc/linuxmuster/backup.conf
+	fi
+
+	# custom login/logout scripts (1.2-6)
+	for i in in out; do
+		if [ ! -e "$NETLOGONDIR/custom-log$i.sh" ]; then
+			echo "Copying $NETLOGONDIR/custom-log$i.sh ..."
+			cp /var/lib/linuxmuster/config-static$NETLOGONDIR/custom-log$i.sh $NETLOGONDIR
+		fi
+	done
 
 	# important message if upgrade is necessary
         if [ -n "$upgrade" ]; then

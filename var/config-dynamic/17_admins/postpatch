@@ -5,6 +5,3 @@ for i in $NETLOGONDIR $PROGSDIR $CDSDIR; do
 done
 chown $ADMINISTRATOR:$DOMADMINS $NETLOGONDIR -R
 chmod 664 $NETLOGONDIR/*
-
-# restore access.conf.target if necessary
-[ -e access.conf.target.tmp ] && mv access.conf.target.tmp access.conf.target

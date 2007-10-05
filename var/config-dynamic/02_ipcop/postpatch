@@ -1,0 +1,43 @@
+# only root may have access
+chmod 600 /etc/ipcop.settings
+
+# only to do on fresh installation or firewall type change
+if [[ "$1" = "--first" || "$update_fw" = "yes" ]]; then
+
+	# read linuxmuster-ipcop default config
+	. /usr/share/linuxmuster-ipcop/config
+
+	# delete root's ssh known hosts
+	[ -e /root/.ssh/known_hosts ] && rm /root/.ssh/known_hosts
+
+	# backup
+	backup_file /etc/default/linuxmuster-ipcop
+
+	# integrated ipcop configuration
+	if [ "$fwconfig" = "integrated" ]; then
+
+		echo "  Building integrated ipcop ..."
+		/usr/share/linuxmuster-ipcop/build-uml.sh
+
+		# setting ipcop ram to 128mb if server ram is greater than 1 GB
+		MEM=64M
+		[[ $memtotal -gt 1048576 ]] && MEM=128M
+
+		# patch ipcop default file with mem and start variables
+		sed -e "s/^START_IPCOP=.*/START_IPCOP=yes/
+			s/^MEM=.*/MEM=${MEM}/" -i /etc/default/linuxmuster-ipcop
+
+	else
+
+		# modify dedicated ipcop completely
+		/usr/share/linuxmuster-ipcop/restore-dedicated.sh --first "$ipcoppw"
+
+		# patch ipcop default file not to start
+		sed -e "s/^START_IPCOP=.*/START_IPCOP=no/" -i /etc/default/linuxmuster-ipcop
+
+	fi
+
+fi
+
+# finally start ipcop
+/etc/init.d/linuxmuster-ipcop start

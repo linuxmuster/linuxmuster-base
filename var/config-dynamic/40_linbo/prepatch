@@ -1,0 +1,103 @@
+# check if imaging method is linbo 
+if  [ "$imaging" = "linbo" ]; then
+
+	# patch rsyncd.secrets with admin password
+	if [ "$1" = "--first" ]; then
+
+		if grep ^linbo: /etc/rsyncd.secrets &> /dev/null; then
+			sed -e "s/^linbo:.*/linbo:$adminpw/" -i /etc/rsyncd.secrets
+		else
+			echo "linbo:$adminpw" >> /etc/rsyncd.secrets
+		fi
+
+		# provide empty workstations data
+		rm -rf $SYSCONFDIR/workstations
+
+	else
+
+		if [ "$imaging_old" = "rembo" ]; then
+			if [ -L "$SYSCONFDIR/workstations" ]; then
+				rm $SYSCONFDIR/workstations
+			else
+				backup_file $SYSCONFDIR/workstations
+			fi
+			cp $REMBOFILES/files/global/wimport_data $SYSCONFDIR/workstations
+		fi
+
+	fi
+
+	touch $SYSCONFDIR/workstations
+
+	# patch path to wimport_data in dist.conf
+	backup_file /usr/share/linuxmuster/config/dist.conf
+	sed -e "s/^WIMPORTDATA=.*/WIMPORTDATA=\"\/etc\/linuxmuster\/workstations\"/" -i /usr/share/linuxmuster/config/dist.conf
+
+	# grep rsync password from rembo.conf or if that fails take simply muster as password
+	if ! grep ^linbo: /etc/rsyncd.secrets &> /dev/null; then
+		linbopw=`grep ^NetPassword /etc/rembo/rembo.conf | awk -F\" '{ print $2 }'`
+		[ -z "$linbopw" ] && linbopw=muster
+		echo "linbo:$linbopw" >> /etc/rsyncd.secrets
+	fi
+	chmod 600 /etc/rsyncd.secrets
+
+	# check for initial configuration and copy it if necessary
+	teststr="# automatically created by linuxmuster-setup"
+	grep "$teststr" /etc/default/atftpd &> /dev/null || cp /var/lib/linuxmuster/config-static/etc/default/atftpd /etc/default
+	grep "$teststr" /etc/rsyncd.conf &> /dev/null || cp /var/lib/linuxmuster/config-static/etc/rsyncd.conf /etc
+	grep "$teststr" /etc/default/linuxmuster-linbo &> /dev/null || cp /var/lib/linuxmuster/config-static/etc/default/linuxmuster-linbo /etc/default
+
+	# check for pxelinux config dir
+	[ -d "$LINBODIR/pxelinux.cfg" ] || mkdir -p $LINBODIR/pxelinux.cfg
+
+	# link pxelinux.0 to linbo dir
+	[ -e "$LINBODIR/pxelinux.0" ] || ln -sf /usr/lib/syslinux/pxelinux.0 $LINBODIR/pxelinux.0
+	for i in `ls /var/lib/linuxmuster/config-static/var/linbo/`; do
+		[ -e "$LINBODIR/$i" ] || cp /var/lib/linuxmuster/config-static/var/linbo/$i $LINBODIR
+	done
+
+	# open internal firewall for multicasting and rsync
+	. /etc/default/linuxmuster-linbo
+	if ! grep ^udp $ALLOWEDPORTS | grep -q $PORTBASE:; then
+		backup_file $ALLOWEDPORTS
+		PORTMAX=$PORTBASE
+		let PORTMAX+=100
+		PORTS=`grep ^udp $ALLOWEDPORTS | awk '{ print $2 }'`
+		PORTS="$PORTS,$PORTBASE:$PORTMAX"
+		sed -e "s/^udp.*/udp $PORTS/" -i $ALLOWEDPORTS
+	fi
+	if ! grep ^tcp $BASEPORTS | grep -qw rsync; then
+		backup_file $BASEPORTS
+		PORTS=`grep ^tcp $BASEPORTS | awk '{ print $2 }'`
+		PORTS="$PORTS,rsync"
+		sed -e "s/^tcp.*/tcp $PORTS/" -i $BASEPORTS
+	fi
+
+	# patch start.confs with serverip
+	for i in `find $LINBODIR/ -type f -name 'start.conf*'`; do
+		sed -e "s/^Server =.*/Server = $serverip       # First TFTP Server with remote Images/" -i $i
+	done
+
+	# patch start variables of atftpd and rsync
+	sed -e "s/^USE_INETD=.*/USE_INETD=false/" -i /etc/default/atftpd
+	sed -e "s/^RSYNC_ENABLE=.*/RSYNC_ENABLE=true/" -i /etc/default/rsync
+
+	# check for images and start multicast
+	res=`find $LINBODIR -name '*.cloop'`
+	if [ -n "$res" ]; then
+		sed -e "s/^START_MULTICAST=.*/START_MULTICAST=yes/" -i /etc/default/linuxmuster-linbo
+		/etc/init.d/linbo-multicast start
+	else
+		sed -e "s/^START_MULTICAST=.*/START_MULTICAST=no/" -i /etc/default/linuxmuster-linbo
+	fi
+
+else
+
+	# patch start variables of atftpd and rsync
+	[ -e /etc/default/atftpd ] && sed -e "s/^USE_INETD=.*/USE_INETD=true/" -i /etc/default/atftpd
+	[ -e /etc/default/rsync ] && sed -e "s/^RSYNC_ENABLE=.*/RSYNC_ENABLE=false/" -i /etc/default/rsync
+	[ -e /etc/default/linuxmuster-linbo ] && sed -e "s/^START_MULTICAST=.*/START_MULTICAST=no/" -i /etc/default/linuxmuster-linbo
+
+	# prevent pxelinux default config from being patched
+	mv default.target default.target.nopatch
+
+fi

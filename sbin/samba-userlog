@@ -111,7 +111,7 @@ fi
 if [[ "$hostname" = "$username" && "$log" = "in" ]]; then
 
   password=`pwgen -s 8 1`
-  echo -e "$password\n$password\n" | smbldap-passwd $hostname
+  sophomorix-passwd -u $hostname --pass $password &> /dev/null
 
 fi
 
@@ -173,6 +173,11 @@ if check_id $hostname; then
   rm -f $lockflag || exit 1
 
 fi
+
+
+# source custom login and logout scripts
+[ -e "$NETLOGONDIR/custom-log$log.sh" ] && . $NETLOGONDIR/custom-log$log.sh
+
 
 # log to userlog
 get_ip $hostname

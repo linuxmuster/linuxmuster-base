@@ -2,9 +2,9 @@
 ogoconfig="/var/lib/opengroupware.org/.libFoundation/Defaults/NSGlobalDomain.plist"
 
 # patch servername and basedn
+[ "$i" = "--modify" ] && backup_file $ogoconfig
 sed -e "s/\"skyrix_id\" =.*/\"skyrix_id\" = $servername-ogo;/
-        s/LSAuthLDAPServerRoot =.*/LSAuthLDAPServerRoot = \"ou=accounts,$basedn\";/" $ogoconfig > $ogoconfig.tmp
-cp -f $ogoconfig.tmp $ogoconfig && rm -f $ogoconfig.tmp
+        s/LSAuthLDAPServerRoot =.*/LSAuthLDAPServerRoot = \"ou=accounts,$basedn\";/" -i $ogoconfig
 
 # restore permissions
 chown ogo:ogo /var/lib/opengroupware.org -R

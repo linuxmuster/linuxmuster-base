@@ -14,7 +14,6 @@ PRIORITY="critical"
 # source helperfunctions
 . $HELPERFUNCTIONS || exit 1
 
-
 # source oldvalues if present
 if [ -e $OLDVALUES ]; then
   . $OLDVALUES
@@ -36,13 +35,14 @@ for i in country state location schoolname workgroup; do
     db_input $PRIORITY linuxmuster-base/$i || true
     db_go
     db_get linuxmuster-base/$i || true
+    check_string "$RET" || continue
     INPUT=$RET
+    [[ "$oldvalues" = "yes" && "$i" = "country" && "$INPUT" != "$country_old" ]] && ask_ipcop=yes
+    [[ "$oldvalues" = "yes" && "$i" = "state" && "$INPUT" != "$state_old" ]] && ask_ipcop=yes
+    [[ "$oldvalues" = "yes" && "$i" = "location" && "$INPUT" != "$location_old" ]] && ask_ipcop=yes
+    [[ "$oldvalues" = "yes" && "$i" = "schoolname" && "$INPUT" != "$schoolname_old" ]] && ask_ipcop=yes
     if [ "$i" = "schoolname" ]; then
       db_set shared/organization $INPUT || true
-    fi
-    if [ "$i" = "workgroup" ]; then
-      WORKGROUP=${INPUT//[��� ]/}
-      db_set linuxmuster-base/$i $WORKGROUP || true
     fi
   done
   unset INPUT
@@ -58,7 +58,7 @@ while ! (expr match "$SERVERNAME" '\([a-z0-9-]\+$\)'); do
   db_get linuxmuster-base/servername || true
   SERVERNAME=$RET
 done
-
+[[ "$oldvalues" = "yes" && "$SERVERNAME" != "$servername_old" ]] && ask_ipcop=yes
 
 # domainname
 while ! validdomain "$DOMAINNAME"; do
@@ -68,6 +68,7 @@ while ! validdomain "$DOMAINNAME"; do
   db_get linuxmuster-base/domainname || true
   DOMAINNAME=$RET
 done
+[[ "$oldvalues" = "yes" && "$DOMAINNAME" != "$domainname_old" ]] && ask_ipcop=yes
 
 
 # intern subnet range
@@ -124,20 +125,20 @@ routerconfig() {
 
 # extern network sub menu
 externconfig() {
-  db_fset linuxmuster-base/externtype seen false
-  db_input $PRIORITY linuxmuster-base/externtype || true
-  db_go
-  db_get linuxmuster-base/externtype || true
-  case $RET in
-    static)
-      routerconfig
-      ;;
-    pppoe)
-      dslconfig
-      ;;
-    dhcp)
-      ;;
-  esac
+	db_fset linuxmuster-base/externtype seen false
+	db_input $PRIORITY linuxmuster-base/externtype || true
+	db_go
+	db_get linuxmuster-base/externtype || true
+	case $RET in
+		static)
+			routerconfig
+			;;
+		pppoe)
+			dslconfig
+			;;
+		dhcp)
+			;;
+	esac
 }
 
 
@@ -149,22 +150,42 @@ db_get linuxmuster-base/fwconfig || true
 fwconfig=$RET
 # check if fwconfig has been modified
 if [ "$oldvalues" = "yes" ]; then
-  [ "$fwconfig" = "$fwconfig_old" ] || update_fw=yes
+	[ "$fwconfig" = "$fwconfig_old" ] || ask_ipcop=yes
 fi
-# configure extern network if fwconfig is integrated
-[ "$fwconfig" = "integrated" ] && externconfig
+
+
+# configure external network only if fwconfig is integrated or setup is in modify mode and fwconfig has not changed
+if [ "$fwconfig" = "integrated" ]; then
+	externconfig
+else
+	if [ "$1" = "--modify" ]; then
+		[ "$fwconfig" = "$fwconfig_old" ] && externconfig
+	fi
+fi
 
 
 # smtp relay
 while ! validdomain "$SMTPRELAY"; do
-  db_fset linuxmuster-base/smtprelay seen false
-  db_input $PRIORITY linuxmuster-base/smtprelay || true
-  db_go
-  db_get linuxmuster-base/smtprelay || true
-  SMTPRELAY=$RET
-  if [ "$SMTPRELAY" = "" ]; then break; fi
+	db_fset linuxmuster-base/smtprelay seen false
+	db_input $PRIORITY linuxmuster-base/smtprelay || true
+	db_go
+	db_get linuxmuster-base/smtprelay || true
+	SMTPRELAY=$RET
+	if [ "$SMTPRELAY" = "" ]; then break; fi
 done
 
+
+# imaging method
+# first check if linuxmuster-linbo is available
+res=`aptitude search linuxmuster-linbo`
+if [[ -n "$res" || -d "$LINBODIR" ]]; then
+	db_fset linuxmuster-base/imaging seen false
+	db_input $PRIORITY linuxmuster-base/imaging || true
+	db_go
+else
+	# set default to rembo
+	db_set linuxmuster-base/imaging rembo || true
+fi
 
 # admin passwords
 if [ "$1" = "--first" ]; then
@@ -194,7 +215,7 @@ if [ "$1" = "--first" ]; then
 					db_get linuxmuster-base/rootpw || true
 					if [ "$RET" = "$CONFIRM" ]; then
 						STATE=0
-						echo root:$RET | chpasswd
+						rootpw="$RET"
 					else
 						STATE=1
 					fi
@@ -330,7 +351,7 @@ fi # admin passwords
 
 
 # ipcop password
-if [[ "$1" = "--first" || "$update_fw" = "yes" ]]; then
+if [[ "$1" = "--first" || "$ask_ipcop" = "yes" ]]; then
 
 	STATE=1
 	while [ "$STATE"  != 0 ]; do
@@ -375,6 +396,18 @@ fi # ipcop password
 
 # assign nics with extern, intern, wlan, dmz interfaces
 assign_nics
+status=$?
 
 # important: close debconf database
 db_stop
+
+# check status
+if [ "$status" = "0" ]; then
+	if [ "$1" = "--first" ]; then
+		echo "root:$rootpw" | chpasswd
+	fi
+fi
+
+unset rootpw
+
+exit $status

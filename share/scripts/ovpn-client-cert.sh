@@ -174,10 +174,10 @@ download_cert() {
         checklock || exit 1
 
 	get_ipcop /var/ipcop/ovpn/certs/${username}.p12 $tmpdir/${username}.p12 || cancel "Certificate download for user $username failed!"
-	get_ipcop /var/ipcop/ovpn/settings $tmpdir/settings || cancel "Certificate download for user $username failed!"
+	get_ipcop /var/ipcop/ovpn/settings $tmpdir/settings || cancel "OpenVPN settings download failed!"
 	. $tmpdir/settings
 
-	write_config $tmpdir/${username}-TO-IPCop-RED.ovpn $ROOTCERT_HOSTNAME
+	write_config $tmpdir/${username}-TO-IPCop-RED.ovpn $VPN_IP
 	[ "$ENABLED_BLUE" = "on" ] && write_config $tmpdir/${username}-TO-IPCop-BLUE.ovpn ${ipcopblue}.254
 	[ "$ENABLED_ORANGE" = "on" ] && write_config $tmpdir/${username}-TO-IPCop-ORANGE.ovpn ${ipcoporange}.254
 
@@ -226,7 +226,7 @@ create_cert() {
 		cancel "Upload of certificate data failed!"
 	fi
 	rm -rf $tmpdir
-	if ! exec_ipcop /usr/local/bin/create-client-cert $username $commonname $days; then
+	if ! exec_ipcop /var/linuxmuster/create-client-cert $username $commonname $days; then
 		cancel "Certificate creation for user $username failed!"
 	fi
 	rm -f $lockflag

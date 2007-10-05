@@ -1,33 +1,101 @@
-# set time
-/etc/init.d/ntpdate restart
-
 # repair permissions for root's scheduled cron jobs
 chown root:crontab /var/spool/cron/crontabs/root
 chmod 600 /var/spool/cron/crontabs/root
 
-# start services not yet started
-services="atd cron ntp-server ssh"
-for service in $services; do
-  /etc/init.d/$service start
+# copy sources.list
+[ "$1" = "--first" ] && mv /etc/apt/sources.list.online  /etc/apt/sources.list
+
+# waiting for ipcop to come up 
+c=0
+maxwait=300
+while [ $c -lt $maxwait ]; do
+
+	if ping -c 2 $ipcopip &> /dev/null; then
+
+		# upload root's public key if certficates were renewed
+		if [[ "$update_certs" = "yes" && "$1" = "--modify" ]]; then
+
+			echo "Uploading root's ssh key to ipcop ..."
+			tmpdir=/var/tmp/.ssh
+			mkdir -p $tmpdir
+			cp /root/.ssh/id_dsa.pub $tmpdir/authorized_keys
+			chmod 600 $tmpdir/authorized_keys
+			$SCRIPTSDIR/ipcop-upload-pkg.exp $ipcoppw $tmpdir /root $ipcopip
+			rm -rf $tmpdir
+
+		fi
+
+		# remove obsolete ipcopip from known_hosts
+		if [ "$ipcopip" != "$ipcopip_old" ]; then
+			echo "Removing old ipcop ip from /root/.ssh/known_hosts ..."
+			grep -v ^$ipcopip_old /root/.ssh/known_hosts > /var/tmp/known_hosts
+			mv /var/tmp/known_hosts /root/.ssh/known_hosts
+		fi
+
+		# test ssh connection to intregated ipcop
+		if ! grep -q ^$ipcopip /root/.ssh/known_hosts; then
+			echo "Testing ssh connection to IPCop ..."
+			$SCRIPTSDIR/ipcop-test-ssh.exp $ipcopip
+		fi
+
+		# restart ipcop's proxy
+		if [ "$1" = "--first" ]; then
+			echo "Restarting ipcop's squid ..."
+			exec_ipcop /usr/local/bin/restartsquid
+		fi
+
+		success=yes
+		break
+	fi
+
+	let c+=5
+	echo "Waiting for IPCop, $c of $maxwait seconds ..."
+	sleep 5
+
 done
 
-# update clamav
-#su -c /usr/bin/freshclam clamav
-freshclam
+if [ "$success" != "yes" ]; then
+	echo "Fatal! IPCop does not come up!"
+fi
 
-# upgrade pear packages
-pear upgrade Archive_Tar Console_Getopt DB HTTP Mail Net_SMTP Net_Socket XML_Parser XML_RPC
+# only if internet connection
+if ping -c 2 heise.de &> /dev/null; then
+	# set time
+	/etc/init.d/ntpdate restart
 
-# test ssh connection to uml ipcop and restart proxy
-if [[ "$fwconfig" = "integrated" && "$1" = "--first" ]]; then
-  if ping -c 2 $ipcopip &> /dev/null; then
-    $SCRIPTSDIR/ipcop-test-ssh.exp $ipcopip
-    exec_ipcop /usr/local/bin/restartsquid
-  fi
+	# update clamav
+	freshclam
+
+	# upgrade pear packages
+	pear upgrade Archive_Tar Console_Getopt DB HTTP Mail Net_SMTP Net_Socket XML_Parser XML_RPC
+fi
+
+# start services not yet started
+services="inetd atd cron ntp-server linuxmuster-base"
+for service in $services; do
+	/etc/init.d/$service start
+done
+
+# apply workstation data if internal net has changed
+if [[ "$1" = "--modify" && "$internsub" != "$internsub_old" ]]; then
+	if [ "$imaging" = "rembo" ]; then
+		WIMPORTDATA=$REMBOFILES/files/global/wimport_data
+	else
+		WIMPORTDATA=/etc/linuxmuster/workstations
+	fi
+	backup_file $WIMPORTDATA
+	n=$internsub; o=$internsub_old
+	while [ $n -lt $maxsub ]; do
+		sed -e "s/;10.$o./;10.$n./g" -i $WIMPORTDATA
+		let n+=1
+		let o+=1
+	done
+	import_workstations
+	import_printers
 fi
 
 # set installed flag
 touch $INSTALLED
 
 # reconfiguring package to fix what has been not yet fixed
-dpkg-reconfigure linuxmuster-base
+#dpkg-reconfigure linuxmuster-base

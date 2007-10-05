@@ -1,3 +1,102 @@
+linuxmuster-base (1.2-7) testing; urgency=low
+
+  * fixed typo in wimport_linbo.sh
+  * giving creation of host account in wimport_linbo.sh a second try if
+    sophomorix-useradd fails
+  * removed obsolete READMEs from doc
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 05 Oct 2007 17:07:42 +0200
+
+linuxmuster-base (1.2-6) testing; urgency=low
+
+  * fixed APPEND line in /var/linbo/pxelinux.cfg/default and moved template
+    to dynamic configuration
+  * moved creation of random cyrus password to a script cyradmpw.sh.
+  * fixed logging start date in linuxmuster-patch for setup.log
+  * earlier beginning of logging in linuxmuster-patch
+  * backing up config files patched by linuxmuster-setup --modify to
+    /var/backup/linuxmuster (gzipped)
+  * changed path for ipcop's ovpn-client-cert to /var/linuxmuster
+  * splitted linuxmuster-setup's ipcop configuration in two sets,
+    one before network setup to handle modified configuration values,
+    and one after network setup for first time installation and
+    switching from integrated to dedicated and vice versa.
+  * integrated ipcop will get 128M RAM if server's RAM ist greater than 1GB
+    (affects only fresh installations)
+  * various code optimations in linuxmuster-setup scripts to preserve user changes
+  * patching moodle db with new basedn if domainname has changed
+  * dedicated's IPcop external network configuration is now manageable
+    by linuxmuster-setup --modify
+  * adding settime.sh script to examples
+  * fixed passwd program in smb.conf
+  * added /var/lib/linuxmuster/base-updates for updated linuxmuster config files,
+    which will be applied with linuxmuster-setup --first. Differences to originals
+    will be applied by on running systems with package's postinst.
+  * moved modified config files allowed_ports, base_ports and backup.conf to
+    /var/lib/linuxmuster/base-updates
+  * deactivated some old beta update code in postinst
+  * added new parameter unmount_shm to backup.conf
+  * adding system group kvm during postinst if it does not exist
+  * providing custom login and logout scripts sourced by samba-userlog
+    (placed in /home/samba/netlogon)
+  * detecting empty workstations data file in wimport_linbo.sh
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 04 Oct 2007 20:30:29 +0200
+
+linuxmuster-base (1.2-5) testing; urgency=low
+
+  * fixed more typos in rsync configuration (/etc/rsyncd.secrets)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 25 Sep 2007 15:55:08 +0200
+
+linuxmuster-base (1.2-4) testing; urgency=low
+
+  * fixed typo in rsync configuration (/etc/rsyncd.secrets)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 24 Sep 2007 20:59:26 +0200
+
+linuxmuster-base (1.2-3) testing; urgency=low
+
+  * minor bugfix in postinst concerning to paedML's index.html
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 24 Sep 2007 19:33:39 +0200
+
+linuxmuster-base (1.2-2) testing; urgency=low
+
+  * moved copying of static configuration files from linuxmuster-setup to linuxmuster-patch
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 24 Sep 2007 19:08:24 +0200
+
+linuxmuster-base (1.2-1) testing; urgency=low
+
+  * switching automatically to online sources.list at the end of first time installation
+  * added rsync to allowed_ports
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 23 Sep 2007 20:46:33 +0200
+
+linuxmuster-base (1.1-8) testing; urgency=low
+
+  * bugfixed syntax of bind config templates
+  * removed nagios-grapher from backup.conf
+  * added cupsys to backup.conf
+  * added restart_printer_queues.sh example script
+  * added new workstation import script for LINBO
+  * added rembo check to import_workstations wrapper to decide which
+    script has to be invoked
+  * added configuration templates for atftpd, rsyncd
+  * modified dhcpd.conf template for linbo needs
+  * added new debconf template "imaging" to select between "rembo" and "linbo"
+  * various setup modifications according to linbo
+  * added portrange 9000:9100 to allowed_ports for linbo multicast
+  * modified linuxmuster-setup according to new imaging tasks
+    "linuxmuster-imaging-linbo" and "linuxmuster-imaging-rembo"
+  * changed sources.list handling in postinst so that it will be no more
+    overwritten by package upgrade
+  * fixed special char handling for inputs in linuxmuster-config
+  * removed dpkg-reconfigure at the end of linuxmuster-setup
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 22 Sep 2007 21:19:41 +0200
+
 linuxmuster-base (1.1-7) testing; urgency=low
 
   * added process locking to remoteadmin script

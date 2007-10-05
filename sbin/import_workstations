@@ -1,21 +1,57 @@
 #!/bin/sh
+#
+# wrapper for workstation import scripts
+#
+# Thomas Schmitt
+# <schmitt@lmz-bw.de>
+# 19.09.2007
+#
 
+# check for import_workstations lockfile
+locker=/tmp/.import_workstations
+if [ -e "$locker" ]; then
+	echo "Caution! Lockfile $locker detected!"
+	echo "Probably there is another import_workstations process running!"
+	echo "If this is not the case you can safely remove the lockfile $locker"
+        echo "and give import_workstations another try."
+	exit 1
+fi
+touch $locker
+chmod 600 $locker
+
+# read linuxmuster environment
 . /usr/share/linuxmuster/config/dist.conf
+. $HELPERFUNCTIONS
 
-myadmin -i "/var/lib/rembo/files/global/wimport_data" --rembo-path "/var/lib/rembo" \
-  --rembo-conf "$REMBOCONF" --myshn-path "$MYSHNDIR" --dhcp-conf "$DHCPDCONF" \
-  --hostgroup-conf "$HOSTGROUPCONF" --plugin "$SCRIPTSDIR/wimport_lml.rb"
-
-# run this script for the package mlscripts (alternative to myshn)
-if [ -e "/usr/sbin/mlscripts-wsimport" ]
-then
-    echo "  * running  /usr/sbin/mlscripts-wsimport"
-    /usr/sbin/mlscripts-wsimport 
+# check for sophomorix lockfile
+if [ -e "$SOPHOMORIXLOCK" ]; then
+	echo "Fatal! Sophomorix lockfile $SOPHOMORIXLOCK detected!"
+	echo "You should examine the situation and remove the lockfile"
+	echo "before you start import_workstations again!"
+	rm $locker
+	exit 1
 fi
 
-# run this script to set quota for added workstations
-if [ -e "/usr/sbin/sophomorix-quota" ]
-then
-    echo "  * running  /usr/sbin/sohomorix-quota"
-    /usr/sbin/sophomorix-quota --workstation
-fi
+case "$imaging" in
+
+	linbo|tivoli)
+		. $SCRIPTSDIR/wimport_linbo.sh
+		;;
+
+	*)
+		myadmin -i "$REMBOFILES/files/global/wimport_data" --rembo-path "$REMBOFILES" \
+			--rembo-conf "$REMBOCONF" --myshn-path "$MYSHNDIR" --dhcp-conf "$DHCPDCONF" \
+			--hostgroup-conf "$HOSTGROUPCONF" --plugin "$SCRIPTSDIR/wimport_lml.rb"
+
+		# run this script for the package mlscripts (alternative to myshn)
+		if [ -e "/usr/sbin/mlscripts-wsimport" ]
+		then
+			echo "  * running  /usr/sbin/mlscripts-wsimport"
+			/usr/sbin/mlscripts-wsimport
+		fi
+		;;
+
+esac
+
+# delete locker
+rm $locker

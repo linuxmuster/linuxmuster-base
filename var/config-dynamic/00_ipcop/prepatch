@@ -1,0 +1,157 @@
+if [[ "$1" = "--modify" && "$update_fw" != "yes" ]]; then
+
+	echo "Checking for modifications to do directly on ipcop ..."
+
+	# backup ipcop settings
+	echo "  Backing up ipcop settings to $BACKUPDIR/ipcop ..."
+	[ -d "$BACKUPDIR/ipcop" ] || mkdir -p $BACKUPDIR/ipcop
+	ssh -p 222 $ipcopip_old /bin/tar czf /var/linuxmuster/linuxmuster-setup-backup.tar.gz /etc /var/ipcop
+	scp -P 222 $ipcopip_old:/var/linuxmuster/linuxmuster-setup-backup.tar.gz $BACKUPDIR/ipcop/linuxmuster-setup-ipcop-backup-$DATETIME.tar.gz
+
+	# patch ips if internal net address has changed
+	if [ "$internsub" != "$internsub_old" ]; then
+		echo "  Modifying IPCop: internal net address from 10.$internsub_old.0.0 to 10.$internsub.0.0 ..."
+		ssh -p 222 $ipcopip_old /var/linuxmuster/patch-ips.sh $internsub_old $internsub
+		ipcop_modified=yes
+	fi
+
+	# patch servername if it has changed
+	if [ "$servername" != "$servername_old" ]; then
+		echo "  Modifying IPCop: servername from $servername_old to $servername ..."
+		ssh -p 222 $ipcopip_old /var/linuxmuster/patch-servername.sh $servername_old $servername
+		ipcop_modified=yes
+	fi
+
+	# patch domainname if it has changed
+	if [ "$domainname" != "$domainname_old" ]; then
+		echo "  Modifying IPCop: domainname from $domainname_old to $domainname ..."
+		ssh -p 222 $ipcopip_old /var/linuxmuster/patch-domainname.sh $domainname_old $domainname $servername
+		ipcop_modified=yes
+	fi
+
+	# modify external network configuration
+	if [ "$update_extern" = "yes" ]; then
+		echo "  Modifying IPCop: external network configuration ..."
+		tmpdir=/var/tmp/update_extern.$$
+		ethsettings=$tmpdir/ethsettings
+		pppsettings=$tmpdir/pppsettings
+		pppsecrets=$tmpdir/pppsecrets
+		mkdir $tmpdir
+		scp -P 222 $ipcopip_old:/var/ipcop/ethernet/settings $ethsettings
+
+		case "$externtype" in
+			static)
+				sed -e "s/^RED_TYPE=.*/RED_TYPE=STATIC/
+					s/^RED_ADDRESS=.*/RED_ADDRESS=$externip/
+					s/^RED_NETMASK=.*/RED_NETMASK=$externmask/
+					s/^RED_NETADDRESS=.*/RED_NETADDRESS=/
+					s/^RED_BROADCAST=.*/RED_BROADCAST=/
+					s/^DEFAULT_GATEWAY=.*/DEFAULT_GATEWAY=$gatewayip/
+					s/^DNS1=.*/DNS1=${dnsforwarder[1]}/
+					s/^DNS2=.*/DNS2=${dnsforwarder[2]}/" -i $ethsettings
+					if ! grep ^DEFAULT_GATEWAY $ethsettings; then
+						echo "DEFAULT_GATEWAY=$gatewayip" >> $ethsettings
+					fi
+					if ! grep ^DNS1 $ethsettings; then
+						echo "DNS1=${dnsforwarder[1]}" >> $ethsettings
+					fi
+					if ! grep ^DNS2 $ethsettings; then
+						echo "DNS2=${dnsforwarder[2]}" >> $ethsettings
+					fi
+				;;
+			dhcp)
+				sed -e "s/^RED_TYPE=.*/RED_TYPE=DHCP/
+					s/^RED_ADDRESS=.*/RED_ADDRESS=0.0.0.0/
+					s/^RED_NETMASK=.*/RED_NETMASK=0.0.0.0/
+					s/^RED_NETADDRESS=.*/RED_NETADDRESS=0.0.0.0/
+					s/^RED_BROADCAST=.*/RED_BROADCAST=255.255.255.255/
+					s/^DEFAULT_GATEWAY=.*/DEFAULT_GATEWAY=/
+					s/^DNS1=.*/DNS1=/
+					s/^DNS2=.*/DNS2=/" -i $ethsettings
+				;;
+			pppoe)
+				sed -e "s/^RED_TYPE=.*/RED_TYPE=PPPOE/
+					s/^RED_ADDRESS=.*/RED_ADDRESS=0.0.0.0/
+					s/^RED_NETMASK=.*/RED_NETMASK=0.0.0.0/
+					s/^RED_NETADDRESS=.*/RED_NETADDRESS=0.0.0.0/
+					s/^RED_BROADCAST=.*/RED_BROADCAST=255.255.255.255/
+					s/^DEFAULT_GATEWAY=.*/DEFAULT_GATEWAY=/
+					s/^DNS1=.*/DNS1=/
+					s/^DNS2=.*/DNS2=/" -i $ethsettings
+				if [ "$externtype" = "$externtype_old" ]; then
+					scp -P 222 $ipcopip_old:/var/ipcop/ppp/settings $pppsettings
+					scp -P 222 $ipcopip_old:/var/ipcop/ppp/secrets $pppsecrets
+					sed -e "s/^USERNAME=.*/USERNAME=$dsluser/
+						s/^PASSWORD=.*/PASSWORD=$dslpasswd/" -i $pppsettings
+					if ! greg -q ^USERNAME $pppsettings; then
+						echo "USERNAME=$dsluser" >> $pppsettings
+					fi
+					if ! greg -q ^PASSWORD $pppsettings; then
+						echo "PASSWORD=$dslpasswd" >> $pppsettings
+					fi
+					if grep -q "$dsluser" $pppsecrets; then
+						sed -e "s/$dsluser.*/$dsluser' * '$dslpasswd'/" -i $pppsecrets
+					else
+						echo "'$dsluser' * '$dslpasswd'" >> $pppsecrets
+						if grep -q "'' \* ''" $pppsecrets; then
+							grep -v "'' \* ''" $pppsecrets > $pppsecrets.tmp
+							mv $pppsecrets.tmp $pppsecrets
+						fi
+					fi
+				else
+					sed -e "s/@@dsluser@@/${dsluser}/
+						s/@@dslpasswd@@/${dslpasswd}/" /var/lib/linuxmuster-ipcop/uml/network/ppp.settings > $pppsettings
+					sed -e "s/@@dsluser@@/${dsluser}/
+						s/@@dslpasswd@@/${dslpasswd}/" /var/lib/linuxmuster-ipcop/uml/network/ppp.secrets > $pppsecrets
+				fi
+				;;
+			*)
+				;;
+		esac
+
+		scp -P 222 $ethsettings $ipcopip_old:/var/ipcop/ethernet/settings
+		ssh -p 222 $ipcopip_old /bin/chown nobody:nobody /var/ipcop/ethernet/settings
+
+		if [ "$externtype" = "pppoe" ]; then
+			scp -P 222 $pppsettings $ipcopip_old:/var/ipcop/ppp/settings
+			scp -P 222 $pppsecrets $ipcopip_old:/var/ipcop/ppp/secrets
+			ssh -p 222 $ipcopip_old /bin/chown nobody:nobody /var/ipcop/ppp/*
+			ssh -p 222 $ipcopip_old /bin/chmod 600 /var/ipcop/ppp/secrets
+		fi
+
+		rm -rf $tmpdir
+		ipcop_modified=yes
+	fi
+
+	# create new ipcop http cert
+	if [ "$update_ipcop_cert" = "yes" ]; then
+		echo "  Modifying IPCop: Creating new https and ssh certificate ..."
+		ssh -p 222 $ipcopip_old /usr/local/bin/httpscert new
+		ipcop_modified=yes
+	fi
+
+	# patch openvpn config
+	if [ "$update_certs" = "yes" ]; then
+		echo "  Modifying IPCop: Patching OpenVPN configuration ..."
+		ssh -p 222 $ipcopip_old /var/linuxmuster/patch-ovpn.sh "$country" "$state" "$location" "$schoolname"
+		ipcop_modified=yes
+	fi
+
+	# delete obsolete keys and certs, must be the last command
+	if [[ "$update_certs" = "yes" && "$update_ipcop_cert" = "yes" ]]; then
+		echo "  Deleting IPCop's host and OpenVPN keys and certificates ..."
+		ssh -p 222 $ipcopip_old /bin/rm /etc/ssh/*key* /var/ipcop/ovpn/ca/dh1024.pem /root/.ssh/authorized_keys
+	elif [ "$update_ipcop_cert" = "yes" ]; then
+		echo "  Deleting IPCop's host key ..."
+		ssh -p 222 $ipcopip_old /bin/rm /etc/ssh/*key*
+	elif [ "$update_certs" = "yes" ]; then
+		echo "  Deleting IPCop's OpenVPN keys and certificates ..."
+		ssh -p 222 $ipcopip_old /bin/rm /var/ipcop/ovpn/ca/dh1024.pem /root/.ssh/authorized_keys
+	fi
+
+	# reboot dedicated ipcop
+	if [[ "$ipcop_modified" = "yes" && "$fwconfig" = "dedicated" ]]; then
+		ssh -p 222 $ipcopip_old /sbin/reboot
+	fi
+
+fi

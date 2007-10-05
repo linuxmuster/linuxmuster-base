@@ -34,9 +34,21 @@ if [ "$1" = "--first" ]; then
 else
 
   # prevent access.conf from being patched
-  mv access.conf.target access.conf.target.tmp
+  mv access.conf.target access.conf.target.nopatch
+
+  # prevent login.bat from being patched
+  mv login.bat.target login.bat.target.nopatch
+
+  # patch login.bat with new servername if necessary
+  if [ "$servername" != "$servername_old" ]; then
+    backup_file $NETLOGONDIR/login.bat
+    sed -e 's%^call \\\\'$servername_old'\\%call \\\\'$servername'\\%g' -i $NETLOGONDIR/login.bat
+  fi
 
 fi
 
 # put administrator in teachersgroup
 smbldap-groupshow $TEACHERSGROUP | grep memberUid: | grep -qw $ADMINISTRATOR || smbldap-usermod -G $ADMINGROUP,$PRINTERADMINS,$TEACHERSGROUP $ADMINISTRATOR
+
+# reparing admin accounts
+$SCRIPTSDIR/repair-admins.sh

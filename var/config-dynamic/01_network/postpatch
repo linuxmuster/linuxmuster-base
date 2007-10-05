@@ -1,0 +1,12 @@
+# delete interfaces template after patching
+[ -e interfaces ] && rm interfaces
+
+# start networking
+/etc/init.d/linuxmuster-nic-setup assign
+/etc/rcS.d/S40networking start
+
+# set host and domain name
+hostname $servername.$domainname
+
+# start portmapper
+/etc/init.d/portmap start

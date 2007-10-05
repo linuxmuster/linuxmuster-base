@@ -2,9 +2,9 @@
 smbpasswd -w `cat /etc/ldap.secret`
 
 # start services again
+/etc/init.d/nscd stop
 /etc/init.d/samba stop
 /etc/init.d/slapd stop
 /etc/init.d/slapd start
 /etc/init.d/samba start
-#/etc/init.d/nscd start
-
+/etc/init.d/nscd start

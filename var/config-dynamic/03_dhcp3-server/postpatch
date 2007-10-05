@@ -1,6 +1,9 @@
+# delete temporary tepmplate
+[ -e dhcpd.conf ] && rm dhcpd.conf
+
 # patch internal interface
-sed -e "s/^INTERFACES=.*/INTERFACES=\"$intern\"/" /etc/default/dhcp3-server > /etc/default/dhcp3-server.tmp
-cp -f /etc/default/dhcp3-server.tmp /etc/default/dhcp3-server && rm -f /etc/default/dhcp3-server.tmp
+[ "$1" = "--modfify" ] && backup_file /etc/default/dhcp3-server
+sed -e "s/^INTERFACES=.*/INTERFACES=\"$intern\"/" -i /etc/default/dhcp3-server
 
 # create rndc-keyfile if necessary
 if [ ! -e /etc/bind/rndc.key ]; then

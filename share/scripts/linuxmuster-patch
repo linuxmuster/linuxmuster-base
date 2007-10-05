@@ -10,12 +10,22 @@
 # read helperfunctions
 . $HELPERFUNCTIONS
 
+# logfile
+logfile=$LOGDIR/setup.log
+echo >> $LOGDIR/setup.log
+echo "####################################################" >> $LOGDIR/setup.log
+echo "Setup session started at" >> $LOGDIR/setup.log
+date >> $LOGDIR/setup.log
+echo "####################################################" >> $LOGDIR/setup.log
+
+echo "Logging output to $logfile ..."
+
 # read debconf database
 echo "Reading debconf database ..."
 for i in country state location servername domainname schoolname dsluser dslpasswd \
          internmask internmask_short internsubrange fwconfig externtype externip externmask \
          gatewayip dnsforwarders smtprelay sambasid adminpw pgmadminpw wwwadminpw \
-         ipcoppw workgroup mac_extern mac_intern mac_wlan mac_dmz; do
+         ipcoppw workgroup mac_extern mac_intern mac_wlan mac_dmz imaging; do
   RET=`echo get linuxmuster-base/$i | debconf-communicate`
   RET=${RET#[0-9] }
   esc_spec_chars "$RET"
@@ -27,6 +37,9 @@ done
 for i in adminpw ipcoppw pgmadminpw wwwadminpw; do
   RET=`echo set linuxmuster-base/$i "" | debconf-communicate`
 done
+
+# installing apropriate imaging task
+DEBIAN_FRONTEND=noninteractive /usr/bin/tasksel install linuxmuster-imaging-$imaging | tee -a $LOGDIR/setup.log
 
 # escaping special characters in passwords
 esc_spec_chars "$adminpw"
@@ -50,33 +63,43 @@ if [ "$1" != "--first" ]; then
   [ "$state" = "$state_old" ] || update_certs=yes
   [ "$location" = "$location_old" ] || update_certs=yes
   [ "$schoolname" = "$schoolname_old" ] || update_certs=yes
-  [ "$servername" = "$servername_old" ] || update_certs=yes
-  if [ "$domainname" != "$domainname_old" ]; then
-    update_certs=yes && update_ipcop_cert=yes
+  [ "$workgroup" = "$workgroup_old" ] || update_ldap=yes
+  if [ "$servername" != "$servername_old" ]; then
+    update_certs=yes && update_ldap=yes
   fi
-  [ "$internsubrange" = "$internsubrange_old" ] || update_ipcop_uml=yes
-  [ "$dsluser" = "$dsluser_old" ] || update_ipcop_uml=yes
-  [ "$dslpasswd" = "$dslpasswd_old" ] || update_ipcop_uml=yes
-  [ "$externtype" = "$externtype_old" ] || update_ipcop_uml=yes
-  [ "$externip" = "$externip_old" ] || update_ipcop_uml=yes
-  [ "$externmask" = "$externmask_old" ] || update_ipcop_uml=yes
-  [ "$gatewayip" = "$gatewayip_old" ] || update_ipcop_uml=yes
-  [ "$dnsforwarders" = "$dnsforwarders_old" ] || update_ipcop_uml=yes
+  if [ "$domainname" != "$domainname_old" ]; then
+    update_certs=yes && update_ipcop_cert=yes && update_ldap=yes
+  fi
+  [ "$internsubrange" = "$internsubrange_old" ] || update_extern=yes
+  [ "$dsluser" = "$dsluser_old" ] || update_extern=yes
+  [ "$dslpasswd" = "$dslpasswd_old" ] || update_extern=yes
+  [ "$externtype" = "$externtype_old" ] || update_extern=yes
+  [ "$externip" = "$externip_old" ] || update_extern=yes
+  [ "$externmask" = "$externmask_old" ] || update_extern=yes
+  [ "$gatewayip" = "$gatewayip_old" ] || update_extern=yes
+  [ "$dnsforwarders" = "$dnsforwarders_old" ] || update_extern=yes
   [ "$fwconfig" = "$fwconfig_old" ] || update_fw=yes
   [ "$smptrelay" = "$smtprelay_old" ] || update_smtp=yes
 fi
 
 # ip's
+maxsub=`echo $internsubrange | awk -F\- '{ print $2 }'`
+let maxsub+=1
 internsub=`echo $internsubrange | cut -f1 -d"-"`
+internsub_old=`echo $internsubrange_old | cut -f1 -d"-"`
 orangesub=$(( $internsub+1 ))
 ovpnsub=$(( $internsub+2 ))
 internbc=`echo $internsubrange | cut -f2 -d"-"`
+internbc_old=`echo $internsubrange_old | cut -f2 -d"-"`
 serverip=10.$internsub.1.1
+serverip_old=10.$internsub_old.1.1
 serverrev_short=1.1.$internsub
 ipcopip=10.$internsub.1.254
+ipcopip_old=10.$internsub_old.1.254
 ipcoprev_short=254.1.$internsub
 internalnet=10.$internsub.0.0
 broadcast=10.$internbc.255.255
+broadcast_old=10.$internbc_old.255.255
 ipcopblue=172.16.$internsub
 ipcoporange=172.16.$orangesub
 ipcopovpn=172.16.$ovpnsub
@@ -101,6 +124,7 @@ echo "mac_extern=$mac_extern" >> $NETWORKSETTINGS
 echo "mac_intern=$mac_intern" >> $NETWORKSETTINGS
 echo "mac_wlan=$mac_wlan" >> $NETWORKSETTINGS
 echo "mac_dmz=$mac_dmz" >> $NETWORKSETTINGS
+echo "imaging=$imaging" >> $NETWORKSETTINGS
 chmod 755 $NETWORKSETTINGS
 
 # define intern device
@@ -131,22 +155,17 @@ for i in $dnsforwarders; do
   let c+=1
 done
 
-# handle cyrus password
-cyradmpw=`pwgen -s 8 1`
-echo $cyradmpw > /etc/imap.secret
-chmod 600 /etc/imap.secret
-
 # handle samba SID
 if [ -z "$sambasid" ]; then
 
   sambasid=`net getlocalsid | cut -f6 -d" "`
 
   if [ -z "$sambasid" ]; then
-    echo "Fatal! Cannot get samba SID!"
+    echo "Fatal! Cannot get samba SID!" | tee -a $LOGDIR/setup.log
     exit 1
   fi
 
-  RET=`echo set linuxmuster-base/sambasid $sambasid | debconf-communicate`
+  RET=`echo set linuxmuster-base/sambasid $sambasid | debconf-communicate` | tee -a $LOGDIR/setup.log
 
 fi
 
@@ -163,15 +182,29 @@ message1="Don\'t edit this file\, it will be overwritten on package upgrade\!"
 message2="This file was modified by linuxmuster-setup on"
 message3=`date`
 
-# logfile
-logfile=$LOGDIR/setup.log
-echo >> $LOGDIR/setup.log
-echo "####################################################" >> $LOGDIR/setup.log
-echo "Setup session started at" >> $LOGDIR/setup.log
-echo "$date" >> $LOGDIR/setup.log
-echo "####################################################" >> $LOGDIR/setup.log
+# set a new random password for cyrus user
+$SCRIPTSDIR/cyradmpw.sh
+cyradmpw=`cat /etc/imap.secret`
 
-echo "Logging output to $logfile ..."
+
+if [ "$1" = "--first" ]; then
+	# copying default configuration an remove installed flag for first time installation
+	echo "Copying default static configuration files ..." | tee -a $LOGDIR/setup.log
+	cp -a /var/lib/linuxmuster/config-static/* /
+	cp -a /var/lib/linuxmuster/base-updates/* /etc/linuxmuster
+	# delete installed flag
+	if [ -e "$INSTALLED" ]; then
+		echo "Removing installed flag $INSTALLED ..." | tee -a $LOGDIR/setup.log
+		rm -f $INSTALLED
+	fi
+        # remove backup files
+	if ! check_empty_dir $BACKUPDIR; then
+		echo "Cleaning up $BACKUPDIR ..." | tee -a $LOGDIR/setup.log
+		rm -rf $BACKUPDIR/*
+	fi
+fi
+
+
 # patching conffiles
 for i in /var/lib/linuxmuster/config-dynamic/*; do
   cd $i
@@ -183,6 +216,7 @@ for i in /var/lib/linuxmuster/config-dynamic/*; do
     for t in *.target; do
       eval target=`cat $t`
       conffile=${t%.target}
+      [ "$1" = "--modify" ] && backup_file $target >> $LOGDIR/setup.log
       sed -e "s/@@message1@@/${message1}/g
               s/@@message2@@/${message2}/g
               s/@@message3@@/${message3}/g
@@ -233,6 +267,10 @@ for i in /var/lib/linuxmuster/config-dynamic/*; do
   fi
   # do something after the configuration is patched
   [ -f postpatch ] && . postpatch $1 1>> $LOGDIR/setup.log 2>> $LOGDIR/setup.log
+  # move nopatch files back
+  for np in *.nopatch; do
+    [ -e "$np" ] && mv $np ${np%.nopatch}
+  done
 done
 
 # finish logging

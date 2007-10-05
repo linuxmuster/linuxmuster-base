@@ -1,0 +1,3 @@
+# automatically created by linuxmuster-setup
+USE_INETD=true
+OPTIONS="--daemon --verbose=5 --no-multicast --tftpd-timeout 0 -m 1000 /var/linbo"

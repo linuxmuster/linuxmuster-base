@@ -1,0 +1,22 @@
+paedML example scripts
+----------------------
+
+o schueler.txt
+  Example students data file
+
+o lehrer.txt
+  Example teachers data file
+
+o create_testusers.sh
+  Creates testusers using example students and teachers data files
+  Caution: Overwrites your data files in /etc/sophomorix/user!
+
+o restart_printer_queues.sh
+  Caution: Restarts the queues of all CUPS printers and deletes all print jobs!
+
+o settime.sh
+  Stops ntp-server, adjusts time with ntpdate and starts ntp-server again.
+
+01.10.2007
+Thomas Schmitt
+<schmitt@lmz-bw.de>

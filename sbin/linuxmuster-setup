@@ -7,6 +7,9 @@
 # read dist.conf
 . /usr/share/linuxmuster/config/dist.conf || exit 1
 
+# source helperfunctions
+. $HELPERFUNCTIONS || exit 1
+
 # parsing parameters
 opt=$1
 
@@ -36,6 +39,8 @@ else
   # warning
   echo
   echo "You have called $0 with parameter $opt."
+  [ "$opt" = "--first" ] && echo "Doing a fresh installation. You will lose all your user and workstation data!"
+  [ "$opt" = "--modify" ] && echo "Modified configuration files will be backed up to $BACKUPDIR!"
   echo "The process will start in 5 seconds. Press CRTL-C to cancel."
   n=0
   while [ $n -lt 5 ]; do
@@ -59,19 +64,13 @@ case $opt in
     # turn shadow passwords on
     shadowconfig on
 
-    # delete installed flag
-    [ -e "$INSTALLED" ] && rm -f $INSTALLED
-
     # load cdrom tray
     grep -q ^"deb cdrom" /etc/apt/sources.list && eject -t
 
     # installing depending tasks
-    for i in common server non-free; do
+    for i in common server; do
       DEBIAN_FRONTEND=noninteractive /usr/bin/tasksel install linuxmuster-$i
     done
-
-    # copying default configuration
-    cp -a /var/lib/linuxmuster/config-static/* /
 
     ;;
 
@@ -86,10 +85,51 @@ case $opt in
 
     [ -e $OLDVALUES ] && rm $OLDVALUES
 
-    # read old configuration
+	# fetch external network configuration from ipcop
+	if ping -c 2 $ipcopip &> /dev/null; then
+		echo "Reading IPCop's external network configuration ..."
+		tmpdir=/var/tmp/ipcop.$$
+		mkdir -p $tmpdir
+		get_ipcop /var/ipcop/ethernet/settings $tmpdir/settings
+		. $tmpdir/settings
+		tolower $RED_TYPE
+		RED_TYPE=$RET
+		RET=`echo set linuxmuster-base/externtype "$RED_TYPE" | debconf-communicate`
+		RET=`echo set linuxmuster-base/dsluser "" | debconf-communicate`
+		RET=`echo set linuxmuster-base/dslpasswd "" | debconf-communicate`
+		if [ "$RED_TYPE" = "static" ]; then
+			RET=`echo set linuxmuster-base/externip "$RED_ADDRESS" | debconf-communicate`
+			RET=`echo set linuxmuster-base/externmask "$RED_NETMASK" | debconf-communicate`
+			RET=`echo set linuxmuster-base/gatewayip "$DEFAULT_GATEWAY" | debconf-communicate`
+			dnsforwarders="$DNS1 $DNS2"
+			strip_spaces $dnsforwarders
+			dnsforwarders="$RET"
+			RET=`echo set linuxmuster-base/dnsforwarders "$dnsforwarders" | debconf-communicate`
+		else
+			RET=`echo set linuxmuster-base/externip "" | debconf-communicate`
+			RET=`echo set linuxmuster-base/externmask "" | debconf-communicate`
+			RET=`echo set linuxmuster-base/gatewayip "" | debconf-communicate`
+			RET=`echo set linuxmuster-base/dnsforwarders "" | debconf-communicate`
+			if [ "$RED_TYPE" = "pppoe" ]; then
+				get_ipcop /var/ipcop/ppp/settings $tmpdir/settings
+				. $tmpdir/settings
+				RET=`echo set linuxmuster-base/dsluser "$USERNAME" | debconf-communicate`
+				RET=`echo set linuxmuster-base/dslpasswd "$PASSWORD" | debconf-communicate`
+			fi
+		fi
+		rm -rf $tmpdir
+
+	else
+
+		echo "Cannot connect to IPCop!"
+		exit 1
+
+	fi
+
+    # reading current debconf values
     echo "Reading current configuration values ..."
-    for i in country state location servername domainname schoolname dsluser dslpasswd smtprelay \
-             internsubrange fwconfig externtype externip externmask gatewayip dnsforwarders; do
+    for i in country state location workgroup servername domainname schoolname dsluser dslpasswd smtprelay \
+             internsubrange fwconfig externtype externip externmask gatewayip dnsforwarders imaging; do
       RET=`echo get linuxmuster-base/$i | debconf-communicate`
       RET=${RET#[0-9] }
       oldvalue="${i}_old"
@@ -110,8 +150,26 @@ case $opt in
 
 esac
 
+# backup debconf db
+backup_file /var/cache/debconf/config.dat
+backup_file /var/cache/debconf/passwords.dat
+chmod 600 $BACKUPDIR/var/cache/debconf/passwords.dat-$DATETIME.gz
+
 # ask questions
-$SCRIPTSDIR/linuxmuster-config $opt || exit 1
+$SCRIPTSDIR/linuxmuster-config $opt
+status=$?
+
+# check status
+if [ "$status" != "0" ]; then
+	# restore debconf db if setup has been canceled
+	gunzip -c $BACKUPDIR/var/cache/debconf/config.dat-$DATETIME.gz > /var/cache/debconf/config.dat
+	gunzip -c $BACKUPDIR/var/cache/debconf/passwords.dat-$DATETIME.gz > /var/cache/debconf/passwords.dat
+	chmod 600 /var/cache/debconf/passwords.dat
+	rm $BACKUPDIR/var/cache/debconf/config.dat-$DATETIME.gz
+	rm $BACKUPDIR/var/cache/debconf/passwords.dat-$DATETIME.gz
+	exit 1
+fi
+
 
 # call configuration patch script
 $SCRIPTSDIR/linuxmuster-patch $opt

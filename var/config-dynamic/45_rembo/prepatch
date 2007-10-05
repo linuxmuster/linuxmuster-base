@@ -1,26 +1,68 @@
-if [ "$1" = "--first" ]; then
+if  [ "$imaging" = "rembo" ]; then
 
-  # patch rembo.conf with nb password
-  sed -e "s/^NetPassword.*/NetPassword \"$adminpw\"/" /etc/rembo/rembo.conf > /etc/rembo/rembo.conf.tmp
-  cp -f /etc/rembo/rembo.conf.tmp /etc/rembo/rembo.conf && rm -f /etc/rembo/rembo.conf.tmp
+	if [ "$1" = "--first" ]; then
 
-  # create emtpy wimport_data
-  [ -f /var/lib/rembo/files/global/wimport_data ] && rm -f /var/lib/rembo/files/global/wimport_data
-  touch /var/lib/rembo/files/global/wimport_data
+	  # patch rembo.conf with admin password
+	  sed -e "s/^NetPassword.*/NetPassword \"$adminpw\"/" -i $REMBOCONF
+
+	  # create emtpy wimport_data
+	  [ -e "$REMBOFILES/files/global/wimport_data" ] && rm $REMBOFILES/files/global/wimport_data
+	  touch $REMBOFILES/files/global/wimport_data
+	  [ -e "$SYSCONFDIR/workstations" ] && rm $SYSCONFDIR/workstations
+
+	else
+
+	  # prevent user.conf from being patched completely
+	  mv user.conf.target user.conf.target.nopatch
+
+	  # patch userconf only with altered domain name
+	  backup_file $MYSHNDIR/user.conf
+	  sed -e "s/eMail $ADMINISTRATOR@.*/eMail $ADMINISTRATOR@$domainname/" -i $MYSHNDIR/user.conf
+
+	  # if imaging method has altered
+	  if [ "$imaging_old" = "linbo" ]; then
+		backup_file $SYSCONFDIR/workstations
+		mv $SYSCONFDIR/workstations $REMBOFILES/files/global/wimport_data
+	  fi
+
+	fi
+
+	# link workstation data file to /etc/linuxmuster/workstations
+	ln -sf $REMBOFILES/files/global/wimport_data $SYSCONFDIR/workstations
+
+	# patch path to wimport_data in dist.conf
+	backup_file /usr/share/linuxmuster/config/dist.conf
+	sed -e "s/^WIMPORTDATA=.*/WIMPORTDATA=\"\$REMBOFILES\/files\/global\/wimport_data\"/" -i /usr/share/linuxmuster/config/dist.conf
+
+	# patch rembo.conf with workgroup and startpage
+	backup_file $REMBOCONF
+	sed -e "s/^AuthLocalDomain.*/AuthLocalDomain $workgroup \{/
+	        s/StartPage.*/StartPage \"$REMBOSTARTPAGE\"/
+	        s/^Interfaces.*/Interfaces $serverip/" -i $REMBOCONF
+
+	# patch rembo start variable
+	sed -e "s/^START_REMBO=.*/START_REMBO=yes/" -i /etc/default/rembo
+
+	# patch inetd.conf
+	if ! grep -v ^# /etc/inetd.conf | grep mtaadd.sh; then
+		backup_file /etc/inetd.conf
+		echo "1001 stream tcp nowait root /usr/sbin/mtaadd.sh" >> /etc/inetd.conf
+	fi
 
 else
 
-  # prevent user.conf from being patched completely
-  mv user.conf.target user.conf.tmp
+	# remove myshn's mtaadd.sh from inetd.conf
+	if grep -q mtaadd.sh /etc/inetd.conf; then
+		backup_file /etc/inetd.conf
+		grep -v myshn /etc/inetd.conf > /var/tmp/inetd.conf
+		grep -v mtaadd.sh /var/tmp/inetd.conf > /etc/inetd.conf
+		rm /var/tmp/inetd.conf
+	fi
 
-  # patch userconf only with altered domain name
-  sed -e "s/eMail $ADMINISTRATOR@.*/eMail $ADMINISTRATOR@$domainname/" /var/lib/myshn/user.conf > /var/lib/myshn/user.conf.tmp
-  cp -f /var/lib/myshn/user.conf.tmp /var/lib/myshn/user.conf && rm -f /var/lib/myshn/user.conf.tmp
+	# patch rembo start variable
+	[ -e /etc/default/rembo ] && sed -e "s/^START_REMBO=.*/START_REMBO=no/" -i /etc/default/rembo
+
+	# prevent user.conf from being patched completely
+	mv user.conf.target user.conf.target.nopatch
 
 fi
-
-# patch rembo.conf with workgroup and startpage
-sed -e "s/^AuthLocalDomain.*/AuthLocalDomain $workgroup \{/
-        s/StartPage.*/StartPage \"$REMBOSTARTPAGE\"/
-        s/^Interfaces.*/Interfaces $serverip/" /etc/rembo/rembo.conf > /etc/rembo/rembo.conf.tmp
-cp -f /etc/rembo/rembo.conf.tmp /etc/rembo/rembo.conf && rm -f /etc/rembo/rembo.conf.tmp

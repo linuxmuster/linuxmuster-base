@@ -7,3 +7,6 @@ sophomorix-class --class teachers --mailalias
 /etc/init.d/postfix start
 /etc/init.d/saslauthd start
 /etc/init.d/cyrus2.2 start
+
+# secure permissions
+chmod 600 /etc/postfix/smtp_auth

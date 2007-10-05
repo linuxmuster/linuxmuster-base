@@ -6,45 +6,45 @@
 
 # patch libnss-ldap.conf with basedn
 template=/etc/libnss-ldap.conf
+[ "$1" = "--modify" ] && backup_file $template
 sed -e "s/^base.*/base $basedn/
-        s/^rootbinddn.*/rootbinddn cn=admin,$basedn/" $template > ${template}.tmp
-mv ${template}.tmp $template
+        s/^rootbinddn.*/rootbinddn cn=admin,$basedn/" -i $template
 
 # patch pam_ldap.conf with basedn
 template=/etc/pam_ldap.conf
+[ "$1" = "--modify" ] && backup_file $template
 sed -e "s/^base.*/base $basedn/
-        s/^rootbinddn.*/rootbinddn cn=admin,$basedn/" $template > ${template}.tmp
-mv ${template}.tmp $template
+        s/^rootbinddn.*/rootbinddn cn=admin,$basedn/" -i $template
 
 # patch ldap.conf with basedn
 template=/etc/ldap/ldap.conf
-sed -e "s/^BASE.*/BASE $basedn/" $template > ${template}.tmp
-mv ${template}.tmp $template
+[ "$1" = "--modify" ] && backup_file $template
+sed -e "s/^BASE.*/BASE $basedn/" -i $template
 
 # patch slapd.conf with basedn
 template=/etc/ldap/slapd.conf
+[ "$1" = "--modify" ] && backup_file $template
 sed -e "s/by dn=\"cn=admin.*/by dn=\"cn=admin,$basedn\" write/g
         s/^suffix.*/suffix          \"$basedn\"/
-        s/^rootdn.*/rootdn          \"cn=admin,$basedn\"/" $template > ${template}.tmp
-mv ${template}.tmp $template
+        s/^rootdn.*/rootdn          \"cn=admin,$basedn\"/" -i $template
 
 # patch smbldap_bind.conf with basedn
 template=/etc/smbldap-tools/smbldap_bind.conf
-sed -e "s/^masterDN=.*/masterDN=\"cn=admin,$basedn\"/" $template > ${template}.tmp
-mv ${template}.tmp $template
+[ "$1" = "--modify" ] && backup_file $template
+sed -e "s/^masterDN=.*/masterDN=\"cn=admin,$basedn\"/" -i $template
 
-# patching sophomorix.conf with schoolname, location and servername
-sed -e "s/^\$schul_name=.*/\$schul_name=\"${schoolname} ${location}\";/
-        s/^\$smb_netbios_name =.*/\$smb_netbios_name = \"${servername}\";/" $SOPHOMORIXCONF > $SOPHOMORIXCONF.tmp
-mv $SOPHOMORIXCONF.tmp $SOPHOMORIXCONF
+# patching sophomorix.conf with schoolname and location
+[ "$1" = "--modify" ] && backup_file $SOPHOMORIXCONF
+sed -e "s/^\$schul_name=.*/\$schul_name=\"${schoolname} ${location}\";/" -i $SOPHOMORIXCONF
 
 # patch sophomorix pgldap.conf with workgroup, server, internip and domainname
 template=/etc/sophomorix/pgldap/pgldap.conf
+[ "$1" = "--modify" ] && backup_file $template
 sed -e "s/^\$domainname=.*/\$domainname=\"${domainname}\";/
         s/^\$servername=.*/\$servername=\"${servername}\";/
         s/^\$internip=.*/\$internip=\"${serverip}\";/
-        s/^\$smbworkgroup=.*/\$smbworkgroup=\"${workgroup}\";/" $template > ${template}.tmp
-mv ${template}.tmp $template
+        s/^\$internmask=.*/\$internmask=\"${internmask}\";/
+        s/^\$smbworkgroup=.*/\$smbworkgroup=\"${workgroup}\";/" -i $template
 
 # clear samba browse cache
 rm -f /var/lib/samba/wins.dat
@@ -69,8 +69,7 @@ if [ "$1" = "--first" ]; then
 
   # changing user's default shell to /bin/bash
   sed -e 's/^\$schueler_per_ssh=.*/\$schueler_per_ssh=\"yes\"\;/
-          s/^\$lehrer_per_ssh=.*/\$lehrer_per_ssh=\"yes\"\;/' $SOPHOMORIXCONF > $SOPHOMORIXCONF.tmp
-  mv $SOPHOMORIXCONF.tmp $SOPHOMORIXCONF
+          s/^\$lehrer_per_ssh=.*/\$lehrer_per_ssh=\"yes\"\;/' -i $SOPHOMORIXCONF
 
   # create new database
   sophomorix-setup-pgldap --new-database
@@ -78,8 +77,8 @@ if [ "$1" = "--first" ]; then
 else
 
   # update user database with basedn and workgroup if necessary
-  sophomorix-setup-pgldap
-  
+  [ "$update_ldap" = "yes" ] && sophomorix-setup-pgldap
+
 fi
 
 # repair permissions
@@ -92,4 +91,3 @@ chmod 400 /etc/linuxmuster/schulkonsole/db.conf*
 chown root:root /etc/ldap/slapd.conf*
 chown root:root /etc/ldap/ldap.conf
 chmod 644 /etc/ldap/ldap.conf
-

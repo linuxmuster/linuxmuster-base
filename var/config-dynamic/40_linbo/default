@@ -1,0 +1,9 @@
+DEFAULT LINBO
+APPEND initrd=linbofs.gz server=@@serverip@@ quiet loglevel=0
+TIMEOUT 30
+KBDMAP /german.kbd
+PROMPT 1
+DISPLAY /boot.msg
+LABEL LINBO
+KERNEL linbo
+APPEND initrd=linbofs.gz server=@@serverip@@ quiet loglevel=0

@@ -1,13 +1,14 @@
 # stop all relevant services
 
-services="nagios2 atd cron webmin rembo quota opengroupware.org apache2 cupsys \
+services="linuxmuster-base atftpd rsync linbo-multicast nagios2 atd cron\
+          webmin rembo quota opengroupware.org apache2 cupsys \
           clamav-daemon cyrus2.2 postfix saslauthd amavis mysql ntp-server\
           ssh samba slapd postgresql nscd linuxmuster-ipcop uml-utilities\
           portmap inetd bind9 dhcp3-server"
 
 for service in $services; do
 
-  /etc/init.d/$service stop
+	[ -e "/etc/init.d/$service" ] && /etc/init.d/$service stop
 
 done
 
