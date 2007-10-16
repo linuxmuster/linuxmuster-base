@@ -681,6 +681,12 @@ case "$1" in
 		fi
 	done
 
+	# removing obsolete samba-userlog lockfile (1.2-10)
+	if [ -e "${USERLOG}.lock" ]; then
+		echo "Removing obsolete lockfile ${USERLOG}.lock ..."
+		rm -f ${USERLOG}.lock
+	fi
+
 	# important message if upgrade is necessary
         if [ -n "$upgrade" ]; then
           echo "IMPORTANT!"

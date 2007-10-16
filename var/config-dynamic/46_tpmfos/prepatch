@@ -1,0 +1,44 @@
+# provide necessary config files
+grep -q START_TPMFOS /etc/init.d/tpmfos-derby || cp /var/lib/linuxmuster/config-static/etc/init.d/tpmfos-derby /etc/init.d
+
+backup_file /etc/default/tpmfos
+backup_file /etc/default/tpmfos-derby
+
+if [ "$imaging" = "tivoli" ]; then
+
+	# activate start variable
+	sed -e "s/^START_TPMFOS=.*/START_TPMFOS=\"yes\"/" -i /etc/default/tpmfos
+
+	# adding webcache port (8080) to allowed_ports
+	if ! grep ^tcp $ALLOWEDPORTS | grep -qw webcache; then
+		backup_file $ALLOWEDPORTS
+		PORTS=`grep ^tcp $ALLOWEDPORTS | awk '{ print $2 }'`
+		PORTS="$PORTS,webcache"
+		sed -e "s/^tcp.*/tcp $PORTS/" -i $ALLOWEDPORTS
+	fi
+
+	# patch path to wimport_data in dist.conf
+	backup_file /usr/share/linuxmuster/config/dist.conf
+	sed -e "s/^WIMPORTDATA=.*/WIMPORTDATA=\"\/etc\/linuxmuster\/workstations\"/" -i /usr/share/linuxmuster/config/dist.conf
+
+	# switch workstation data file
+	if [[ "$1" = "--modify" && "$imaging_old" = "rembo" ]]; then
+
+		if [ -L "$SYSCONFDIR/workstations" ]; then
+			rm $SYSCONFDIR/workstations
+		else
+			backup_file $SYSCONFDIR/workstations
+		fi
+		cp $REMBOFILES/files/global/wimport_data $SYSCONFDIR/workstations
+
+	fi
+
+else
+
+	# prevent config.csv from being patched
+	mv config.csv.target config.csv.target.nopatch
+
+	# deactivate start variable
+	[ -e /etc/default/tpmfos ] && sed -e "s/^START_TPMFOS=.*/START_TPMFOS=\"no\"/" -i /etc/default/tpmfos
+
+fi

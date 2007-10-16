@@ -20,6 +20,11 @@ if [ -e $OLDVALUES ]; then
   oldvalues=yes
 fi
 
+# check which imaging software is available
+linbo=`aptitude search linuxmuster-linbo`
+rembo=`aptitude search rembo`
+tivoli=`aptitude search tpmfos`
+
 if [ "$1" = "--first" ]; then
   # intro
   db_fset linuxmuster-base/intro seen false
@@ -175,17 +180,51 @@ while ! validdomain "$SMTPRELAY"; do
 done
 
 
-# imaging method
-# first check if linuxmuster-linbo is available
-res=`aptitude search linuxmuster-linbo`
-if [[ -n "$res" || -d "$LINBODIR" ]]; then
+# imaging system
+if [[ -n "$linbo" && -n "$rembo" && -n "$tivoli" ]]; then
+
+	IMG_CHOICES="linbo, rembo, tivoli"
+	IMG_DESC="LINBO [linbo], Rembo/mySHN (tm) [rembo] und IBM TPMfOS (tm) [tivoli]."
+
+elif [[ -n "$rembo" && -n "$tivoli" ]]; then
+
+	IMG_CHOICES="rembo, tivoli"
+	IMG_DESC="Rembo/mySHN (tm) [rembo] und IBM TPMfOS (tm) [tivoli]."
+
+elif [[ -n "$linbo" && -n "$tivoli" ]]; then
+
+	IMG_CHOICES="linbo, tivoli"
+	IMG_DESC="LINBO [linbo] und IBM TPMfOS (tm) [tivoli]."
+
+elif [[ -n "$linbo" && -n "$rembo" ]]; then
+
+	IMG_CHOICES="linbo, rembo"
+	IMG_DESC="LINBO [linbo] und Rembo/mySHN (tm) [rembo]."
+
+elif [ -n "$linbo" ]; then
+
+	imaging=linbo
+
+elif [ -n "$rembo" ]; then
+
+	imaging=rembo
+
+elif [ -n "$tivoli" ]; then
+
+	imaging=tivoli
+
+fi
+
+if [ -n "$IMG_CHOICES" ]; then
 	db_fset linuxmuster-base/imaging seen false
+	db_subst linuxmuster-base/imaging img_choices $IMG_CHOICES
+	db_subst linuxmuster-base/imaging img_desc $IMG_DESC
 	db_input $PRIORITY linuxmuster-base/imaging || true
 	db_go
 else
-	# set default to rembo
-	db_set linuxmuster-base/imaging rembo || true
+	db_set linuxmuster-base/imaging $imaging || true
 fi
+
 
 # admin passwords
 if [ "$1" = "--first" ]; then

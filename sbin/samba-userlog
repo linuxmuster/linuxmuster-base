@@ -139,16 +139,16 @@ if check_id $hostname; then
   # create cachefile and lock cachefile
   [ -d "$LOGINCACHE" ] || mkdir -p $LOGINCACHE
   cachefile=$LOGINCACHE/$hostname
-  lockflag=$cachefile.lock
+  locker=/tmp/.samba-userlog_${hostname}.lock
   touch $cachefile || cancel "Cannot create $cachefile!"
-  lockfile $lockflag
+  lockfile -l 5 $locker
 
   if [ "$log" = "in" ]; then
 
     check_logins
 
     if ! grep -qw $username $cachefile; then
-      echo $username >> $cachefile || cancel "Cannot write to $cachefile!"
+      echo $username >> $cachefile
       chmod 644 $cachefile
     fi
 
@@ -157,20 +157,19 @@ if check_id $hostname; then
   else
 
     grep -vw $username $cachefile > $cachefile.tmp
-    [ -e "$cachefile.tmp" ] || cancel "Cannot create $cachefile.tmp!"
-    mv $cachefile.tmp $cachefile || cancel "Cannot move $cachefile.tmp!"
+    mv $cachefile.tmp $cachefile
 
     if [ -s "$cachefile" ]; then
       chmod 644 $cachefile
     else
-      rm -f $cachefile || cancel "Cannot delete $cachefile!"
+      rm -f $cachefile
     fi
 
     prep=from
 
   fi
 
-  rm -f $lockflag || exit 1
+  rm -f $locker
 
 fi
 
@@ -186,9 +185,10 @@ get_realname $username
 realname=${RET# }
 get_pgroup $username
 pgroup=${RET# }
-lockfile $USERLOG.lock
+locker=/tmp/.samba-userlog.lock
+lockfile -l 5 $locker
 echo "$DATETIME: $realname ($username, $pgroup) logs $log $prep $hostname ($ip)" >> $USERLOG
-rm -f $USERLOG.lock
+rm -f $locker
 
 echo "log$log of user $username $prep host $hostname successfully logged!"
 

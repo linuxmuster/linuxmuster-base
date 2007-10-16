@@ -20,7 +20,7 @@ if  [ "$imaging" = "rembo" ]; then
 	  sed -e "s/eMail $ADMINISTRATOR@.*/eMail $ADMINISTRATOR@$domainname/" -i $MYSHNDIR/user.conf
 
 	  # if imaging method has altered
-	  if [ "$imaging_old" = "linbo" ]; then
+	  if [ "$imaging_old" != "rembo" ]; then
 		backup_file $SYSCONFDIR/workstations
 		mv $SYSCONFDIR/workstations $REMBOFILES/files/global/wimport_data
 	  fi

@@ -86,16 +86,11 @@ for i in "996 $DOMADMIN" "998 $ADMINISTRATOR" "999 $PGMADMIN"; do
 		echo "Reparing sambaSID for user $username ..."
 		pdbedit -r -U $usersid -G $groupsid $username &> /dev/null
 	fi
-	modify=yes
-	grep -q "\[UX         \]" $tmpfile.$username && modify=no
-	grep -q "\[UX\]" $tmpfile.$username && modify=no
-	if [ "$modify" = "yes" ]; then
-		echo "Reactivating account $username ..."
-		smbldap-usermod -H '[UX         ]' $username
-	fi
 	unset modify
+	# activate account if necessary
+	smbldap-usershow $i | grep ^sambaAcctFlags: | grep -q X && smbldap-usermod -J $i
 done
-
+smbldap-usershow $WWWADMIN | grep ^sambaAcctFlags: | grep -q X || smbldap-usermod -I $WWWADMIN
 
 # put administrator in teachersgroup, if necessary
 if ! smbldap-groupshow $TEACHERSGROUP | grep memberUid: | grep -qw $ADMINISTRATOR; then

@@ -23,7 +23,7 @@ check_unique() {
 exitmsg() {
 	echo "$1"
 	rm $WDATATMP
-	rm $locker
+	rm -f $locker
 	exit 1
 }
 
@@ -216,17 +216,14 @@ if [ -s "$WIMPORTDATA" ]; then
 		echo "}" >> $DHCPDCONF
 
 		# linbo stuff, only if pxe host
-		if [ "$pxe" != "0" ]; then
-			if [ "$linbo" = "yes" ]; then
-				if [ ! -e "$LINBODIR/start.conf.$hostgroup" ]; then
-					echo "  * LINBO: Creating new configuration for hostgroup $hostgroup ..."
-					cp $LINBODEFAULTCONF $LINBODIR/start.conf.$hostgroup
-				fi
-				echo "  * LINBO: Linking IP $ip to hostgroup $hostgroup ..."
-				[ -e "$LINBODIR/start.conf-$ip" ] && rm -rf $LINBODIR/start.conf-$ip
-				ln -sf start.conf.$hostgroup $LINBODIR/start.conf-$ip
-			else
-				echo "  * Skipping LINBO configuration"
+		if [[ "$pxe" != "0" && "$linbo" = "yes" && "$imaging" = "linbo" ]]; then
+			if [ ! -e "$LINBODIR/start.conf.$hostgroup" ]; then
+				echo "  * LINBO: Creating new configuration for hostgroup $hostgroup ..."
+				cp $LINBODEFAULTCONF $LINBODIR/start.conf.$hostgroup
+			fi
+			echo "  * LINBO: Linking IP $ip to hostgroup $hostgroup ..."
+			[ -e "$LINBODIR/start.conf-$ip" ] && rm -rf $LINBODIR/start.conf-$ip
+			ln -sf start.conf.$hostgroup $LINBODIR/start.conf-$ip
 			fi
 		fi
 

@@ -1,0 +1,3 @@
+HostName;APITrusted
+@@servername@@.@@domainname@@;127.0.0.1 @@serverip@@
+

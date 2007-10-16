@@ -1,0 +1,52 @@
+#!/bin/sh
+
+set -e
+
+DERBY_HOME=/usr/share/tpmfos-derby
+NAME=tpmfos-derby
+DAEMON=$DERBY_HOME/bin/tpmfos-derby-server.sh
+PIDFILE=/var/run/tpmfos-derby.pid
+DESC="derby database server for tpmfos"
+SCRIPTNAME=$0
+DERBY_OPTIONS=start
+
+[ -e /etc/default/tpmfos ] && . /etc/default/tpmfos
+[ "$START_TPMFOS" = "on" ] || [ "$START_TPMFOS" = "yes" ] || exit 0
+
+d_start() {
+	start-stop-daemon --start --quiet --name $NAME \
+		--background --make-pidfile --pidfile $PIDFILE \
+		--exec $DAEMON -- $DERBY_OPTIONS
+}
+
+d_stop() {
+	$DAEMON shutdown
+	start-stop-daemon --stop --quiet --pidfile $PIDFILE --name $NAME || true
+}
+
+case "$1" in
+	start)
+		
+		echo -n "Starting $DESC: $NAME"
+		d_start
+		echo "."
+		;;
+	stop)
+		echo -n "Stopping $DESC: $NAME"
+		d_stop
+		echo "."
+		;;
+	restart|force-reload)
+		echo -n "Restarting $DESC: $NAME"
+		d_stop
+		sleep 5
+		d_start
+		echo "."
+		;;
+	*)
+		echo "Usage: $SCRIPTNAME {start|stop|restart}" >&2
+		exit 1
+		;;
+esac
+
+exit 0

@@ -7,7 +7,7 @@ Standards-Version: 3.6.0
 
 Package: linuxmuster-base
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, dialog, dpkg, expect, pwgen, hostname, perl, procmail, ruby, libsysadm-install-perl, libenv-bash-perl, libimap-admin-perl, libpgsql-ruby1.8, libterm-readkey-perl, linuxmuster-tasks, linuxmuster-imaging-linbo, linuxmuster-imaging-rembo, linuxmuster-server, linuxmuster-common, linuxmuster-desktop, sed
+Depends: ${shlibs:Depends}, ${misc:Depends}, dialog, dpkg, expect, pwgen, hostname, perl, procmail, ruby, libsysadm-install-perl, libenv-bash-perl, libimap-admin-perl, libpgsql-ruby1.8, libterm-readkey-perl, linuxmuster-tasks, linuxmuster-imaging-linbo, linuxmuster-imaging-rembo, linuxmuster-imaging-tivoli, linuxmuster-server, linuxmuster-common, linuxmuster-desktop, sed
 Conflicts: exim4, apache, passwd3
 Description: Linux-Musterloesung configuration scripts
  This package provides configuration scripts for the Linux-Musterloesung
