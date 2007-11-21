@@ -1,10 +1,13 @@
-# provide necessary config files
-grep -q START_TPMFOS /etc/init.d/tpmfos-derby || cp /var/lib/linuxmuster/config-static/etc/init.d/tpmfos-derby /etc/init.d
-
 backup_file /etc/default/tpmfos
 backup_file /etc/default/tpmfos-derby
 
 if [ "$imaging" = "tivoli" ]; then
+
+	# use config template from tpmfos package
+	[ -s /var/lib/tpmfos/files/global/rad/config.csv.tpl ] && cp /var/lib/tpmfos/files/global/rad/config.csv.tpl config.csv
+
+	# backup old config.csv
+	[ -e /var/lib/tpmfos/files/global/rad/config.csv ] && backup_file /var/lib/tpmfos/files/global/rad/config.csv
 
 	# activate start variable
 	sed -e "s/^START_TPMFOS=.*/START_TPMFOS=\"yes\"/" -i /etc/default/tpmfos

@@ -91,10 +91,6 @@ remove_printeraccess() {
 }
 
 
-echo "Starting import workstations session at `date`"
-echo
-
-
 # Check if workstation data file is empty
 if [ -s "$WIMPORTDATA" ]; then
 
@@ -224,7 +220,6 @@ if [ -s "$WIMPORTDATA" ]; then
 			echo "  * LINBO: Linking IP $ip to hostgroup $hostgroup ..."
 			[ -e "$LINBODIR/start.conf-$ip" ] && rm -rf $LINBODIR/start.conf-$ip
 			ln -sf start.conf.$hostgroup $LINBODIR/start.conf-$ip
-			fi
 		fi
 
 		# create workstation and machine accounts
@@ -302,6 +297,3 @@ echo
 # delete tmp files
 rm $WDATATMP
 [ -n "$PRINTERSTMP" ] && [ -e "$PRINTERSTMP" ] && rm -rf $PRINTERSTMP
-
-echo
-echo "Done!"

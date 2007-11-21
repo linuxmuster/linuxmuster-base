@@ -1,3 +1,58 @@
+linuxmuster-base (1.2-16) testing; urgency=low
+
+  * fixed: index.html was not patched if servername or domainname were
+    changed by linuxmuster-setup
+  * fixed: ipcop root password was asked during linuxmuster-setup
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 20 Nov 2007 21:48:28 +0100
+
+linuxmuster-base (1.2-15) testing; urgency=low
+
+  * moved /usr/share/doc/linuxmuster-base/registry-patches to
+    /usr/share/linuxmuster-base
+  * added windows batch script machine-passwd.bat and mtaman.exe to
+    registry-patches
+  * reparing permissions in netlogondir during postinst
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 15 Nov 2007 13:57:41 +0100
+
+linuxmuster-base (1.2-14) testing; urgency=low
+
+  * fixed empty imaging variable in postinst
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 05 Nov 2007 19:23:54 +0100
+
+linuxmuster-base (1.2-13) testing; urgency=low
+
+  * added pre-xfer and post-xfer parameters to linbo-upload section in
+    rsyncd.conf, according to linbo revision 119
+  * added backports pinning for rsync to /etc/apt/preferences
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 05 Nov 2007 16:47:08 +0100
+
+linuxmuster-base (1.2-12) testing; urgency=low
+
+  * added hwclock --utc at the end of linuxmuster-setup
+  * stopping and starting nscd service at beginning and end of import_workstations
+  * added daily cron job to clean login cache from dead logins
+  * added Win2k/XP registry patches necessary for joining windows domain
+  * linking /usr/share/doc/linuxmuster-base/registry-patches to
+    administrator's home
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 24 Oct 2007 20:15:43 +0200
+
+linuxmuster-base (1.2-11) testing; urgency=low
+
+  * added code to handle acceptation of sun java license if tivoli
+    has been chosen as imaging system
+  * added sun java license templates (stolen from sun-java5-bin debian package)
+  * linuxmuster-setup is now using the config.csv.tpl from tpmfos package
+  * minor modifications due to changes in tpmfos 5.1.0.3_paedML3 and
+    tpmfos-derby 10.3.1.4_paedML2 concerning service startup variables
+    and their handling in linuxmuster-setup
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 24 Oct 2007 17:10:32 +0200
+
 linuxmuster-base (1.2-10) testing; urgency=low
 
   * minor optimations in wimport-linbo.sh and import_workstations

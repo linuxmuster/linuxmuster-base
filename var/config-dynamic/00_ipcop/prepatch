@@ -137,21 +137,19 @@ if [[ "$1" = "--modify" && "$update_fw" != "yes" ]]; then
 		ipcop_modified=yes
 	fi
 
-	# delete obsolete keys and certs, must be the last command
+	# delete obsolete keys and certs and reboot, if necessary
 	if [[ "$update_certs" = "yes" && "$update_ipcop_cert" = "yes" ]]; then
 		echo "  Deleting IPCop's host and OpenVPN keys and certificates ..."
-		ssh -p 222 $ipcopip_old /bin/rm /etc/ssh/*key* /var/ipcop/ovpn/ca/dh1024.pem /root/.ssh/authorized_keys
+		ssh -p 222 $ipcopip_old "/bin/rm /etc/ssh/*key* /var/ipcop/ovpn/ca/dh1024.pem /root/.ssh/authorized_keys && /sbin/reboot"
 	elif [ "$update_ipcop_cert" = "yes" ]; then
 		echo "  Deleting IPCop's host key ..."
-		ssh -p 222 $ipcopip_old /bin/rm /etc/ssh/*key*
+		ssh -p 222 $ipcopip_old "/bin/rm /etc/ssh/*key* && /sbin/reboot"
 	elif [ "$update_certs" = "yes" ]; then
 		echo "  Deleting IPCop's OpenVPN keys and certificates ..."
-		ssh -p 222 $ipcopip_old /bin/rm /var/ipcop/ovpn/ca/dh1024.pem /root/.ssh/authorized_keys
-	fi
-
-	# reboot dedicated ipcop
-	if [[ "$ipcop_modified" = "yes" && "$fwconfig" = "dedicated" ]]; then
+		ssh -p 222 $ipcopip_old "/bin/rm /var/ipcop/ovpn/ca/dh1024.pem /root/.ssh/authorized_keys && /sbin/reboot"
+	elif [[ "$ipcop_modified" = "yes" && "$fwconfig" = "dedicated" ]]; then
 		ssh -p 222 $ipcopip_old /sbin/reboot
 	fi
 
 fi
+

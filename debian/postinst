@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/bash
 # postinst script for linuxmuster
 #
 # see: dh_installdeb(1)
@@ -40,7 +40,8 @@ for i in linuxmuster-base/intro linuxmuster-base/country linuxmuster-base/state 
          linuxmuster-base/ipcoppw_confirm linuxmuster-base/sambasid linuxmuster-base/internmask \
          linuxmuster-base/internmask_short linuxmuster-base/internsubrange linuxmuster-base/nicmenu \
          linuxmuster-base/ifmenu linuxmuster-base/mac_extern linuxmuster-base/mac_intern \
-         linuxmuster-base/mac_wlan linuxmuster-base/mac_dmz linuxmuster-base/imaging; do
+         linuxmuster-base/mac_wlan linuxmuster-base/mac_dmz linuxmuster-base/imaging \
+         shared/present-sun-dlj-v1-1 shared/accepted-sun-dlj-v1-1; do
 
 	if ! db_get linuxmuster-base/$i; then
 		db_set linuxmuster-base/$i "" || true
@@ -646,9 +647,13 @@ case "$1" in
           fi
         fi
 
-	# adding imaging variable (1.1-8)
+	# adding imaging variable (1.2-14)
 	if ! grep -q ^imaging $NETWORKSETTINGS; then
-		[ -n "$imaging" ] && echo "imaging=$imaging" >> $NETWORKSETTINGS
+		if [ -z "$imaging" ]; then
+			imaging=rembo
+			db_set linuxmuster-base/imaging $imaging || true
+		fi
+		echo "imaging=$imaging" >> $NETWORKSETTINGS
 	fi
 
 	# patch path to wimport_data in dist.conf (1.1-8)
@@ -680,11 +685,27 @@ case "$1" in
 			cp /var/lib/linuxmuster/config-static$NETLOGONDIR/custom-log$i.sh $NETLOGONDIR
 		fi
 	done
+	# reparing permissions in netlogondir (1.2-15)
+	chown $ADMINISTRATOR:$DOMADMINS $NETLOGONDIR/*
+	chmod 664 $NETLOGONDIR/*
 
 	# removing obsolete samba-userlog lockfile (1.2-10)
 	if [ -e "${USERLOG}.lock" ]; then
 		echo "Removing obsolete lockfile ${USERLOG}.lock ..."
 		rm -f ${USERLOG}.lock
+	fi
+
+	# linking registry-patches to administrator's home (1.2-15)
+	echo "Linking registry-patches to administrator's home ..."
+	ln -sf /usr/share/linuxmuster/registry-patches $ADMINSHOME/$ADMINISTRATOR/registry-patches
+
+	# updating rsyncd.conf according to linbo revision 119 (1.2-13)
+	if [ "$imaging" = "linbo" ]; then
+		if ! grep -q pre-xfer /etc/rsyncd.conf; then
+			echo "Updating rsync configuration ..."
+			cp /var/lib/linuxmuster/config-static/etc/rsyncd.conf /etc
+			/etc/init.d/rsync restart
+		fi
 	fi
 
 	# important message if upgrade is necessary

@@ -41,7 +41,6 @@ done
 # installing apropriate imaging task
 if [[ "$imaging" = "linbo" || "$imaging" = "rembo" || "$imaging" = "tivoli" ]]; then
 	DEBIAN_FRONTEND=noninteractive /usr/bin/tasksel install linuxmuster-imaging-$imaging | tee -a $LOGDIR/setup.log
-	[ -e /var/lib/linuxmuster/config-dynamic/45_tpmfos ] && rm -rf /var/lib/linuxmuster/config-dynamic/45_tpmfos
 fi
 
 # escaping special characters in passwords

@@ -9,4 +9,26 @@ fi
 
 usermod -G shadow www-data
 
+# patch index.html
+case "$1" in
+
+	--first)
+		sed -e "s/@@servername@@.@@domainname@@/$servername.$domainname/g" /var/www/apache2-default/index.html.tpl > /var/www/apache2-default/index.html
+		;;
+
+	--modify)
+		if [ -e /var/www/apache2-default/index.html ]; then
+			if [[ "$servername" != "$servername_old" || "$domainname" != "$domainname_old" ]]; then
+				backup_file /var/www/apache2-default/index.html
+				sed -e "s/$servername_old.$domainname_old/$servername.$domainname/g" -i /var/www/apache2-default/index.html
+			fi
+		fi
+		;;
+
+	*)
+		;;
+
+esac
+
 /etc/init.d/apache2 start
+

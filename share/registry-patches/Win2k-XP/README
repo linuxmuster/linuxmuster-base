@@ -1,0 +1,7 @@
+Windows-Domaenenbeitritt mit Clients, die nicht geimaged werden
+---------------------------------------------------------------
+
+1. Patch win2k-xp-clients_ohne_imaging-patch.reg einspielen.
+
+2. Maschinenpasswort lokal auf dem Client auf 12345678 setzen:
+   machine-passwd.bat starten.
