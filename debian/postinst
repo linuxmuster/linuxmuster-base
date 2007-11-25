@@ -668,14 +668,11 @@ case "$1" in
 		esac
 	fi
 
-	# update backup.conf (1.2-6)
-	if ! grep -q ^unmount_shm /etc/linuxmuster/backup.conf; then
-		echo "Adding new parameter unmount_shm to backup.conf ..."
+	# remove obsolete unmount_shm from backup.conf (1.2-17)
+	if grep -q ^unmount_shm /etc/linuxmuster/backup.conf; then
+		echo "Removing obsolete parameter unmount_shm from backup.conf ..."
 		cp /etc/linuxmuster/backup.conf /etc/linuxmuster/backup.conf.dpkg-old
-		echo >> /etc/linuxmuster/backup.conf
-		echo "# unmount shared memory during backup? yes or no." >> /etc/linuxmuster/backup.conf
-		echo "# may be helpfull if mindi is not able to unmount shm." >> /etc/linuxmuster/backup.conf
-		echo "unmount_shm=no" >> /etc/linuxmuster/backup.conf
+		sed -e 's/^unmount_shm.*/# obsolete with linuxmuster-base 1.2-17/' -i /etc/linuxmuster/backup.conf
 	fi
 
 	# custom login/logout scripts (1.2-6)
