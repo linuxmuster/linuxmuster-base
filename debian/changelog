@@ -1,3 +1,38 @@
+linuxmuster-base (1.2-22) testing; urgency=low
+
+  * added script /usr/sbin/linuxmuster-reset with config file
+    /etc/linuxmuster/room_defaults
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 28 Jan 2008 21:11:06 +0100
+
+linuxmuster-base (1.2-21) testing; urgency=low
+
+  * fixed copying windows registry patch examples to linbo dir
+  * linuxmuster-setup patches now samba domainname in windows reg files in $LINBODIR
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 21 Dec 2007 12:12:51 +0100
+
+linuxmuster-base (1.2-20) testing; urgency=low
+
+  * linuxmuster-setup copies now windows registry patch examples to linbo dir
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 20 Dec 2007 08:36:11 +0100
+
+linuxmuster-base (1.2-19) testing; urgency=low
+
+  * removed backports pinning for rsync
+  * added various start.conf examples for linbo
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 19 Dec 2007 22:58:59 +0100
+
+linuxmuster-base (1.2-18) testing; urgency=low
+
+  * added LINBO Windows patches
+  * added import code for LINBO's new host data to wimport_linbo.sh
+  * backing up $WIMPORTDATA at the beginning of a import_workstations session
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 19 Dec 2007 12:16:42 +0100
+
 linuxmuster-base (1.2-17) testing; urgency=low
 
   * fixed typo and removed no longer needed adminisodir variable in linuxmuster-backup

@@ -4,7 +4,7 @@
 # 04.10.2007
 #
 
-WIMPORTDATA=/etc/linuxmuster/workstations
+#WIMPORTDATA=/etc/linuxmuster/workstations
 WDATATMP=/var/tmp/workstations.$$
 [ -e "$WDATATMP" ] && rm -rf $WDATATMP
 
@@ -91,6 +91,22 @@ remove_printeraccess() {
 }
 
 
+# adding new host entries from LINBO's registration
+if [ "$imaging" = "linbo" ] && ls $LINBODIR/*.new &> /dev/null; then
+
+	for i in $LINBODIR/*.new; do
+
+		echo "Adding new host data:"
+		cat $i
+		echo
+		cat $i >> $WIMPORTDATA
+		rm $i
+
+	done
+
+fi
+
+
 # Check if workstation data file is empty
 if [ -s "$WIMPORTDATA" ]; then
 
@@ -163,13 +179,6 @@ else
 fi
 echo
 
-# check, if LINBO ist installed
-linbo=yes
-[ -z "$LINBODIR" ] && linbo=no
-[ -d "$LINBODIR" ] || linbo=no
-[ -z "$LINBODEFAULTCONF" ] && linbo=no
-[ -e "$LINBODEFAULTCONF" ] || linbo=no
-
 # check dhcp stuff
 [ -z "$DHCPDCONF" ] && exitmsg "Variable DHCPDCONF is not set!"
 if [ -e "$DHCPDCONF" ]; then
@@ -212,7 +221,7 @@ if [ -s "$WIMPORTDATA" ]; then
 		echo "}" >> $DHCPDCONF
 
 		# linbo stuff, only if pxe host
-		if [[ "$pxe" != "0" && "$linbo" = "yes" && "$imaging" = "linbo" ]]; then
+		if [[ "$pxe" != "0" && "$imaging" = "linbo" ]]; then
 			if [ ! -e "$LINBODIR/start.conf.$hostgroup" ]; then
 				echo "  * LINBO: Creating new configuration for hostgroup $hostgroup ..."
 				cp $LINBODEFAULTCONF $LINBODIR/start.conf.$hostgroup

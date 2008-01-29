@@ -142,10 +142,6 @@ Package: rrdtool
 Pin: release a=sarge-backports
 Pin-Priority: 999
 
-Package: rsync
-Pin: release a=sarge-backports
-Pin-Priority: 999
-
 Package: sasl2-bin
 Pin: release a=sarge-backports
 Pin-Priority: 999

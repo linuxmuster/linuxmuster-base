@@ -51,8 +51,11 @@ if  [ "$imaging" = "linbo" ]; then
 
 	# link pxelinux.0 to linbo dir
 	[ -e "$LINBODIR/pxelinux.0" ] || ln -sf /usr/lib/syslinux/pxelinux.0 $LINBODIR/pxelinux.0
-	for i in `ls /var/lib/linuxmuster/config-static/var/linbo/`; do
-		[ -e "$LINBODIR/$i" ] || cp /var/lib/linuxmuster/config-static/var/linbo/$i $LINBODIR
+
+	# copy default files to $LINBODIR, if they are not there already
+	for i in `find /var/lib/linuxmuster/config-static/var/linbo/ -type f` `find /usr/share/linuxmuster/registry-patches/LINBO/ -name \*.reg`; do
+		f=`basename $i`
+		[ -e "$LINBODIR/$f" ] || cp $i $LINBODIR
 	done
 
 	# open internal firewall for multicasting and rsync
@@ -74,7 +77,14 @@ if  [ "$imaging" = "linbo" ]; then
 
 	# patch start.confs with serverip
 	for i in `find $LINBODIR/ -type f -name 'start.conf*'`; do
-		sed -e "s/^Server =.*/Server = $serverip       # First TFTP Server with remote Images/" -i $i
+		backup_file $i
+		sed -e "s/^Server =.*/Server = $serverip       # IP des TFTP-Servers, der Images vorhaelt/" -i $i
+	done
+
+	# patch regs with workgroup
+	for i in `find $LINBODIR/ -type f -name '*.reg'`; do
+		backup_file $i
+		sed -e "s/^\"DefaultDomainName\"=.*/\"DefaultDomainName\"=\"$workgroup\"/" -i $i
 	done
 
 	# patch start variables of atftpd and rsync

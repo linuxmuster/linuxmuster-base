@@ -44,6 +44,10 @@ if ps ax | grep nscd | grep -v grep &> /dev/null; then
 fi
 
 
+# backing up workstation data file
+backup_file $WIMPORTDATA
+
+
 case "$imaging" in
 
 	linbo|tivoli)
