@@ -15,7 +15,8 @@ HOST_PASSWORD=`pwgen -s 8 1`
 # functions
 # check for unique entry
 check_unique() {
-	n=`grep -cw $1 $WDATATMP`
+	local searchstr=${1//./\\.}
+	n=`grep -cw "$searchstr" $WDATATMP`
 	[ $n -ne 1 ] && return 1
 	return 0
 }
