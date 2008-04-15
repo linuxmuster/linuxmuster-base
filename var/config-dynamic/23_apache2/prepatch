@@ -1,6 +1,6 @@
 if [ -d /etc/apache2/mods-available ] &&  [ -d /etc/apache2/mods-enabled ]; then
   cd /etc/apache2/mods-available
-  for i in auth_pam* dav* mime_magic* include* php4* rewrite* ssl* userdir*; do
+  for i in auth_pam* mime_magic* include* php4* rewrite* ssl* userdir*; do
     [ -f "$i" ] && [ ! -L "/etc/apache2/mods-enabled/$i" ] && ln -s /etc/apache2/mods-available/$i /etc/apache2/mods-enabled/$i
   done
 else

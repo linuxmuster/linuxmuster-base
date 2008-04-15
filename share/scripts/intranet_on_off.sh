@@ -50,6 +50,11 @@ checklock || exit 1
 # get maclist
 get_maclist || cancel "Cannot get maclist!"
 
+# cleaning cache
+rm -f $CACHEDIR/*.bak &> /dev/null
+rm -f $CACHEDIR/iptables-save &> /dev/null
+rm -f $BLOCKEDHOSTSINTRANET.new &> /dev/null
+
 # create blocked hosts file
 if [ ! -e "$BLOCKEDHOSTSINTRANET" ]; then
   touch $BLOCKEDHOSTSINTRANET || cancel "Cannot create $BLOCKEDHOSTSINTRANET!"

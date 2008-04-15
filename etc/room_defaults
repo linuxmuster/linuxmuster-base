@@ -1,5 +1,6 @@
-# room_defaults is read by /usr/sbin/linuxmuster-reset.
-# It defines the default internet, intranet and webfilter status for all hosts of a room or a specific host.
+# room_defaults will be processed by /usr/sbin/linuxmuster-reset.
+# It defines the default internet, intranet and webfilter status for all hosts
+# of a room or a specific host.
 #
 # Four columns have to be present:
 # room/host: room or host name as defined in /etc/linuxmuster/workstations
@@ -7,12 +8,13 @@
 # intranet status: on/off/-
 # webfilter status: on/off/-
 #
-# Place a "-" in internet, intranet or webfilter column, if you want the current status not to be changed. 
+# Place a "-" in internet, intranet or webfilter column, if you want the current
+# status not to be changed. 
 #
-# There has to be one room definition per line.
+# There has to be one room or host definition per line.
 # Note: the rooms and hosts are processed in the sequence that is defined here.
-# So place host definitions after the corresponding room definition to be sure the room definition
-# can be overwritten by the host definition.
+# So place host definitions after the corresponding room definition to be sure
+# the room definition can be overwritten by the host definition.
 #
 # room/host	internet status		intranet status		webfilter status
 #
@@ -21,4 +23,7 @@
 #r110		-			off			off
 #r200		on			-			-
 #r100-pc1	on			on			off
-
+#
+# next entry sets the default values for rooms/hosts, which are not defined
+# explicitly.
+default		on			on			on

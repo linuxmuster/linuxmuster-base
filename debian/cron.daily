@@ -1,15 +1,16 @@
 #!/bin/bash
 #
-# checking for dead logins and remove them
+# linuxmuster daily housekeeping cron job
 #
 # Thomas Schmitz
 # <schmitt@lmz-bw.de>
-# 24.10.2007
+# 07.02.2008
 #
 
 . /usr/share/linuxmuster/config/dist.conf
 . $HELPERFUNCTIONS
 
+# checking for dead logins and remove them
 if check_empty_dir $LOGINCACHE; then
 	echo "$LOGINCACHE is empty. Doing nothing."
 	exit 0
@@ -45,3 +46,8 @@ for h in *; do
 	fi
 
 done
+
+
+# reset rooms and hosts to their in /etc/linuxmuster/room_defaults defined status
+/usr/sbin/linuxmuster-reset --all --kill
+

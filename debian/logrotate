@@ -1,3 +1,19 @@
+/var/log/linuxmuster/linuxmuster-reset.log {
+     rotate 90
+     weekly
+     compress
+     size 50k
+     missingok
+     notifempty
+}
+/var/log/linuxmuster/import_workstations.log {
+     rotate 90
+     weekly
+     compress
+     size 50k
+     missingok
+     notifempty
+}
 /var/log/linuxmuster/joindom.log {
      rotate 14
      weekly

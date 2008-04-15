@@ -40,8 +40,8 @@ while [ $c -lt $maxwait ]; do
 
 		# restart ipcop's proxy
 		if [ "$1" = "--first" ]; then
-			echo "Restarting ipcop's squid ..."
-			exec_ipcop /usr/local/bin/restartsquid
+			echo "Reloading ipcop's squid ..."
+			exec_ipcop /usr/sbin/squid -k reconfigure
 		fi
 
 		success=yes
@@ -98,5 +98,5 @@ fi
 # set installed flag
 touch $INSTALLED
 
-# reconfiguring package to fix what has been not yet fixed
-#dpkg-reconfigure linuxmuster-base
+# reconfigure linuxmuster-base to fix what has been not yet fixed
+dpkg-reconfigure linuxmuster-base

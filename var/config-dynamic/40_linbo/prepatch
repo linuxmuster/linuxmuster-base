@@ -4,6 +4,7 @@ if  [ "$imaging" = "linbo" ]; then
 	# patch rsyncd.secrets with admin password
 	if [ "$1" = "--first" ]; then
 
+		[ -e /etc/rsyncd.secrets ] && backup_file /etc/rsyncd.secrets
 		if grep ^linbo: /etc/rsyncd.secrets &> /dev/null; then
 			sed -e "s/^linbo:.*/linbo:$adminpw/" -i /etc/rsyncd.secrets
 		else
@@ -47,16 +48,18 @@ if  [ "$imaging" = "linbo" ]; then
 	grep "$teststr" /etc/default/linuxmuster-linbo &> /dev/null || cp /var/lib/linuxmuster/config-static/etc/default/linuxmuster-linbo /etc/default
 
 	# check for pxelinux config dir
-	[ -d "$LINBODIR/pxelinux.cfg" ] || mkdir -p $LINBODIR/pxelinux.cfg
+	# obsolete
+	#[ -d "$LINBODIR/pxelinux.cfg" ] || mkdir -p $LINBODIR/pxelinux.cfg
 
 	# link pxelinux.0 to linbo dir
 	[ -e "$LINBODIR/pxelinux.0" ] || ln -sf /usr/lib/syslinux/pxelinux.0 $LINBODIR/pxelinux.0
 
 	# copy default files to $LINBODIR, if they are not there already
-	for i in `find /var/lib/linuxmuster/config-static/var/linbo/ -type f` `find /usr/share/linuxmuster/registry-patches/LINBO/ -name \*.reg`; do
-		f=`basename $i`
-		[ -e "$LINBODIR/$f" ] || cp $i $LINBODIR
-	done
+	# obsolete, these files are now in linbo package
+	#for i in `find /var/lib/linuxmuster/config-static/var/linbo/ -type f` `find /usr/share/linuxmuster/registry-patches/LINBO/ -name \*.reg`; do
+	#	f=`basename $i`
+	#	[ -e "$LINBODIR/$f" ] || cp $i $LINBODIR
+	#done
 
 	# open internal firewall for multicasting and rsync
 	. /etc/default/linuxmuster-linbo
@@ -76,15 +79,22 @@ if  [ "$imaging" = "linbo" ]; then
 	fi
 
 	# patch start.confs with serverip
-	for i in `find $LINBODIR/ -type f -name 'start.conf*'`; do
+	for i in $LINBODEFAULTCONF `find $LINBODIR/ -type f -name 'start.conf*'`; do
 		backup_file $i
-		sed -e "s/^Server =.*/Server = $serverip       # IP des TFTP-Servers, der Images vorhaelt/" -i $i
+		sed -e "s/^Server = \([0-9]\{1,3\}[.]\)\{3\}[0-9]\{1,3\}/Server = $serverip/" -i $i
+	done
+
+	# patch pxe confs with serverip
+	for i in $PXEGRUBCFG $PXELINUXCFG; do
+		backup_file $i
+		sed -e "s/server=\([0-9]\{1,3\}[.]\)\{3\}[0-9]\{1,3\}/server=$serverip/g" -i $i
 	done
 
 	# patch regs with workgroup
 	for i in `find $LINBODIR/ -type f -name '*.reg'`; do
 		backup_file $i
-		sed -e "s/^\"DefaultDomainName\"=.*/\"DefaultDomainName\"=\"$workgroup\"/" -i $i
+		sed -e "s/^\"DefaultDomainName\"=.*/\"DefaultDomainName\"=\"$workgroup\"/
+			s/^\"Workgroup\"=.*/\"Workgroup\"=\"$workgroup\"/" -i $i
 	done
 
 	# patch start variables of atftpd and rsync
@@ -100,6 +110,10 @@ if  [ "$imaging" = "linbo" ]; then
 		sed -e "s/^START_MULTICAST=.*/START_MULTICAST=no/" -i /etc/default/linuxmuster-linbo
 	fi
 
+	# start necessary services
+	/etc/init.d/atftpd start
+	/etc/init.d/rsync start
+
 else
 
 	# patch start variables of atftpd and rsync
@@ -107,7 +121,11 @@ else
 	[ -e /etc/default/rsync ] && sed -e "s/^RSYNC_ENABLE=.*/RSYNC_ENABLE=false/" -i /etc/default/rsync
 	[ -e /etc/default/linuxmuster-linbo ] && sed -e "s/^START_MULTICAST=.*/START_MULTICAST=no/" -i /etc/default/linuxmuster-linbo
 
-	# prevent pxelinux default config from being patched
-	mv default.target default.target.nopatch
+	# remove tftp from inetd.conf
+	if grep -q tftp /etc/inetd.conf; then
+		backup_file /etc/inetd.conf
+		grep -v tftp /etc/inetd.conf > /var/tmp/inetd.conf
+		mv /var/tmp/inetd.conf /etc
+	fi
 
 fi

@@ -1,3 +1,5 @@
+# modified by linuxmuster-base-1.3.1
+
 NameVirtualHost *
 <VirtualHost *>
 	ServerAdmin webmaster@localhost
@@ -89,30 +91,6 @@ NameVirtualHost *:443
         Deny from all
         Allow from 127.0.0.0/255.0.0.0 ::1/128
     </Directory>
-
-    <Location /people/students>
-      DAV On
-      Order allow,deny
-      Allow from all
-    </Location>
-
-    <Location /people/teachers>
-      DAV On
-      Order allow,deny
-      Allow from all
-    </Location>
-
-    <Location /people/projects>
-      DAV On
-      Order Allow,Deny
-      Allow from all
-    </Location>
-
-    <Location /people/classes>
-      DAV On
-      Order Allow,Deny
-      Allow from all
-    </Location>
 
     SSLEngine on
     SSLCertificateFile /etc/ssl/private/server.pem

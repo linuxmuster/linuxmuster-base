@@ -342,32 +342,6 @@ put_ipcop() {
 }
 
 
-###############
-# svn related #
-###############
-
-# create chora2 configuration
-create_chora_conf() {
-  check_empty_dir $SVNROOT
-  if [ "$RET" = "0" ]; then
-    rm -f $CHORASOURCES &> /dev/null
-  else
-    cd $SVNROOT
-    echo "<?php" > $CHORASOURCES
-    for i in *; do
-      if [ -d "$i" ]; then
-        echo "\$sourceroots['$i'] = array(" >> $CHORASOURCES
-        echo "  'name' => '$i'," >> $CHORASOURCES
-        echo "  'location' => 'file://$SVNROOT/$i'," >> $CHORASOURCES
-        echo "  'title' => 'SVN Repository $i'," >> $CHORASOURCES
-        echo "  'type' => 'svn'," >> $CHORASOURCES
-        echo ");" >> $CHORASOURCES
-      fi
-    done
-  fi
-}
-
-
 #################
 # nic setup     #
 #################
@@ -647,6 +621,13 @@ assign_nics() {
 # ldap #
 ########
 
+# get login by id
+# uid=$1
+get_login_by_id() {
+  unset RET
+  RET=`psql -U ldap -d ldap -t -c "select uid from userdata where id = '$1';"`
+}
+
 # get uid number for user
 # username=$1
 get_uidnumber() {
@@ -736,6 +717,7 @@ check_group() {
 # username=$1
 check_id() {
   unset RET
+  [ -z "$1" ] && return 1
   RET=`psql -U ldap -d ldap -t -c "select uid from posix_account where uid = '$1';"`
   if [ -n "$RET" ]; then
     return 0
@@ -748,24 +730,28 @@ check_id() {
 # teacher=$1
 check_teacher() {
   unset RET
+  [ -z "$1" ] && return 1
+  local RC=1
   get_group_members $TEACHERSGROUP
   if echo "$RET" | grep -qw $1; then
-    return 0
-  else
-    return 1
+    RC=0
   fi
+  unset RET
+  return $RC
 }
 
 # check if user is admin
 # admin=$1
 check_admin() {
   unset RET
+  [ -z "$1" ] && return 1
+  local RC=1
   get_group_members $DOMADMINS
   if echo "$RET" | grep -qw $1; then
-    return 0
-  else
-    return 1
+    RC=0
   fi
+  unset RET
+  return $RC
 }
 
 

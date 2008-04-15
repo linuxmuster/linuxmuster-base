@@ -66,8 +66,7 @@ case "$1" in
 
       # check all necessary dirs and links and create them if needed
       for i in $NETLOGONDIR $PROGSDIR $CDSDIR $BACKUPDIR $BACKUPMNTPOINT \
-               $LOGINCACHE $LOGDIR $SVNCONFDIR $SVNROOT $CLASSESWEBROOT \
-               $TEACHERSWEBROOT $STUDENTSWEBROOT $PROJECTSWEBROOT; do
+               $LOGINCACHE $LOGDIR; do
 
         [ -d "$i" ] || mkdir -p $i
 
@@ -79,11 +78,10 @@ case "$1" in
 
       # create and correct dirs and files
       [ -d /etc/skel/windows ] && rm -rf /etc/skel/windows
-      [ -d /etc/skel/public_html ] && rm -rf /etc/skel/public_html
-      [ -d /etc/skel/private_html ] && rm -rf /etc/skel/private_html
       [ -d /etc/skel/cups-pdf ] && rm -rf /etc/skel/cups-pdf
       [ -d /var/lib/rembo/files/global ] || mkdir -p /var/lib/rembo/files/global
       [ -e /var/lib/rembo/files/global/wimport_data ] || touch /var/lib/rembo/files/global/wimport_data
+      [ -e /etc/linuxmuster/workstations ] || touch /etc/linuxmuster/workstations
       [ -e "$BLOCKEDHOSTSINTERNET" ] || touch $BLOCKEDHOSTSINTERNET
       [ -e "$BLOCKEDHOSTSINTRANET" ] || touch $BLOCKEDHOSTSINTRANET
       [ -e "$UNFILTEREDHOSTS" ] || touch $UNFILTEREDHOSTS
@@ -162,7 +160,7 @@ case "$1" in
 	# samba reload only if postgres and/or samba are running
 	if ps ax | grep slapd | grep -v grep &> /dev/null; then
 		if ps ax | grep smbd | grep -v grep &> /dev/null; then
-			/etc/init.d/samba force-reload
+			/etc/init.d/samba reload
 	        	# restore samba ldap admin password
         		smbpasswd -w `cat /etc/ldap.secret`
 		else
@@ -177,13 +175,6 @@ case "$1" in
         # remove mem-cache mod from apache2
 #        if [ -L /etc/apache2/mods-enabled/mem_cache.load ]; then
 #          rm /etc/apache2/mods-enabled/mem_cache.load
-#          apache_reload=yes
-#        fi
-
-        # userdir.conf has changed
-#        userdir_conf=/etc/apache2/mods-available/userdir.conf
-#        if ! grep -q "# modified by linuxmuster-base-0.9-7" $userdir_conf; then
-#          cp -f /var/lib/linuxmuster/config-static$userdir_conf $userdir_conf
 #          apache_reload=yes
 #        fi
 
@@ -525,40 +516,6 @@ case "$1" in
 
 	fi
 
-	# adding root cron jobs for ovpn-client-cert
-#	if grep -q /usr/sbin/ovpn-client-cert /var/spool/cron/crontabs/root; then
-#		echo "Removing ovpn-client-cert from cron jobs ..."
-#		grep -v ovpn-client-cert /var/spool/cron/crontabs/root >> /var/spool/cron/crontabs/root.tmp
-#		mv /var/spool/cron/crontabs/root.tmp /var/spool/cron/crontabs/root
-#	fi
-#	if ! grep -q linuxmuster-ovpn /var/spool/cron/crontabs/root; then
-#		echo "Adding linuxmuster-ovpn cron jobs ..."
-#		grep linuxmuster-ovpn /var/lib/linuxmuster/config-static/var/spool/cron/crontabs/root >> /var/spool/cron/crontabs/root
-#	fi
-
-	# fixing freshclam.conf
-#	if ! grep -q ^"NotifyClamd /etc/clamav/clamd.conf" /etc/clamav/freshclam.conf; then
-#		echo "Fixing /etc/clamav/freshclam.conf ..."
-#		cp -f /var/lib/linuxmuster/config-static/etc/clamav/freshclam.conf /etc/clamav
-#	fi
-
-	# cups upgrade
-#	if ! grep -q "# 28.04.2007" /etc/cups/cupsd.conf; then
-#		echo "Upgrading CUPS configuration!"
-#		cp /etc/cups/cupsd.conf /etc/cups/cupsd.conf.dpkg-old
-#		sed -e "s/@@printeradmins@@/${PRINTERADMINS}/
-#		        s/@@serverip@@/${serverip}/" /var/lib/linuxmuster/config-dynamic/34_cups/cupsd.conf > /etc/cups/cupsd.conf
-#		# cups-pdf upgrade
-#		for i in `find /home -type d -name cups-pdf`; do
-#			if check_empty_dir $i; then
-#				rm -rf $i
-#			else
-#				p=${i%cups-pdf}PDF
-#				mv $i $p
-#			fi
-#		done
-#		cups_restart=yes
-#	fi
 	# restoring PDF-Printer
 	if [ ! -f /etc/cups/ppd/PDF-Printer.ppd ]; then
 		echo "Restoring PDF-Printer driver ..."
@@ -661,6 +618,10 @@ case "$1" in
 		case "$imaging" in
 			linbo|tivoli)
 				sed -e "s/^WIMPORTDATA=.*/WIMPORTDATA=\"\/etc\/linuxmuster\/workstations\"/" -i /usr/share/linuxmuster/config/dist.conf
+				if [[ -L "$SYSCONFDIR/workstations" && -f "$REMBOFILES/files/global/wimport_data" ]]; then
+					rm $SYSCONFDIR/workstations
+					cp $REMBOFILES/files/global/wimport_data $SYSCONFDIR/workstations
+				fi
 				;;
 			*)
 				sed -e "s/^WIMPORTDATA=.*/WIMPORTDATA=\"\$REMBOFILES\/files\/global\/wimport_data\"/" -i /usr/share/linuxmuster/config/dist.conf
@@ -673,6 +634,13 @@ case "$1" in
 		echo "Removing obsolete parameter unmount_shm from backup.conf ..."
 		cp /etc/linuxmuster/backup.conf /etc/linuxmuster/backup.conf.dpkg-old
 		sed -e 's/^unmount_shm.*/# obsolete with linuxmuster-base 1.2-17/' -i /etc/linuxmuster/backup.conf
+	fi
+
+	# change obsolete cyrus21 to cyrus2.2 in services parameter in backup.conf (1.2-25)
+	if grep -w cyrus21 /etc/linuxmuster/backup.conf | grep -qv ^#; then
+		echo "Changing service cyrus21 to cyrus2.2 in backup.conf ..."
+		cp /etc/linuxmuster/backup.conf /etc/linuxmuster/backup.conf.dpkg-old
+		sed -e 's/cyrus21/cyrus2.2/' -i /etc/linuxmuster/backup.conf
 	fi
 
 	# custom login/logout scripts (1.2-6)
@@ -693,15 +661,32 @@ case "$1" in
 	fi
 
 	# linking registry-patches to administrator's home (1.2-15)
-	echo "Linking registry-patches to administrator's home ..."
-	ln -sf /usr/share/linuxmuster/registry-patches $ADMINSHOME/$ADMINISTRATOR/registry-patches
+	if [ ! -e "$ADMINSHOME/$ADMINISTRATOR/registry-patches" ]; then
+		echo "Linking registry-patches to administrator's home ..."
+		ln -sf /usr/share/linuxmuster/registry-patches $ADMINSHOME/$ADMINISTRATOR/registry-patches
+	fi
 
-	# updating rsyncd.conf according to linbo revision 119 (1.2-13)
+	# linbo related update stuff
 	if [ "$imaging" = "linbo" ]; then
+		# updating rsyncd.conf according to linbo revision 119 (1.2-13)
 		if ! grep -q pre-xfer /etc/rsyncd.conf; then
 			echo "Updating rsync configuration ..."
 			cp /var/lib/linuxmuster/config-static/etc/rsyncd.conf /etc
 			/etc/init.d/rsync restart
+		fi
+		# updating dhcp configuration according to linbo 1.0.230-2 (1.3-3)
+		if ! grep -q ^"option dhcp-parameter-request-list" /etc/dhcp3/dhcpd.conf; then
+			echo "Updating dhcp-server configuration ..."
+			backup_file /etc/dhcp3/dhcpd.conf
+			sed -e "s/@@servername@@/${servername}/g
+				s/@@domainname@@/${domainname}/g
+				s/@@serverip@@/${serverip}/g
+				s/@@ipcopip@@/${ipcopip}/g
+				s/@@broadcast@@/${broadcast}/g
+				s/@@internalnet@@/${internalnet}/g
+				s/@@internsub@@/${internsub}/g
+				s/@@internmask@@/${internmask}/g" /var/lib/linuxmuster/config-dynamic/03_dhcp3-server/dhcpd.conf.linbo > /etc/dhcp3/dhcpd.conf
+			/etc/init.d/dhcp3-server force-reload
 		fi
 	fi
 

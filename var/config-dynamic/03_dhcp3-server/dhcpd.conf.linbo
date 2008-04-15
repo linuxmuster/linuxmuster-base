@@ -54,6 +54,9 @@ log-facility local7;
 
 allow booting;
 allow bootp;
+option configfile code 150 = string;
+option configfile "/pxegrub.lst";
+option dhcp-parameter-request-list = concat(option dhcp-parameter-request-list,96);
 
 # subnet for workstation import
 subnet @@internalnet@@ netmask @@internmask@@ {

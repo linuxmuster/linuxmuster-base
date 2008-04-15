@@ -15,10 +15,12 @@ tmpdir=/var/tmp/repair-admins.$$
 mkdir -p $tmpdir || exit 1
 tmpfile=$tmpdir/userdata
 
+
 # check if accounts are available
 for i in $DOMADMIN $ADMINISTRATOR $PGMADMIN; do
 	if ! id $i &> /dev/null; then
-		echo "No $i account found!"
+		echo "No $i account found! Check if slapd is running!"
+		rm -rf $tmpdir
 		exit 1
 	fi
 done

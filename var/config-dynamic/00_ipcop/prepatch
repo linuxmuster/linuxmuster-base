@@ -5,8 +5,9 @@ if [[ "$1" = "--modify" && "$update_fw" != "yes" ]]; then
 	# backup ipcop settings
 	echo "  Backing up ipcop settings to $BACKUPDIR/ipcop ..."
 	[ -d "$BACKUPDIR/ipcop" ] || mkdir -p $BACKUPDIR/ipcop
-	ssh -p 222 $ipcopip_old /bin/tar czf /var/linuxmuster/linuxmuster-setup-backup.tar.gz /etc /var/ipcop
-	scp -P 222 $ipcopip_old:/var/linuxmuster/linuxmuster-setup-backup.tar.gz $BACKUPDIR/ipcop/linuxmuster-setup-ipcop-backup-$DATETIME.tar.gz
+	ssh -p 222 $ipcopip_old /bin/tar czf /var/linuxmuster/backup.tar.gz --exclude=/etc/ssh /etc /var/ipcop
+	scp -P 222 $ipcopip_old:/var/linuxmuster/backup.tar.gz $BACKUPDIR/ipcop/backup-$DATETIME.tar.gz
+	chmod 600 $BACKUPDIR/ipcop/backup-$DATETIME.tar.gz
 
 	# patch ips if internal net address has changed
 	if [ "$internsub" != "$internsub_old" ]; then

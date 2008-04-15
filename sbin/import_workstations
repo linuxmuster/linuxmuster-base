@@ -4,16 +4,16 @@
 #
 # Thomas Schmitt
 # <schmitt@lmz-bw.de>
-# 19.09.2007
+# 12.04.2008
 #
 
 # check for import_workstations lockfile
-locker=/tmp/.import_workstations
+locker=/tmp/.import_workstations.lock
 if [ -e "$locker" ]; then
-	echo "Caution! Lockfile $locker detected!"
-	echo "Probably there is another import_workstations process running!"
+	echo "Caution! Probably there is another import_workstations process running!"
 	echo "If this is not the case you can safely remove the lockfile $locker"
-        echo "and give import_workstations another try."
+	echo "and give import_workstations another try."
+	echo "Workstation import is locked! Exiting!"
 	exit 1
 fi
 touch $locker
@@ -22,64 +22,110 @@ chmod 400 $locker
 # read linuxmuster environment
 . /usr/share/linuxmuster/config/dist.conf
 . $HELPERFUNCTIONS
+LOGFILE="$LOGDIR/import_workstations.log"
+TMPLOG=/var/tmp/import_workstations.log
+[ -e "$TMPLOG" ] && rm -f $TMPLOG
 
 # check for sophomorix lockfile
 if [ -e "$SOPHOMORIXLOCK" ]; then
 	echo "Fatal! Sophomorix lockfile $SOPHOMORIXLOCK detected!"
-	echo "You should examine the situation and remove the lockfile"
-	echo "before you start import_workstations again!"
 	rm -f $locker
 	exit 1
 fi
 
-
-echo "Starting import workstations session at `date`"
-echo
-
-
-# check for nscd service and shut it down
-if ps ax | grep nscd | grep -v grep &> /dev/null; then
-	/etc/init.d/nscd stop
-	echo
+# check for postgres DB
+get_uidnumber $ADMINISTRATOR
+if [ -z "$RET" ]; then
+	echo "Fatal! PostgreSQL database service is not available! Is postgres running?"
+	rm -f $locker
+	exit 1
 fi
 
+# check for slapd
+if ! smbldap-usershow $ADMINISTRATOR &> /dev/null; then
+	echo "Fatal! LDAP service is not available! Is slapd running?"
+	rm -f $locker
+	exit 1
+fi
 
-# backing up workstation data file
-backup_file $WIMPORTDATA
+echo | tee -a $TMPLOG
+echo "#####################################################################" | tee -a $TMPLOG
+echo "Starting import workstations session at `date`" | tee -a $TMPLOG
+echo | tee -a $TMPLOG
 
+# start nscd if not running
+if ! ps ax | grep nscd | grep -v grep &> /dev/null; then
+	/etc/init.d/nscd start | tee -a $TMPLOG
+	echo | tee -a $TMPLOG
+fi
+
+RC=0
 
 case "$imaging" in
 
 	linbo|tivoli)
-		. $SCRIPTSDIR/wimport_linbo.sh
+		# backing up workstation data file
+		echo -n "Backing up $WIMPORTDATA ... " | tee -a $TMPLOG
+		if backup_file $WIMPORTDATA &> /dev/null; then
+			echo "Ok!" | tee -a $TMPLOG
+		else
+			echo "failed!" | tee -a $TMPLOG
+		fi
+
+		echo | tee -a $TMPLOG
+		. $SCRIPTSDIR/wimport.sh | tee -a $TMPLOG
 		;;
 
 	rembo)
-		myadmin -i "$REMBOFILES/files/global/wimport_data" --rembo-path "$REMBOFILES" \
+		echo -n "Writing Rembo/mySHN configuration ... "
+		if myadmin -i "$REMBOFILES/files/global/wimport_data" --rembo-path "$REMBOFILES" \
 			--rembo-conf "$REMBOCONF" --myshn-path "$MYSHNDIR" --dhcp-conf "$DHCPDCONF" \
-			--hostgroup-conf "$HOSTGROUPCONF" --plugin "$SCRIPTSDIR/wimport_lml.rb"
+			--hostgroup-conf "$HOSTGROUPCONF" --plugin "$SCRIPTSDIR/wimport_lml.rb" 2>> $TMPLOG 1>> $TMPLOG; then
+			echo "Ok!"
+			RC=0
+		else
+			echo "failed!"
+			RC=1
+		fi
+
+		echo | tee -a $TMPLOG
+		. $SCRIPTSDIR/wimport.sh | tee -a $TMPLOG
 
 		# run this script for the package mlscripts (alternative to myshn)
 		if [ -e "/usr/sbin/mlscripts-wsimport" ]
 		then
-			echo "  * running  /usr/sbin/mlscripts-wsimport"
-			/usr/sbin/mlscripts-wsimport
+			echo "  * running  /usr/sbin/mlscripts-wsimport" | tee -a $TMPLOG
+			/usr/sbin/mlscripts-wsimport | tee -a $TMPLOG
+			RC_ML=${PIPESTATUS[0]}
+			[ $RC_ML -ne 0 ] && RC=$RC_ML
 		fi
 		;;
 
 	*)
-		echo "No imaging system defined! Doing nothing!"
+		echo "No imaging system defined! Doing nothing!" | tee -a $TMPLOG
+		RC=1
 		;;
 
 esac
 
-# check for nscd service and start it
-if ! ps ax | grep nscd | grep -v grep &> /dev/null; then
-	/etc/init.d/nscd start
+# restart nscd service
+/etc/init.d/nscd restart | tee -a $TMPLOG
+
+echo | tee -a $TMPLOG
+echo "Ending import workstations session at `date`" | tee -a $TMPLOG
+echo "#####################################################################" | tee -a $TMPLOG
+
+if [ $RC -ne 0 ]; then
+	echo
+	echo "Finished with error(s)! Please look at $LOGFILE! Detailed output will be mailed to $ADMINISTRATOR!"
+	cat $TMPLOG | mail -s "import_workstations finished with error(s)!" $ADMINISTRATOR@$domainname
 fi
+
+# append log
+cat $TMPLOG >> $LOGFILE
+rm -f $TMPLOG
 
 # delete locker
 rm -f $locker
 
-echo
-echo "Done!"
+exit $RC

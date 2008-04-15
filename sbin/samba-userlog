@@ -16,7 +16,7 @@ usage() {
   echo
   echo "Usage: samba-userlog.sh --log=<in|out>"
   echo "                        --username=<userlogin>"
-  echo "                        --hostname=<hostname>"
+  echo "                        --hostname=<hostname or ip address>"
   echo "                        --homedir=<homedirectory>"
   echo
   exit 1
@@ -48,33 +48,15 @@ if [[ "$hostname" != "$username" && "$log" = "in" ]]; then
   check_teacher $username && teacher=yes
   check_admin $username && admin=yes
 
-  # private_html
-  [ -L "$homedir/public_html" ] && rm $homedir/public_html
-  if [ -d "$homedir/public_html" ]; then
-    mv $homedir/public_html $homedir/private_html
-  else
-    if [ ! -d "$homedir/private_html" ]; then
-      mkdir $homedir/private_html
-    fi
-  fi
-  chown $username:www-data $homedir/private_html
-  chmod 2750 $homedir/private_html
+  # remove obsolete private_html
+  [ -f "$homedir/private_html/.htaccess" ] && rm -f $homedir/private_html/.htaccess
+  check_empty_dir $homedir/private_html && rm -rf $homedir/private_html
 
-  # check if .htaccess is present
-  if [ ! -f "$homedir/private_html/.htaccess" ]; then
-    # check if user is student
-    usertype=`echo $homedir | awk -F\/ '{ print $3 }'`
-    echo "AuthType Basic" > $homedir/private_html/.htaccess
-    echo "AuthName \"private_html\"" >> $homedir/private_html/.htaccess
-    echo "SSLRequireSSL" >> $homedir/private_html/.htaccess
-    if [ "$usertype" = "students" ]; then
-      echo "Require user $username $ADMINISTRATOR" >> $homedir/private_html/.htaccess
-      echo "Require group $TEACHERSGROUP" >> $homedir/private_html/.htaccess
-    else
-      echo "Require user $username" >> $homedir/private_html/.htaccess
-    fi
-    chown www-data:www-data $homedir/private_html/.htaccess
-    chmod 400 $homedir/private_html/.htaccess
+  # public_html only for teachers
+  if [[ -n "$teacher" && ! -e "$homedir/public_html" ]]; then
+    mkdir $homedir/public_html
+    chown $username:www-data $homedir/public_html
+    chmod 2750 $homedir/public_html
   fi
 
   # link to students home for teachers and administrators
@@ -98,12 +80,6 @@ if [[ "$hostname" != "$username" && "$log" = "in" ]]; then
       [ -L "$homedir/$SHARELINK" ] && rm $homedir/$SHARELINK
     fi
   fi
-
-  # link to myshn folder for domadmins (obsolet)
-  #if [[ -n "$MYSHNDIR" && -d "$MYSHNDIR" ]]; then
-  #  [ -e "$homedir/$MYSHNLINK" ] && rm -rf $homedir/$MYSHNLINK
-  #  [ -n "$admin" ] && ln -s $MYSHNDIR $homedir/$MYSHNLINK
-  #fi
 
 fi
 

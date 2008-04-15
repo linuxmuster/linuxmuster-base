@@ -1,4 +1,2 @@
-var/lib/rembo/files/global/wimport_data			etc/linuxmuster/workstations
 usr/share/linuxmuster/scripts/ovpn-client-cert.sh	usr/sbin/linuxmuster-ovpn
 usr/share/linuxmuster/scripts/remoteadmin.sh		usr/sbin/remoteadmin
-

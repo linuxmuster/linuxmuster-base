@@ -49,6 +49,12 @@ checklock || exit 1
 get_maclist || cancel "Cannot get maclist!"
 
 
+# clean $CACHEDIR
+rm -f $CACHEDIR/squid.conf* &> /dev/null
+rm -f $CACHEDIR/src_banned_mac.acl* &> /dev/null
+rm -f $CACHEDIR/fwrules.config* &> /dev/null
+
+
 # get src_banned_mac.acl from ipcop
 get_ipcop /var/ipcop/proxy/advanced/acls/src_banned_mac.acl $CACHEDIR &> /dev/null || cancel "Download of src_banned_mac.acl failed!"
 cp -f $CACHEDIR/src_banned_mac.acl $CACHEDIR/src_banned_mac.acl.new || cancel "Cannot access $CACHEDIR!"
@@ -210,7 +216,7 @@ put_ipcop $CACHEDIR/fwrules.config.new /var/ipcop/fwrules/config &> /dev/null ||
 
 
 # restarting proxy
-exec_ipcop /usr/local/bin/restartsquid &> /dev/null || cancel "Restarting of ipcop proxy failed!"
+exec_ipcop /usr/sbin/squid -k reconfigure &> /dev/null || cancel "Restarting of ipcop proxy failed!"
 
 
 # restarting firewall rules
