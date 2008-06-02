@@ -118,7 +118,7 @@ echo "#####################################################################" | t
 if [ $RC -ne 0 ]; then
 	echo
 	echo "Finished with error(s)! Please look at $LOGFILE! Detailed output will be mailed to $ADMINISTRATOR!"
-	cat $TMPLOG | mail -s "import_workstations finished with error(s)!" $ADMINISTRATOR@$domainname
+	cat $TMPLOG | mail -s "import_workstations finished with error" $ADMINISTRATOR@localhost
 fi
 
 # append log

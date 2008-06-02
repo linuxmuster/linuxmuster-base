@@ -46,7 +46,7 @@ su cyrus "/usr/bin/db4.2_upgrade /var/lib/cyrus/deliver.db" || rollback
 su cyrus "find /var/spool/cyrus/mail/ -name \*.seen -exec /usr/sbin/cvt_cyrusdb \{\} flat \{\}.new skiplist \; -exec mv \{\}.new \{\} \;" || rollback
 
 # updating cyrus.conf
-cp -f /var/lib/linuxmuster/config-static/etc/cyrus.conf /etc
+cp -f $STATICTPLDIR/etc/cyrus.conf /etc
 
 # reconfigure cyrus
 [ -e /usr/lib/cyrus/cyrus-db-types.active ] && rm /usr/lib/cyrus/cyrus-db-types.active

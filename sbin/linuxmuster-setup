@@ -4,6 +4,12 @@
 # Thomas Schmitt <schmitt@lmz-bw.de>
 # GPL-2
 
+# check debian version
+if [ "$(cat /etc/debian_version)" != "4.0" ]; then
+	echo "This is not Debian 4.0 Etch. Please upgrade your system!"
+	exit 1
+fi
+
 # read dist.conf
 . /usr/share/linuxmuster/config/dist.conf || exit 1
 
@@ -50,11 +56,23 @@ else
   done
   echo
   echo "Let's go! :-)"
+  echo
 
 fi
 
+# logfile
+logfile=$LOGDIR/setup.log
+echo >> $LOGDIR/setup.log
+echo "####################################################" >> $LOGDIR/setup.log
+echo "Setup session started at `date`" >> $LOGDIR/setup.log
+date >> $LOGDIR/setup.log
+echo "####################################################" >> $LOGDIR/setup.log
+
+echo "Logging output to $logfile ..."
+echo
+
 # reconfiguring package to have all templates
-dpkg-reconfigure linuxmuster-base
+dpkg-reconfigure linuxmuster-base | tee -a $LOGDIR/setup.log
 
 # calling as base-config late command
 case $opt in
@@ -62,15 +80,30 @@ case $opt in
   --first)
 
     # turn shadow passwords on
-    shadowconfig on
+    shadowconfig on | tee -a $LOGDIR/setup.log
+
+    # add cyrus user
+    id cyrus &> /dev/null || useradd -c "Cyrus Mailsystem User" -d /var/spool/cyrus -g mail -m -r -s /bin/sh cyrus | tee -a $LOGDIR/setup.log
 
     # load cdrom tray
     grep -q ^"deb cdrom" /etc/apt/sources.list && eject -t
 
+    # force apt to do ugly things during upgrade
+    echo 'DPkg::Options {"--force-confold";"--force-confdef";"--force-bad-verify";"--force-overwrite";};' > /etc/apt/apt.conf.d/99upgrade
+
+    # tweaking buggy sophomorix, install postgresql first
+    DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql-7.4 | tee -a $LOGDIR/setup.log
+    DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql-8.1 | tee -a $LOGDIR/setup.log
+
     # installing depending tasks
     for i in common server; do
-      DEBIAN_FRONTEND=noninteractive /usr/bin/tasksel install linuxmuster-$i
+      task=`tasksel --task-packages linuxmuster-$i`
+      DEBIAN_FRONTEND=noninteractive aptitude -y install $task | tee -a $LOGDIR/setup.log
+      #DEBIAN_FRONTEND=noninteractive /usr/bin/tasksel install linuxmuster-$i
     done
+
+    # remove upgrade cheat
+    rm /etc/apt/apt.conf.d/99upgrade
 
     ;;
 
@@ -78,8 +111,8 @@ case $opt in
 
     # check for installed flag
     if [ ! -e "$INSTALLED" ]; then
-      echo "Linux-Musterloesung isn't installed yet!"
-      echo "You have to use the command linuxmuster-setup --first!"
+      echo "Linux-Musterloesung isn't installed yet!" | tee -a $LOGDIR/setup.log
+      echo "You have to use the command linuxmuster-setup --first!" | tee -a $LOGDIR/setup.log
       exit 1
     fi
 
@@ -87,7 +120,7 @@ case $opt in
 
 	# fetch external network configuration from ipcop
 	if ping -c 2 $ipcopip &> /dev/null; then
-		echo "Reading IPCop's external network configuration ..."
+		echo "Reading IPCop's external network configuration ..." | tee -a $LOGDIR/setup.log
 		tmpdir=/var/tmp/ipcop.$$
 		mkdir -p $tmpdir
 		get_ipcop /var/ipcop/ethernet/settings $tmpdir/settings
@@ -121,13 +154,13 @@ case $opt in
 
 	else
 
-		echo "Cannot connect to IPCop!"
+		echo "Cannot connect to IPCop!" | tee -a $LOGDIR/setup.log
 		exit 1
 
 	fi
 
     # reading current debconf values
-    echo "Reading current configuration values ..."
+    echo "Reading current configuration values ..." | tee -a $LOGDIR/setup.log
     for i in country state location workgroup servername domainname schoolname dsluser dslpasswd smtprelay \
              internsubrange fwconfig externtype externip externmask gatewayip dnsforwarders imaging; do
       RET=`echo get linuxmuster-base/$i | debconf-communicate`
@@ -151,8 +184,8 @@ case $opt in
 esac
 
 # backup debconf db
-backup_file /var/cache/debconf/config.dat
-backup_file /var/cache/debconf/passwords.dat
+backup_file /var/cache/debconf/config.dat | tee -a $LOGDIR/setup.log
+backup_file /var/cache/debconf/passwords.dat | tee -a $LOGDIR/setup.log
 chmod 600 $BACKUPDIR/var/cache/debconf/passwords.dat-$DATETIME.gz
 
 # ask questions
@@ -173,3 +206,4 @@ fi
 
 # call configuration patch script
 $SCRIPTSDIR/linuxmuster-patch $opt
+

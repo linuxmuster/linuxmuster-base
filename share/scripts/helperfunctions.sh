@@ -136,92 +136,6 @@ validmac() {
 }
 
 
-#################
-# mysql related #
-#################
-
-# create mysql database user
-create_mysql_user() {
-  username=$1
-  password=$2
-  mysql <<EOF
-USE mysql;
-REPLACE INTO user (host, user, password)
-    VALUES (
-        'localhost',
-        '$username',
-        PASSWORD('$password')
-);
-EOF
-}
-
-# removes a mysql user
-drop_mysql_user() {
-  username=$1
-  mysql <<EOF
-USE mysql;
-DELETE FROM user WHERE user='$username';
-DELETE FROM db WHERE user='$username';
-DELETE FROM columns_priv WHERE user='$username';
-DELETE FROM tables_priv WHERE user='$username';
-FLUSH PRIVILEGES;
-EOF
-}
-
-# create a mysql database
-create_mysql_db() {
-  if mysqladmin create $1; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-# create a mysql database and grant privileges to a user
-drop_mysql_db() {
-  if mysqladmin -f drop $1; then
-    mysql <<EOF
-USE mysql;
-DELETE FROM db WHERE db='$1';
-EOF
-    return 0
-  else
-    return 1
-  fi
-}
-
-# grant privileges to a database to a specified user
-grant_mysql_privileges() {
-  dbname=$1
-  username=$2
-  writeable=$3
-  mysql <<EOF
-USE mysql;
-REPLACE INTO db (host, db, user, select_priv, insert_priv, update_priv, references_priv, lock_tables_priv,
-                 delete_priv, create_priv, drop_priv, index_priv, alter_priv, create_tmp_table_priv)
-    VALUES (
-        'localhost',
-        '$dbname',
-        '$username',
-        'Y', '$writeable', '$writeable', '$writeable', '$writeable', '$writeable',
-        '$writeable', '$writeable', '$writeable', '$writeable', '$writeable'
-);
-FLUSH PRIVILEGES;
-EOF
-}
-
-# returns 0 if $username is a mysql user
-check_mysql_user() {
-  username=$1
-  get_dbusers || return 1
-  if echo $RET | grep -qw $username; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-
 #######################
 # workstation related #
 #######################
@@ -363,10 +277,11 @@ discover_nics() {
 			id=`ls -1 -d $i/device/driver/0000:* 2> /dev/null`
 			id=`echo $id | awk '{ print $1 }' -`
 			id=${id#$i/device/driver/}
+			id=${id#0000:}
 
 			if [ -n "$id" ]; then
 
-				tmodel=`lspci | grep $id | awk -F: '{ print $4 $5 }' -`
+				tmodel=`lspci | grep $id | awk -F: '{ print $3 $4 }' -`
 				tmodel=`expr "$tmodel" : '[[:space:]]*\(.*\)[[:space:]]*$'`
 				tmodel=${tmodel// /_}
 				model[$n]=${tmodel:0:38}
@@ -782,7 +697,7 @@ check_empty_dir() {
 
 # check valid string without special characters
 check_string() {
-  if (expr match "$1" '\([a-zA-Z0-9-_]\+$\)') &> /dev/null; then
+  if (expr match "$1" '\([a-zA-Z0-9_\-]\+$\)') &> /dev/null; then
     return 0
   else
     return 1

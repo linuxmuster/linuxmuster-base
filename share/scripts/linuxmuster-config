@@ -23,7 +23,7 @@ fi
 
 # check which imaging software is available
 linbo=`aptitude search linuxmuster-linbo`
-rembo=`aptitude search rembo`
+rembo=`aptitude search myshn`
 tivoli=`aptitude search tpmfos`
 
 if [ "$1" = "--first" ]; then
@@ -33,17 +33,35 @@ if [ "$1" = "--first" ]; then
   db_go
 fi
 
+# country
+while [ -z "$INPUT" ]; do
+  db_fset linuxmuster-base/country seen false
+  db_input $PRIORITY linuxmuster-base/country || true
+  db_go
+  db_get linuxmuster-base/country || true
+  INPUT=`echo ${RET:0:2} | tr a-z A-Z`
+  if ! expr match "$INPUT" '\([A-Z][A-Z]\)'; then
+    unset INPUT
+    continue
+  fi
+  db_set linuxmuster-base/country $INPUT || true
+  [[ "$oldvalues" = "yes" && "$INPUT" != "$country_old" ]] && ask_ipcop=yes
+done
+unset INPUT
+
 
 # data for certificates and workgroup
-for i in country state location schoolname workgroup; do
+for i in state location schoolname workgroup; do
   while [ -z "$INPUT" ]; do
     db_fset linuxmuster-base/$i seen false
     db_input $PRIORITY linuxmuster-base/$i || true
     db_go
     db_get linuxmuster-base/$i || true
-    check_string "$RET" || continue
-    INPUT=$RET
-    [[ "$oldvalues" = "yes" && "$i" = "country" && "$INPUT" != "$country_old" ]] && ask_ipcop=yes
+    INPUT="$RET"
+    if ! expr match "$INPUT" '\([a-zA-Z0-9_\-]\+$\)'; then
+      unset INPUT
+      continue
+    fi
     [[ "$oldvalues" = "yes" && "$i" = "state" && "$INPUT" != "$state_old" ]] && ask_ipcop=yes
     [[ "$oldvalues" = "yes" && "$i" = "location" && "$INPUT" != "$location_old" ]] && ask_ipcop=yes
     [[ "$oldvalues" = "yes" && "$i" = "schoolname" && "$INPUT" != "$schoolname_old" ]] && ask_ipcop=yes
@@ -57,12 +75,12 @@ done
 
 # intern network configuration
 # servername
-while ! (expr match "$SERVERNAME" '\([a-z0-9-]\+$\)'); do
+while ! (expr match "$SERVERNAME" '\([a-z0-9\-]\+$\)'); do
   db_fset linuxmuster-base/servername seen false
   db_input $PRIORITY linuxmuster-base/servername || true
   db_go
   db_get linuxmuster-base/servername || true
-  SERVERNAME=$RET
+  SERVERNAME="$RET"
 done
 [[ "$oldvalues" = "yes" && "$SERVERNAME" != "$servername_old" ]] && ask_ipcop=yes
 
@@ -182,6 +200,7 @@ done
 
 
 # imaging system
+imaging=""
 if [[ -n "$linbo" && -n "$rembo" && -n "$tivoli" ]]; then
 
 	IMG_CHOICES="linbo, rembo, tivoli"
@@ -225,7 +244,7 @@ if [ -n "$IMG_CHOICES" ]; then
 	db_get linuxmuster-base/imaging || true
 	imaging=$RET
 else
-	db_set linuxmuster-base/imaging $imaging || true
+	db_set linuxmuster-base/imaging "$imaging" || true
 fi
 
 # present and let accept or decline sun java license if necessary

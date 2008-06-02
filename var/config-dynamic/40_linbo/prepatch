@@ -43,9 +43,10 @@ if  [ "$imaging" = "linbo" ]; then
 
 	# check for initial configuration and copy it if necessary
 	teststr="# automatically created by linuxmuster-setup"
-	grep "$teststr" /etc/default/atftpd &> /dev/null || cp /var/lib/linuxmuster/config-static/etc/default/atftpd /etc/default
-	grep "$teststr" /etc/rsyncd.conf &> /dev/null || cp /var/lib/linuxmuster/config-static/etc/rsyncd.conf /etc
-	grep "$teststr" /etc/default/linuxmuster-linbo &> /dev/null || cp /var/lib/linuxmuster/config-static/etc/default/linuxmuster-linbo /etc/default
+	grep "$teststr" /etc/default/atftpd &> /dev/null || cp $STATICTPLDIR/etc/default/atftpd /etc/default
+	grep "$LINBODIR" /etc/default/atftpd &> /dev/null || cp $STATICTPLDIR/etc/default/atftpd /etc/default
+	grep "$teststr" /etc/rsyncd.conf &> /dev/null || cp $STATICTPLDIR/etc/rsyncd.conf /etc
+	grep "$teststr" /etc/default/linuxmuster-linbo &> /dev/null || cp $STATICTPLDIR/etc/default/linuxmuster-linbo /etc/default
 
 	# check for pxelinux config dir
 	# obsolete
@@ -56,7 +57,7 @@ if  [ "$imaging" = "linbo" ]; then
 
 	# copy default files to $LINBODIR, if they are not there already
 	# obsolete, these files are now in linbo package
-	#for i in `find /var/lib/linuxmuster/config-static/var/linbo/ -type f` `find /usr/share/linuxmuster/registry-patches/LINBO/ -name \*.reg`; do
+	#for i in `find $STATICTPLDIR/var/linbo/ -type f` `find /usr/share/linuxmuster/registry-patches/LINBO/ -name \*.reg`; do
 	#	f=`basename $i`
 	#	[ -e "$LINBODIR/$f" ] || cp $i $LINBODIR
 	#done

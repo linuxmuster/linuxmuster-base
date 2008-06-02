@@ -21,17 +21,9 @@
 
  $CFG->respectsessionsettings = true;
 
-if (file_exists("$CFG->dirroot/lib/setup.php"))  {       // Do not edit
-	include_once("$CFG->dirroot/lib/setup.php");
-} else {
-	if ($CFG->dirroot == dirname(__FILE__)) {
-		echo "<p>Could not find this file: $CFG->dirroot/lib/setup.php</p>";
-		echo "<p>Are you sure all your files have been uploaded?</p>";
-	} else {
-		echo "<p>Error detected in config.php</p>";
-		echo "<p>Error in: \$CFG->dirroot = '$CFG->dirroot';</p>";
-		echo "<p>Try this: \$CFG->dirroot = '".dirname(__FILE__)."';</p>";
-	}
-	die;
-}
+$CFG->usecaptcha = true;  // using captcha for registration form
+
+require_once("$CFG->dirroot/lib/setup.php");
+// MAKE SURE WHEN YOU EDIT THIS FILE THAT THERE ARE NO SPACES, BLANK LINES,
+// RETURNS, OR ANYTHING ELSE AFTER THE TWO CHARACTERS ON THE NEXT LINE.
 ?>

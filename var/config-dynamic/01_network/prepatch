@@ -38,15 +38,15 @@ else
 	# prevent interfaces from being patched
 	mv interfaces.target interfaces.target.nopatch
 
-	# patch interfaces if internal netaddress has changed
-	if [ "$internsubrange" != "$internsubrange_old" ]; then
+	backup_file /etc/network/interfaces
 
-		backup_file /etc/network/interfaces
-		sed -e "s/10.$internsub_old./10.$internsub./g
-			s/$broadcast_old/$broadcast/g" -i /etc/network/interfaces
-
-
-	fi
+	# patch interfaces
+	sed -e "s/address ${serverip_old}.*/address $serverip/g
+		s/network ${internalnet_old}.*/network $internalnet/g
+		s/broadcast ${broadcast_old}.*/broadcast $broadcast/g
+		s/gateway ${ipcopip_old}.*/gateway $ipcopip/g
+		s/dns-nameservers ${serverip_old}.*/dns-nameservers $serverip/g
+		s/dns-search ${domainname_old}.*/dns-search $domainname/g" -i /etc/network/interfaces
 
 	# prevent /etc/hosts from being patched
 	mv hosts.target hosts.target.nopatch

@@ -1,3 +1,151 @@
+linuxmuster-base (1.4.14-paedml1) unstable; urgency=low
+
+  * fixed ipcop's ssh login in linuxmuster-setup
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 02 Jun 2008 15:07:33 +0200
+
+linuxmuster-base (1.4.13-paedml1) unstable; urgency=low
+
+  * added dpkg-dev to package dependencies
+  * added architecture dependent ipcop configuration (SKAS_KERNEL=yes|no) to
+    linuxmuster-setup
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 01 Jun 2008 19:21:27 +0200
+
+linuxmuster-base (1.4.12-paedml1) unstable; urgency=low
+
+  * added atftpd config handling to etch-upgrade.sh
+  * changed versioning scheme
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 31 May 2008 08:41:39 +0000
+
+linuxmuster-base (1.4-paedml40-11) unstable; urgency=low
+
+  * fixed missing setup parameters in etch-upgrade.sh
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 29 May 2008 19:38:00 +0200
+
+linuxmuster-base (1.4-paedml40-10) unstable; urgency=low
+
+  * added paedML-Upgrade-4.0.txt under docs
+  * changed copyright file
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 28 May 2008 15:56:54 +0200
+
+linuxmuster-base (1.4-paedml40-9) unstable; urgency=low
+
+  * etch-upgrade.sh installs now kernel meta package
+  * added paedml40 to package revision
+  * changed paedml address in sources.list.online
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 28 May 2008 14:56:18 +0200
+
+linuxmuster-base (1.4-8) unstable; urgency=low
+
+  * linuxmuster-setup: various fixes concerning to etch upgrade
+    - ipcop ssh handling
+    - patching of /etc/network/interfaces
+    - patching of moodle db
+    - patching horde db
+  * removed mysql related functions from helperfunctions.sh
+  * removed linuxmuster-svn and linuxmuster-mysql dummy scripts
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 21 May 2008 18:40:46 +0200
+
+linuxmuster-base (1.4-7) unstable; urgency=low
+
+  * added sophomorix2 tweaks in linuxmuster-setup
+  * modified creation of moodle db concerning to postgres 8.1
+  * fixed shell redirection during linuxmuster-setup
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 20 May 2008 20:40:48 +0200
+
+linuxmuster-base (1.4-6) unstable; urgency=low
+
+  * added postgres-8.1 support
+  * added moodle 1.9 support
+  * fixes in paedml-etch-upgrade script
+  * updated nagios2 configuration according to linuxmuster-nagios-base 0.7.1
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 20 May 2008 17:50:28 +0200
+
+linuxmuster-base (1.4-5) unstable; urgency=low
+
+  * removed opengroupware.org from backup.conf
+  * updated openntpd init script path in settime.sh
+  * fixed apache2's default site configuration (setup and upgrade)
+  * updated moodle's config.php (static)
+  * updated freshclam.conf (static)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 29 Apr 2008 20:30:40 +0200
+
+linuxmuster-base (1.4-4) unstable; urgency=low
+
+  * various linuxmuster-setup modifications according to etch
+  * fixed valid characters check in linuxmuster-config
+  * added debian version check to postinst and linuxmuster-setup
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 28 Apr 2008 18:47:52 +0200
+
+linuxmuster-base (1.4-3) unstable; urgency=low
+
+  * added next-server option in LINBO's dhcpd.conf template
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 23 Apr 2008 15:44:00 +0200
+
+linuxmuster-base (1.4-2) unstable; urgency=low
+
+  * fixed nagios2 apache configuration in etch-upgrade.sh
+  * moved postgresql static config templates to new subdir (7.4/main)
+  * temporarily fixed linuxmuster-nagios-base configuration for apache2
+  * splittet startscript /usr/sbin/paedml-etch-upgrade from etch-upgrade.sh
+  * added deactivation of avahi-daemon during etch-upgrade
+  * added kernel (2.6.20-6-server) installation to etch-upgrade
+  * added logging of etch-upgrade to /var/log/linuxmuster/etch-upgrade.log
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 23 Apr 2008 13:00:10 +0200
+
+linuxmuster-base (1.4-1) unstable; urgency=low
+
+  * added dynamic config template for nagios2 apache2.conf for ldap
+    authentication
+  * changed default locale to de_DE.UTF-8@euro UTF-8 in locale.gen
+    static template
+  * modified horde's and moodle's static apache.conf template concerning to php5
+  * modified nagios2 apache2.conf concerning to ldap authentication
+  * removed apache2 pam auth modules
+  * adding cyrus and postfix user to group ssl-cert
+  * enabled ldap authentication modules for apache2
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 18 Apr 2008 12:21:23 +0200
+
+linuxmuster-base (1.4-0) unstable; urgency=low
+
+  * added etch-upgrade.sh script
+  * removed webmin configs
+  * modified horde configs for etch
+  * updated etch sources.list
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 15 Apr 2008 22:43:18 +0200
+
+linuxmuster-base (1.3-10) testing; urgency=low
+
+  * removed OpenGroupware link from paedML's index.html template
+  * fixed removing of obsolete workstation accounts in wimport.sh
+    if there are no homedirs
+  * fixed: administrator mail not being sent when import_workstations
+    finished with error
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 17 Apr 2008 21:09:11 +0200
+
+linuxmuster-base (1.3-9) testing; urgency=low
+
+  * added remove-ogo.sh to easily get rid of OpenGroupware
+  * removed OpenGroupware config templates
+  * remove /var/lib/svn and /etc/apache/repositories from debian/dirs
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 15 Apr 2008 13:40:04 +0200
+
 linuxmuster-base (1.3-8) testing; urgency=low
 
   * fixed recognition of double ip addresses in wimport.sh

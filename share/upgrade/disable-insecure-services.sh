@@ -5,17 +5,22 @@
 # Thomas Schmitt <schmitt@lmz-bw.de>
 #
 
-echo "This script removes obsolete and insecure services from paedML."
-echo "The process will start in 5 seconds. Press CRTL-C to cancel."
-n=0
-while [ $n -lt 5 ]; do
-	echo -n .
-	sleep 1
-	let n=n+1
-done
-echo
-echo "Let's go! :-)"
-echo
+if [ -n "$1" -a "$1" = "--force" ]; then
+	echo
+else
+	echo "This script removes obsolete and insecure services from paedML."
+	echo
+	echo "The process will start in 5 seconds. Press CRTL-C to cancel."
+	n=0
+	while [ $n -lt 5 ]; do
+		echo -n .
+		sleep 1
+		let n=n+1
+	done
+	echo
+	echo "Let's go! :-)"
+	echo
+fi
 
 . /usr/share/linuxmuster/config/dist.conf || exit 1
 . $HELPERFUNCTIONS || exit 1
@@ -35,7 +40,7 @@ for i in $configs; do
 	if ! grep -q "# modified by linuxmuster-base-1.3.1" $i; then
 		echo -n "Updating $i ..."
 		cp $i $i.obsolete
-		cp -f /var/lib/linuxmuster/config-static$i $i
+		cp -f $STATICTPLDIR$i $i
 		apache_reload=yes
 		echo " done."
 	fi

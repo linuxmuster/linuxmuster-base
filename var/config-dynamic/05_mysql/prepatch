@@ -2,8 +2,6 @@
 
 if [ "$1" = "--first" ]; then
 
-  $SCRIPTSDIR/create-horde-db.sh
-
   if [ ! -f /root/.my.cnf ]; then
     myrootpw=`pwgen -s 8 1`
     mysqladmin -u root password $myrootpw

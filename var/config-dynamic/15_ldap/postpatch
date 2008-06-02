@@ -1,6 +1,3 @@
-# restore ldapadmin password
-smbpasswd -w `cat /etc/ldap.secret`
-
 # start services again
 /etc/init.d/nscd stop
 /etc/init.d/samba stop

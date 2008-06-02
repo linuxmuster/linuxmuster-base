@@ -1,14 +1,18 @@
 # only root may have access
 chmod 600 /etc/ipcop.settings
 
+# delete root's ssh known hosts
+if [[ "$1" = "--first" || "$update_fw" = "yes" || "$update_ssh" = "yes" || "$update_certs" = "yes" || "$update_ipcop_cert" = "yes" ]]; then
+
+	[ -e /root/.ssh/known_hosts ] && rm /root/.ssh/known_hosts
+
+fi
+
 # only to do on fresh installation or firewall type change
 if [[ "$1" = "--first" || "$update_fw" = "yes" ]]; then
 
 	# read linuxmuster-ipcop default config
 	. /usr/share/linuxmuster-ipcop/config
-
-	# delete root's ssh known hosts
-	[ -e /root/.ssh/known_hosts ] && rm /root/.ssh/known_hosts
 
 	# backup
 	backup_file /etc/default/linuxmuster-ipcop
@@ -22,10 +26,17 @@ if [[ "$1" = "--first" || "$update_fw" = "yes" ]]; then
 		# setting ipcop ram to 128mb if server ram is greater than 1 GB
 		MEM=64M
 		[[ $memtotal -gt 1048576 ]] && MEM=128M
+		[[ $memtotal -gt 2097152 ]] && MEM=256M
+
+		# detect host architecture and set SKAS_KERNEL=no if amd64 or xen
+		skas=yes
+		dpkg-architecture | grep amd64 && skas=no
+		uname -r | grep -i xen && skas=no
 
 		# patch ipcop default file with mem and start variables
 		sed -e "s/^START_IPCOP=.*/START_IPCOP=yes/
-			s/^MEM=.*/MEM=${MEM}/" -i /etc/default/linuxmuster-ipcop
+			s/^MEM=.*/MEM=${MEM}/
+			s/^SKAS_KERNEL=.*/SKAS_KERNEL=$skas/" -i /etc/default/linuxmuster-ipcop
 
 	else
 

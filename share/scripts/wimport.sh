@@ -505,28 +505,30 @@ backup_file $ROOMDEFAULTS &> /dev/null
 # check for non-existing hosts
 FOUND=0
 echo "Checking for obsolete hosts:"
-for i in $WSHOME/*/*; do
+if ls $WSHOME/*/* &> /dev/null; then
+	for i in $WSHOME/*/*; do
 
-	RC_LINE=0
+		RC_LINE=0
 
-	hostname=${i##*/}
-	if ! grep -qw $hostname $WDATATMP; then
-		FOUND=1
-		remove_account; RC_LINE="$?"
-		[ $RC_LINE -ne 0 ] && RC=1
-
-		if grep -v ^# $PRINTERS | grep -qw $hostname; then
-			remove_printeraccess $hostname; RC_LINE="$?"
+		hostname=${i##*/}
+		if ! grep -qw $hostname $WDATATMP; then
+			FOUND=1
+			remove_account; RC_LINE="$?"
 			[ $RC_LINE -ne 0 ] && RC=1
+
+			if grep -v ^# $PRINTERS | grep -qw $hostname; then
+				remove_printeraccess $hostname; RC_LINE="$?"
+				[ $RC_LINE -ne 0 ] && RC=1
+			fi
+
+			if grep -q ^$hostname[[:space:]] $ROOMDEFAULTS; then
+				remove_defaults $hostname; RC_LINE="$?"
+				[ $RC_LINE -ne 0 ] && RC=1
+			fi
 		fi
 
-		if grep -q ^$hostname[[:space:]] $ROOMDEFAULTS; then
-			remove_defaults $hostname; RC_LINE="$?"
-			[ $RC_LINE -ne 0 ] && RC=1
-		fi
-	fi
-
-done
+	done
+fi
 [ "$FOUND" = "0" ] && echo "  * Nothing to do!"
 
 # check for obsolete rooms

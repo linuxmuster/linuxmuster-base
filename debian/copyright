@@ -1,12 +1,21 @@
-This package was debianized by Thomas Schmitt <schmitt@lmz-bw.de> on
-Fri, 21 Jan 2005 19:02:48 +0100.
+The Debian packaging is (C) 2006, Thomas Schmitt <schmitt@lmz-bw.de> and
+is licensed under the GPL.
 
-The copyright of this package is GPL, version 2 or later.
-On Debian systems the complete text of the GPL is in
-/usr/share/common-licenses/GPL
+License:
 
-    Pedants who belive I cannot legally say that code I have written is in
-    the public domain may consider them instead to be licensed as follows:
+   This package is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
 
-    Redistribution and use in source and binary forms, with or without
-    modification, are permitted under any circumstances. No warranty.
+   This package is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this package; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+
+On Debian systems, the complete text of the GNU General
+Public License can be found in `/usr/share/common-licenses/GPL'.

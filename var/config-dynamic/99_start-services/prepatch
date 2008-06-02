@@ -22,18 +22,12 @@ while [ $c -lt $maxwait ]; do
 			chmod 600 $tmpdir/authorized_keys
 			$SCRIPTSDIR/ipcop-upload-pkg.exp $ipcoppw $tmpdir /root $ipcopip
 			rm -rf $tmpdir
+			ipcoptest=yes
 
-		fi
-
-		# remove obsolete ipcopip from known_hosts
-		if [[ "$ipcopip" != "$ipcopip_old" && "$1" = "--modify" ]]; then
-			echo "Removing old ipcop ip from /root/.ssh/known_hosts ..."
-			grep -v ^$ipcopip_old /root/.ssh/known_hosts > /var/tmp/known_hosts
-			mv /var/tmp/known_hosts /root/.ssh/known_hosts
 		fi
 
 		# test ssh connection to intregated ipcop
-		if ! grep -q ^$ipcopip /root/.ssh/known_hosts; then
+		if [[ -z "$ipcoptest" && ! -e /root/.ssh/known_hosts ]]; then
 			echo "Testing ssh connection to IPCop ..."
 			$SCRIPTSDIR/ipcop-test-ssh.exp $ipcopip
 		fi
@@ -61,18 +55,15 @@ fi
 # only if internet connection
 if ping -c 2 heise.de &> /dev/null; then
 	# set time
-	/etc/init.d/ntpdate restart
+	ntpdate pool.ntp.org
 	hwclock --utc
 
 	# update clamav
-	freshclam
-
-	# upgrade pear packages
-	pear upgrade Archive_Tar Console_Getopt DB HTTP Mail Net_SMTP Net_Socket XML_Parser XML_RPC
+	freshclam --user=clamav --config-file=/etc/clamav/freshclam.conf
 fi
 
 # start services not yet started
-services="inetd atd cron ntp-server linuxmuster-base"
+services="openbsd-inetd atd cron openntpd linuxmuster-base"
 for service in $services; do
 	/etc/init.d/$service start
 done
@@ -94,6 +85,11 @@ if [[ "$1" = "--modify" && "$internsub" != "$internsub_old" ]]; then
 	import_workstations
 	import_printers
 fi
+
+# remove obsolete cron jobs
+for i in kronolith2 php4 uucp; do
+	[ -e "/etc/cron.d/$i" ] && rm /etc/cron.d/$i
+done
 
 # set installed flag
 touch $INSTALLED

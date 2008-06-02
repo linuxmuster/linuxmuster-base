@@ -1,8 +1,14 @@
 # start postgresql
-/etc/init.d/postgresql start
+/etc/init.d/postgresql-8.1 start
 
 # set samba sid
 [ -n "$sambasid" ] && net setlocalsid $sambasid
+
+# restore ldapadmin password
+ldapadminpw=`grep ^rootpw /etc/ldap/slapd.conf | awk '{ print $2 }'`
+[ -z "$ldapadminpw" ] && ldapadminpw=`pwgen -s 8 1`
+echo -n $ldapadminpw > /etc/ldap.secret
+smbpasswd -w $ldapadminpw
 
 # patch libnss-ldap.conf with basedn
 template=/etc/libnss-ldap.conf
@@ -21,17 +27,19 @@ template=/etc/ldap/ldap.conf
 [ "$1" = "--modify" ] && backup_file $template
 sed -e "s/^BASE.*/BASE $basedn/" -i $template
 
-# patch slapd.conf with basedn
+# patch slapd.conf with basedn and password
 template=/etc/ldap/slapd.conf
 [ "$1" = "--modify" ] && backup_file $template
 sed -e "s/by dn=\"cn=admin.*/by dn=\"cn=admin,$basedn\" write/g
         s/^suffix.*/suffix          \"$basedn\"/
-        s/^rootdn.*/rootdn          \"cn=admin,$basedn\"/" -i $template
+        s/^rootdn.*/rootdn          \"cn=admin,$basedn\"/
+        s/^rootpw.*/rootpw          $ldapadminpw/" -i $template
 
-# patch smbldap_bind.conf with basedn
+# patch smbldap_bind.conf with basedn and password
 template=/etc/smbldap-tools/smbldap_bind.conf
 [ "$1" = "--modify" ] && backup_file $template
-sed -e "s/^masterDN=.*/masterDN=\"cn=admin,$basedn\"/" -i $template
+sed -e "s/^masterDN=.*/masterDN=\"cn=admin,$basedn\"/
+        s/^masterPw=.*/masterPw=\"$ldapadminpw\"/" -i $template
 
 # patching sophomorix.conf with schoolname and location
 [ "$1" = "--modify" ] && backup_file $SOPHOMORIXCONF
@@ -85,7 +93,6 @@ fi
 for i in /etc/ldap.secret /etc/ldap/slapd.conf /etc/smbldap-tools/smbldap_bind.conf /etc/sophomorix/pgldap/pgldap.conf; do
   chmod 600 $i
 done
-
 chown www-data:www-data /etc/linuxmuster/schulkonsole/*
 chmod 400 /etc/linuxmuster/schulkonsole/db.conf*
 chown root:root /etc/ldap/slapd.conf*

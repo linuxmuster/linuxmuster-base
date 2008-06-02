@@ -5,4 +5,4 @@ update-rc.d -f samba remove
 update-rc.d samba start 21 2 3 4 5 . stop 19 0 1 6 .
 update-rc.d -f cupsys remove
 update-rc.d cupsys start 21 2 3 4 5 . stop 19 0 1 6 .
-
+update-rc.d -f postgres-7.4 remove

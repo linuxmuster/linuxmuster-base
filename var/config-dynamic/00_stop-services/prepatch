@@ -1,11 +1,10 @@
 # stop all relevant services
 
 services="linuxmuster-base atftpd rsync linbo-multicast nagios2 atd cron\
-          tpmfos rbagent dbgw tpmfos-derby \
-          webmin rembo quota opengroupware.org apache2 cupsys \
-          clamav-daemon cyrus2.2 postfix saslauthd amavis mysql ntp-server \
-          ssh samba slapd postgresql nscd linuxmuster-ipcop uml-utilities \
-          portmap inetd bind9 dhcp3-server"
+          tpmfos rbagent dbgw tpmfos-derby rembo quota apache2 cupsys \
+          clamav-daemon cyrus2.2 postfix saslauthd amavis mysql openntpd \
+          ssh samba slapd postgresql-8.1 postgresql-7.4 nscd linuxmuster-ipcop uml-utilities \
+          portmap openbsd-inetd bind9 dhcp3-server avahi-daemon"
 
 for service in $services; do
 
@@ -17,5 +16,6 @@ if [ "$1" = "--first" ]; then
 
   # reconfigure locales
   DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales
+  install-keymap /usr/share/keymaps/i386/qwertz/de-latin1-nodeadkeys.kmap.gz
 
 fi

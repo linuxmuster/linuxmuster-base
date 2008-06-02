@@ -1,7 +1,7 @@
 # repair permissions and group memberships
 dpkg-statoverride --force --update --add cyrus postfix 750 /var/run/cyrus/socket &> /dev/null
-usermod -G sasl postfix
-usermod -G sasl cyrus
+usermod -G mail,sasl,ssl-cert postfix
+usermod -G sasl,ssl-cert cyrus
 usermod -G amavis clamav
 
 if [ "$1" = "--first" ]; then
@@ -13,13 +13,10 @@ if [ "$1" = "--first" ]; then
 
 else
 
-	# prevent amavisd.conf and mailname from being patched
-	mv amavisd.conf.target amavisd.conf.target.nopatch
+	# prevent mailname from being patched
 	mv mailname.target mailname.target.nopatch
 	if [ "$domainname" != "$domainname_old" ]; then
-		backup_file /etc/amavis/amavisd.conf
 		backup_file /etc/mailname
-		sed -e "s/^\$mydomain =.*/\$mydomain = \'$domainname\';/" -i /etc/amavis/amavisd.conf
 		sed -e "s/$domainname_old/$domainname/" -i /etc/mailname
 	fi
 

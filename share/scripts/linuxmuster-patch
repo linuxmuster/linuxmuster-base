@@ -10,16 +10,6 @@
 # read helperfunctions
 . $HELPERFUNCTIONS
 
-# logfile
-logfile=$LOGDIR/setup.log
-echo >> $LOGDIR/setup.log
-echo "####################################################" >> $LOGDIR/setup.log
-echo "Setup session started at" >> $LOGDIR/setup.log
-date >> $LOGDIR/setup.log
-echo "####################################################" >> $LOGDIR/setup.log
-
-echo "Logging output to $logfile ..."
-
 # read debconf database
 echo "Reading debconf database ..."
 for i in country state location servername domainname schoolname dsluser dslpasswd \
@@ -40,7 +30,10 @@ done
 
 # installing apropriate imaging task
 if [[ "$imaging" = "linbo" || "$imaging" = "rembo" || "$imaging" = "tivoli" ]]; then
-	DEBIAN_FRONTEND=noninteractive /usr/bin/tasksel install linuxmuster-imaging-$imaging | tee -a $LOGDIR/setup.log
+	echo 'DPkg::Options {"--force-confold";"--force-confdef";"--force-bad-verify";"--force-overwrite";};' > /etc/apt/apt.conf.d/99upgrade
+	task=`tasksel --task-packages linuxmuster-imaging-$imaging`
+	DEBIAN_FRONTEND=noninteractive aptitude -y install $task | tee -a $LOGDIR/setup.log
+	rm /etc/apt/apt.conf.d/99upgrade
 fi
 
 # escaping special characters in passwords
@@ -56,11 +49,37 @@ ipcoppw=$RET
 # compute md5sum for adminpw
 adminpw_md5=`echo -n $adminpw | md5sum | cut -c -32`
 
-# check for modified values
+# reading old values
 if [ "$1" != "--first" ]; then
   echo "Checking for modified values ..."
   . $OLDVALUES || exit 1
   rm $OLDVALUES
+fi
+
+# compute ip's
+maxsub=`echo $internsubrange | awk -F\- '{ print $2 }'`
+let maxsub+=1
+internsub=`echo $internsubrange | cut -f1 -d"-"`
+internsub_old=`echo $internsubrange_old | cut -f1 -d"-"`
+orangesub=$(( $internsub+1 ))
+ovpnsub=$(( $internsub+2 ))
+internbc=`echo $internsubrange | cut -f2 -d"-"`
+internbc_old=`echo $internsubrange_old | cut -f2 -d"-"`
+serverip=10.$internsub.1.1
+serverip_old=10.$internsub_old.1.1
+serverrev_short=1.1.$internsub
+ipcopip=10.$internsub.1.254
+ipcopip_old=10.$internsub_old.1.254
+ipcoprev_short=254.1.$internsub
+internalnet=10.$internsub.0.0
+broadcast=10.$internbc.255.255
+broadcast_old=10.$internbc_old.255.255
+ipcopblue=172.16.$internsub
+ipcoporange=172.16.$orangesub
+ipcopovpn=172.16.$ovpnsub
+
+# check for modified values
+if [ "$1" != "--first" ]; then
   [ "$country" = "$country_old" ] || update_certs=yes
   [ "$state" = "$state_old" ] || update_certs=yes
   [ "$location" = "$location_old" ] || update_certs=yes
@@ -82,29 +101,8 @@ if [ "$1" != "--first" ]; then
   [ "$dnsforwarders" = "$dnsforwarders_old" ] || update_extern=yes
   [ "$fwconfig" = "$fwconfig_old" ] || update_fw=yes
   [ "$smptrelay" = "$smtprelay_old" ] || update_smtp=yes
+  [ "$ipcopip" = "$ipcopip_old" ] || update_ssh=yes
 fi
-
-# ip's
-maxsub=`echo $internsubrange | awk -F\- '{ print $2 }'`
-let maxsub+=1
-internsub=`echo $internsubrange | cut -f1 -d"-"`
-internsub_old=`echo $internsubrange_old | cut -f1 -d"-"`
-orangesub=$(( $internsub+1 ))
-ovpnsub=$(( $internsub+2 ))
-internbc=`echo $internsubrange | cut -f2 -d"-"`
-internbc_old=`echo $internsubrange_old | cut -f2 -d"-"`
-serverip=10.$internsub.1.1
-serverip_old=10.$internsub_old.1.1
-serverrev_short=1.1.$internsub
-ipcopip=10.$internsub.1.254
-ipcopip_old=10.$internsub_old.1.254
-ipcoprev_short=254.1.$internsub
-internalnet=10.$internsub.0.0
-broadcast=10.$internbc.255.255
-broadcast_old=10.$internbc_old.255.255
-ipcopblue=172.16.$internsub
-ipcoporange=172.16.$orangesub
-ipcopovpn=172.16.$ovpnsub
 
 # compute basedn from domainname
 basedn="dc=`echo $domainname|sed 's/\./,dc=/g'`"
@@ -192,8 +190,7 @@ cyradmpw=`cat /etc/imap.secret`
 if [ "$1" = "--first" ]; then
 	# copying default configuration an remove installed flag for first time installation
 	echo "Copying default static configuration files ..." | tee -a $LOGDIR/setup.log
-	cp -a /var/lib/linuxmuster/config-static/* /
-	cp -a /var/lib/linuxmuster/base-updates/* /etc/linuxmuster
+	cp -a $STATICTPLDIR/* /
 	# delete installed flag
 	if [ -e "$INSTALLED" ]; then
 		echo "Removing installed flag $INSTALLED ..." | tee -a $LOGDIR/setup.log
@@ -208,11 +205,11 @@ fi
 
 
 # patching conffiles
-for i in /var/lib/linuxmuster/config-dynamic/*; do
+for i in $DYNTPLDIR/*; do
   cd $i
   echo "Processing $i ..."
   # do something before the configuration is patched
-  [ -f prepatch ] && . prepatch $1 1>> $LOGDIR/setup.log 2>> $LOGDIR/setup.log
+  [ -f prepatch ] && . prepatch $1 >> $LOGDIR/setup.log 2>&1
   # process all variables through all targets
   if ls *.target &> /dev/null; then
     for t in *.target; do
@@ -268,7 +265,7 @@ for i in /var/lib/linuxmuster/config-dynamic/*; do
     done
   fi
   # do something after the configuration is patched
-  [ -f postpatch ] && . postpatch $1 1>> $LOGDIR/setup.log 2>> $LOGDIR/setup.log
+  [ -f postpatch ] && . postpatch $1 >> $LOGDIR/setup.log 2>&1
   # move nopatch files back
   for np in *.nopatch; do
     [ -e "$np" ] && mv $np ${np%.nopatch}

@@ -1,13 +1,18 @@
+# enable necessary modules
 if [ -d /etc/apache2/mods-available ] &&  [ -d /etc/apache2/mods-enabled ]; then
   cd /etc/apache2/mods-available
-  for i in auth_pam* mime_magic* include* php4* rewrite* ssl* userdir*; do
+  for i in ldap.load authnz_ldap.load mime_magic* include* php5* rewrite* ssl* userdir*; do
     [ -f "$i" ] && [ ! -L "/etc/apache2/mods-enabled/$i" ] && ln -s /etc/apache2/mods-available/$i /etc/apache2/mods-enabled/$i
   done
 else
   echo "apache2 is not correctly installed!"
 fi
 
-usermod -G shadow www-data
+# enable default site
+ls -sf ../sites-available/default /etc/apache2/sites-enabled/000-default
+
+# no more needed
+#usermod -G shadow www-data
 
 # patch index.html
 case "$1" in
@@ -17,7 +22,7 @@ case "$1" in
 		;;
 
 	--modify)
-		if [ -e /var/www/apache2-default/index.html ]; then
+		if grep -q paedML_style.css /var/www/apache2-default/index.html; then
 			if [[ "$servername" != "$servername_old" || "$domainname" != "$domainname_old" ]]; then
 				backup_file /var/www/apache2-default/index.html
 				sed -e "s/$servername_old.$domainname_old/$servername.$domainname/g" -i /var/www/apache2-default/index.html

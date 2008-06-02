@@ -2,5 +2,4 @@ etc/apache2/repositories
 var/backup/linuxmuster
 var/cache/linuxmuster
 var/cache/linuxmuster/logins
-var/lib/svn
 var/log/linuxmuster

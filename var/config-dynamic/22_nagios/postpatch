@@ -9,4 +9,3 @@ fi
 # starting nagios2 again
 /etc/init.d/nagios2 stop
 /etc/init.d/nagios2 start
-
