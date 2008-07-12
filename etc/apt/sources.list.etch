@@ -1,8 +1,3 @@
-#deb file:///cdrom/ etch main contrib non-free
-
-# linuxmuster
-deb http://pkg.lml.support-netz.de/paedml40-updates ./
-
 # etch
 deb http://ftp.de.debian.org/debian/ etch main contrib non-free
 #deb-src http://ftp.de.debian.org/debian/ etch main contrib non-free
@@ -10,4 +5,5 @@ deb http://security.debian.org etch/updates main contrib non-free
 #deb-src http://security.debian.org etch/updates main contrib non-free
 
 # recent clamav stuff
-deb http://ftp2.de.debian.org/debian-volatile/ etch/volatile main
+deb http://ftp.de.debian.org/debian-volatile/ etch/volatile main
+

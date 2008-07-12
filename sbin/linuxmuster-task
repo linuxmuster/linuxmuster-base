@@ -1,0 +1,61 @@
+#!/bin/bash
+#
+# linuxmuster-task
+# installs software tasks
+#
+# 24.06.2008
+# Thomas Schmitt <schmitt@lmz-bw.de>
+#
+
+# source linuxmuster defaults
+. /usr/share/linuxmuster/config/dist.conf || exit_script
+
+# source helperfunctions
+. $HELPERFUNCTIONS || exit_script
+
+# parsing parameters
+getopt $*
+
+usage() {
+  echo
+  echo "Usage: linuxmuster-task [--unattended] <--install=task>"
+  echo
+  echo "Available tasks are:"
+  ls /usr/share/linuxmuster/tasks/
+  exit 1
+}
+
+# test parameters
+[ -z "$install" ] && usage
+
+taskdir="/usr/share/linuxmuster/tasks"
+
+task=$install
+taskfile="$taskdir/$install"
+opt=install
+cmd=aptitude
+
+[ -e "$taskfile" ] || usage
+
+taskpackages=`cat $taskfile`
+
+if [ -z "$taskpackages" ]; then
+
+	echo "$task does not contain any packages!"
+	exit 1
+
+fi
+
+if [ -n "$unattended" ]; then
+
+	echo 'DPkg::Options {"--force-confold";"--force-confdef";};' > /etc/apt/apt.conf.d/99upgrade
+	opt="-y $opt"
+
+fi
+
+$cmd update
+$cmd $opt $taskpackages ; RC=$?
+
+[ -n "$unattended" ] && rm /etc/apt/apt.conf.d/99upgrade
+
+exit $RC

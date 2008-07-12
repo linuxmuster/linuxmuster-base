@@ -86,20 +86,33 @@ case $opt in
     id cyrus &> /dev/null || useradd -c "Cyrus Mailsystem User" -d /var/spool/cyrus -g mail -m -r -s /bin/sh cyrus | tee -a $LOGDIR/setup.log
 
     # load cdrom tray
-    grep -q ^"deb cdrom" /etc/apt/sources.list && eject -t
+    if grep -q ^"deb cdrom" /etc/apt/sources.list; then
+	eject -t
+	mount /cdrom
+    fi
+
+    # install paedml release key
+    [ -e /cdrom/paedml-release.asc ] && apt-key add /cdrom/paedml-release.asc
+
+    # check tasks
+    for i in common server desktop imaging-linbo imaging-tivoli imaging-rembo; do
+      if [ ! -s "/usr/share/linuxmuster/tasks/$i" ]; then
+        echo "Error: Taskfile $i not found!"
+        exit 1
+      fi
+    done
 
     # force apt to do ugly things during upgrade
     echo 'DPkg::Options {"--force-confold";"--force-confdef";"--force-bad-verify";"--force-overwrite";};' > /etc/apt/apt.conf.d/99upgrade
 
     # tweaking buggy sophomorix, install postgresql first
-    DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql-7.4 | tee -a $LOGDIR/setup.log
-    DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql-8.1 | tee -a $LOGDIR/setup.log
+    DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql | tee -a $LOGDIR/setup.log
+    #DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql-8.1 | tee -a $LOGDIR/setup.log
 
-    # installing depending tasks
+    # installing depending task
     for i in common server; do
-      task=`tasksel --task-packages linuxmuster-$i`
+      task=`cat /usr/share/linuxmuster/tasks/$i`
       DEBIAN_FRONTEND=noninteractive aptitude -y install $task | tee -a $LOGDIR/setup.log
-      #DEBIAN_FRONTEND=noninteractive /usr/bin/tasksel install linuxmuster-$i
     done
 
     # remove upgrade cheat

@@ -2,9 +2,9 @@
 
 services="linuxmuster-base atftpd rsync linbo-multicast nagios2 atd cron\
           tpmfos rbagent dbgw tpmfos-derby rembo quota apache2 cupsys \
-          clamav-daemon cyrus2.2 postfix saslauthd amavis mysql openntpd \
+          clamav-freshclam clamav-daemon cyrus2.2 postfix saslauthd amavis mysql openntpd \
           ssh samba slapd postgresql-8.1 postgresql-7.4 nscd linuxmuster-ipcop uml-utilities \
-          portmap openbsd-inetd bind9 dhcp3-server avahi-daemon"
+          portmap openbsd-inetd bind9 dhcp3-server avahi-daemon webmin"
 
 for service in $services; do
 
@@ -14,8 +14,10 @@ done
 
 if [ "$1" = "--first" ]; then
 
-  # reconfigure locales
-  DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales
-  install-keymap /usr/share/keymaps/i386/qwertz/de-latin1-nodeadkeys.kmap.gz
+	# reconfigure locales
+	DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales
+	install-keymap /usr/share/keymaps/i386/qwertz/de-latin1-nodeadkeys.kmap.gz
+	kmapmd5=`md5sum /etc/console-setup/boottime.kmap.gz | awk '{ print $1 }' 2> /dev/null`
+	sed -e "s/^BOOTTIME_KMAP_MD5=.*/BOOTTIME_KMAP_MD5=\"$kmapmd5\"/" $STATICTPLDIR/etc/default/console-setup > /etc/default/console-setup
 
 fi

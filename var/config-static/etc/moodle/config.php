@@ -13,7 +13,7 @@
 
  $CFG->dbpersist = "false";
 
- $CFG->wwwroot = '';
+ $CFG->wwwroot = '/moodle';
  $CFG->dirroot = '/usr/share/moodle';
  $CFG->dataroot = '/var/lib/moodle';
  $CFG->directorypermissions = 0750;

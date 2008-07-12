@@ -1,3 +1,131 @@
+linuxmuster-base (1.4.27-paedml1) unstable; urgency=low
+
+  * added ldaps support to slapd
+  * changed Version to 4.0.0 RC4
+  * providing empty lehrer.txt and schueler.txt on fresh installation
+  * removed offline upgrade feature from paedml40-upgrade.sh
+  * added /etc/php5/conf.d/paedml.ini config file for paedml specific php settings
+  * changed default template domainname to paedml-linux.lokal
+  * moved paedml specific sources.list to /etc/apt/sources.list.d/paedml40.list,
+    so it is handled as a config file
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 12 Jul 2008 11:16:17 +0000
+
+linuxmuster-base (1.4.26-paedml1) unstable; urgency=low
+
+  * fixed missing webmin log dir /var/log/wembin
+  * changed index.html to paedML Linux 4.0
+  * tweak moodle's wwwroot to '/moodle'
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 09 Jul 2008 20:02:08 +0200
+
+linuxmuster-base (1.4.25-paedml1) unstable; urgency=low
+
+  * fixed ntpd.conf according to nagios
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 06 Jul 2008 20:43:36 +0200
+
+linuxmuster-base (1.4.24-paedml1) unstable; urgency=low
+
+  * added nagios2 access configuration for remoteadmin
+  * renamed link for remoteadmin to linuxmuster-remoteadmin
+  * several code optimations for linuxmuster-ovpn
+  * few improvements to paedml40-upgrade script concerning to nagios
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 05 Jul 2008 12:58:46 +0200
+
+linuxmuster-base (1.4.23-paedml1) unstable; urgency=low
+
+  * fixed clamav-freshclam configuration to act as daemon
+  * added xkb-data to upgrade40 task
+  * root's known_hosts is now deleted with linuxmuster-setup --first
+  * prepared wimport.sh to handle an alternate linbo pxegrub given as 12th
+    option in workstations
+  * removed automatic PDF-Printer repairing from postinst
+  * fixed keymap and locale configuration in paedml40-upgrade.sh
+  * fixed broken option --purgeallstudentscerts in linuxmuster-ovpn
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 03 Jul 2008 09:39:19 +0200
+
+linuxmuster-base (1.4.22-paedml1) unstable; urgency=low
+
+  * fixed horde db creation on first time installation
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 28 Jun 2008 17:00:01 +0200
+
+linuxmuster-base (1.4.21-paedml1) unstable; urgency=low
+
+  * updated release to RC2
+  * added final dist-upgrade to paedml40-upgrade.sh
+  * fixed locale configuration for de_DE.UTF-8
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 28 Jun 2008 13:39:11 +0200
+
+linuxmuster-base (1.4.20-paedml1) unstable; urgency=low
+
+  * changed db_title to "paedML Linux 4.0" in nic_setup.sh
+  * paedML40-upgrade: patching new paedML version 4.0 into nagios configuration
+  * added console-setup to common task
+  * added link creation of /etc/ldap.secret -> /etc/pam_ldap.secret to paedml40-upgrade and linuxmuster-setup
+  * added iptables to package dependencies
+  * fixed false timezone computation in linuxmuster-patch
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 28 Jun 2008 00:27:41 +0200
+
+linuxmuster-base (1.4.19-paedml1) unstable; urgency=low
+
+  * removed sarge-support from dependencies of linuxmuster-prepare
+  * removed obsolete conflicts from linuxmuster-base control
+  * fixed inittab handling according to etch installer in linuxmuster-prepare
+  * fixed creation of link to apache's default site in linuxmuster-setup
+  * adding paedml-release.asc from cdrom on first time installation
+  * added gcc and pciutils to depends
+  * fixed timezone computation in linuxmuster-patch (causes errors in
+    ipcop configuration)
+  * removed obsolete cyrus upgrade script
+  * splitted kde stuff from upgrade.packages to upgrade-kde.packages
+  * removed mtaman.exe
+  * various modifications to etch-upgrade.sh due to cdrom upgrade
+  * renamed etch-upgrade.sh to paedml40-upgrade.sh
+  * renamed paedml-etch-upgrade to paedml40-upgrade
+  * added task files so that linuxmuster-tasks is obsolete
+  * added linuxmuster-task wrapper to easily install tasks
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 24 Jun 2008 11:29:30 +0200
+
+linuxmuster-base (1.4.18-paedml1) unstable; urgency=low
+
+  * removed webalizer from ugrade.packages
+  * webmin configuration updated
+  * improved test of download success in etch-upgrade.sh
+  * changed db_title to "paedML Linux 4.0" in linuxmuster-config
+  * import_workstations will now be invoked by linuxmuster-setup if imaging has changed
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 16 Jun 2008 19:27:13 +0200
+
+linuxmuster-base (1.4.17-paedml1) unstable; urgency=low
+
+  * added webmin configuration templates again
+  * etch-upgrade.sh checks now if all needed packages are downloaded
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 14 Jun 2008 18:38:08 +0200
+
+linuxmuster-base (1.4.16-paedml1) unstable; urgency=low
+
+  * added check if use_quota is set in sophomorix.conf to wimport.sh
+  * added stripping spaces from workstation line to wimport.sh
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 09 Jun 2008 15:38:01 +0200
+
+linuxmuster-base (1.4.15-paedml1) unstable; urgency=low
+
+  * removed creation of random host account password from samba-userlog
+  * added serverip patching for /var/linbo/pxegrub.lst.* to linuxmuster-setup
+  * added linbo user
+  * added linbo smb share
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 07 Jun 2008 18:03:20 +0200
+
 linuxmuster-base (1.4.14-paedml1) unstable; urgency=low
 
   * fixed ipcop's ssh login in linuxmuster-setup

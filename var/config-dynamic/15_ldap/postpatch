@@ -1,3 +1,6 @@
+# remove template
+[ -e smb.conf ] && rm smb.conf
+
 # start services again
 /etc/init.d/nscd stop
 /etc/init.d/samba stop

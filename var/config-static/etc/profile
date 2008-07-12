@@ -24,5 +24,6 @@ fi
 . /etc/bash.bashrc
 
 export PATH
+export LANG
 
 umask 022

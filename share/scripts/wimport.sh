@@ -11,6 +11,7 @@ WDATATMP=/var/tmp/workstations.$$
 
 MACHINE_PASSWORD=12345678
 HOST_PASSWORD=`pwgen -s 8 1`
+QUOTA=`grep ^'\$use_quota' $SOPHOMORIXCONF | awk -F\" '{ print $2 }' | tr A-Z a-z`
 
 # functions
 # check for unique entry
@@ -71,12 +72,14 @@ create_account() {
 	[ -d "$WSHOME/$room/$hostname" ] || mkdir -p $WSHOME/$room/$hostname
 	chown $hostname:$TEACHERSGROUP $WSHOME/$room/$hostname
 	chmod 775 $WSHOME/$room/$hostname
-	echo -n "  * Setting quota for $hostname ... "
-	if sophomorix-quota -u $hostname 2>> $TMPLOG 1>> $TMPLOG; then
-		echo "Ok!"
-	else
-		echo "sophomorix error!"
-		return 1
+	if [ "$QUOTA" = "yes" ]; then
+		echo -n "  * Setting quota for $hostname ... "
+		if sophomorix-quota -u $hostname 2>> $TMPLOG 1>> $TMPLOG; then
+			echo "Ok!"
+		else
+			echo "sophomorix error!"
+			return 1
+		fi
 	fi
 	echo -n "  * Creating machine account ${hostname}$ ... "
 	sophomorix-useradd --computer ${hostname}$ 2>> $TMPLOG 1>> $TMPLOG
@@ -220,6 +223,9 @@ if [ -s "$WIMPORTDATA" ]; then
 
 		[ "${line:0:1}" = "#" ] && continue
 
+		# strip spaces from $line
+		line=${line// /}
+
 		room=`echo $line | awk -F\; '{ print $1 }'`
 		[ -z "$room" ] && continue
 
@@ -242,7 +248,9 @@ if [ -s "$WIMPORTDATA" ]; then
 		pxe=`echo $line | awk -F\; '{ print $11 }'`
 		[ -z "$pxe" ] && continue
 
-		echo "$room;$hostname;$hostgroup;$mac;$ip;$internmask;1;1;1;1;$pxe" >> $WDATATMP
+		optional=`echo $line | awk -F\; '{ print $12 }'`
+
+		echo "$room;$hostname;$hostgroup;$mac;$ip;$internmask;1;1;1;1;$pxe;$optional" >> $WDATATMP
 
 	done <$WIMPORTDATA
 
@@ -312,6 +320,7 @@ if [ -s "$WIMPORTDATA" ]; then
 		mac=`echo $line | awk -F\; '{ print $4 }'`
 		ip=`echo $line | awk -F\; '{ print $5 }'`
 		pxe=`echo $line | awk -F\; '{ print $11 }'`
+		optional=`echo $line | awk -F\; '{ print $12 }'`
 		echo "Processing host $hostname:"
 
 		# create workstation and machine accounts
@@ -395,13 +404,16 @@ if [ -s "$WIMPORTDATA" ]; then
 			if grep ^Kernel $LINBODIR/start.conf.$hostgroup | awk -F\= '{ print $2 }' | awk '{ print $1 }' | grep -q grub.exe; then
 				echo "  filename \"pxelinux.0\";" >> $DHCPDCONF ; RC_LINE=$?
 			else
-				echo "  filename \"/pxegrub\";" >> $DHCPDCONF ; RC_LINE=$?
 				# assign ip specific pxegrub.lst if present
 				if [ -e "$LINBODIR/pxegrub.lst-$ip" ]; then
 			    		echo "  option configfile \"/pxegrub.lst-$ip\";" >> $DHCPDCONF ; RC_LINE=$?
 				else
 			    		echo "  option configfile \"/pxegrub.lst.$hostgroup\";" >> $DHCPDCONF ; RC_LINE=$?
 				fi
+			fi
+			# alternative pxegrub
+			if stringinstring pxegrub $optional; then
+				echo "  filename \"/$optional\";" >> $DHCPDCONF ; RC_LINE=$?
 			fi
 		fi
 		echo "}" >> $DHCPDCONF ; RC_LINE=$?

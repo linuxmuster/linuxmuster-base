@@ -2,7 +2,10 @@
 
 if [ "$1" = "--first" ]; then
 
+  dpkg -L horde3 &> /dev/null && $SCRIPTSDIR/create-horde-db.sh
+
   if [ ! -f /root/.my.cnf ]; then
+    echo "Creating /root/.my.cnf ..."
     myrootpw=`pwgen -s 8 1`
     mysqladmin -u root password $myrootpw
     echo "[client]" > /root/.my.cnf

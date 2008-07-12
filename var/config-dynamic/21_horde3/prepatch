@@ -1,9 +1,6 @@
 # do this only if horde3 is installed
 if dpkg -L horde3 &> /dev/null; then
 
-  # create horde db on first time install
-  [ "$1" = "--first" ] && $SCRIPTSDIR/create-horde-db.sh
-
   # patch horde config.php with basedn and domainname
   [ "$1" = "--modify" ] && backup_file /etc/horde/horde3/conf.php
   sed -e "s/\$conf\['auth'\]\['admins'\] =.*/\$conf\['auth'\]\['admins'\] = array\('$WWWADMIN'\);/

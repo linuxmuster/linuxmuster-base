@@ -1,0 +1,30 @@
+#!/bin/sh
+#
+# dist-upgrade from paedML Linux 3.0 to 4.0
+#
+# Thomas Schmitt <schmitt@lmz-bw.de>
+# 23.06.2008
+# GPL V2
+#
+
+. /usr/share/linuxmuster/config/dist.conf
+. $HELPERFUNCTIONS
+
+if [ "$(cat /etc/debian_version)" != "3.1" -a "$1" != "--force" ]; then
+	echo "Das Upgrade funktioniert nur mit Debian 3.1!"
+	exit 0
+fi
+
+if [ "$1" != "--force" ]; then
+	if ! grep -q "paedML Linux 3.0" /etc/issue; then
+		echo "Das Upgrade funktioniert nur mit paedML Linux 3.0!"
+		exit 0
+	fi
+fi
+
+LOGFILE=$LOGDIR/paedml40-ugrade.log
+
+. /usr/share/linuxmuster/upgrade/paedml40-upgrade.sh | tee -a $LOGFILE
+
+echo
+echo "Fertig!"

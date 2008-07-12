@@ -57,6 +57,7 @@ allow bootp;
 option configfile code 150 = string;
 option configfile "/pxegrub.lst";
 option dhcp-parameter-request-list = concat(option dhcp-parameter-request-list,96);
+filename "/pxegrub";
 next-server @@serverip@@;
 
 # subnet for workstation import
@@ -65,7 +66,6 @@ subnet @@internalnet@@ netmask @@internmask@@ {
 	max-lease-time 3600;
 	default-lease-time 3600;
 	option host-name "pxeclient";
-	filename "pxelinux.0";
 }
 
 # dynamic part of dhcpd.conf is included

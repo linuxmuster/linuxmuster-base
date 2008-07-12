@@ -9,7 +9,7 @@ else
 fi
 
 # enable default site
-ls -sf ../sites-available/default /etc/apache2/sites-enabled/000-default
+ln -sf ../sites-available/default /etc/apache2/sites-enabled/000-default
 
 # no more needed
 #usermod -G shadow www-data

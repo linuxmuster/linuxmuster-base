@@ -22,8 +22,8 @@ set -e
 
 db_version 2.0
 
-releasenr=rc1
-releasename="paedML Linux 4.0"
+releasenr=RC4
+releasename="paedML Linux 4.0.0"
 codename=Griffelschbitzer
 oldissue="paedML Linux 3.0"
 
@@ -125,16 +125,14 @@ case "$1" in
         fi
 
         # messages for config file headers
-        message1="Don\'t edit this file\, it will be overwritten on package upgrade\!"
-        message2="This file was modified by linuxmuster-setup on"
-        message3=`date`
+        message1="##### Do not change this file! It will be overwritten!"
+	message2="##### This configuration file was automatically created by linuxmuster-base!"
+	message3="##### Last Modification: `date`"
 
         # some variables we need for patching
         # added imaging (1.2-6)
         servername=`hostname -s`
         domainname=`dnsdomainname`
-        db_get linuxmuster-base/imaging || true
-        imaging=$RET
         db_get linuxmuster-base/country || true
         country=$RET
         db_get linuxmuster-base/state || true
@@ -161,7 +159,7 @@ case "$1" in
                 s/@@administrator@@/${ADMINISTRATOR}/g
                 s/@@domadmins@@/${DOMADMINS}/g
                 s/@@teachersgroup@@/${TEACHERSGROUP}/g
-                s/@@basedn@@/${basedn}/g" $SMBCONFTEMPLATE > /etc/samba/smb.conf
+                s/@@basedn@@/${basedn}/g" $SMBCONFTEMPLATE.$imaging > /etc/samba/smb.conf
 
 	# samba reload only if postgres and/or samba are running
 	if ps ax | grep slapd | grep -v grep &> /dev/null; then
@@ -182,13 +180,11 @@ case "$1" in
         apache_ports=/etc/apache2/ports.conf
         if ! grep -q 242 $apache_ports; then
           cp -f $STATICTPLDIR$apache_ports $apache_ports
-          apache_reload=yes
         fi
 
 	# removing schulkonsole's obsolete apache2 configuration
 	if [ -L /etc/apache2/conf.d/schulkonsole ]; then
 		rm /etc/apache2/conf.d/schulkonsole
-          apache_reload=yes
         fi
 
 	# create new certificate skript and create new certificate
@@ -203,15 +199,6 @@ case "$1" in
 			s/@@administrator@@/${ADMINISTRATOR}/" $DYNTPLDIR/01_certificates/create-ssl-cert.sh > $SCRIPTSDIR/create-ssl-cert.sh
 		chmod 744 $SCRIPTSDIR/create-ssl-cert.sh
 		$SCRIPTSDIR/create-ssl-cert.sh
-		apache_reload=yes
-	fi
-
-        # reload apache if necessary
-	if ps ax | grep apache2 | grep -v grep &> /dev/null; then
-	        [ "$apache_reload" = "yes" ] && /etc/init.d/apache2 force-reload
-	else
-		echo "Apache2 is not running! Skipping apache2 reload!"
-		echo "You have to reload apache2 service after package update!"
 	fi
 
         # fixing pam configuration
@@ -270,6 +257,11 @@ case "$1" in
           cp -f $STATICTPLDIR/etc/environment /etc
           cp -f $STATICTPLDIR/etc/profile /etc
         fi
+	if ! grep -q "export LANG" /etc/profile; then
+		backup_file /etc/profile
+		sed -e "/^export PATH/a\
+export LANG" -i /etc/profile
+	fi
 
         # shadow passwords
         if [ ! -e /etc/shadow ]; then
@@ -343,26 +335,26 @@ case "$1" in
 	fi
 
 	# restoring PDF-Printer
-	if [ ! -f /etc/cups/ppd/PDF-Printer.ppd ]; then
-		echo "Restoring PDF-Printer driver ..."
-		cp $STATICTPLDIR/etc/cups/ppd/PDF-Printer.ppd /etc/cups/ppd
-		cups_restart=yes
-	fi
+#	if [ ! -f /etc/cups/ppd/PDF-Printer.ppd ]; then
+#		echo "Restoring PDF-Printer driver ..."
+#		cp $STATICTPLDIR/etc/cups/ppd/PDF-Printer.ppd /etc/cups/ppd
+#		cups_restart=yes
+#	fi
 	# restoring PDF-Printer definition
-	if ! grep -q PDF-Printer /etc/cups/printers.conf; then
-		echo "Restoring PDF-Printer definition ..."
-		cp /etc/cups/printers.conf /etc/cups/printers.conf.dpkg-old
-		cat $STATICTPLDIR/etc/cups/printers.conf | grep -v ^# >> /etc/cups/printers.conf
-		cups_restart=yes
-	fi
+#	if ! grep -q PDF-Printer /etc/cups/printers.conf; then
+#		echo "Restoring PDF-Printer definition ..."
+#		cp /etc/cups/printers.conf /etc/cups/printers.conf.dpkg-old
+#		cat $STATICTPLDIR/etc/cups/printers.conf | grep -v ^# >> /etc/cups/printers.conf
+#		cups_restart=yes
+#	fi
 	# upgrading cups-pdf printer driver
-	if [ -f /usr/share/ppd/cups-pdf/PostscriptColor.ppd ]; then
-		if ! diff -q /usr/share/ppd/cups-pdf/PostscriptColor.ppd /etc/cups/ppd/PDF-Printer.ppd &> /dev/null; then
-			echo "Upgrading cups-pdf printer driver ..."
-			cp /usr/share/ppd/cups-pdf/PostscriptColor.ppd /etc/cups/ppd/PDF-Printer.ppd
-			cups_restart=yes
-		fi
-	fi
+#	if [ -f /usr/share/ppd/cups-pdf/PostscriptColor.ppd ]; then
+#		if ! diff -q /usr/share/ppd/cups-pdf/PostscriptColor.ppd /etc/cups/ppd/PDF-Printer.ppd &> /dev/null; then
+#			echo "Upgrading cups-pdf printer driver ..."
+#			cp /usr/share/ppd/cups-pdf/PostscriptColor.ppd /etc/cups/ppd/PDF-Printer.ppd
+#			cups_restart=yes
+#		fi
+#	fi
 	# fixing cupsys init start nr
 	if [ -e /etc/rc2.d/S20cupsys ]; then
 		echo "Fixing cupsys' init start nr ..."
@@ -402,15 +394,20 @@ case "$1" in
 	indexhtml=/var/www/apache2-default/index.html
 	template=${indexhtml}.tpl
 	if [ -e "$template" ]; then
-		if ! grep "$servername.$domainname" $indexhtml &> /dev/null; then
+		if ! grep -q "$servername.$domainname" $indexhtml; then
 			[ -e "$indexhtml" ] && mv $indexhtml ${indexhtml}.dpkg-old
 			sed -e "s/@@servername@@/$servername/g
 			        s/@@domainname@@/$domainname/g" $template > $indexhtml
 		fi
+		# update version
+		if grep -q "$oldissue" $indexhtml; then
+			mv $indexhtml ${indexhtml}.dpkg-old
+			sed -e "s/$oldissue/$releasename/g" $template > $indexhtml
+		fi
 	fi
 
 	# updating release information
-	if grep -q "$oldissue" /etc/issue; then
+	if ! grep -q "$releasenr" /etc/issue; then
 		buildnr=`cat /etc/issue | cut -f9 -d" "`
 		echo "$releasename / Release $releasenr / Build $buildnr / Codename $codename" > /etc/issue
 		cp /etc/issue /etc/issue.net
@@ -502,6 +499,7 @@ case "$1" in
 		fi
 		# updating/reparing dhcp configuration according to etch dhcp3-server (1.4-3)
 		grep -q ^next-server /etc/dhcp3/dhcpd.conf || dhcp_update=yes
+		grep -q ^filename /etc/dhcp3/dhcpd.conf || dhcp_update=yes
 		grep -q "server-identifier $servername;" /etc/dhcp3/dhcpd.conf || dhcp_update=yes
 		grep -q "server-name \"$servername.$domainname\";" /etc/dhcp3/dhcpd.conf || dhcp_update=yes
 		if [ -n "$dhcp_update" ]; then
@@ -517,6 +515,17 @@ case "$1" in
 				s/@@internmask@@/${internmask}/g" $DYNTPLDIR/03_dhcp3-server/dhcpd.conf.linbo > /etc/dhcp3/dhcpd.conf
 			/etc/init.d/dhcp3-server force-reload
 		fi
+		# linbo administrative user
+		if ! check_id linbo; then
+			linbopasswd=`grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }'`
+			if [ -n "$linbopasswd" ]; then
+				echo "Creating linbo user ..."
+				sophomorix-useradd --administrator linbo --unix-group $ADMINGROUP --shell /bin/false --gecos "LINBO Administrator" &> /dev/null || true
+				sophomorix-passwd --user linbo --pass $linbopasswd &> /dev/null || true
+				smbldap-usermod -H '[UX         ]' linbo || true
+			fi
+		fi
+		
 	fi
 
 	# reparing nagios2 apache2.conf
@@ -525,9 +534,70 @@ case "$1" in
 		s/@@basedn@@/$basedn/" $DYNTPLDIR/22_nagios/apache2.conf > /etc/nagios2/apache2.conf
 		cp /etc/nagios2/apache2.conf /var/lib/linuxmuster-nagios/config/nagios2
 		ln -sf /etc/nagios2/apache2.conf /etc/apache2/conf.d/nagios2.conf
-		/etc/init.d/apache2 restart
+	fi
+	if grep -q "PaedML 3.0" $SYSCONFDIR/nagios.conf; then
+		backup_file /etc/linuxmuster/nagios.conf
+		sed -e 's/PaedML 3.0/paedML 4.0.0/g' -i /etc/linuxmuster/nagios.conf
+		backup_file /etc/nagios2/conf.d/linuxmuster_main.cfg
+		sed -e 's/PaedML 3.0/paedML 4.0.0/g' -i /etc/nagios2/conf.d/linuxmuster_main.cfg
+		/etc/init.d/nagios2 restart
 	fi
 
+	# creating pam_ldap.secret link
+	[ -e /etc/pam_ldap.secret ] || ln -sf ldap.secret /etc/pam_ldap.secret
+
+	# repairing openntpd
+	if ! grep -q ^"listen on $serverip" /etc/openntpd/ntpd.conf; then
+		cp /etc/openntpd/ntpd.conf /etc/openntpd/ntpd.conf.dpkg-old
+		sed -e "s/@@serverip@@/$serverip/" $DYNTPLDIR/99_start-services/ntpd.conf > /etc/openntpd/ntpd.conf
+		/etc/init.d/openntpd restart
+	fi
+
+	# repairing webmin
+	if [ ! -d /var/log/webmin ]; then
+		mkdir -p /var/log/webmin
+		/etc/init.d/webmin restart
+	fi
+
+	# repairing moodle
+	if [ -e /etc/moodle/config.php ]; then
+		if ! grep -q "\$CFG->wwwroot = '/moodle';" /etc/moodle/config.php; then
+			cp /etc/moodle/config.php /etc/moodle/config.php.dpkg-old
+			sed -e "s/\$CFG->wwwroot =.*/\$CFG->wwwroot = \'\/moodle\';/g" -i /etc/moodle/config.php
+		fi
+	fi
+	if [ -d /usr/share/moodle ]; then
+		[ -L /usr/share/moodle/moodle ] || ln -s . /usr/share/moodle/moodle
+	fi
+
+	# ssl-cert permissions
+	chgrp ssl-cert /etc/ssl/private -R
+
+	# adding tls support to slapd.conf
+	slapdtpl=/usr/share/sophomorix/config-templates/ldap/slapd-standalone.conf.template
+	if ! grep -q ^TLS $slapdtpl; then
+		cp $slapdtpl $slapdtpl.dpkg-old
+		cp $STATICTPLDIR$slapdtpl $slapdtpl
+	fi
+	[ -e /etc/ldap/slapd.conf.custom ] || cp $STATICTPLDIR/etc/ldap/slapd.conf.custom /etc/ldap
+	if ! grep -q ^TLS /etc/ldap/slapd.conf; then
+		echo "Adding TLS support to openldap ..."
+		cp /etc/ldap/slapd.conf /etc/ldap/slapd.conf.dpkg-old
+		cp /etc/default/slapd /etc/default/slapd.dpkg-old
+		rootpw=`grep ^rootpw /etc/ldap/slapd.conf | awk '{ print $2 }'`
+		sed -e "s/@@message1@@/${message1}/
+			s/@@message2@@/${message2}/
+			s/@@message3@@/${message3}/
+			s/@@basedn@@/${basedn}/g
+			s/@@ldappassword@@/${rootpw}/g" $slapdtpl > /etc/ldap/slapd.conf
+		sed -e "s/^SLAPD_SERVICES=.*/SLAPD_SERVICES=\"ldap:\/\/\/ ldaps:\/\/\/\"/" -i /etc/default/slapd
+		addgroup openldap ssl-cert
+		/etc/init.d/slapd restart
+	fi
+
+        # reload apache
+	apache2ctl graceful || true
+	
 	# important message if upgrade is necessary
         if [ -n "$upgrade" ]; then
           echo "IMPORTANT!"

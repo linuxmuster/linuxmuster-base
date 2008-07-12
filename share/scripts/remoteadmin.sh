@@ -2,7 +2,7 @@
 #
 # create and remove a remote administrator
 #
-# 24.06.2007
+# 03.07.2008
 # Thomas Schmitt
 # <schmitt@lmz-bw.de>
 #
@@ -107,6 +107,38 @@ add_to_sudoers() {
 
 }
 
+add_to_nagios() {
+
+	cp /etc/nagios2/cgi.cfg /etc/nagios2/cgi.cfg.${REMOTEADMIN}.backup.add
+	cp /etc/nagios2/apache2.conf /etc/nagios2/apache2.conf.${REMOTEADMIN}.backup.add
+	if grep -q ${REMOTEADMIN} /etc/nagios2/cgi.cfg; then
+		echo "${REMOTEADMIN} already found in nagios2 configuration!"
+	else
+		sed -e "s/=administrator/=${REMOTEADMIN},administrator/g" -i /etc/nagios2/cgi.cfg
+	fi
+	chmod 755 /etc/nagios2/cgi.cfg
+	if grep -q ${REMOTEADMIN} /etc/nagios2/apache2.conf; then
+		echo "${REMOTEADMIN} already found in apache2 configuration!"
+	else
+		sed -e "s/require user/require user ${REMOTEADMIN}/g" -i /etc/nagios2/apache2.conf
+	fi
+	/etc/init.d/nagios2 restart
+	/etc/init.d/apache2 restart
+
+}
+
+remove_from_nagios() {
+
+	cp /etc/nagios2/cgi.cfg /etc/nagios2/cgi.cfg.${REMOTEADMIN}.backup.remove
+	cp /etc/nagios2/apache2.conf /etc/nagios2/apache2.conf.${REMOTEADMIN}.backup.remove
+	sed -e "s/=${REMOTEADMIN},/=/g" -i /etc/nagios2/cgi.cfg
+	chmod 755 /etc/nagios2/cgi.cfg
+	sed -e "s/ ${REMOTEADMIN}//g" -i /etc/nagios2/apache2.conf
+	/etc/init.d/nagios2 restart
+	/etc/init.d/apache2 restart
+
+}
+
 remove_from_sudoers() {
 
 	cp /etc/sudoers /etc/sudoers.${REMOTEADMIN}.backup.remove
@@ -180,6 +212,7 @@ case $1 in
 		grep -q $REMOTEADMIN /etc/webmin/* && remove_from_webmin
 		add_to_webmin
 		/etc/init.d/webmin restart &> /dev/null
+		add_to_nagios
 		if check_id $REMOTEADMIN; then
 			echo "Account for $REMOTEADMIN successfully created!"
 			status=0
@@ -200,6 +233,7 @@ case $1 in
 		do_accessconf
 		grep -q $REMOTEADMIN /etc/webmin/* && remove_from_webmin
 		/etc/init.d/webmin restart &> /dev/null
+		remove_from_nagios
 		if check_id $REMOTEADMIN; then
 			echo "Failed to remove account for $REMOTEADMIN!"
 			status=1

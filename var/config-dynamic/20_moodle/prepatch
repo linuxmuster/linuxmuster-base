@@ -24,8 +24,7 @@ if dpkg -L moodle &> /dev/null; then
     psql -U postgres -d template1 -qc "ALTER USER moodle WITH PASSWORD '"$randompw"';"
 
     # patch dbpass & admin login
-    sed -e "s/\$CFG->dbpass =.*/\$CFG->dbpass = \'$randompw\';/
-            s/\$CFG->wwwroot =.*/\$CFG->wwwroot = \'http:\/\/$servername.$domainname\/moodle\';/" -i /etc/moodle/config.php
+    sed -e "s/\$CFG->dbpass =.*/\$CFG->dbpass = \'$randompw\';/" -i /etc/moodle/config.php
 
     # unset random password
     unset randompw
@@ -33,6 +32,9 @@ if dpkg -L moodle &> /dev/null; then
     # create upload virus quarantine dir
     [ -d /var/lib/moodle/quarantine ] || mkdir -p /var/lib/moodle/quarantine
     chown www-data:www-data /var/lib/moodle/quarantine
+
+    # wwwroot tweak
+    [ -L /usr/share/moodle/moodle ] || ln -s . /usr/share/moodle/moodle
 
   else
 
@@ -47,15 +49,6 @@ if dpkg -L moodle &> /dev/null; then
       pg_dump -U postgres -f /var/tmp/moodle-dump -F p -C moodle
       gzip -c /var/tmp/moodle-dump > $BACKUPDIR/moodle/moodle-dump-$DATETIME.gz
       rm /var/tmp/moodle-dump
-
-      if grep -q "http://$servername_old.$domainname_old/" /etc/moodle/config.php; then
-
-        backup_file /etc/moodle/config.php
-
-        # patch new servername and domainname in config.php
-        sed -e "s/\$CFG->wwwroot = 'http:\/\/$servername_old.$domainname_old\//\$CFG->wwwroot = 'http:\/\/$servername.$domainname\//" -i /etc/moodle/config.php
-
-      fi
 
       # patch moodle db with new servername.domainname
       # table mdl_config

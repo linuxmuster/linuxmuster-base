@@ -1,10 +1,10 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
   <head>
-    <title>paedML Linux 3.0 Startseite</title>
+    <title>paedML Linux 4.0 Startseite</title>
     <link rel="stylesheet" href="paedML_style.css" type="text/css">
     <meta name="copyright" content="Copyright ©2007 Landesmedienzentrum BW">
-    <meta name="description" content="paedML Linux 3.0 Startseite">
+    <meta name="description" content="paedML Linux 4.0 Startseite">
   </head>
   <body>
     <table class="titlepage" cellspacing="0" cellpadding="0">
@@ -15,7 +15,7 @@
 		<a href="https://@@servername@@.@@domainname@@/horde3" style="font-weight: normal;">Webmail</a><br/>
 		<a href="http://www.support-netz.de" style="font-weight: normal;">Support-Netz</a><br/>
 		<a href="http://www.lehrerfortbildung-bw.de/netz/muster/linux/" style="font-weight: normal;">LFB-Server</a><br/>
-		<a href="http://lml.support-netz.de/cgi-bin/mailman/listinfo/paedml_linux" style="font-weight: normal;">Mailing-Liste</a>
+		<a href="http://mail.schule-bw.de/cgi-bin/mailman/listinfo/linuxmuster" style="font-weight: normal;">Mailing-Liste</a>
 	</div>
       </div>
   </table>

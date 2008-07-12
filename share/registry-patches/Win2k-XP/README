@@ -1,7 +1,4 @@
-Windows-Domaenenbeitritt mit Clients, die nicht geimaged werden
----------------------------------------------------------------
+Der Patch verhindert, dass Windows 2k/XP Clients mit dem
+samba-Server ein neues Passwort aushandeln.
 
-1. Patch win2k-xp-clients_ohne_imaging-patch.reg einspielen.
-
-2. Maschinenpasswort lokal auf dem Client auf 12345678 setzen:
-   machine-passwd.bat starten.
+Muss vor dem Domaenenbeitritt eingespielt werden!

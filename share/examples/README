@@ -9,7 +9,8 @@ o lehrer.txt
 
 o create_testusers.sh
   Creates testusers using example students and teachers data files
-  Caution: Overwrites your data files in /etc/sophomorix/user!
+  Script exits, if there are already user text files in /etc/sophomorix/user.
+  All users will be created with password "muster".
 
 o restart_printer_queues.sh
   Caution: Restarts the queues of all CUPS printers and deletes all print jobs!
@@ -17,6 +18,6 @@ o restart_printer_queues.sh
 o settime.sh
   Stops ntp-server, adjusts time with ntpdate and starts ntp-server again.
 
-01.10.2007
+02.07.2008
 Thomas Schmitt
 <schmitt@lmz-bw.de>

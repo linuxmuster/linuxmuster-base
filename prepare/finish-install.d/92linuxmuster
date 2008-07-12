@@ -14,7 +14,7 @@ preseed=`debconf-get preseed/file | cut -d "/" -f6`
 if [ "$preseed" = "auto" -o "$preseed" = "expert" ]; then
 
   chroot /target /usr/share/linuxmuster/scripts/patch_fstab.pl
-
+  cp /target/etc/inittab /target/etc/inittab.real
   cp /usr/share/linuxmuster/inittab.install /target/etc/inittab
 
 fi

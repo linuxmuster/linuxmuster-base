@@ -56,7 +56,7 @@ Description: Hostname des Servers?
 
 Template: linuxmuster-base/domainname
 Type: string
-Default: linuxmuster.local
+Default: paedml-linux.lokal
 Description: Internet-Domaene des Schulnetzes?
  Geben Sie den Domaenennamen des Schulnetzes ein.\n
  Es sind nur Buchstaben, Ziffern, Minuszeichen und Punkte\n

@@ -26,6 +26,6 @@ pf::powerwait:/etc/init.d/powerfail start
 pn::powerfailnow:/etc/init.d/powerfail now
 po::powerokwait:/etc/init.d/powerfail stop
 
-1:2345:respawn:/usr/sbin/termwrap /usr/sbin/linuxmuster-setup --first
+1:2345:respawn:/usr/sbin/linuxmuster-setup --first
 2:23:respawn:/sbin/getty 38400 tty2
 3:23:respawn:/sbin/getty 38400 tty3

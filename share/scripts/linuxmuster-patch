@@ -31,8 +31,9 @@ done
 # installing apropriate imaging task
 if [[ "$imaging" = "linbo" || "$imaging" = "rembo" || "$imaging" = "tivoli" ]]; then
 	echo 'DPkg::Options {"--force-confold";"--force-confdef";"--force-bad-verify";"--force-overwrite";};' > /etc/apt/apt.conf.d/99upgrade
-	task=`tasksel --task-packages linuxmuster-imaging-$imaging`
-	DEBIAN_FRONTEND=noninteractive aptitude -y install $task | tee -a $LOGDIR/setup.log
+	task=`cat /usr/share/linuxmuster/tasks/imaging-$imaging`
+	export DEBIAN_FRONTEND=noninteractive
+	echo -n "Ja\nJa\n" | aptitude -y install $task | tee -a $LOGDIR/setup.log
 	rm /etc/apt/apt.conf.d/99upgrade
 fi
 
@@ -141,9 +142,10 @@ else
 
 fi
 
-# compute timzeone
-timezone=`stat -c %N /etc/localtime | cut -f5 -d"," | cut -f1 -d'"' | sed -e 's/\/usr\/share\/zoneinfo\///'`
-timezone=${timezone//\//\\\/}
+# compute timezone
+timezone=`cat /etc/timezone 2> /dev/null`
+[ -z "$timezone" ] && timezone="Europe/Berlin"
+timezone=${timezone//\//\\/}
 
 # compute server's amount of ram
 memtotal=`cat /proc/meminfo | grep MemTotal | awk -F" " '{ print $2 }' -`
@@ -178,9 +180,9 @@ REMBOSTARTPAGE=${REMBOSTARTPAGE//\//\\\/}
 dsluser=${dsluser//\//\\\/}
 
 # messages for config file headers
-message1="Don\'t edit this file\, it will be overwritten on package upgrade\!"
-message2="This file was modified by linuxmuster-setup on"
-message3=`date`
+message1="##### Do not change this file! It will be overwritten!"
+message2="##### This configuration file was automatically created by linuxmuster-base!"
+message3="##### Last Modification: `date`"
 
 # set a new random password for cyrus user
 $SCRIPTSDIR/cyradmpw.sh

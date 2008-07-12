@@ -46,7 +46,6 @@ if  [ "$imaging" = "linbo" ]; then
 	grep "$teststr" /etc/default/atftpd &> /dev/null || cp $STATICTPLDIR/etc/default/atftpd /etc/default
 	grep "$LINBODIR" /etc/default/atftpd &> /dev/null || cp $STATICTPLDIR/etc/default/atftpd /etc/default
 	grep "$teststr" /etc/rsyncd.conf &> /dev/null || cp $STATICTPLDIR/etc/rsyncd.conf /etc
-	grep "$teststr" /etc/default/linuxmuster-linbo &> /dev/null || cp $STATICTPLDIR/etc/default/linuxmuster-linbo /etc/default
 
 	# check for pxelinux config dir
 	# obsolete
@@ -86,7 +85,7 @@ if  [ "$imaging" = "linbo" ]; then
 	done
 
 	# patch pxe confs with serverip
-	for i in $PXEGRUBCFG $PXELINUXCFG; do
+	for i in $PXEGRUBCFG $PXELINUXCFG `find $LINBODIR/ -type f -name 'pxegrub.lst.*'`; do
 		backup_file $i
 		sed -e "s/server=\([0-9]\{1,3\}[.]\)\{3\}[0-9]\{1,3\}/server=$serverip/g" -i $i
 	done
@@ -103,12 +102,24 @@ if  [ "$imaging" = "linbo" ]; then
 	sed -e "s/^RSYNC_ENABLE=.*/RSYNC_ENABLE=true/" -i /etc/default/rsync
 
 	# check for images and start multicast
+	update-rc.d linbo-multicast defaults
 	res=`find $LINBODIR -name '*.cloop'`
 	if [ -n "$res" ]; then
 		sed -e "s/^START_MULTICAST=.*/START_MULTICAST=yes/" -i /etc/default/linuxmuster-linbo
 		/etc/init.d/linbo-multicast start
 	else
 		sed -e "s/^START_MULTICAST=.*/START_MULTICAST=no/" -i /etc/default/linuxmuster-linbo
+	fi
+
+	# linbo administrative user
+	if ! check_id linbo; then
+		linbopasswd=`grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }'`
+		if [ -n "$linbopasswd" ]; then
+			echo "Creating linbo user ..."
+			sophomorix-useradd --administrator linbo --unix-group $ADMINGROUP --shell /bin/false --gecos "LINBO Administrator" &> /dev/null || true
+			sophomorix-passwd --user linbo --pass $linbopasswd &> /dev/null || true
+			smbldap-usermod -H '[UX         ]' linbo || true
+		fi
 	fi
 
 	# start necessary services
