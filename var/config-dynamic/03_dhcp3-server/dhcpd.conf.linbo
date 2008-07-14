@@ -13,7 +13,7 @@ ddns-update-style interim;
 ddns-domainname "@@domainname@@";
 ddns-updates on;
 ddns-ttl 7200;
-ignore client-updates;
+deny client-updates;
 ddns-rev-domainname "in-addr.arpa.";
 update-static-leases true;
 

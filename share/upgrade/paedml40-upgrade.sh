@@ -553,8 +553,9 @@ rm /etc/cron.d/clamav-freshclam* &> /dev/null
 # update LINBO's dhcpd.conf
 if [ "$imaging" = "linbo" ]; then
 	if ! grep -q ^next-server /etc/dhcp3/dhcpd.conf; then
-		echo "Updating dhcp-server configuration ..."
+		echo "Updating dhcp-server configuration for LINBO ..."
 		backup_file /etc/dhcp3/dhcpd.conf
+		dhcp_backup=yes
 		sed -e "s/@@servername@@/${servername}/g
 			s/@@domainname@@/${domainname}/g
 			s/@@serverip@@/${serverip}/g
@@ -572,6 +573,13 @@ if [ "$imaging" = "linbo" ]; then
 		update-rc.d linbo-multicast defaults
 fi
 
+# deny client-updates
+if grep -q ^"ignore client-updates" /etc/dhcp3/dhcpd.conf; then
+	echo "Updating dhcp-server configuration to deny client updates ..."
+	[ -z "$dhcp_backup" ] && backup_file /etc/dhcp3/dhcpd.conf
+	sed -e "s/^ignore client-updates/deny client-updates/" -i /etc/dhcp3/dhcpd.conf
+fi
+
 # add cyrus and postfix user to group ssl-cert
 echo "Aktualisiere Systembenutzer ..."
 for i in cyrus postfix openldap; do
@@ -582,7 +590,7 @@ echo
 
 # clean up old cron jobs
 echo "Entferne alte cron jobs ..."
-for i in kronolith2 php4; do
+for i in kronolith2 php4 clamav-freshclam; do
 	[ -e "/etc/cron.d/$i" ] && rm /etc/cron.d/$i
 done
 ls /etc/cron.d/*.dpkg-old &> /dev/null && rm /etc/cron.d/*.dpkg-old

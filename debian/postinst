@@ -503,8 +503,9 @@ export LANG" -i /etc/profile
 		grep -q "server-identifier $servername;" /etc/dhcp3/dhcpd.conf || dhcp_update=yes
 		grep -q "server-name \"$servername.$domainname\";" /etc/dhcp3/dhcpd.conf || dhcp_update=yes
 		if [ -n "$dhcp_update" ]; then
-			echo "Updating dhcp-server configuration ..."
-			backup_file /etc/dhcp3/dhcpd.conf
+			echo "Updating dhcp-server configuration for LINBO ..."
+			cp /etc/dhcp3/dhcpd.conf /etc/dhcp3/dhcpd.conf.dpkg-old
+			dhcp_backup=yes
 			sed -e "s/@@servername@@/${servername}/g
 				s/@@domainname@@/${domainname}/g
 				s/@@serverip@@/${serverip}/g
@@ -513,7 +514,7 @@ export LANG" -i /etc/profile
 				s/@@internalnet@@/${internalnet}/g
 				s/@@internsub@@/${internsub}/g
 				s/@@internmask@@/${internmask}/g" $DYNTPLDIR/03_dhcp3-server/dhcpd.conf.linbo > /etc/dhcp3/dhcpd.conf
-			/etc/init.d/dhcp3-server force-reload
+			dhcp_reload=yes
 		fi
 		# linbo administrative user
 		if ! check_id linbo; then
@@ -528,6 +529,14 @@ export LANG" -i /etc/profile
 		
 	fi
 
+	# deny client-updates
+	if grep -q ^"ignore client-updates" /etc/dhcp3/dhcpd.conf; then
+		echo "Updating dhcp-server configuration to deny client updates ..."
+		[ -z "$dhcp_backup" ] && cp /etc/dhcp3/dhcpd.conf /etc/dhcp3/dhcpd.conf.dpkg-old
+		sed -e "s/^ignore client-updates/deny client-updates/" -i /etc/dhcp3/dhcpd.conf
+		dhcp_reload=yes
+	fi
+
 	# reparing nagios2 apache2.conf
 	if ! grep -q "$basedn" /etc/nagios2/apache2.conf; then
 	sed -e "s/@@serverip@@/$serverip/
@@ -536,10 +545,10 @@ export LANG" -i /etc/profile
 		ln -sf /etc/nagios2/apache2.conf /etc/apache2/conf.d/nagios2.conf
 	fi
 	if grep -q "PaedML 3.0" $SYSCONFDIR/nagios.conf; then
-		backup_file /etc/linuxmuster/nagios.conf
-		sed -e 's/PaedML 3.0/paedML 4.0.0/g' -i /etc/linuxmuster/nagios.conf
-		backup_file /etc/nagios2/conf.d/linuxmuster_main.cfg
-		sed -e 's/PaedML 3.0/paedML 4.0.0/g' -i /etc/nagios2/conf.d/linuxmuster_main.cfg
+		cp /etc/linuxmuster/nagios.conf /etc/linuxmuster/nagios.conf.dpkg-old
+		sed -e "s/PaedML 3.0/$releasename/g" -i /etc/linuxmuster/nagios.conf
+		cp /etc/nagios2/conf.d/linuxmuster_main.cfg /etc/nagios2/conf.d/linuxmuster_main.cfg.dpkg-old
+		sed -e "s/PaedML 3.0/$releasename/g" -i /etc/nagios2/conf.d/linuxmuster_main.cfg
 		/etc/init.d/nagios2 restart
 	fi
 
@@ -595,8 +604,9 @@ export LANG" -i /etc/profile
 		/etc/init.d/slapd restart
 	fi
 
-        # reload apache
+        # reload services
 	apache2ctl graceful || true
+	[ -n "$dhcp_reload" ] && /etc/init.d/dhcp3-server force-reload
 	
 	# important message if upgrade is necessary
         if [ -n "$upgrade" ]; then

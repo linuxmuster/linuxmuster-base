@@ -3,7 +3,7 @@ chown root:crontab /var/spool/cron/crontabs/root
 chmod 600 /var/spool/cron/crontabs/root
 
 # copy sources.list
-if [ "$1" = "--first" ];
+if [ "$1" = "--first" ]; then
 	cp /etc/apt/sources.list.etch /etc/apt/sources.list
 	cp /etc/apt/apt.conf.etch /etc/apt/apt.conf
 if
@@ -102,3 +102,4 @@ touch $INSTALLED
 
 # reconfigure linuxmuster-base to fix what has been not yet fixed
 dpkg-reconfigure linuxmuster-base
+

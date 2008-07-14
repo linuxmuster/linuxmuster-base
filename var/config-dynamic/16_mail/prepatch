@@ -11,6 +11,9 @@ if [ "$1" = "--first" ]; then
   cp -f /tmp/aliases /etc
   rm -f /tmp/aliases
 
+  # remove clamav-freshclam cronjob
+  [ -e /etc/cron.d/clamav-freshclam ] && rm /etc/cron.d/clamav-freshclam
+
 else
 
 	# prevent mailname from being patched

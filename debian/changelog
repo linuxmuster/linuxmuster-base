@@ -1,3 +1,9 @@
+linuxmuster-base (1.4.28-paedml1) unstable; urgency=low
+
+  * fixed syntax error in linuxmuster-setup config-dynamic/99_start-services/postpatch
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 13 Jul 2008 11:25:41 +0000
+
 linuxmuster-base (1.4.27-paedml1) unstable; urgency=low
 
   * added ldaps support to slapd
@@ -5,11 +11,16 @@ linuxmuster-base (1.4.27-paedml1) unstable; urgency=low
   * providing empty lehrer.txt and schueler.txt on fresh installation
   * removed offline upgrade feature from paedml40-upgrade.sh
   * added /etc/php5/conf.d/paedml.ini config file for paedml specific php settings
+    initial settings are:
+    display_errors = Off
+    error_log = /var/log/apache2/php_error.log
   * changed default template domainname to paedml-linux.lokal
   * moved paedml specific sources.list to /etc/apt/sources.list.d/paedml40.list,
     so it is handled as a config file
+  * fixed clamav-freshclam daemon configuration
+  * fixed annoying client updates in dhcpd.conf
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 12 Jul 2008 11:16:17 +0000
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 12 Jul 2008 16:38:29 +0000
 
 linuxmuster-base (1.4.26-paedml1) unstable; urgency=low
 

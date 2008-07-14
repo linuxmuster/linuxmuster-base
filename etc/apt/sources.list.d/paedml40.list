@@ -1,3 +1,4 @@
-# linuxmuster
+# paedML Linux package sources
 deb http://pkg.lml.support-netz.de/paedml40-updates ./
+#deb-src http://pkg.lml.support-netz.de/paedml40-sources ./
 
