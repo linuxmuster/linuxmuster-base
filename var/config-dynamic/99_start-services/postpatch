@@ -6,7 +6,7 @@ chmod 600 /var/spool/cron/crontabs/root
 if [ "$1" = "--first" ]; then
 	cp /etc/apt/sources.list.etch /etc/apt/sources.list
 	cp /etc/apt/apt.conf.etch /etc/apt/apt.conf
-if
+fi
 
 # waiting for ipcop to come up 
 c=0

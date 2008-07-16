@@ -584,29 +584,35 @@ export LANG" -i /etc/profile
 
 	# adding tls support to slapd.conf
 	slapdtpl=/usr/share/sophomorix/config-templates/ldap/slapd-standalone.conf.template
-	if ! grep -q ^TLS $slapdtpl; then
+	if ! grep -q ^TLS $slapdtpl || ! grep -q misc.schema $slapdtpl; then
 		cp $slapdtpl $slapdtpl.dpkg-old
 		cp $STATICTPLDIR$slapdtpl $slapdtpl
 	fi
 	[ -e /etc/ldap/slapd.conf.custom ] || cp $STATICTPLDIR/etc/ldap/slapd.conf.custom /etc/ldap
-	if ! grep -q ^TLS /etc/ldap/slapd.conf; then
-		echo "Adding TLS support to openldap ..."
+	if ! grep -q ^TLS /etc/ldap/slapd.conf || ! grep -q misc.schema /etc/ldap/slapd.conf; then
+		echo "Updateing openldap configuration ..."
 		cp /etc/ldap/slapd.conf /etc/ldap/slapd.conf.dpkg-old
-		cp /etc/default/slapd /etc/default/slapd.dpkg-old
 		rootpw=`grep ^rootpw /etc/ldap/slapd.conf | awk '{ print $2 }'`
 		sed -e "s/@@message1@@/${message1}/
 			s/@@message2@@/${message2}/
 			s/@@message3@@/${message3}/
 			s/@@basedn@@/${basedn}/g
 			s/@@ldappassword@@/${rootpw}/g" $slapdtpl > /etc/ldap/slapd.conf
-		sed -e "s/^SLAPD_SERVICES=.*/SLAPD_SERVICES=\"ldap:\/\/\/ ldaps:\/\/\/\"/" -i /etc/default/slapd
 		addgroup openldap ssl-cert
-		/etc/init.d/slapd restart
+		slapd_reload=yes
+	fi
+	if grep -q ^TLS /etc/ldap/slapd.conf; then
+		if ! grep ^SLAPD_SERVICES /etc/default/slapd | grep -q ldaps; then
+			cp /etc/default/slapd /etc/default/slapd.dpkg-old
+			cp $STATICTPLDIR/etc/default/slapd /etc/default
+			slapd_reload=yes
+		fi
 	fi
 
         # reload services
 	apache2ctl graceful || true
 	[ -n "$dhcp_reload" ] && /etc/init.d/dhcp3-server force-reload
+	[ -n "$slapd_reload" ] && /etc/init.d/slapd restart
 	
 	# important message if upgrade is necessary
         if [ -n "$upgrade" ]; then

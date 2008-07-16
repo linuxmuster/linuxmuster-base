@@ -1,3 +1,17 @@
+linuxmuster-base (1.4.30-paedml1) unstable; urgency=low
+
+  * fixed another syntax error in linuxmuster-setup config-dynamic/99_start-services/postpatch
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 16 Jul 2008 20:33:15 +0200
+
+linuxmuster-base (1.4.29-paedml1) unstable; urgency=low
+
+  * postinst: adding ldaps url to /etc/default/slapd if not already there
+  * moodle, ldap authentication: changed memberattribute to memberUid
+  * added misc.schema to slapd.conf
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 14 Jul 2008 13:21:47 +0000
+
 linuxmuster-base (1.4.28-paedml1) unstable; urgency=low
 
   * fixed syntax error in linuxmuster-setup config-dynamic/99_start-services/postpatch

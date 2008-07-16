@@ -15,6 +15,7 @@ allow bind_v2
 # Schema and objectClass definitions
 include         /etc/ldap/schema/core.schema
 include         /etc/ldap/schema/cosine.schema
+include         /etc/ldap/schema/misc.schema
 include         /etc/ldap/schema/nis.schema
 include         /etc/ldap/schema/inetorgperson.schema
 include         /etc/ldap/schema/samba.schema

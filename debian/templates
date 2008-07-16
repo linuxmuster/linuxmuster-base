@@ -130,7 +130,7 @@ Type: string
 Description: SMTP relay host?
  Geben Sie ein, ueber welchen Mailserver E-Mail
  verschickt und empfangen werden soll.\n
- Bsp.: mail.belwue.de
+ Bsp.: mbox1.belwue.de
 
 Template: linuxmuster-base/imaging
 Type: select

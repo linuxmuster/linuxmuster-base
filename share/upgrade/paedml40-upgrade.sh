@@ -666,13 +666,13 @@ fi
 
 # adding tls support to slapd.conf
 slapdtpl=/usr/share/sophomorix/config-templates/ldap/slapd-standalone.conf.template
-if ! grep -q ^TLS $slapdtpl; then
+if ! grep -q ^TLS $slapdtpl || ! grep -q misc.schema $slapdtpl; then
 	cp $slapdtpl $slapdtpl.dpkg-old
 	cp $STATICTPLDIR$slapdtpl $slapdtpl
 fi
 [ -e /etc/ldap/slapd.conf.custom ] || cp $STATICTPLDIR/etc/ldap/slapd.conf.custom /etc/ldap
-if ! grep -q ^TLS /etc/ldap/slapd.conf; then
-	echo "Adding TLS support to openldap ..."
+if ! grep -q ^TLS /etc/ldap/slapd.conf || ! grep -q misc.schema $slapdtpl; then
+	echo "Updateing openldap configuration ..."
 	backup_file /etc/ldap/slapd.conf
 	backup_file /etc/default/slapd
 	rootpw=`grep ^rootpw /etc/ldap/slapd.conf | awk '{ print $2 }'`
@@ -681,7 +681,7 @@ if ! grep -q ^TLS /etc/ldap/slapd.conf; then
 		s/@@message3@@/${message3}/
 		s/@@basedn@@/${basedn}/g
 		s/@@ldappassword@@/${rootpw}/g" $slapdtpl > /etc/ldap/slapd.conf
-	sed -e "s/^SLAPD_SERVICES=.*/SLAPD_SERVICES=\"ldap:\/\/\/ ldaps:\/\/\/\"/" -i /etc/default/slapd
+	cp $STATICTPLDIR/etc/default/slapd /etc/default
 fi
 
 

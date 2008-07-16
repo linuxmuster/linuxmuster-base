@@ -9105,7 +9105,7 @@ COPY mdl_config_plugins (id, plugin, name, value) FROM stdin;
 10	auth/ldap	bind_pw	
 11	auth/ldap	version	3
 12	auth/ldap	objectclass	objectClass=posixAccount
-13	auth/ldap	memberattribute	member
+13	auth/ldap	memberattribute	memberUid
 14	auth/ldap	memberattribute_isdn	
 15	auth/ldap	creators	cn=teachers,ou=groups,@@basedn@@
 16	auth/ldap	create_context	
