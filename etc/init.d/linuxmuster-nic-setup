@@ -1,0 +1,120 @@
+#!/bin/sh
+#
+# assign nics to interfaces on boot
+# Thomas Schmitt <schmitt@lmz-bw.de>
+# 03.05.2007
+#
+
+# source linuxmuster stuff
+. /usr/share/linuxmuster/config/dist.conf || exit 1
+. $HELPERFUNCTIONS || exit 1
+
+
+# network.settings present?
+if [ -e "$NETWORKSETTINGS" ]; then
+	. $NETWORKSETTINGS
+else
+	echo "$NETWORKSETTINGS not found! Skipping nic setup!"
+	exit 0
+fi
+
+
+nic_setup() {
+
+	echo -n "Checking for changed mac addresses ..."
+
+	valid_macs=`LANG=C ifconfig -a | grep HWaddr | awk '{ print $5 }'`
+
+	if [ -n "$mac_extern" ]; then
+		toupper $mac_extern && mac_extern=$RET
+		stringinstring $mac_extern "$valid_macs" || nic_setup=yes
+	fi
+
+	if [ -n "$mac_intern" ]; then
+		toupper $mac_intern && mac_intern=$RET
+		stringinstring $mac_intern "$valid_macs" || nic_setup=yes
+	fi
+
+	if [ -n "$mac_wlan" ]; then
+		toupper $mac_wlan && mac_wlan=$RET
+		stringinstring $mac_wlan "$valid_macs" || nic_setup=yes
+	fi
+
+	if [ -n "$mac_dmz" ]; then
+		toupper $mac_dmz && mac_dmz=$RET
+		stringinstring $mac_dmz "$valid_macs" || nic_setup=yes
+	fi
+	
+	if [ -z "$nic_setup" ]; then
+		echo " OK!"
+	else
+		echo
+		echo "Mac addresses have changed. Starting nic setup ..."
+		$SCRIPTSDIR/nic_setup.sh
+		. $NETWORKSETTINGS
+	fi	
+
+}
+
+
+assign_macs() {
+
+	# first assign them to temporary interfaces
+	[ -n "$mac_extern" ] && nameif eth_tmp0 $mac_extern
+	[ -n "$mac_intern" ] && nameif eth_tmp1 $mac_intern
+	[ -n "$mac_wlan" ] && nameif eth_tmp2 $mac_wlan
+	[ -n "$mac_dmz" ] && nameif eth_tmp3 $mac_dmz
+
+	# and then make the real assignment
+	if [ -n "$mac_extern" ]; then
+		echo "Assigning $mac_extern to extern ..."
+		nameif extern $mac_extern
+	fi
+	if [ -n "$mac_intern" ]; then
+		echo "Assigning $mac_intern to intern ..."
+		nameif intern $mac_intern
+	fi
+	if [ -n "$mac_wlan" ]; then
+		echo "Assigning $mac_wlan to wlan ..."
+		nameif wlan $mac_wlan
+	fi
+	if [ -n "$mac_dmz" ]; then
+		echo "Assigning $mac_dmz to dmz ..."
+		nameif dmz $mac_dmz
+	fi
+
+}
+
+
+# name interfaces
+case $1 in
+
+	start)
+
+		# called on boot
+		nic_setup
+		assign_macs
+
+		;;
+
+	assign)
+
+		# called by linuxmuster-setup
+		assign_macs
+
+		;;
+
+	stop)
+
+		;;
+
+	*)
+
+		echo "Usage: $0 start"
+		exit 1
+
+		;;
+
+esac
+
+exit 0

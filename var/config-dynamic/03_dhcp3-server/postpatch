@@ -1,0 +1,17 @@
+# delete temporary tepmplate
+[ -e dhcpd.conf ] && rm dhcpd.conf
+
+# patch internal interface
+[ "$1" = "--modfify" ] && backup_file /etc/default/dhcp3-server
+sed -e "s/^INTERFACES=.*/INTERFACES=\"$intern\"/" -i /etc/default/dhcp3-server
+
+# create rndc-keyfile if necessary
+if [ ! -e /etc/bind/rndc.key ]; then
+  echo "Creating /etc/bind/rndc.key ..."
+  rndc-confgen -a -u bind
+else
+  chown bind /etc/bind/rndc.key
+fi
+
+# simply start the service
+/etc/init.d/dhcp3-server start

@@ -1,0 +1,13 @@
+# Defaults for rembo initscript
+# sourced by /etc/init.d/rembo
+# installed at /etc/default/rembo by the maintainer scripts
+
+#
+# This is a POSIX shell fragment
+#
+
+# should rembo startet at boot time
+START_REMBO=no
+
+# Additional options that are passed to the Daemon.
+DAEMON_OPTS="-c /etc/rembo/rembo.conf"

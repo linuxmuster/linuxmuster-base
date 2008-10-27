@@ -1,0 +1,1 @@
+57 */24 * * *    clamav [ -x /usr/bin/freshclam ] && /usr/bin/freshclam >/dev/null

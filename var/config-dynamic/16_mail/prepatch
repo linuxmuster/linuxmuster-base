@@ -1,0 +1,45 @@
+# repair permissions and group memberships
+dpkg-statoverride --force --update --add cyrus postfix 750 /var/run/cyrus/socket &> /dev/null
+usermod -G mail,sasl,ssl-cert postfix
+usermod -G sasl,ssl-cert cyrus
+usermod -G amavis clamav
+
+if [ "$1" = "--first" ]; then
+
+  # create mail aliases file
+  sed -e "s/^root\:.*/root\: $ADMINISTRATOR/" /etc/aliases > /tmp/aliases
+  cp -f /tmp/aliases /etc
+  rm -f /tmp/aliases
+
+  # remove clamav-freshclam cronjob
+  [ -e /etc/cron.d/clamav-freshclam ] && rm /etc/cron.d/clamav-freshclam
+
+else
+
+	# prevent mailname from being patched
+	mv mailname.target mailname.target.nopatch
+	if [ "$domainname" != "$domainname_old" ]; then
+		backup_file /etc/mailname
+		sed -e "s/$domainname_old/$domainname/" -i /etc/mailname
+	fi
+
+	# prevent postfix main.cf from being patched
+	mv main.cf.target main.cf.target.nopatch
+	if [ "$update_smtp" = "yes" ]; then
+		backup_file /etc/postfix/main.cf
+		postconf -e relayhost=$smptrelay
+	fi
+	if [ "$internsub" != "$internsub_old" ]; then
+		[ -e "$BACKUPDIR/etc/postfix/main.cf-$DATETIME.gz" ] || backup_file /etc/postfix/main.cf
+		postconf -e mynetworks="$internalnet/$internmask_short 127.0.0.1"
+	fi
+	if [[ "$servername" != "$servername_old" || "$domainname" != "$domainname_old" ]]; then
+		[ -e "$BACKUPDIR/etc/postfix/main.cf-$DATETIME.gz" ] || backup_file /etc/postfix/main.cf
+		oldvalue=`postconf | grep ^mydestination | awk -F\= '{ print $2 }'`
+		tmpvalue=`echo $oldvalue | sed -e "s/$servername_old.$domainname_old/$servername.$domainname/"`
+		newvalue=`echo $tmpvalue | sed -e "s/$domainname_old/$domainname/"`
+		postconf -e mydestination="$newvalue"
+		postconf -e myhostname="$servername.$domainname"
+	fi
+
+fi

@@ -1,0 +1,71 @@
+#!/bin/sh
+#
+# creates /etc/cups/access.conf for printer access definitions
+
+#set -x
+
+# source linuxmuster defaults
+. /usr/share/linuxmuster/config/dist.conf || exit 1
+
+# source helperfunctions
+. $HELPERFUNCTIONS || exit 1
+
+# check if task is locked
+checklock || exit 1
+
+# location of cups access.conf
+ACCESSCONF=/etc/cups/access.conf
+
+# backup access.conf
+cp -f $ACCESSCONF $ACCESSCONF.bak || cancel "Cannot backup $ACCESSCONF!"
+
+# write first line to access.conf
+echo "# printer access definitions" > $ACCESSCONF.new || cancel "Cannot write $ACCESSCONF.new!"
+
+# read printers definitons
+[ -e "$PRINTERS" ] || cancel "$PRINTERS not found!"
+NETMASK=255.255.255.0
+while read printer roomlist hostlist; do
+  [ "${printer:0:1}" = "#" ] && continue
+  [[ -z "$printer" || -z "$roomlist" ]] && continue
+  roomlist=${roomlist//,/ }
+  hostlist=${hostlist//,/ }
+  echo "<Location /printers/$printer>" >> $ACCESSCONF.new || cancel "Cannot write $ACCESSCONF.new!"
+  echo "  Order Deny,Allow" >> $ACCESSCONF.new || cancel "Cannot write $ACCESSCONF.new!"
+  echo "  Deny From All" >> $ACCESSCONF.new || cancel "Cannot write $ACCESSCONF.new!"
+  echo "  Allow From 127.0.0.1" >> $ACCESSCONF.new || cancel "Cannot write $ACCESSCONF.new!"
+  for i in $roomlist; do
+    if [ "$i" != "-" ]; then
+      get_ip $i
+      if validip $RET; then
+        OIFS="$IFS"
+        IFS="."
+        set -- ${RET} ${NETMASK}
+        IFS=$OIFS
+        NET="$1.$2.$3.*"
+        echo "  Allow From $NET" >> $ACCESSCONF.new || cancel "Cannot write $ACCESSCONF.new!"
+      fi
+    fi
+  done
+  for i in $hostlist; do
+    if [ "$i" != "-" ]; then
+      get_ip $i
+      if validip $RET; then
+        echo "  Allow From $RET" >> $ACCESSCONF.new || cancel "Cannot write $ACCESSCONF.new!"
+      fi
+    fi
+  done
+  # allow server
+  echo "  Allow From $serverip" >> $ACCESSCONF.new || cancel "Cannot write $ACCESSCONF.new!"
+  echo "</Location>" >> $ACCESSCONF.new || cancel "Cannot write $ACCESSCONF.new!"
+done <$PRINTERS
+
+mv $ACCESSCONF.new $ACCESSCONF || cancel "Cannot write $ACCESSCONF!"
+
+/etc/init.d/cupsys restart || cancel "Cannot restart CUPS!"
+
+[ -e "$ACCESSCONF.off" ] && rm -f $ACCESSCONF.off
+
+rm $lockflag || exit 1
+
+exit 0

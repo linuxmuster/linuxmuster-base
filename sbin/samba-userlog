@@ -1,0 +1,171 @@
+#!/bin/sh
+# logs when users login and logout
+
+#set -x
+
+# source linuxmuster defaults
+. /usr/share/linuxmuster/config/dist.conf || exit 1
+
+# source helperfunctions
+. $HELPERFUNCTIONS || exit 1
+
+# parsing parameters
+getopt $*
+
+usage() {
+  echo
+  echo "Usage: samba-userlog.sh --log=<in|out>"
+  echo "                        --username=<userlogin>"
+  echo "                        --hostname=<hostname or ip address>"
+  echo "                        --homedir=<homedirectory>"
+  echo
+  exit 1
+}
+
+# test parameters
+[[ "$log" != "in" && "$log" != "out" ]] && usage
+[[ -z "$hostname" ]] && usage
+[[ -z "$username" ]] && usage
+[[ -z "$homedir" ]] && usage
+
+# if shares are connected on logout do nothing
+if [ "$log" = "out" ]; then
+  if smbstatus -u $username | grep -w $hostname | grep -w ^$username &> /dev/null; then
+    exit 0
+  fi
+fi
+
+#  test if hostname is an ip address
+if validip $hostname; then
+  get_hostname $hostname
+  [ -n "$RET" ] && hostname=$RET
+fi
+
+# test for some dirs if account is not a workstation
+if [[ "$hostname" != "$username" && "$log" = "in" ]]; then
+
+  # check for teacher and domadmin group member
+  check_teacher $username && teacher=yes
+  check_admin $username && admin=yes
+
+  # remove obsolete private_html
+  [ -f "$homedir/private_html/.htaccess" ] && rm -f $homedir/private_html/.htaccess
+  check_empty_dir $homedir/private_html && rm -rf $homedir/private_html
+
+  # public_html only for teachers
+  if [[ -n "$teacher" && ! -e "$homedir/public_html" ]]; then
+    mkdir $homedir/public_html
+    chown $username:www-data $homedir/public_html
+    chmod 2750 $homedir/public_html
+  fi
+
+  # link to students home for teachers and administrators
+  if [[ -n "$teacher" || -n "$admin" ]]; then
+    if [[ -n "$STUDENTSLINK" && -n "$STUDENTSHOME" && -d "$STUDENTSHOME" ]]; then
+      [ -e "$homedir/$STUDENTSLINK" ] || ln -s $STUDENTSHOME $homedir/$STUDENTSLINK
+    fi
+  else
+    if [ -n "$STUDENTSLINK" ]; then
+      [ -L "$homedir/$STUDENTSLINK" ] && rm $homedir/$STUDENTSLINK
+    fi
+  fi
+
+  # link to share dirs for administrator
+  if [ -n "$admin" ]; then
+    if [[ -n "$SHARELINK" && -n "$SHAREHOME" && -d "$SHAREHOME" ]]; then
+      [ -e "$homedir/$SHARELINK" ] || ln -s $SHAREHOME $homedir/$SHARELINK
+    fi
+  else
+    if [ -n "$SHARELINK" ]; then
+      [ -L "$homedir/$SHARELINK" ] && rm $homedir/$SHARELINK
+    fi
+  fi
+
+fi
+
+# change host password if user is a host
+#if [[ "$hostname" = "$username" && "$log" = "in" ]]; then
+
+#  password=`pwgen -s 8 1`
+#  sophomorix-passwd -u $hostname --pass $password &> /dev/null
+
+#fi
+
+# check if there are valid logins in cache file
+check_logins() {
+
+  [ -s "$cachefile" ] || return
+
+  for i in `cat $cachefile`; do
+
+    if ! smbstatus -b -d 0 -u $i | grep -qw $i | grep -qw $hostname; then
+
+      grep -vw $i $cachefile > $cachefile.tmp
+      mv $cachefile.tmp $cachefile
+
+    fi
+
+  done
+
+} # check_logins
+
+# only if host account exists
+if check_id $hostname; then
+
+  # create cachefile and lock cachefile
+  [ -d "$LOGINCACHE" ] || mkdir -p $LOGINCACHE
+  cachefile=$LOGINCACHE/$hostname
+  locker=/tmp/.samba-userlog_${hostname}.lock
+  touch $cachefile || cancel "Cannot create $cachefile!"
+  lockfile -l 5 $locker
+
+  if [ "$log" = "in" ]; then
+
+    check_logins
+
+    if ! grep -qw $username $cachefile; then
+      echo $username >> $cachefile
+      chmod 644 $cachefile
+    fi
+
+    prep=on
+
+  else
+
+    grep -vw $username $cachefile > $cachefile.tmp
+    mv $cachefile.tmp $cachefile
+
+    if [ -s "$cachefile" ]; then
+      chmod 644 $cachefile
+    else
+      rm -f $cachefile
+    fi
+
+    prep=from
+
+  fi
+
+  rm -f $locker
+
+fi
+
+
+# source custom login and logout scripts
+[ -e "$NETLOGONDIR/custom-log$log.sh" ] && . $NETLOGONDIR/custom-log$log.sh
+
+
+# log to userlog
+get_ip $hostname
+ip=$RET
+get_realname $username
+realname=${RET# }
+get_pgroup $username
+pgroup=${RET# }
+locker=/tmp/.samba-userlog.lock
+lockfile -l 5 $locker
+echo "$DATETIME: $realname ($username, $pgroup) logs $log $prep $hostname ($ip)" >> $USERLOG
+rm -f $locker
+
+echo "log$log of user $username $prep host $hostname successfully logged!"
+
+exit 0

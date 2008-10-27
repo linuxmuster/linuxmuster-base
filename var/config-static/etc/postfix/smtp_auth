@@ -1,0 +1,4 @@
+# change smtp.relay.host to the FQDN of your smtp relay host
+# and uncomment the next line to activate smtp authentication
+#
+# smtp.relay.host		username:password

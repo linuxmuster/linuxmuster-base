@@ -1,0 +1,74 @@
+# ipcop.settings
+# automagically created by linuxmuster-setup
+# used to create IPCop configuration
+# location: /etc/ipcop.settings
+
+#########################################
+# Section I                             #
+# mandatory for uml and dedicated ipcop #
+#########################################
+
+# your server's (not IPCop's) hostname and domainname
+servername=@@servername@@
+domainname=@@domainname@@
+
+# country of your organization
+country=@@country@@
+
+# city of your organization
+location=@@location@@
+
+# name of your organization
+schoolname=@@schoolname@@
+
+# state or province
+state=@@state@@
+
+# mail address of the administrator
+adminmail=@@administrator@@@@@domainname@@
+
+# network addresses
+serverip=@@serverip@@
+ipcopip=@@ipcopip@@
+broadcast=@@broadcast@@
+internmask=@@internmask@@
+internalnet=@@internalnet@@
+ipcopblue=@@ipcopblue@@
+ipcoporange=@@ipcoporange@@
+ipcopovpn=@@ipcopovpn@@
+
+# admin mac for BOT, per default server's internal mac
+adminmac=@@adminmac@@
+
+#########################################
+# Section II                            #
+# only needed for uml-ipcop             #
+#########################################
+
+# extern connection type, may be static, dhcp or pppoe
+externtype=@@externtype@@
+
+# only if externtype is pppoe
+dsluser=@@dsluser@@
+dslpasswd=@@dslpasswd@@
+
+# only if externtype is static
+# second dnsforwarder is optional
+externip=@@externip@@
+externmask=@@externmask@@
+dnsforwarder1=@@dnsforwarder1@@
+dnsforwarder2=@@dnsforwarder2@@
+gatewayip=@@gatewayip@@
+
+# administrator passwords, used for root & admin (web gui)
+# it's recommended to change this later within IPCop
+adminpasswd=@@ipcoppw@@
+
+
+#########################################
+# Section III                           #
+# optional                              #
+#########################################
+
+# ldap base dn
+basedn="ou=accounts,@@basedn@@"

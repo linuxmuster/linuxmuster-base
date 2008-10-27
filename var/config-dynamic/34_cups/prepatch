@@ -1,0 +1,11 @@
+if [ "$1" = "--modify" ]; then
+
+	# prevent cupsd.conf from being patched
+	mv cupsd.conf.target cupsd.conf.target.nopatch
+	
+	if [ "$serverip" != "$serverip_old" ]; then
+		backup_file /etc/cups/cupsd.conf
+		sed -e "s/$serverip_old/$serverip/g" -i /etc/cups/cupsd.conf
+	fi
+
+fi

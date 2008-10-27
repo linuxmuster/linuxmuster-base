@@ -1,0 +1,40 @@
+# See /usr/share/postfix/main.cf.dist for a commented, more complete version
+# 
+# This file was automagically written by linuxmuster-setup, don't change it!
+
+smtpd_banner = $myhostname ESMTP $mail_name (Debian/GNU)
+biff = no
+
+# appending .domain is the MUA's job.
+append_dot_mydomain = no
+
+# Uncomment the next line to generate "delayed mail" warnings
+#delay_warning_time = 4h
+
+myhostname = @@servername@@.@@domainname@@
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
+myorigin = /etc/mailname
+mydestination = @@domainname@@, @@servername@@.@@domainname@@, localhost
+relayhost = @@smtprelay@@
+mynetworks = @@internalnet@@/@@internmask_short@@ 127.0.0.1
+mailbox_size_limit = 0
+recipient_delimiter = +
+inet_interfaces = all
+mailbox_transport = lmtp:unix:/var/run/cyrus/socket/lmtp
+content_filter=smtp-amavis:[127.0.0.1]:10024
+message_size_limit=10240000
+smtp_always_send_ehlo = yes
+
+# uncomment the following lines to activate smtp authentication
+#smtp_sasl_auth_enable = yes
+#smtp_sasl_password_maps = hash:/etc/postfix/smtp_auth
+#smtp_sasl_security_options = noanonymous
+#smtp_use_tls=yes
+#smtp_tls_session_cache_database = btree:${queue_directory}/smtp_scache
+#smtp_tls_note_starttls_offer = yes
+#smtp_starttls_timeout = 10s
+
+# uncomment the next 2 lines for debugging
+#smtp_tls_loglevel = 3
+#debug_peer_list = @@smtprelay@@

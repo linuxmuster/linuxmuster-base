@@ -1,0 +1,53 @@
+#!/bin/bash
+#
+# linuxmuster daily housekeeping cron job
+#
+# Thomas Schmitz
+# <schmitt@lmz-bw.de>
+# 07.02.2008
+#
+
+. /usr/share/linuxmuster/config/dist.conf
+. $HELPERFUNCTIONS
+
+# checking for dead logins and remove them
+if check_empty_dir $LOGINCACHE; then
+	echo "$LOGINCACHE is empty. Doing nothing."
+	exit 0
+fi
+
+cd $LOGINCACHE
+
+for h in *; do
+
+	for u in `cat $h`; do
+
+		if ! smbstatus -b -d 0 -u $u | grep -qw $u | grep -qw $h; then
+
+			locker=/tmp/.samba-userlog_${h}.lock
+			lockfile -l 5 $locker
+			echo "Removing user $u from login cache ..."
+			grep -vw $u $h > $h.tmp
+			mv $h.tmp $h
+			rm -f $locker
+
+		fi
+
+	done
+
+	if [ ! -s "$h" ]; then
+
+		locker=/tmp/.samba-userlog_${h}.lock
+		lockfile -l 5 $locker
+		echo "Removing host $h from login cache ..."
+		rm $h
+		rm -f $locker
+
+	fi
+
+done
+
+
+# reset rooms and hosts to their in /etc/linuxmuster/room_defaults defined status
+/usr/sbin/linuxmuster-reset --all --kill
+

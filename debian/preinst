@@ -1,0 +1,20 @@
+#! /bin/sh -e
+# preinst script for linuxmuster-base
+
+case "$1" in
+	upgrade)
+		# backup workstations data file
+		if [ -s /etc/linuxmuster/workstations ]; then
+			[ -L /etc/linuxmuster/workstations ] || cp /etc/linuxmuster/workstations /etc/linuxmuster/workstations.dpkg-old
+		fi
+		;;
+
+	*)
+
+		;;
+
+esac
+
+#DEBHELPER#
+
+exit 0

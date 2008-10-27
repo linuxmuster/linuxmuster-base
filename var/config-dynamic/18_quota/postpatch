@@ -1,0 +1,25 @@
+# start service
+/etc/init.d/quota start
+
+if [ "$1" = "--first" ]; then
+
+  # copy quota.txt for one or two partitions
+  qm=`mount | grep -c quota`
+  if [ "$qm" = "1" ]; then
+    cp -f ${QUOTACONF}.1 $QUOTACONF
+  else
+    cp -f ${QUOTACONF}.2 $QUOTACONF
+  fi
+  rm -f ${QUOTACONF}.*
+
+  # dummy user files for sophomorix
+  #touch $SCHUELERTXT
+  #touch $LEHRERTXT
+
+  #  setting quota for admins
+  sophomorix-quota --administrators
+
+  # setting quota for www-data
+  sophomorix-quota --force -u www-data
+
+fi

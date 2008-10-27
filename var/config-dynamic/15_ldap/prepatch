@@ -1,0 +1,137 @@
+# start postgresql
+/etc/init.d/postgresql-8.1 start
+
+
+# set samba sid
+[ -n "$sambasid" ] && net setlocalsid $sambasid
+
+
+# restore ldapadmin password
+ldapadminpw=`grep ^rootpw /etc/ldap/slapd.conf | awk '{ print $2 }'`
+if [ -z "$ldapadminpw" ]; then
+	ldapadminpw=`pwgen -s 8 1`
+	echo -n $ldapadminpw > /etc/ldap.secret
+fi
+smbpasswd -w $ldapadminpw
+
+
+# adding tls support to slapd.conf
+slapdtpl=/usr/share/sophomorix/config-templates/ldap/slapd-standalone.conf.template
+if ! grep -q ^TLS $slapdtpl; then
+	cp $slapdtpl $slapdtpl.dpkg-old
+	cp $STATICTPLDIR$slapdtpl $slapdtpl
+fi
+
+
+# patch libnss-ldap.conf with basedn
+template=/etc/libnss-ldap.conf
+[ "$1" = "--modify" ] && backup_file $template
+sed -e "s/^base.*/base $basedn/
+        s/^rootbinddn.*/rootbinddn cn=admin,$basedn/" -i $template
+
+
+# patch pam_ldap.conf with basedn
+template=/etc/pam_ldap.conf
+[ "$1" = "--modify" ] && backup_file $template
+sed -e "s/^base.*/base $basedn/
+        s/^rootbinddn.*/rootbinddn cn=admin,$basedn/" -i $template
+
+
+# patch ldap.conf with basedn
+template=/etc/ldap/ldap.conf
+[ "$1" = "--modify" ] && backup_file $template
+sed -e "s/^BASE.*/BASE $basedn/" -i $template
+
+
+# patch slapd.conf with basedn and password
+template=/usr/share/sophomorix/config-templates/ldap/slapd-standalone.conf.template
+[ "$1" = "--modify" ] && backup_file /etc/ldap/slapd.conf
+sed -e "s/@@message1@@/${message1}/
+	s/@@message2@@/${message2}/
+	s/@@message3@@/${message3}/
+	s/@@basedn@@/${basedn}/g
+	s/@@ldappassword@@/${ldapadminpw}/" $template > /etc/ldap/slapd.conf
+
+
+# patch smbldap_bind.conf with basedn and password
+template=/etc/smbldap-tools/smbldap_bind.conf
+[ "$1" = "--modify" ] && backup_file $template
+sed -e "s/^masterDN=.*/masterDN=\"cn=admin,$basedn\"/
+        s/^masterPw=.*/masterPw=\"$ldapadminpw\"/" -i $template
+
+
+# patching sophomorix.conf with schoolname and location
+[ "$1" = "--modify" ] && backup_file $SOPHOMORIXCONF
+sed -e "s/^\$schul_name=.*/\$schul_name=\"${schoolname} ${location}\";/" -i $SOPHOMORIXCONF
+
+
+# patch sophomorix pgldap.conf with workgroup, server, internip and domainname
+template=/etc/sophomorix/pgldap/pgldap.conf
+[ "$1" = "--modify" ] && backup_file $template
+sed -e "s/^\$domainname=.*/\$domainname=\"${domainname}\";/
+        s/^\$servername=.*/\$servername=\"${servername}\";/
+        s/^\$internip=.*/\$internip=\"${serverip}\";/
+        s/^\$internmask=.*/\$internmask=\"${internmask}\";/
+        s/^\$smbworkgroup=.*/\$smbworkgroup=\"${workgroup}\";/" -i $template
+
+
+# clear samba browse cache
+rm -f /var/lib/samba/wins.dat
+
+
+# only on fresh install
+if [ "$1" = "--first" ]; then
+
+	# delete old userdata
+	[[ -n "$ADMINSHOME" && -d "$ADMINSHOME" ]] && rm -rf $ADMINSHOME/*
+	[[ -n "$TEACHERSHOME" && -d "$TEACHERSHOME" ]] && rm -rf $TEACHERSHOME/*
+	[[ -n "$STUDENTSHOME" && -d "$STUDENTSHOME" ]] && rm -rf $STUDENTSHOME/*
+	[[ -n "$WSHOME" && -d "$WSHOME" ]] && rm -rf $WSHOME/*
+	[[ -n "$SHAREHOME" && -d "$SHAREHOME" ]] && rm -rf $SHAREHOME/*/*
+	[[ -n "$TASKSCACHE" && -d "$TASKSCACHE" ]] && rm -rf $TASKSCACHE/*/*
+	rm -rf /var/lib/sophomorix/check-result/*
+	rm -rf /var/lib/sophomorix/database/*
+	rm -rf /var/lib/sophomorix/tmp/*
+	rm -rf /var/lib/sophomorix/print-data/*
+	rm -rf /var/log/sophomorix/*.log
+	rm -rf /var/log/sophomorix/exam/*
+	rm -rf /var/log/sophomorix/user/*
+
+	# changing user's default shell to /bin/bash
+	sed -e 's/^\$schueler_per_ssh=.*/\$schueler_per_ssh=\"yes\"\;/
+		s/^\$lehrer_per_ssh=.*/\$lehrer_per_ssh=\"yes\"\;/' -i $SOPHOMORIXCONF
+
+	# openldap access to ssl-certs
+	addgroup openldap ssl-cert
+
+	# create new database
+	sophomorix-setup-pgldap --new-database
+
+	# random password for ldap db user
+	ldapdbpw=`pwgen -s 8 1`
+	psql -U postgres -d template1 -qc "ALTER USER ldap WITH PASSWORD '"$ldapdbpw"';"
+	sed -e "s/^Password=.*/Password=$ldapdbpw/" -i /etc/linuxmuster/schulkonsole/db.conf
+
+else
+
+	# update user database with basedn and workgroup if necessary
+	[ "$update_ldap" = "yes" ] && sophomorix-setup-pgldap
+
+fi
+
+
+# repair permissions
+for i in /etc/ldap.secret /etc/ldap/slapd.conf /etc/smbldap-tools/smbldap_bind.conf /etc/sophomorix/pgldap/pgldap.conf; do
+  chmod 600 $i
+done
+chown www-data:www-data /etc/linuxmuster/schulkonsole/*
+chmod 400 /etc/linuxmuster/schulkonsole/db.conf*
+chown root:root /etc/ldap/slapd.conf*
+chown root:root /etc/ldap/ldap.conf
+chmod 644 /etc/ldap/ldap.conf
+ln -sf ldap.secret /etc/pam_ldap.secret
+
+
+# copy imaging related template
+cp smb.conf.$imaging smb.conf
+

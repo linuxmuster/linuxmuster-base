@@ -1,0 +1,538 @@
+#!/bin/sh
+
+# Source debconf library.
+. /usr/share/debconf/confmodule
+
+db_version 2.0
+db_capb backup
+
+PRIORITY="critical"
+
+# source linuxmuster defaults
+. /usr/share/linuxmuster/config/dist.conf || exit 1
+
+# source helperfunctions
+. $HELPERFUNCTIONS || exit 1
+
+db_title "$(getdistname) $DISTFULLVERSION"
+
+# source oldvalues if present
+if [ -e $OLDVALUES ]; then
+  . $OLDVALUES
+  oldvalues=yes
+fi
+
+# check which imaging software is available
+linbo=`aptitude search linuxmuster-linbo`
+rembo=`aptitude search myshn`
+tivoli=`aptitude search tpmfos`
+
+if [ "$1" = "--first" ]; then
+  # intro
+  db_fset linuxmuster-base/intro seen false
+  db_input $PRIORITY linuxmuster-base/intro || true
+  db_go
+fi
+
+# country
+while [ -z "$INPUT" ]; do
+  db_fset linuxmuster-base/country seen false
+  db_input $PRIORITY linuxmuster-base/country || true
+  db_go
+  db_get linuxmuster-base/country || true
+  INPUT=`echo ${RET:0:2} | tr a-z A-Z`
+  if ! expr match "$INPUT" '\([A-Z][A-Z]\)'; then
+    unset INPUT
+    continue
+  fi
+  db_set linuxmuster-base/country $INPUT || true
+  [[ "$oldvalues" = "yes" && "$INPUT" != "$country_old" ]] && ask_ipcop=yes
+done
+unset INPUT
+
+
+# data for certificates and workgroup
+for i in state location schoolname workgroup; do
+  while [ -z "$INPUT" ]; do
+    db_fset linuxmuster-base/$i seen false
+    db_input $PRIORITY linuxmuster-base/$i || true
+    db_go
+    db_get linuxmuster-base/$i || true
+    INPUT="$RET"
+    if ! expr match "$INPUT" '\([a-zA-Z0-9_\-]\+$\)'; then
+      unset INPUT
+      continue
+    fi
+    [[ "$oldvalues" = "yes" && "$i" = "state" && "$INPUT" != "$state_old" ]] && ask_ipcop=yes
+    [[ "$oldvalues" = "yes" && "$i" = "location" && "$INPUT" != "$location_old" ]] && ask_ipcop=yes
+    [[ "$oldvalues" = "yes" && "$i" = "schoolname" && "$INPUT" != "$schoolname_old" ]] && ask_ipcop=yes
+    if [ "$i" = "schoolname" ]; then
+      db_set shared/organization $INPUT || true
+    fi
+  done
+  unset INPUT
+done
+
+
+# intern network configuration
+# servername
+while ! (expr match "$SERVERNAME" '\([a-z0-9\-]\+$\)'); do
+  db_fset linuxmuster-base/servername seen false
+  db_input $PRIORITY linuxmuster-base/servername || true
+  db_go
+  db_get linuxmuster-base/servername || true
+  SERVERNAME="$RET"
+done
+[[ "$oldvalues" = "yes" && "$SERVERNAME" != "$servername_old" ]] && ask_ipcop=yes
+
+# domainname
+while ! validdomain "$DOMAINNAME"; do
+  db_fset linuxmuster-base/domainname seen false
+  db_input $PRIORITY linuxmuster-base/domainname || true
+  db_go
+  db_get linuxmuster-base/domainname || true
+  DOMAINNAME=$RET
+done
+[[ "$oldvalues" = "yes" && "$DOMAINNAME" != "$domainname_old" ]] && ask_ipcop=yes
+
+
+# intern subnet range
+db_fset linuxmuster-base/internsubrange seen false
+db_input $PRIORITY linuxmuster-base/internsubrange || true
+db_go
+
+
+# extern network configuration
+# dsl sub menu
+dslconfig() {
+  db_fset linuxmuster-base/dsluser seen false
+  db_input $PRIORITY linuxmuster-base/dsluser || true
+  db_go
+  db_fset linuxmuster-base/dslpasswd seen false
+  db_input $PRIORITY linuxmuster-base/dslpasswd || true
+  db_go
+}
+
+
+# dns forwarders
+dnsconfig() {
+  while true; do
+    db_fset linuxmuster-base/dnsforwarders seen false
+    db_input $PRIORITY linuxmuster-base/dnsforwarders || true
+    db_go
+    db_get linuxmuster-base/dnsforwarders || true
+    DNSFORWARDERS=$RET
+    BREAK=true
+    for i in $DNSFORWARDERS; do
+      if ! validip "$i"; then BREAK=false; fi
+    done
+    if [ "$BREAK" = "true" ]; then break; fi
+  done
+}
+
+
+# router sub menu
+routerconfig() {
+  for i in externip externmask gatewayip; do
+    IP=""
+    while ! validip "$IP"; do
+      db_fset linuxmuster-base/$i seen false
+      db_input $PRIORITY linuxmuster-base/$i || true
+      db_go
+      db_get linuxmuster-base/$i || true
+      IP=$RET
+      if [ "$i" = "externmask" ]; then break; fi
+    done
+  done
+  dnsconfig
+}
+
+
+# extern network sub menu
+externconfig() {
+	db_fset linuxmuster-base/externtype seen false
+	db_input $PRIORITY linuxmuster-base/externtype || true
+	db_go
+	db_get linuxmuster-base/externtype || true
+	case $RET in
+		static)
+			routerconfig
+			;;
+		pppoe)
+			dslconfig
+			;;
+		dhcp)
+			;;
+	esac
+}
+
+
+# firewall
+db_fset linuxmuster-base/fwconfig seen false
+db_input $PRIORITY linuxmuster-base/fwconfig || true
+db_go
+db_get linuxmuster-base/fwconfig || true
+fwconfig=$RET
+# check if fwconfig has been modified
+if [ "$oldvalues" = "yes" ]; then
+	[ "$fwconfig" = "$fwconfig_old" ] || ask_ipcop=yes
+fi
+
+
+# configure external network only if fwconfig is integrated or setup is in modify mode and fwconfig has not changed
+if [ "$fwconfig" = "integrated" ]; then
+	externconfig
+else
+	if [ "$1" = "--modify" ]; then
+		[ "$fwconfig" = "$fwconfig_old" ] && externconfig
+	fi
+fi
+
+
+# smtp relay
+while ! validdomain "$SMTPRELAY"; do
+	db_fset linuxmuster-base/smtprelay seen false
+	db_input $PRIORITY linuxmuster-base/smtprelay || true
+	db_go
+	db_get linuxmuster-base/smtprelay || true
+	SMTPRELAY=$RET
+	if [ "$SMTPRELAY" = "" ]; then break; fi
+done
+
+
+# imaging system
+imaging=""
+if [[ -n "$linbo" && -n "$rembo" && -n "$tivoli" ]]; then
+
+	IMG_CHOICES="linbo, rembo, tivoli"
+	IMG_DESC="LINBO [linbo], Rembo/mySHN (tm) [rembo] und IBM TPMfOS (tm) [tivoli]."
+
+elif [[ -n "$rembo" && -n "$tivoli" ]]; then
+
+	IMG_CHOICES="rembo, tivoli"
+	IMG_DESC="Rembo/mySHN (tm) [rembo] und IBM TPMfOS (tm) [tivoli]."
+
+elif [[ -n "$linbo" && -n "$tivoli" ]]; then
+
+	IMG_CHOICES="linbo, tivoli"
+	IMG_DESC="LINBO [linbo] und IBM TPMfOS (tm) [tivoli]."
+
+elif [[ -n "$linbo" && -n "$rembo" ]]; then
+
+	IMG_CHOICES="linbo, rembo"
+	IMG_DESC="LINBO [linbo] und Rembo/mySHN (tm) [rembo]."
+
+elif [ -n "$linbo" ]; then
+
+	imaging=linbo
+
+elif [ -n "$rembo" ]; then
+
+	imaging=rembo
+
+elif [ -n "$tivoli" ]; then
+
+	imaging=tivoli
+
+fi
+
+if [ -n "$IMG_CHOICES" ]; then
+	db_fset linuxmuster-base/imaging seen false
+	db_subst linuxmuster-base/imaging img_choices $IMG_CHOICES
+	db_subst linuxmuster-base/imaging img_desc $IMG_DESC
+	db_input $PRIORITY linuxmuster-base/imaging || true
+	db_go
+	db_get linuxmuster-base/imaging || true
+	imaging=$RET
+else
+	db_set linuxmuster-base/imaging "$imaging" || true
+fi
+
+# present and let accept or decline sun java license if necessary
+# stolen from sun-java5-bin package
+if [ "$imaging" = "tivoli" ]; then
+
+	license=sun-dlj-v1-1
+
+	db_get shared/accepted-$license
+	if [ "$RET" = "true" ]; then
+
+		echo "$license license has already been accepted" >&2
+
+	else
+
+		STATE=1
+		while true; do
+    			case "$STATE" in
+				0)  # ensure going back from license presentment is harmless
+					STATE=1 
+					continue
+					;;
+				1)  # present license
+					db_fset shared/present-$license seen false
+					if ! db_input critical shared/present-$license ; then
+						echo "$license license could not be presented!"
+						echo "Please start linuxmuster-setup $1 again to repeat the configuration!" >&2
+						exit 2
+					fi
+					db_fset shared/accepted-$license seen false
+					if ! db_input critical shared/accepted-$license ; then
+						echo "$license agree question could not be asked!"
+						echo "Please start linuxmuster-setup $1 again to repeat the configuration!" >&2
+						exit 2
+					fi
+					;;
+				2)  # determine users' choice
+					db_get shared/accepted-$license
+					if [ "$RET" = "true" ]; then
+						# license accepted
+						break
+					fi
+					;;
+				3)  # user has confirmed declining license
+					echo "You did not accept the $license license!" >&2
+					echo "Please start linuxmuster-setup $1 again to repeat the configuration!" >&2
+					exit 1
+					;;
+				*)  # unknown state
+					echo "$license license state unknown: $STATE!" >&2
+					echo "Please start linuxmuster-setup $1 again to repeat the configuration!" >&2
+					exit 2
+					;;
+			esac
+			if db_go; then
+				STATE=$(($STATE + 1))
+			else
+				STATE=$(($STATE - 1))
+			fi
+		done
+
+	fi
+
+fi
+
+
+# admin passwords
+if [ "$1" = "--first" ]; then
+
+	# root
+	STATE=1
+	while [ "$STATE"  != 0 ]; do
+
+		case "$STATE" in
+
+			1)
+				db_fset linuxmuster-base/rootpw seen false
+				db_input $PRIORITY linuxmuster-base/rootpw || true
+				db_go
+				db_get linuxmuster-base/rootpw || true
+				[ -n "$RET" ] && STATE=2
+				unset RET
+			;;
+
+			2)
+				db_fset linuxmuster-base/rootpw_confirm seen false
+				db_input $PRIORITY linuxmuster-base/rootpw_confirm || true
+				db_go
+				db_get linuxmuster-base/rootpw_confirm || true
+				if [ -n "$RET" ]; then
+					CONFIRM=$RET
+					db_get linuxmuster-base/rootpw || true
+					if [ "$RET" = "$CONFIRM" ]; then
+						STATE=0
+						rootpw="$RET"
+					else
+						STATE=1
+					fi
+					unset RET
+					unset CONFIRM
+					db_set linuxmuster-base/rootpw "" || true
+					db_set linuxmuster-base/rootpw_confirm "" || true
+				fi
+			;;
+
+		esac
+
+	done
+
+	# administrator
+	STATE=1
+	while [ "$STATE"  != 0 ]; do
+
+		case "$STATE" in
+
+			1)
+				db_fset linuxmuster-base/adminpw seen false
+				db_input $PRIORITY linuxmuster-base/adminpw || true
+				db_go
+				db_get linuxmuster-base/adminpw || true
+				[ -n "$RET" ] && STATE=2
+				unset RET
+			;;
+
+			2)
+				db_fset linuxmuster-base/adminpw_confirm seen false
+				db_input $PRIORITY linuxmuster-base/adminpw_confirm || true
+				db_go
+				db_get linuxmuster-base/adminpw_confirm || true
+				if [ -n "$RET" ]; then
+					CONFIRM=$RET
+					db_get linuxmuster-base/adminpw || true
+					if [ "$RET" = "$CONFIRM" ]; then
+						STATE=0
+					else
+						STATE=1
+						db_set linuxmuster-base/adminpw "" || true
+					fi
+					unset RET
+					unset CONFIRM
+					db_set linuxmuster-base/adminpw_confirm "" || true
+				fi
+			;;
+
+		esac
+
+	done
+
+	# pgmadmin
+	STATE=1
+	while [ "$STATE"  != 0 ]; do
+
+		case "$STATE" in
+
+			1)
+				db_fset linuxmuster-base/pgmadminpw seen false
+				db_input $PRIORITY linuxmuster-base/pgmadminpw || true
+				db_go
+				db_get linuxmuster-base/pgmadminpw || true
+				[ -n "$RET" ] && STATE=2
+				unset RET
+			;;
+
+			2)
+				db_fset linuxmuster-base/pgmadminpw_confirm seen false
+				db_input $PRIORITY linuxmuster-base/pgmadminpw_confirm || true
+				db_go
+				db_get linuxmuster-base/pgmadminpw_confirm || true
+				if [ -n "$RET" ]; then
+					CONFIRM=$RET
+					db_get linuxmuster-base/pgmadminpw || true
+					if [ "$RET" = "$CONFIRM" ]; then
+						STATE=0
+					else
+						STATE=1
+						db_set linuxmuster-base/pgmadminpw "" || true
+					fi
+					unset RET
+					unset CONFIRM
+					db_set linuxmuster-base/pgmadminpw_confirm "" || true
+				fi
+			;;
+
+		esac
+
+	done
+
+	# wwwadmin
+	STATE=1
+	while [ "$STATE"  != 0 ]; do
+
+		case "$STATE" in
+
+			1)
+				db_fset linuxmuster-base/wwwadminpw seen false
+				db_input $PRIORITY linuxmuster-base/wwwadminpw || true
+				db_go
+				db_get linuxmuster-base/wwwadminpw || true
+				[ -n "$RET" ] && STATE=2
+				unset RET
+			;;
+
+			2)
+				db_fset linuxmuster-base/wwwadminpw_confirm seen false
+				db_input $PRIORITY linuxmuster-base/wwwadminpw_confirm || true
+				db_go
+				db_get linuxmuster-base/wwwadminpw_confirm || true
+				if [ -n "$RET" ]; then
+					CONFIRM=$RET
+					db_get linuxmuster-base/wwwadminpw || true
+					if [ "$RET" = "$CONFIRM" ]; then
+						STATE=0
+					else
+						STATE=1
+						db_set linuxmuster-base/wwwadminpw "" || true
+					fi
+					unset RET
+					unset CONFIRM
+					db_set linuxmuster-base/wwwadminpw_confirm "" || true
+				fi
+			;;
+
+		esac
+
+	done
+
+fi # admin passwords
+
+
+# ipcop password
+if [[ "$1" = "--first" || "$ask_ipcop" = "yes" ]]; then
+
+	STATE=1
+	while [ "$STATE"  != 0 ]; do
+
+		case "$STATE" in
+
+			1)
+				db_fset linuxmuster-base/ipcoppw seen false
+				db_input $PRIORITY linuxmuster-base/ipcoppw || true
+				db_go
+				db_get linuxmuster-base/ipcoppw || true
+				[ -n "$RET" ] && STATE=2
+				unset RET
+			;;
+
+			2)
+				db_fset linuxmuster-base/ipcoppw_confirm seen false
+				db_input $PRIORITY linuxmuster-base/ipcoppw_confirm || true
+				db_go
+				db_get linuxmuster-base/ipcoppw_confirm || true
+				if [ -n "$RET" ]; then
+					CONFIRM=$RET
+					db_get linuxmuster-base/ipcoppw || true
+					if [ "$RET" = "$CONFIRM" ]; then
+						STATE=0
+					else
+						STATE=1
+						db_set linuxmuster-base/ipcoppw "" || true
+					fi
+					unset RET
+					unset CONFIRM
+					db_set linuxmuster-base/ipcoppw_confirm "" || true
+				fi
+			;;
+
+		esac
+
+	done
+
+fi # ipcop password
+
+
+# assign nics with extern, intern, wlan, dmz interfaces
+assign_nics
+status=$?
+
+# important: close debconf database
+db_stop
+
+# check status
+if [ "$status" = "0" ]; then
+	if [ "$1" = "--first" ]; then
+		echo "root:$rootpw" | chpasswd
+	fi
+fi
+
+unset rootpw
+
+exit $status

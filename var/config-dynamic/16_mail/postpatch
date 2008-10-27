@@ -1,0 +1,13 @@
+# activate mail aliases for teachers
+sophomorix-class --class teachers --mailalias
+
+# start mail services
+/etc/init.d/clamav-daemon start
+/etc/init.d/clamav-freshclam start
+/etc/init.d/amavis start
+/etc/init.d/postfix start
+/etc/init.d/saslauthd start
+/etc/init.d/cyrus2.2 start
+
+# secure permissions
+chmod 600 /etc/postfix/smtp_auth

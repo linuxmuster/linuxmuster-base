@@ -1,0 +1,7 @@
+# permissions of samba folders
+for i in $NETLOGONDIR $PROGSDIR $CDSDIR; do
+  chown $ADMINISTRATOR:$DOMADMINS $i
+  chmod 775 $i
+done
+chown $ADMINISTRATOR:$DOMADMINS $NETLOGONDIR -R
+chmod 664 $NETLOGONDIR/*

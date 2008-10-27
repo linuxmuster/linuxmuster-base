@@ -1,0 +1,7 @@
+# start service
+/etc/init.d/cupsys start
+
+# installing postscript pdf printer driver
+if ! grep -q PDF-Printer /etc/cups/printers.conf; then
+  lpadmin -p PDF-Printer -E -v cups-pdf:/ -D "PDF-Printer" -L "$servername" -m PostscriptColor.ppd.gz
+fi

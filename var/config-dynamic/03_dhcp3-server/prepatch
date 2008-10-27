@@ -1,0 +1,2 @@
+# copy template according to imaging method
+cp dhcpd.conf.$imaging dhcpd.conf

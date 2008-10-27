@@ -1,0 +1,42 @@
+# $Id: extrakurse.txt,v 1.3 2006/04/22 14:14:12 jeffbeck Exp $
+# sophomorix-Konfigurationsdatei
+# Mit einer Zeile Dieser Datei wird ein Kurs/eine Klasse angelegt.
+#
+# kurs:                  Dies ist der Klassenname/Gruppenname
+#
+# basisname und anzahl:  ergeben die Login-Namem:
+#                        z.B. multi01 bis multi22,
+#                        wenn basisname multi und anzahl 22.
+#
+# geburtsdatum:          es wird empfohlen das Datum zu nehmen,
+#                        an dem der kurs angelegt wird
+#
+# gecos:                 Merkfeld (z.b. denjenigen Eintragen, 
+#                        der diesen Kurs braucht)
+#
+# passwort:              gemeinsames passwort aller User
+#                        dieses Kurses. 
+#                        Wenn sie 'erstpw' angeben, dann wird
+#                        das Passwort nach den Vorgaben in
+#                        sophomorix.conf gewählt
+#                         (linux oder Zufallspasswort)
+#
+# entferndatum:          ab diesem Tag wird der user entfernt,
+#                        falls die entsprechenden Scripte
+#                        aufgerufen werden. 
+#                        (Dieses Datum darf auch noch nachträglich
+#                        verändert werden)
+# 
+# Beispielzeile:
+#
+# multi;user;32;10.1.2003;aklinux;netz;10.01.2005
+# 
+# Diese Erzeugt die Klasse/Kurs "multi" mit den Usern "user01"
+# bis "user32". 
+# Alle User haben das Passwort "netz" 
+# Die User kommen ab 10.1.2005 in den
+# Tolerierung/Deaktivierungsmechanismus.
+# Im gecos-Feld in /etc/passwd wird "aklinux" eingetragen
+#
+#
+# kurs;basisname;anzahl;geburtsdatum;gecos;passwort;entferndatum

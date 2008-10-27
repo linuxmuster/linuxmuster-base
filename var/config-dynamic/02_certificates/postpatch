@@ -1,0 +1,33 @@
+# make script executable
+chmod 744 $SCRIPTSDIR/create-ssl-cert.sh
+
+if [ "$1" = "--first" -o "$update_certs" = "yes" ]; then
+
+  # new apache cert
+  $SCRIPTSDIR//create-ssl-cert.sh
+
+  # delete ssh host key
+  rm /etc/ssh/*key*
+
+  # create new ssh host key
+  ssh-keygen -t dsa -f /etc/ssh/ssh_host_dsa_key -N ''
+  ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -N ''
+
+fi
+
+# start ssh
+/etc/init.d/ssh start
+
+if [ "$1" = "--first" -o "$update_certs" = "yes" ]; then
+
+  # ssh key for root
+  rm /root/.ssh/known_hosts
+  [ -d /root/.ssh ] && rm -rf /root/.ssh
+  mkdir /root/.ssh
+  ssh-keygen -N "" -q -t dsa -f /root/.ssh/id_dsa
+
+fi
+
+# ssl-cert permissions
+[ "$1" = "--first" ] && chown root:ssl-cert /etc/ssl/private -R
+

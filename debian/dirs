@@ -1,0 +1,4 @@
+var/backup/linuxmuster
+var/cache/linuxmuster
+var/cache/linuxmuster/logins
+var/log/linuxmuster

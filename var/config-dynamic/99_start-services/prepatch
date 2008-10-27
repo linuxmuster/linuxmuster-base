@@ -1,0 +1,8 @@
+if [ "$1" != "--first" ]; then
+	if [ "$serverip" != "$serverip_old" ]; then
+		backup_file /etc/openntpd/ntpd.conf
+		sed -e "s/^listen on.*/listen on $serverip/" -i /etc/openntpd/ntpd.conf
+	fi
+	mv ntpd.conf.target ntpd.conf.target.nopatch
+fi
+

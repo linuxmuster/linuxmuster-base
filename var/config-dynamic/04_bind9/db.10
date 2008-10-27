@@ -1,0 +1,15 @@
+$ORIGIN .
+$TTL 3600       ; 1 hour
+10.in-addr.arpa         IN SOA	@@servername@@.@@domainname@@. @@domainname@@. (
+				2004030801
+				3600
+				1800
+				604800
+				3600
+				)
+			NS	@@servername@@.@@domainname@@.
+
+$ORIGIN 1.@@internsub@@.10.in-addr.arpa.
+$TTL 7200       ; 2 hours
+1			PTR	@@servername@@.@@domainname@@.
+254			PTR	ipcop.@@domainname@@.

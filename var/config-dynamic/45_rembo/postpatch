@@ -1,0 +1,10 @@
+if  [ "$imaging" = "rembo" ]; then
+
+	# secure permissions
+	chmod 600 $REMBOCONF
+	chmod 600 $MYSHNDIR/user.conf
+
+	# start service
+	/etc/init.d/rembo start
+
+fi

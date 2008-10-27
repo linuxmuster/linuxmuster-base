@@ -1,0 +1,11 @@
+Package: *
+Pin: release o=linuxmuster
+Pin-Priority: 1002
+
+Package: *
+Pin: release a=stable
+Pin-Priority: 1001
+
+Package: *
+Pin: release a=oldstable
+Pin-Priority: 50

@@ -1,0 +1,35 @@
+# $Id: mailquota.txt,v 1.2 2006/04/22 14:12:59 jeffbeck Exp $
+##############################################################################
+# This is a comment                                                          #
+# sophomorix configuration file mailquota.txt                                #
+# All Values are in MB                                                       #
+##############################################################################
+
+
+# 1) Standard Values
+
+# standard mailquota for workstations
+standard-workstations: 1
+
+# standard mailquota for students
+standard-schueler: 10
+
+# standard mailquota for teachers
+standard-lehrer: 50
+
+
+
+# 2) Other Values
+#
+# add mailquota for classes with the command:
+#   sophomorix-class
+#
+# add mailquota for teachers in lehrer.txt !
+
+
+# mailquota for single users (NOT teachers)
+
+# mailquota of administrator:
+administrator: 250
+pgmadmin: 10
+wwwadmin: 10

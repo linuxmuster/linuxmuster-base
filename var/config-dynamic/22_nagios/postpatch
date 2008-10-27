@@ -1,0 +1,11 @@
+# configure linuxmuster-nagios
+
+if [ "$1" = "--first" ]; then
+  linuxmuster-nagios-setup --first --force
+else
+  linuxmuster-nagios-setup
+fi
+
+# starting nagios2 again
+/etc/init.d/nagios2 stop
+/etc/init.d/nagios2 start

@@ -1,0 +1,54 @@
+# create admin users & groups
+
+if [ "$1" = "--first" ]; then
+
+  # wait until cyrus is ready
+  sleep 10
+
+  # delete old mailboxes
+  if ls /var/spool/cyrus/mail/*/user/ &> /dev/null; then
+    users=`ls /var/spool/cyrus/mail/*/user/ | grep -v :`
+    for i in $users; do
+      $SCRIPTSDIR/cyrus-mbox -d $i
+    done
+  fi
+
+  # set passwords for admins
+  #echo -e "$adminpw\n$adminpw\n" | smbldap-passwd -e $DOMADMIN
+  sophomorix-passwd --force --user $DOMADMIN --pass $adminpw
+  #echo -e "$adminpw\n$adminpw\n" | smbldap-passwd -e $ADMINISTRATOR
+  sophomorix-passwd --user $ADMINISTRATOR --pass $adminpw
+  #echo -e "$pgmadminpw\n$pgmadminpw\n" | smbldap-passwd -e $PGMADMIN
+  sophomorix-passwd --user $PGMADMIN --pass $pgmadminpw
+  #echo -e "$wwwadminpw\n$wwwadminpw\n" | smbldap-passwd -e $WWWADMIN
+  sophomorix-passwd --user $WWWADMIN --pass $wwwadminpw
+
+  # create mailboxes again
+  mailquota=`grep ^$ADMINISTRATOR $MAILQUOTACONF | awk -F: '{ print $2 }'`
+  $SCRIPTSDIR/cyrus-mbox -q $mailquota -c $ADMINISTRATOR
+  mailquota=`grep ^$PGMADMIN $MAILQUOTACONF | awk -F: '{ print $2 }'`
+  $SCRIPTSDIR/cyrus-mbox -q $mailquota -c $PGMADMIN
+  mailquota=`grep ^$WWWADMIN $MAILQUOTACONF | awk -F: '{ print $2 }'`
+  $SCRIPTSDIR/cyrus-mbox -q $mailquota -c $WWWADMIN
+
+else
+
+  # prevent access.conf from being patched
+  mv access.conf.target access.conf.target.nopatch
+
+  # prevent login.bat from being patched
+  mv login.bat.target login.bat.target.nopatch
+
+  # patch login.bat with new servername if necessary
+  if [ "$servername" != "$servername_old" ]; then
+    backup_file $NETLOGONDIR/login.bat
+    sed -e 's%^call \\\\'$servername_old'\\%call \\\\'$servername'\\%g' -i $NETLOGONDIR/login.bat
+  fi
+
+fi
+
+# put administrator in teachersgroup
+smbldap-groupshow $TEACHERSGROUP | grep memberUid: | grep -qw $ADMINISTRATOR || smbldap-usermod -G $ADMINGROUP,$PRINTERADMINS,$TEACHERSGROUP $ADMINISTRATOR
+
+# reparing admin accounts
+$SCRIPTSDIR/repair-admins.sh

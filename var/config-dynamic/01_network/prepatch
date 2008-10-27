@@ -1,0 +1,72 @@
+# stop networking at all
+/etc/rcS.d/S40networking stop 1>> $LOGDIR/setup.log 2>> $LOGDIR/setup.log
+
+# kill network devices if they are not down already
+# first shutdown the interfaces
+for i in `ifconfig -a | grep -i ethernet | sort -r | awk '{ print $1 }' -`; do
+	ifconfig $i down 1>> $LOGDIR/setup.log 2>> $LOGDIR/setup.log
+done
+# then delete the bridges
+for i in `brctl show | grep ^br | grep -v ^bridge | awk '{ print $1 }' -`; do
+	brctl delbr $i 1>> $LOGDIR/setup.log 2>> $LOGDIR/setup.log
+done
+
+# wait for the devices to come down
+sleep 3
+
+# we don't need this
+[ -e /etc/network/if-pre-up.d/uml-utilities ] && chmod 644 /etc/network/if-pre-up.d/uml-utilities
+
+# write servername to /etc/hostname
+backup_file /etc/hostname
+echo $servername > /etc/hostname
+
+# patch linuxmuster-base defaults
+backup_file /etc/default/linuxmuster-base
+sed -e "s/^IFACE=.*/IFACE=$intern/" -i /etc/default/linuxmuster-base
+
+if [[ "$1" = "--first" || "$update_fw" = "yes" ]]; then
+
+	# start internal firewall on boot
+	[ "$1" = "--first" ] && sed -e "s/^START_LINUXMUSTER=.*/START_LINUXMUSTER=yes/" -i /etc/default/linuxmuster-base
+
+	# copy interfaces template according to fwconfig
+	cp -f interfaces.$fwconfig interfaces
+
+else
+
+	# prevent interfaces from being patched
+	mv interfaces.target interfaces.target.nopatch
+
+	backup_file /etc/network/interfaces
+
+	# patch interfaces
+	sed -e "s/address ${serverip_old}.*/address $serverip/g
+		s/network ${internalnet_old}.*/network $internalnet/g
+		s/broadcast ${broadcast_old}.*/broadcast $broadcast/g
+		s/gateway ${ipcopip_old}.*/gateway $ipcopip/g
+		s/dns-nameservers ${serverip_old}.*/dns-nameservers $serverip/g
+		s/dns-search ${domainname_old}.*/dns-search $domainname/g" -i /etc/network/interfaces
+
+	# prevent /etc/hosts from being patched
+	mv hosts.target hosts.target.nopatch
+
+	if [ "$serverip" != "$serverip_old" ]; then
+		backup_file /etc/hosts
+		sed -e "s/^$serverip_old/$serverip/g" -i /etc/hosts
+	fi
+	if [[ "$servername" != "$servername_old" || "$domainname" != "$domainname_old" ]]; then
+		[ -e "$BACKUPDIR/etc/hosts-$DATETIME.gz" ] || backup_file /etc/hosts
+		sed -e "s/^$serverip.*/$serverip $servername.$domainname $servername/g" -i /etc/hosts
+	fi
+
+	# prevent /etc/hosts from being patched
+	mv resolv.conf.target resolv.conf.target.nopatch
+
+	if [[ "$serverip" != "$serverip_old" || "$domainname" != "$domainname_old" ]]; then
+		backup_file /etc/resolv.conf
+		sed -e "s/$serverip_old/$serverip/g
+			s/$domainname_old/$domainname/g" -i /etc/resolv.conf
+	fi
+
+fi
