@@ -68,12 +68,17 @@ for service in $services; do
 	/etc/init.d/$service start
 done
 
+# repair linbo stuff, if necessary
+if [[ "$1" = "--modify" && "$imaging" = "linbo" && "$imaging" != "$imaging_old" ]]; then
+	dpkg-reconfigure linuxmuster-linbo
+fi
+
 # apply workstation data if internal net has changed
 if [[ "$1" = "--modify" && "$internsub" != "$internsub_old" ]]; then
 	if [ "$imaging" = "rembo" ]; then
 		WIMPORTDATA=$REMBOFILES/files/global/wimport_data
 	else
-		WIMPORTDATA=/etc/linuxmuster/workstations
+		WIMPORTDATA=$SYSCONFDIR/workstations
 	fi
 	backup_file $WIMPORTDATA
 	n=$internsub; o=$internsub_old

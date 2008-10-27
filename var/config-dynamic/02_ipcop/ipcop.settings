@@ -64,9 +64,6 @@ gatewayip=@@gatewayip@@
 # it's recommended to change this later within IPCop
 adminpasswd=@@ipcoppw@@
 
-# timezone
-timezone=@@timezone@@
-
 
 #########################################
 # Section III                           #

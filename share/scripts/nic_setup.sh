@@ -4,7 +4,6 @@
 . /usr/share/debconf/confmodule
 
 db_version 2.0
-db_title "paedML Linux 4.0"
 
 PRIORITY="critical"
 
@@ -13,6 +12,8 @@ PRIORITY="critical"
 
 # source helperfunctions
 . $HELPERFUNCTIONS || exit 1
+
+db_title "$(getdistname) $DISTFULLVERSION"
 
 # read fwconfig from debconf
 db_get linuxmuster-base/fwconfig || true

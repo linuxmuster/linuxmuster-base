@@ -107,6 +107,11 @@ if [ "$1" = "--first" ]; then
 	# create new database
 	sophomorix-setup-pgldap --new-database
 
+	# random password for ldap db user
+	ldapdbpw=`pwgen -s 8 1`
+	psql -U postgres -d template1 -qc "ALTER USER ldap WITH PASSWORD '"$ldapdbpw"';"
+	sed -e "s/^Password=.*/Password=$ldapdbpw/" -i /etc/linuxmuster/schulkonsole/db.conf
+
 else
 
 	# update user database with basedn and workgroup if necessary

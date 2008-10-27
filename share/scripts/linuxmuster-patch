@@ -142,11 +142,6 @@ else
 
 fi
 
-# compute timezone
-timezone=`cat /etc/timezone 2> /dev/null`
-[ -z "$timezone" ] && timezone="Europe/Berlin"
-timezone=${timezone//\//\\/}
-
 # compute server's amount of ram
 memtotal=`cat /proc/meminfo | grep MemTotal | awk -F" " '{ print $2 }' -`
 
@@ -171,9 +166,11 @@ if [ -z "$sambasid" ]; then
 
 fi
 
-# substitute spaces in schoolname and location
+# substitute spaces in schoolname, location and distro
 schoolname=${schoolname// /_}
 location=${location// /_}
+distro="$(getdistname)"
+distro=${distro// /-}
 
 # escaping /
 REMBOSTARTPAGE=${REMBOSTARTPAGE//\//\\\/}
@@ -225,6 +222,7 @@ for i in $DYNTPLDIR/*; do
               s/@@state@@/${state}/g
               s/@@location@@/${location}/g
               s/@@schoolname@@/${schoolname}/g
+              s/@@distro@@/${distro}/g
               s/@@servername@@/${servername}/g
               s/@@domainname@@/${domainname}/g
               s/@@serverip@@/${serverip}/g
@@ -256,7 +254,6 @@ for i in $DYNTPLDIR/*; do
               s/@@ipcoppw@@/${ipcopintpw}/g
               s/@@adminmac@@/${mac_intern}/g
               s/@@sambasid@@/${sambasid}/g
-              s/@@timezone@@/${timezone}/g
               s/@@domadmin@@/${DOMADMIN}/g
               s/@@domadmins@@/${DOMADMINS}/g
               s/@@administrator@@/${ADMINISTRATOR}/g

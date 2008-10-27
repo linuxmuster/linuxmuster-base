@@ -1,6 +1,6 @@
 #!/bin/sh
 # create ssl certificate script
-# for Linux Musterloesung 3.0
+# for paedML Linux 4.0
 # 12.04.07 Thomas Schmitt <schmitt@lmz-bw.de>
 
 # modify this to your needs
@@ -9,7 +9,7 @@ country="@@country@@"
 state="@@state@@"
 location="@@location@@"
 schoolname="@@schoolname@@"
-section="Linux-Musterloesung"
+section="@@distro@@"
 [ -z "$myname" ] && myname="@@servername@@.@@domainname@@"
 mymail="@@administrator@@@@@domainname@@"
 

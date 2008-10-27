@@ -1,3 +1,60 @@
+linuxmuster-base (1.4.36-paedml1) unstable; urgency=low
+
+  * wimport.sh:
+    - added creation of ssmtp.conf for group specific linbofs.gz files to wimport.sh
+    - patching default linbofs.gz also with linbo md5 passwd file and default start.conf
+    - various modifactions for LINBO clients which use grub.exe
+  * removed Ogo entry from postgresl's pg_hba.conf
+  * created random password for db user ldap and placed it in schulkonsole's db.conf
+  * changed postgresl to postgresl-8.1 in backup.conf
+  * modified dhcpd.conf for LINBO concerning to pxelinux boot
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 22 Oct 2008 21:34:02 +0200
+
+linuxmuster-base (1.4.35-paedml1) unstable; urgency=low
+
+  * added support for multiple comma separated groups to wimport.sh
+  * improved check_unique function in wimport.sh
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 31 Jul 2008 09:18:41 +0200
+
+linuxmuster-base (1.4.34-paedml1) unstable; urgency=low
+
+  * added preinst script to save workstations data file before package upgrade
+  * linuxmuster-linbo will now be reconfigured at the end of linuxmuster-setup --modify
+    to be sure that some repairing of config files is really done
+  * distro type free or nonfree is now recognized and will be shown at login and during
+    linuxmuster-setup, version and distro name are now fully parametrized by dist.conf
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 28 Jul 2008 21:37:28 +0200
+
+linuxmuster-base (1.4.33-paedml1) unstable; urgency=low
+
+  * removed timezone patching for integrated ipcop
+  * reparing IPCop's timezone on paedml40-upgrade
+  * changing default settings for new created start.conf to more convenient ones during workstations import
+  * improvements for cdrom upgrade in paedml40-upgrade
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 22 Jul 2008 14:27:53 +0200
+
+linuxmuster-base (1.4.32-paedml1) unstable; urgency=low
+
+  * moved paedml index page to a different non-free package
+  * added nonfree components check and install to paedml40-upgrade.sh in case of cdrom upgrade
+  * disabling password change for machine accounts in wimport.sh
+  * changed LINBODEFAULTCONF to $LINBODIR/examples/start.conf.winxp_fat32 in dist.conf
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 21 Jul 2008 21:28:02 +0200
+
+linuxmuster-base (1.4.31-paedml1) unstable; urgency=low
+
+  * added timezone reconfiguration to linuxmuster-setup on first time installation
+  * refreshing password of user linbo from /etc/rsynd.secrets in wimport.sh (linbo imaging)
+  * added file check of alternate pxegrub in wimport.sh (linbo imaging)
+  * added check for linbo mail wrapper to linuxmuster-setup
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 21 Jul 2008 17:44:17 +0200
+
 linuxmuster-base (1.4.30-paedml1) unstable; urgency=low
 
   * fixed another syntax error in linuxmuster-setup config-dynamic/99_start-services/postpatch

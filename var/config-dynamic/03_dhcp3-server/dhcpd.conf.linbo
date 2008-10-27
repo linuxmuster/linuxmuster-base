@@ -54,10 +54,23 @@ log-facility local7;
 
 allow booting;
 allow bootp;
+
+# pxelinux options for LINBO
+option vendor-encapsulated-options 09:0f:80:00:0c:4e:65:74:77:6f:72:6b:20:62:6f:6f:74:0a:07:00:50:72:6f:6d:70:74:06:01:02:08:03:80:00:00:47:04:80:00:00:00:ff;
+option space pxelinux;
+option pxelinux.magic      code 208 = string;
+option pxelinux.configfile code 209 = string;  
+option pxelinux.pathprefix code 210 = text;  
+option pxelinux.reboottime code 211 = unsigned integer 32;								
+site-option-space "pxelinux";
+option pxelinux.magic f1:00:74:7e;
+if exists dhcp-parameter-request-list {
+    # Always send the PXELINUX options (specified in hexadecimal)
+    option dhcp-parameter-request-list = concat(option dhcp-parameter-request-list,d0,d1,d2,d3);
+}
 option configfile code 150 = string;
-option configfile "/pxegrub.lst";
-option dhcp-parameter-request-list = concat(option dhcp-parameter-request-list,96);
-filename "/pxegrub";
+filename "pxelinux.0";
+
 next-server @@serverip@@;
 
 # subnet for workstation import

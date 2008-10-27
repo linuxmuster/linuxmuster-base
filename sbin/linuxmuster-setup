@@ -105,6 +105,9 @@ case $opt in
     # force apt to do ugly things during upgrade
     echo 'DPkg::Options {"--force-confold";"--force-confdef";"--force-bad-verify";"--force-overwrite";};' > /etc/apt/apt.conf.d/99upgrade
 
+    # check if linuxmuster-indexpage is installable
+    indexpage=`aptitude search linuxmuster-indexpage`
+
     # tweaking buggy sophomorix, install postgresql first
     DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql | tee -a $LOGDIR/setup.log
     #DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql-8.1 | tee -a $LOGDIR/setup.log
@@ -114,6 +117,9 @@ case $opt in
       task=`cat /usr/share/linuxmuster/tasks/$i`
       DEBIAN_FRONTEND=noninteractive aptitude -y install $task | tee -a $LOGDIR/setup.log
     done
+
+    # install indexpage if available
+    [ -n "$indexpage" ] && aptitude -y install linuxmuster-indexpage | tee -a $LOGDIR/setup.log
 
     # remove upgrade cheat
     rm /etc/apt/apt.conf.d/99upgrade

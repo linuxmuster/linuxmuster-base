@@ -22,7 +22,7 @@ if [ "$imaging" = "tivoli" ]; then
 
 	# patch path to wimport_data in dist.conf
 	backup_file /usr/share/linuxmuster/config/dist.conf
-	sed -e "s/^WIMPORTDATA=.*/WIMPORTDATA=\"\/etc\/linuxmuster\/workstations\"/" -i /usr/share/linuxmuster/config/dist.conf
+	sed -e "s/^WIMPORTDATA=.*/WIMPORTDATA=\"\$SYSCONFDIR\/workstations\"/" -i /usr/share/linuxmuster/config/dist.conf
 
 	# switch workstation data file
 	if [[ "$1" = "--modify" && "$imaging_old" = "rembo" ]]; then

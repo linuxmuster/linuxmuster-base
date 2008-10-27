@@ -16,9 +16,18 @@ QUOTA=`grep ^'\$use_quota' $SOPHOMORIXCONF | awk -F\" '{ print $2 }' | tr A-Z a-
 # functions
 # check for unique entry
 check_unique() {
-	local searchstr=${1//./\\.}
-	n=`grep -cw "$searchstr" $WDATATMP`
-	[ $n -ne 1 ] && return 1
+#	local searchstr=${1//./\\.}
+	local found=""
+	local s
+#	n=`grep -c ";$1;" $WDATATMP`
+#	n=`echo "$2" | grep -cw "$1"`
+#	[ $n -ne 1 ] && return 1
+	for s in $2; do
+	    if [ "$s" = "$1" ]; then
+		[ -n "$found" ] && return 1
+		found=yes
+	    fi
+	done
 	return 0
 }
 
@@ -264,21 +273,21 @@ if [ -s "$WIMPORTDATA" ]; then
 			*)
 				;;
 		esac
-		check_unique $i || exitmsg "Hostname $i is not unique!"
+		check_unique "$i" "$hostnames" || exitmsg "Hostname $i is not unique!"
 	done
 
 	# check macs
 	macs=`awk -F\; '{ print $4 }' $WDATATMP`
 	for i in $macs; do
 		validmac $i || exitmsg "Invalid MAC address: $i!"
-		check_unique $i || exitmsg "MAC address $i is not unique!"
+		check_unique "$i" "$macs" || exitmsg "MAC address $i is not unique!"
 	done
 
 	# check ips
 	ips=`awk -F\; '{ print $5 }' $WDATATMP`
 	for i in $ips; do
 		validip $i || exitmsg "Invalid IP address: $i!"
-		check_unique $i || exitmsg "IP address $i is not unique!"
+		check_unique "$i" "$ips" || exitmsg "IP address $i is not unique!"
 	done
 
 	echo "  * Workstation data are Ok! :-)"
@@ -317,6 +326,7 @@ if [ -s "$WIMPORTDATA" ]; then
 		room=$RET
 		hostname=`echo $line | awk -F\; '{ print $2 }'`
 		hostgroup=`echo $line | awk -F\; '{ print $3 }'`
+		[ "$imaging" = "rembo" ] || hostgroup=`echo $hostgroup | awk -F\, '{ print $1 }'`
 		mac=`echo $line | awk -F\; '{ print $4 }'`
 		ip=`echo $line | awk -F\; '{ print $5 }'`
 		pxe=`echo $line | awk -F\; '{ print $11 }'`
@@ -342,6 +352,9 @@ if [ -s "$WIMPORTDATA" ]; then
 		if [ $RC_LINE -ne 0 ]; then
 			RC=$RC_LINE
 			continue
+		else
+			# disable password change
+			smbldap-usermod -A0 -B0 ${hostname}$
 		fi
 
 		# linbo stuff, only if pxe host
@@ -351,6 +364,10 @@ if [ -s "$WIMPORTDATA" ]; then
 			if [ ! -e "$LINBODIR/start.conf.$hostgroup" ]; then
 				echo -n "  * LINBO: Creating new start.conf.$hostgroup in $LINBODIR ... "
 				if cp $LINBODEFAULTCONF $LINBODIR/start.conf.$hostgroup; then
+					sed -e "s/^Server.*/Server = $serverip/
+						s/^Description.*/Description = Windows XP/
+						s/^Image.*/Image =/
+						s/^BaseImage.*/BaseImage = winxp-$hostgroup.cloop/" -i $LINBODIR/start.conf.$hostgroup
 					echo "Ok!"
 				else
 					echo "Error!"
@@ -383,6 +400,12 @@ if [ -s "$WIMPORTDATA" ]; then
 				sed -e "s/\/linbofs.*/\/linbofs.$hostgroup.gz/g" -i $LINBODIR/pxegrub.lst.$hostgroup ; RC_LINE=$?
 			fi
 
+			# if there is no pxelinux boot file for the group
+			if [ ! -s "$LINBODIR/pxelinux.cfg/$hostgroup" ]; then
+				# create one
+				sed -e "s/initrd=linbofs.gz/initrd=linbofs.$hostgroup.gz/g" $PXELINUXCFG > $LINBODIR/pxelinux.cfg/$hostgroup ; RC_LINE=$?
+			fi
+
 			if [ $RC_LINE -ne 0 ]; then
 				echo "Error!"
 				RC=1
@@ -400,20 +423,23 @@ if [ -s "$WIMPORTDATA" ]; then
 		echo "  fixed-address $ip;" >> $DHCPDCONF ; RC_LINE=$?
 		echo "  option host-name \"$hostname\";" >> $DHCPDCONF ; RC_LINE=$?
 		if [[ "$pxe" != "0" && "$imaging" = "linbo" ]]; then
-			# assign pxelinux.0 to clients which use grub.exe
+			# assign group specific pxelinux config to clients which use grub.exe
 			if grep ^Kernel $LINBODIR/start.conf.$hostgroup | awk -F\= '{ print $2 }' | awk '{ print $1 }' | grep -q grub.exe; then
-				echo "  filename \"pxelinux.0\";" >> $DHCPDCONF ; RC_LINE=$?
+				echo "  option pxelinux.configfile \"pxelinux.cfg/$hostgroup\";" >> $DHCPDCONF ; RC_LINE=$?
 			else
+				# this client uses pxegrub
 				# assign ip specific pxegrub.lst if present
 				if [ -e "$LINBODIR/pxegrub.lst-$ip" ]; then
 			    		echo "  option configfile \"/pxegrub.lst-$ip\";" >> $DHCPDCONF ; RC_LINE=$?
 				else
 			    		echo "  option configfile \"/pxegrub.lst.$hostgroup\";" >> $DHCPDCONF ; RC_LINE=$?
 				fi
-			fi
-			# alternative pxegrub
-			if stringinstring pxegrub $optional; then
-				echo "  filename \"/$optional\";" >> $DHCPDCONF ; RC_LINE=$?
+				# alternative pxegrub
+				bootfile=pxegrub
+				if stringinstring pxegrub "$optional"; then
+					[ -s "$LINBODIR/$optional" ] && bootfile="$optional"
+				fi
+				echo "  filename \"/$bootfile\";" >> $DHCPDCONF ; RC_LINE=$?
 			fi
 		fi
 		echo "}" >> $DHCPDCONF ; RC_LINE=$?
@@ -434,11 +460,12 @@ fi
 
 # creating/updateing group specific linbofs
 if [ "$imaging" = "linbo" ]; then
+	linbo_passwd=`grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }'`
+	[ -n "$linbo_passwd" ] && sophomorix-passwd --user linbo --pass $linbo_passwd 2>> $TMPLOG 1>> $TMPLOG
 	if [ -e "$LINBODIR/linbofs.gz" ]; then
 		FOUND=0; RC_LINE=0
 		echo "Processing LINBO groups:"
 		# md5sum of linbo password goes into ramdisk
-		linbo_passwd=`grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }'`
 		[ -n "$linbo_passwd" ] && linbo_md5passwd=`echo -n $linbo_passwd | md5sum | awk '{ print $1 }'`
 		# temp dir for ramdisk
 		tmpdir=/var/tmp/linbofs.$$
@@ -447,7 +474,24 @@ if [ "$imaging" = "linbo" ]; then
 		cd $tmpdir
 		zcat $LINBODIR/linbofs.gz | cpio -i -d -H newc --no-absolute-filenames &> /dev/null ; RC_LINE=$?
 		if [ $RC_LINE -eq 0 ]; then
+			# store linbo md5 password
 			[ -n "$linbo_md5passwd" ] && echo -n "$linbo_md5passwd" > etc/linbo_passwd
+			# create ssmtp.conf
+			mkdir -p etc/ssmtp
+			echo "mailhub=$serverip:25" > etc/ssmtp/ssmtp.conf
+			# patch default linbofs.gz
+			echo -n "  * default ... "
+			RC_LINE=0
+			cp -f $LINBODIR/start.conf .
+			find . | cpio --quiet -o -H newc | gzip -9c > $LINBODIR/linbofs.gz ; RC_LINE=$?
+			echo -e "[LINBOFS]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $LINBODIR/linbofs.gz | awk '{print $5}'`" > $LINBODIR/linbofs.gz.info ; RC_LINE=$?
+			if [ $RC_LINE -ne 0 ]; then
+				echo "Error!"
+				RC=1
+			else
+				echo "Ok!"
+			fi
+			# create linbofs.gz for all groups found in $WDATATMP
 			for i in `awk -F\; '{ print $3 }' $WDATATMP | sort -u`; do
 				RC_LINE=0
 				if [ -e "$LINBODIR/start.conf.$i" ]; then
@@ -490,13 +534,16 @@ if [ "$imaging" = "rembo" ]; then
 	echo "Processing mySHN groups:"
 	FOUND=0
 	for i in `awk -F\; '{ print $3 " " $11 }' $WDATATMP | grep -v -w 0 | awk '{ print $1 }' | sort -u`; do
-		if [ ! -e "$MYSHNDIR/groups/$i/config" ]; then
-			echo -n "  * Copying default config for group $i ... "
+	    OIFS="$IFS"
+	    IFS=","
+	    for g in $i; do
+		if [ ! -e "$MYSHNDIR/groups/$g/config" ]; then
+			echo -n "  * Copying default config for group $g ... "
 			FOUND=1; RC_LINE=0
-			if [ ! -d "$MYSHNDIR/groups/$i" ]; then
-				mkdir -p $MYSHNDIR/groups/$i 2>> $TMPLOG 1>> $TMPLOG; RC_LINE="$?"
+			if [ ! -d "$MYSHNDIR/groups/$g" ]; then
+				mkdir -p $MYSHNDIR/groups/$g 2>> $TMPLOG 1>> $TMPLOG; RC_LINE="$?"
 			fi
-			cp $MYSHNCONFIG $MYSHNDIR/groups/$i/config 2>> $TMPLOG 1>> $TMPLOG; RC_LINE="$?"
+			cp $MYSHNCONFIG $MYSHNDIR/groups/$g/config 2>> $TMPLOG 1>> $TMPLOG; RC_LINE="$?"
 			if [ $RC_LINE -eq 0 ]; then
 				echo "Ok!"
 			else
@@ -504,6 +551,8 @@ if [ "$imaging" = "rembo" ]; then
 				RC=1
 			fi
 		fi
+	    done
+	    IFS="$OIFS"
 	done
 	[ "$FOUND" = "0" ] && echo "  * Nothing to do!"
 fi

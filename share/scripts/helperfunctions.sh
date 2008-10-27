@@ -102,6 +102,20 @@ backup_file() {
 	return 0
 }
 
+# get legal distro name
+getdistname() {
+	local indexhtml=/var/www/paedml-default/index.html
+	local csshtml=/usr/share/schulkonsole/shtml/css.shtml.inc
+	local distname=""
+	if [ -s "$indexhtml" ]; then
+		if grep -q "$NONFREEDISTNAME" $indexhtml; then
+			grep -q "$NONFREEDISTNAME" $csshtml && distname="$NONFREEDISTNAME"
+		fi
+	fi
+	[ -z "$distname" ] && distname="$FREEDISTNAME"
+	echo "$distname"
+}
+
 ##########################
 # check parameter values #
 ##########################

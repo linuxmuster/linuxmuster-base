@@ -31,7 +31,7 @@ if  [ "$imaging" = "linbo" ]; then
 
 	# patch path to wimport_data in dist.conf
 	backup_file /usr/share/linuxmuster/config/dist.conf
-	sed -e "s/^WIMPORTDATA=.*/WIMPORTDATA=\"\/etc\/linuxmuster\/workstations\"/" -i /usr/share/linuxmuster/config/dist.conf
+	sed -e "s/^WIMPORTDATA=.*/WIMPORTDATA=\"\$SYSCONFDIR\/workstations\"/" -i /usr/share/linuxmuster/config/dist.conf
 
 	# grep rsync password from rembo.conf or if that fails take simply muster as password
 	if ! grep ^linbo: /etc/rsyncd.secrets &> /dev/null; then
@@ -122,6 +122,18 @@ if  [ "$imaging" = "linbo" ]; then
 		fi
 	fi
 
+	# check for linbo mail wrapper in /etc/aliases
+	if ! grep -q ^linbo: /etc/aliases; then
+		backup_file /etc/aliases
+		sed -e "/^root:/a\
+linbo: \"\|\/usr\/share\/linuxmuster-linbo\/mail2log.sh\"" -i /etc/aliases
+		newaliases
+	fi
+
+	# change owner of logdir to nobody
+	[ -d "$LOGDIR/linbo" ] || mkdir -p $LOGDIR/linbo
+	chown nobody $LOGDIR/linbo
+
 	# start necessary services
 	/etc/init.d/atftpd start
 	/etc/init.d/rsync start
@@ -129,9 +141,9 @@ if  [ "$imaging" = "linbo" ]; then
 else
 
 	# patch start variables of atftpd and rsync
-	[ -e /etc/default/atftpd ] && sed -e "s/^USE_INETD=.*/USE_INETD=true/" -i /etc/default/atftpd
-	[ -e /etc/default/rsync ] && sed -e "s/^RSYNC_ENABLE=.*/RSYNC_ENABLE=false/" -i /etc/default/rsync
-	[ -e /etc/default/linuxmuster-linbo ] && sed -e "s/^START_MULTICAST=.*/START_MULTICAST=no/" -i /etc/default/linuxmuster-linbo
+	[ -e /etc/default/atftpd ] && backup_file /etc/default/atftpd ; sed -e "s/^USE_INETD=.*/USE_INETD=true/" -i /etc/default/atftpd
+	[ -e /etc/default/rsync ] && backup_file /etc/default/rsync ; sed -e "s/^RSYNC_ENABLE=.*/RSYNC_ENABLE=false/" -i /etc/default/rsync
+	[ -e /etc/default/linuxmuster-linbo ] && backup_file /etc/default/linuxmuster-linbo ; sed -e "s/^START_MULTICAST=.*/START_MULTICAST=no/" -i /etc/default/linuxmuster-linbo
 
 	# remove tftp from inetd.conf
 	if grep -q tftp /etc/inetd.conf; then
@@ -140,4 +152,13 @@ else
 		mv /var/tmp/inetd.conf /etc
 	fi
 
+	# remove linbo mail wrapper from /etc/aliases
+	if grep -q ^linbo: /etc/aliases; then
+		backup_file /etc/aliases
+		grep -v ^linbo: /etc/aliases > /var/tmp/aliases
+		mv /var/tmp/aliases /etc/aliases
+		newaliases
+	fi
+
 fi
+

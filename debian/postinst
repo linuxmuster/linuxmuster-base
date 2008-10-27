@@ -22,11 +22,6 @@ set -e
 
 db_version 2.0
 
-releasenr=RC4
-releasename="paedML Linux 4.0.0"
-codename=Griffelschbitzer
-oldissue="paedML Linux 3.0"
-
 # check if all templates present
 for i in linuxmuster-base/intro linuxmuster-base/country linuxmuster-base/state \
          linuxmuster-base/location linuxmuster-base/schoolname shared/organization \
@@ -104,7 +99,7 @@ case "$1" in
 
       # check debian_version
       if [ "$(cat /etc/debian_version)" != "4.0" ]; then
-        echo "This is not Debian 4.0 Etch. Please upgrade your system!"
+        echo "Please upgrade your system to paedML Linux 4.0!"
         exit 0
       fi
 
@@ -390,28 +385,11 @@ export LANG" -i /etc/profile
 	# repair admin accounts and groupmappings
 	$SCRIPTSDIR/repair-admins.sh
 
-	# provide paedML index.html
+	# restore apache's default index.html
 	indexhtml=/var/www/apache2-default/index.html
-	template=${indexhtml}.tpl
-	if [ -e "$template" ]; then
-		if ! grep -q "$servername.$domainname" $indexhtml; then
-			[ -e "$indexhtml" ] && mv $indexhtml ${indexhtml}.dpkg-old
-			sed -e "s/@@servername@@/$servername/g
-			        s/@@domainname@@/$domainname/g" $template > $indexhtml
-		fi
-		# update version
-		if grep -q "$oldissue" $indexhtml; then
-			mv $indexhtml ${indexhtml}.dpkg-old
-			sed -e "s/$oldissue/$releasename/g" $template > $indexhtml
-		fi
-	fi
-
-	# updating release information
-	if ! grep -q "$releasenr" /etc/issue; then
-		buildnr=`cat /etc/issue | cut -f9 -d" "`
-		echo "$releasename / Release $releasenr / Build $buildnr / Codename $codename" > /etc/issue
-		cp /etc/issue /etc/issue.net
-		cat /etc/issue
+	if grep -q "paedML" $indexhtml; then
+		cp $indexhtml $indexhtml.dpkg-old
+		echo -n "<html><body><h1>It works!</h1></body></html>" > $indexhtml
 	fi
 
 	# removing passwd3 files (1.1-7)
@@ -440,7 +418,7 @@ export LANG" -i /etc/profile
 	if [ -n "$imaging" ]; then
 		case "$imaging" in
 			linbo|tivoli)
-				sed -e "s/^WIMPORTDATA=.*/WIMPORTDATA=\"\/etc\/linuxmuster\/workstations\"/" -i /usr/share/linuxmuster/config/dist.conf
+				sed -e "s/^WIMPORTDATA=.*/WIMPORTDATA=\"\$SYSCONFDIR\/workstations\"/" -i /usr/share/linuxmuster/config/dist.conf
 				if [[ -L "$SYSCONFDIR/workstations" && -f "$REMBOFILES/files/global/wimport_data" ]]; then
 					rm $SYSCONFDIR/workstations
 					cp $REMBOFILES/files/global/wimport_data $SYSCONFDIR/workstations
@@ -452,11 +430,18 @@ export LANG" -i /etc/profile
 		esac
 	fi
 
-	# remove obsolete unmount_shm from backup.conf (1.2-17)
+	# fixing backup.conf
+	# remove obsolete unmount_shm (1.2-17)
 	if grep -q ^unmount_shm /etc/linuxmuster/backup.conf; then
 		echo "Removing obsolete parameter unmount_shm from backup.conf ..."
 		cp /etc/linuxmuster/backup.conf /etc/linuxmuster/backup.conf.dpkg-old
 		sed -e 's/^unmount_shm.*/# obsolete with linuxmuster-base 1.2-17/' -i /etc/linuxmuster/backup.conf
+	fi
+	# change postgresql to postgresql-8.1 (1.4.36-paedml1)
+	if grep -q ,postgresql, /etc/linuxmuster/backup.conf; then
+		echo "Changing postgresql to postgresql-8.1 in backup.conf ..."
+		cp /etc/linuxmuster/backup.conf /etc/linuxmuster/backup.conf.dpkg-old
+		sed -e 's/,postgresql,/,postgresql-8.1,/g' -i /etc/linuxmuster/backup.conf
 	fi
 
 	# change obsolete cyrus21 to cyrus2.2 in services parameter in backup.conf (1.2-25)
@@ -497,12 +482,8 @@ export LANG" -i /etc/profile
 			cp $STATICTPLDIR/etc/rsyncd.conf /etc
 			/etc/init.d/rsync restart
 		fi
-		# updating/reparing dhcp configuration according to etch dhcp3-server (1.4-3)
-		grep -q ^next-server /etc/dhcp3/dhcpd.conf || dhcp_update=yes
-		grep -q ^filename /etc/dhcp3/dhcpd.conf || dhcp_update=yes
-		grep -q "server-identifier $servername;" /etc/dhcp3/dhcpd.conf || dhcp_update=yes
-		grep -q "server-name \"$servername.$domainname\";" /etc/dhcp3/dhcpd.conf || dhcp_update=yes
-		if [ -n "$dhcp_update" ]; then
+		# updating LINBO's dhcp configuration (1.4.36-paedml1)
+		if ! grep -q ^"# pxelinux options for LINBO" /etc/dhcp3/dhcpd.conf; then
 			echo "Updating dhcp-server configuration for LINBO ..."
 			cp /etc/dhcp3/dhcpd.conf /etc/dhcp3/dhcpd.conf.dpkg-old
 			dhcp_backup=yes
@@ -537,19 +518,21 @@ export LANG" -i /etc/profile
 		dhcp_reload=yes
 	fi
 
-	# reparing nagios2 apache2.conf
+	# reparing nagios2, apache2.conf
 	if ! grep -q "$basedn" /etc/nagios2/apache2.conf; then
 	sed -e "s/@@serverip@@/$serverip/
 		s/@@basedn@@/$basedn/" $DYNTPLDIR/22_nagios/apache2.conf > /etc/nagios2/apache2.conf
 		cp /etc/nagios2/apache2.conf /var/lib/linuxmuster-nagios/config/nagios2
 		ln -sf /etc/nagios2/apache2.conf /etc/apache2/conf.d/nagios2.conf
 	fi
-	if grep -q "PaedML 3.0" $SYSCONFDIR/nagios.conf; then
-		cp /etc/linuxmuster/nagios.conf /etc/linuxmuster/nagios.conf.dpkg-old
-		sed -e "s/PaedML 3.0/$releasename/g" -i /etc/linuxmuster/nagios.conf
-		cp /etc/nagios2/conf.d/linuxmuster_main.cfg /etc/nagios2/conf.d/linuxmuster_main.cfg.dpkg-old
-		sed -e "s/PaedML 3.0/$releasename/g" -i /etc/nagios2/conf.d/linuxmuster_main.cfg
-		/etc/init.d/nagios2 restart
+	if ! grep -q "$(getdistname)" $SYSCONFDIR/nagios.conf; then
+		cp $SYSCONFDIR/nagios.conf $SYSCONFDIR/nagios.conf.dpkg-old
+		sed -e "s/^DESC_SERVER=.*/DESC_SERVER=\"Server der $(getdistname) $DISTMAJORVERSION\"/
+			s/^DESC_FW=.*/DESC_FW=\"Firewall der $(getdistname) $DISTMAJORVERSION\"/
+			s/^DESC_SERVERGROUP=.*/DESC_SERVERGROUP=\"Server der $(getdistname) $DISTMAJORVERSION\"/" -i /etc/linuxmuster/nagios.conf
+		sed -e "s/Server der .*/Server der $(getdistname) $DISTMAJORVERSION/g
+			s/Firewall der .*/Firewall der $(getdistname) $DISTMAJORVERSION/g" -i /etc/nagios2/conf.d/linuxmuster_main.cfg
+		nagios_reload=yes
 	fi
 
 	# creating pam_ldap.secret link
@@ -576,6 +559,7 @@ export LANG" -i /etc/profile
 		fi
 	fi
 	if [ -d /usr/share/moodle ]; then
+		[[ -e /usr/share/moodle/moodle && ! -L /usr/share/moodle/moodle ]] && mv /usr/share/moodle/moodle /usr/share/moodle/moodle.dpkg-old
 		[ -L /usr/share/moodle/moodle ] || ln -s . /usr/share/moodle/moodle
 	fi
 
@@ -609,10 +593,37 @@ export LANG" -i /etc/profile
 		fi
 	fi
 
+	# fixing postgresql-8.1 pg_hba.conf (1.4.36-paedml1)
+	if grep -q ^"# changed for Ogo" /etc/postgresql/8.1/main/pg_hba.conf; then
+		echo "Removing Ogo entry from postgresql configuration ..."
+		echo "Warning: pg_hba.conf will be backupd up to pg_hba.conf.dpkg-old!"
+		cp /etc/postgresql/8.1/main/pg_hba.conf /etc/postgresql/8.1/main/pg_hba.conf.dpkg-old
+		cp $STATICTPLDIR/etc/postgresql/8.1/main/pg_hba.conf /etc/postgresql/8.1/main
+		postgres_reload=yes
+	fi
+
+	# ldap db user needs password (1.4.36-paedml1)
+	if ! grep -q ^Username=ldap /etc/linuxmuster/schulkonsole/db.conf; then
+		echo "Providing a random password for postgresql user ldap."
+		echo "Warning: db.conf will be backupd up to db.conf.dpkg-old!"
+		cp /etc/linuxmuster/schulkonsole/db.conf /etc/linuxmuster/schulkonsole/db.conf.dpkg-old
+		ldapdbpw=`pwgen -s 8 1`
+		psql -U postgres -d template1 -qc "ALTER USER ldap WITH PASSWORD '"$ldapdbpw"';"
+		sed -e "s/^Password=.*/Password=$ldapdbpw/" $STATICTPLDIR/etc/linuxmuster/schulkonsole/db.conf > /etc/linuxmuster/schulkonsole/db.conf
+		chown www-data:www-data /etc/linuxmuster/schulkonsole/db.conf*
+		chmod 400 /etc/linuxmuster/schulkonsole/db.conf*
+	fi
+
+	# updating release information
+	echo "$(getdistname) $DISTFULLVERSION / Codename $CODENAME" > /etc/issue
+	cp /etc/issue /etc/issue.net
+
         # reload services
 	apache2ctl graceful || true
+	[ -n "$nagios_reload" ] && /etc/init.d/nagios2 restart
 	[ -n "$dhcp_reload" ] && /etc/init.d/dhcp3-server force-reload
 	[ -n "$slapd_reload" ] && /etc/init.d/slapd restart
+	[ -n "$postgres_reload" ] && /etc/init.d/postgresql-8.1 reload
 	
 	# important message if upgrade is necessary
         if [ -n "$upgrade" ]; then

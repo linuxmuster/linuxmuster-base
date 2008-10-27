@@ -66,8 +66,10 @@ basedn="dc=`echo $domainname|sed 's/\./,dc=/g'`"
 echo "  * basedn=$basedn"
 echo 
 
-echo "Pruefe freien Platz unter /var/cache/apt/archives:"
-available=`LANG=C df -P /var/cache/apt/archives | grep -v Filesystem | awk '{ print $4 }'`
+PKGCACHE="/var/cache/apt/archives"
+
+echo "Pruefe freien Platz unter $PKGCACHE:"
+available=`LANG=C df -P $PKGCACHE | grep -v Filesystem | awk '{ print $4 }'`
 echo -n "  * ${available}kb sind verfügbar ... "
 if [ $available -ge 800000 ]; then
 	echo "Ok!"
@@ -76,11 +78,6 @@ else
 	echo "zu wenig! Sie benötigen mindestens 800000kb!"
 	exit 1
 fi
-
-releasenr=RC4
-releasename="paedML Linux 4.0.0"
-codename=Griffelschbitzer
-oldrelease="paedML Linux 3.0"
 
 nagiosbackupdir=$BACKUPDIR/nagios
 mkdir -p $nagiosbackupdir
@@ -186,7 +183,11 @@ done
 cp /etc/apt/apt.conf.etch /etc/apt/apt.conf
 cp /etc/apt/sources.list.etch /etc/apt/sources.list
 cat /etc/apt/sources.list.d/paedml40.list >> /etc/apt/sources.list
-cp /usr/share/linuxmuster/upgrade/preferences /etc/apt
+if [ -n "$cdrom" ]; then
+	cp /usr/share/linuxmuster/upgrade/preferences.cdrom /etc/apt/preferences
+else
+	cp /usr/share/linuxmuster/upgrade/preferences.online /etc/apt/preferences
+fi
 # add cdrom source if given
 #if [ -n "$cdrom" ]; then
 #	echo "deb file:///cdrom/ etch contrib main non-free" > /etc/apt/sources.list.tmp
@@ -225,7 +226,7 @@ if [ -n "$packages" ]; then
 		apt-get clean
 	fi
 	echo "Lade Software-Pakete herunter ..."
-	cd /var/cache/apt/archives
+	cd $PKGCACHE
 	aptitude -y download $packages
 	echo
 	echo -n "Überprüfe Downloads ... "
@@ -295,6 +296,10 @@ for i in $toremove; do
 		aptitude -y remove $i 2> /dev/null
 	fi
 done
+
+# vmware related
+[ -e /usr/X11R6/bin/X.BeforeVMwareToolsInstall ] && rm /usr/X11R6/bin/X.BeforeVMwareToolsInstall
+
 killall ntpd &> /dev/null
 aptitude -y purge nagios2 nagios2-common
 [ -d /etc/nagios2 ] && rm -rf /etc/nagios2
@@ -316,24 +321,22 @@ touch /usr/lib/cups/backend-available/dnssd
 echo
 
 
-if [ -n "$cdrom" ]; then
-	echo "Kopiere Software-Pakete in den Cache ..."
-	find /cdrom/pool/ -name \*.deb -exec cp '{}' /var/cache/apt/archives \;
-	echo
-fi
-
-
 # back to paedml40 apt
-echo -n "Aktualisiere Paketlisten ... "
 cd /etc/apt
 for i in *.paedml40; do
 	cp $i ${i%.paedml40}
 done
-# remove online sources temporarily
-#if [ -n "$cdrom" ]; then
-#	grep -v "deb http" /etc/apt/sources.list > /etc/apt/sources.list.tmp
-#	mv /etc/apt/sources.list.tmp /etc/apt/sources.list
-#fi
+cp sources.list.etch sources.list
+
+
+# copy deb files from CDROM to tmp dir, remove online sources temporarily
+if [ -n "$cdrom" ]; then
+	echo "Kopiere Software-Pakete in den Cache ..."
+	find /cdrom/pool/ -name \*.deb -exec cp '{}' $PKGCACHE \;
+	echo
+	mv /etc/apt/sources.list.d/paedml40.list /var/tmp
+fi
+echo -n "Aktualisiere Paketlisten ... "
 aptitude update &> /dev/null
 aptitude update 2>> $LOGFILE 1>> $LOGFILE
 apt-cache gencaches 2>> $LOGFILE 1>> $LOGFILE
@@ -356,11 +359,25 @@ echo "Aktualisiere apt ..."
 aptitude -y install apt-utils tasksel debian-archive-keyring dpkg locales
 # force apt to do ugly things during upgrade
 echo 'DPkg::Options {"--force-confold";"--force-confdef";"--force-bad-verify";"--force-overwrite";};' > /etc/apt/apt.conf.d/99upgrade
+echo 'APT::Get::AllowUnauthenticated "true";' >> /etc/apt/apt.conf.d/99upgrade
 reinstall "apt-utils tasksel debian-archive-keyring dpkg locales"
 echo
 
 
-# update again with authentication enabled
+# make a local repo
+if [ -n "$cdrom" ]; then
+	echo "Erstelle lokales Paket-Repository ..."
+	cd $PKGCACHE
+	apt-ftparchive packages ./ | gzip > Packages.gz
+	mv /etc/apt/sources.list /etc/apt/sources.list.tmp
+	echo "deb file://$PKGCACHE ./" > /etc/apt/sources.list
+	cat /etc/apt/sources.list.tmp >> /etc/apt/sources.list
+	rm /etc/apt/sources.list.tmp
+	echo
+fi
+
+
+# update again
 echo -n "Aktualisiere Paketlisten ..."
 aptitude update 2>> $LOGFILE 1>> $LOGFILE
 echo
@@ -446,11 +463,14 @@ echo
 
 
 # restore correct apt configuration
+echo "Aktualisiere APT-Konfiguration ..."
 cp /etc/apt/apt.conf.etch /etc/apt/apt.conf
 cp /etc/apt/sources.list.etch /etc/apt/sources.list
 rm /etc/apt/*.paedml40
 rm /etc/apt/preferences
+[ -n "$cdrom" ] && rm -rf $PKGCACHE/Packages*
 aptitude update 2>> $LOGFILE 1>> $LOGFILE
+echo
 
 
 # install desktop task
@@ -486,6 +506,32 @@ for i in $checkpackages; do
 	fi
 done
 echo
+
+
+# check for nonfree components
+basetplname=linuxmuster-schulkonsole-templates-base
+paedmltpldeb="$(ls -1r /var/cache/apt/archives/linuxmuster-schulkonsole-templates-paedml_*_all.deb 2> /dev/null)"
+if [ -n "$paedmltpldeb" ]; then
+	# check if base-template is installed and remove it
+	if ! dpkg -s $basetplname | grep ^Status | grep -q not-installed; then
+		echo "Deinstalliere $basetplname ..."
+		dpkg -r --force-all $basetplname &> /dev/null
+	fi
+	echo "Installiere $paedmltpldeb ..."
+	dpkg -i $paedmltpldeb
+fi
+indexpagedeb="$(ls -1r /var/cache/apt/archives/linuxmuster-indexpage_4.0-*_all.deb 2> /dev/null)"
+if [ -n "$indexpagedeb" ]; then
+	echo "Installiere $indexpagedeb ..."
+	dpkg -i $indexpagedeb
+fi
+
+
+# restore apache's default index.html
+indexhtml=/var/www/apache2-default/index.html
+if grep -q "paedML" $indexhtml; then
+	echo -n "<html><body><h1>It works!</h1></body></html>" > $indexhtml
+fi
 
 
 # we don't need that anymore
@@ -619,12 +665,6 @@ for i in apache2 nagios2; do
 done
 echo
 
-
-# repairing apache's index page 
-[ -e /var/www/apache2-default/index.html ] && backup_file /var/www/apache2-default/index.html
-sed -e "s/@@servername@@/$servername/g
-	s/@@domainname@@/$domainname/g" /var/www/apache2-default/index.html.tpl > /var/www/apache2-default/index.html
-
 # php settings
 [ -e /etc/php5/conf.d/paedml.ini ] || cp $STATICTPLDIR/etc/php5/conf.d/paedml.ini /etc/php5/conf.d
 
@@ -638,9 +678,9 @@ backup_file /etc/nagios2/apache2.conf
 sed -e "s/@@serverip@@/$serverip/
 	s/@@basedn@@/$basedn/" $DYNTPLDIR/22_nagios/apache2.conf > /etc/nagios2/apache2.conf
 backup_file /etc/linuxmuster/nagios.conf
-sed -e 's/PaedML 3.0/paedML 4.0.0/g' -i /etc/linuxmuster/nagios.conf
+sed -e "s/PaedML 3.0/$(getdistname) $DISTMAJORVERSION/g" -i /etc/linuxmuster/nagios.conf
 backup_file /etc/nagios2/conf.d/linuxmuster_main.cfg
-sed -e 's/PaedML 3.0/paedML 4.0.0/g' -i /etc/nagios2/conf.d/linuxmuster_main.cfg
+sed -e "s/PaedML 3.0/$(getdistname) $DISTMAJORVERSION/g" -i /etc/nagios2/conf.d/linuxmuster_main.cfg
 ln -sf /etc/nagios2/apache2.conf /etc/apache2/conf.d/nagios2.conf
 linuxmuster-nagios-setup
 echo
@@ -672,7 +712,7 @@ if ! grep -q ^TLS $slapdtpl || ! grep -q misc.schema $slapdtpl; then
 fi
 [ -e /etc/ldap/slapd.conf.custom ] || cp $STATICTPLDIR/etc/ldap/slapd.conf.custom /etc/ldap
 if ! grep -q ^TLS /etc/ldap/slapd.conf || ! grep -q misc.schema $slapdtpl; then
-	echo "Updateing openldap configuration ..."
+	echo "Aktualisiere LDAP-Konfiguration ..."
 	backup_file /etc/ldap/slapd.conf
 	backup_file /etc/default/slapd
 	rootpw=`grep ^rootpw /etc/ldap/slapd.conf | awk '{ print $2 }'`
@@ -685,9 +725,27 @@ if ! grep -q ^TLS /etc/ldap/slapd.conf || ! grep -q misc.schema $slapdtpl; then
 fi
 
 
+# reparing ipcop's timezone
+[ "$(LANG=C file -b /etc/timezone)" = "ASCII text" ] && timezone="$(cat /etc/timezone)"
+if [ -n "$timezone" ]; then
+	if exec_ipcop /bin/ls /usr/share/zoneinfo/posix/$timezone; then
+		echo "Repariere IPCop Zeitzone: $timezone ..."
+		exec_ipcop /bin/rm /etc/localtime
+		exec_ipcop /bin/cp /usr/share/zoneinfo/posix/$timezone /etc/localtime
+		exec_ipcop /usr/local/bin/restartntpd
+	fi
+fi
+
+
+if [ -n "$cdrom" ]; then
+	echo "Aktualisiere Paketlisten ..."
+	mv /var/tmp/paedml40.list /etc/apt/sources.list.d
+	aptitude update 2>> $LOGFILE 1>> $LOGFILE
+	echo
+fi
+
 # finally update release information
-buildnr=`cat /etc/issue | cut -f9 -d" "`
-echo "$releasename / Release $releasenr / Build $buildnr / Codename $codename" > /etc/issue
+echo "$(getdistname) $DISTFULLVERSION / Codename $CODENAME" > /etc/issue
 cp /etc/issue /etc/issue.net
 cat /etc/issue
 echo
