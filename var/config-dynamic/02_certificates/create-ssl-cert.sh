@@ -1,7 +1,7 @@
 #!/bin/sh
 # create ssl certificate script
 # for paedML Linux 4.0
-# 12.04.07 Thomas Schmitt <schmitt@lmz-bw.de>
+# 04.11.08 Thomas Schmitt <schmitt@lmz-bw.de>
 
 # modify this to your needs
 days=3650
@@ -36,9 +36,9 @@ cp $SSLCertificateKeyFile $SSLPemFile
 cat $SSLCertificateFile >> $SSLPemFile
 if [ "$SSLDir" = "/etc/ssl/private" ]; then
   chmod 640 $SSLPemFile
-  chown root:sasl $SSLPemFile
+  chown root:ssl-cert $SSLPemFile
   chmod 750 $SSLDir
-  chown root:sasl $SSLDir
+  chown root:ssl-cert $SSLDir
 fi
 echo
 echo "ssl certificate was created in $SSLDir and is $days days valid."

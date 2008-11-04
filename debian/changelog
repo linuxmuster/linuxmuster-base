@@ -1,9 +1,22 @@
+linuxmuster-base (1.4.37-paedml1) unstable; urgency=low
+
+  * postinst: fixed update of schulkonsole's db.conf
+  * repair-admins.sh: recreates now missing admin accounts, wwwadmin with samba
+    account deactivated, removing obsolete wwwadmin group, adding wwwadmin to
+    group administrators (544)
+  * removed repair-admins.sh from postinst and linuxmuster-setup
+  * create-ssl-cert.sh: fixed wrong group for /etc/ssl/private, has changed from sasl to ssl-cert
+  * added moodle rule to postgres' pg_hba.conf (repairing during postinst)
+  * changed version to 4.0.2
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 04 Nov 2008 14:56:40 +0100
+
 linuxmuster-base (1.4.36-paedml1) unstable; urgency=low
 
   * wimport.sh:
     - added creation of ssmtp.conf for group specific linbofs.gz files to wimport.sh
     - patching default linbofs.gz also with linbo md5 passwd file and default start.conf
-    - various modifactions for LINBO clients which use grub.exe
+    - various modifications for LINBO clients which use grub.exe
   * removed Ogo entry from postgresl's pg_hba.conf
   * created random password for db user ldap and placed it in schulkonsole's db.conf
   * changed postgresl to postgresl-8.1 in backup.conf

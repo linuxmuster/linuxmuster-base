@@ -373,17 +373,9 @@ export LANG" -i /etc/profile
 		fi
 	fi
 
-	# updating schulkonsole's db.conf
-	if grep -q ^"Username=ldap" /etc/linuxmuster/schulkonsole/db.conf; then
-		echo "Updating database configuration for linuxmuster-schulkonsole ..."
-		cp $STATICTPLDIR/etc/linuxmuster/schulkonsole/db.conf /etc/linuxmuster/schulkonsole/db.conf.obsolete
-		cp $STATICTPLDIR/etc/linuxmuster/schulkonsole/db.conf /etc/linuxmuster/schulkonsole
-		chown www-data:www-data /etc/linuxmuster/schulkonsole/db.conf*
-		chmod 600 /etc/linuxmuster/schulkonsole/db.conf*
-	fi
-
 	# repair admin accounts and groupmappings
-	$SCRIPTSDIR/repair-admins.sh
+	# no more necessary (1.4.37-paedml1)
+	#$SCRIPTSDIR/repair-admins.sh
 
 	# restore apache's default index.html
 	indexhtml=/var/www/apache2-default/index.html
@@ -563,8 +555,9 @@ export LANG" -i /etc/profile
 		[ -L /usr/share/moodle/moodle ] || ln -s . /usr/share/moodle/moodle
 	fi
 
-	# ssl-cert permissions
+	# repair ssl-cert permissions (1.4.37-paedml1)
 	chgrp ssl-cert /etc/ssl/private -R
+	grep -q root:sasl $SCRIPTSDIR/create-ssl-cert.sh && sed -e 's/root:sasl/root:ssl-cert/g' -i $SCRIPTSDIR/create-ssl-cert.sh
 
 	# adding tls support to slapd.conf
 	slapdtpl=/usr/share/sophomorix/config-templates/ldap/slapd-standalone.conf.template
@@ -574,7 +567,7 @@ export LANG" -i /etc/profile
 	fi
 	[ -e /etc/ldap/slapd.conf.custom ] || cp $STATICTPLDIR/etc/ldap/slapd.conf.custom /etc/ldap
 	if ! grep -q ^TLS /etc/ldap/slapd.conf || ! grep -q misc.schema /etc/ldap/slapd.conf; then
-		echo "Updateing openldap configuration ..."
+		echo "Updating openldap configuration ..."
 		cp /etc/ldap/slapd.conf /etc/ldap/slapd.conf.dpkg-old
 		rootpw=`grep ^rootpw /etc/ldap/slapd.conf | awk '{ print $2 }'`
 		sed -e "s/@@message1@@/${message1}/
@@ -593,9 +586,11 @@ export LANG" -i /etc/profile
 		fi
 	fi
 
-	# fixing postgresql-8.1 pg_hba.conf (1.4.36-paedml1)
-	if grep -q ^"# changed for Ogo" /etc/postgresql/8.1/main/pg_hba.conf; then
-		echo "Removing Ogo entry from postgresql configuration ..."
+	# fixing postgresql-8.1 pg_hba.conf (1.4.37-paedml1)
+	grep -q ^"# changed for Ogo" /etc/postgresql/8.1/main/pg_hba.conf && pg_update=yes
+	grep -q moodle /etc/postgresql/8.1/main/pg_hba.conf || pg_update=yes
+	if [ -n "$pg_update" ]; then
+		echo "Updating postgresql configuration ..."
 		echo "Warning: pg_hba.conf will be backupd up to pg_hba.conf.dpkg-old!"
 		cp /etc/postgresql/8.1/main/pg_hba.conf /etc/postgresql/8.1/main/pg_hba.conf.dpkg-old
 		cp $STATICTPLDIR/etc/postgresql/8.1/main/pg_hba.conf /etc/postgresql/8.1/main
@@ -603,9 +598,9 @@ export LANG" -i /etc/profile
 	fi
 
 	# ldap db user needs password (1.4.36-paedml1)
-	if ! grep -q ^Username=ldap /etc/linuxmuster/schulkonsole/db.conf; then
+	if ! grep -q "02.11.2008" /etc/linuxmuster/schulkonsole/db.conf; then
 		echo "Providing a random password for postgresql user ldap."
-		echo "Warning: db.conf will be backupd up to db.conf.dpkg-old!"
+		echo "Warning: Backing up /etc/linuxmuster/schulkonsole/db.conf to db.conf.dpkg-old!"
 		cp /etc/linuxmuster/schulkonsole/db.conf /etc/linuxmuster/schulkonsole/db.conf.dpkg-old
 		ldapdbpw=`pwgen -s 8 1`
 		psql -U postgres -d template1 -qc "ALTER USER ldap WITH PASSWORD '"$ldapdbpw"';"

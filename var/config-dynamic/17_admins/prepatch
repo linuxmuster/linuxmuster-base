@@ -50,5 +50,5 @@ fi
 # put administrator in teachersgroup
 smbldap-groupshow $TEACHERSGROUP | grep memberUid: | grep -qw $ADMINISTRATOR || smbldap-usermod -G $ADMINGROUP,$PRINTERADMINS,$TEACHERSGROUP $ADMINISTRATOR
 
-# reparing admin accounts
-$SCRIPTSDIR/repair-admins.sh
+# reparing admin accounts, obsolete
+#$SCRIPTSDIR/repair-admins.sh
