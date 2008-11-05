@@ -555,9 +555,12 @@ export LANG" -i /etc/profile
 		[ -L /usr/share/moodle/moodle ] || ln -s . /usr/share/moodle/moodle
 	fi
 
-	# repair ssl-cert permissions (1.4.37-paedml1)
+	# repair ssl-cert permissions (1.4.37-paedml1 & 1.4.38-paedml1)
 	chgrp ssl-cert /etc/ssl/private -R
-	grep -q root:sasl $SCRIPTSDIR/create-ssl-cert.sh && sed -e 's/root:sasl/root:ssl-cert/g' -i $SCRIPTSDIR/create-ssl-cert.sh
+	if grep -q root:sasl $SCRIPTSDIR/create-ssl-cert.sh; then
+		sed -e 's/root:sasl/root:ssl-cert/g' -i $SCRIPTSDIR/create-ssl-cert.sh
+		chmod 744 $SCRIPTSDIR/create-ssl-cert.sh
+	fi
 
 	# adding tls support to slapd.conf
 	slapdtpl=/usr/share/sophomorix/config-templates/ldap/slapd-standalone.conf.template
