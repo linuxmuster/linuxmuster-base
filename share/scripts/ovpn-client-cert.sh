@@ -5,8 +5,6 @@
 #
 # 02.07.2008
 
-#set -x
-
 # source linuxmuster defaults
 . /usr/share/linuxmuster/config/dist.conf || exit 1
 

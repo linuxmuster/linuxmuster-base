@@ -1,3 +1,9 @@
+linuxmuster-base (1.4.39-paedml1) unstable; urgency=low
+
+  * fixed executable permissions of ovpn-client-cert.sh
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 10 Nov 2008 17:15:10 +0100
+
 linuxmuster-base (1.4.38-paedml1) unstable; urgency=low
 
   * postinst: fixed non executable permissions of create-ssl-cert.sh after upgrade to 1.4.37
