@@ -1,3 +1,14 @@
+linuxmuster-base (1.4.40-paedml1) unstable; urgency=low
+
+  * decreased samba log level to 0 (closes #30)
+  * moved linbofs update from wimport.sh to script update-linbofs.sh in linuxmuster-linbo package
+  * fixed return codes in import_workstations and wimport.sh (closes #23)
+  * bugfix in linuxmuster-backup:
+    services were not restarted when script exits because backup medium runs out of space (closes #33)
+  * removed obsolete pxegrub handling from wimport.sh
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 19 Nov 2008 19:33:00 +0100
+
 linuxmuster-base (1.4.39-paedml1) unstable; urgency=low
 
   * fixed executable permissions of ovpn-client-cert.sh

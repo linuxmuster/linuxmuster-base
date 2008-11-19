@@ -4,6 +4,8 @@
 # wrapper script for serverbackup with mondo
 # schmitt@lmz-bw.de
 #
+# 19.11.2008
+#
 
 
 # source linuxmuster defaults
@@ -338,20 +340,24 @@ fi
 
 
 # create backup folder if necessary
+RC=0
 [ -d "$mountpoint/$isoprefix/$bfolder/cache" ] || mkdir -p $mountpoint/$isoprefix/$bfolder/cache
 if [ ! -d "$mountpoint/$isoprefix/$bfolder/cache" ]; then
 	[ -d "$mountpoint/$isoprefix/$bfolder" ] && rm -rf $mountpoint/$isoprefix/$bfolder
-	error "Mountpoint $mountpoint/$isoprefix/$bfolder/cache does not exist!"
+	echo "Cache directory $mountpoint/$isoprefix/$bfolder/cache does not exist!"
+	RC=1
 fi 
 
 
 # starting mondoarchive
-nice -n 19 mondoarchive $btypeparam -p $isoprefix $rtypeparam -I "$includedirs" -E "$mountpoint $excludedirs" -N -d $target -s ${mediasize}m -F -$compression -L
-status=$?
+if [ $RC -eq 0 ]; then
+	nice -n 19 mondoarchive $btypeparam -p $isoprefix $rtypeparam -I "$includedirs" -E "$mountpoint $excludedirs" -N -d $target -s ${mediasize}m -F -$compression -L
+	RC=$?
+fi
 
 
 # if mondoarchive exits cleanly
-if [ "$status" = "0" ]; then
+if [ "$RC" = "0" ]; then
 
 	echo "mondoarchive finished successfully!"
 
@@ -374,7 +380,7 @@ if [ "$status" = "0" ]; then
 				cp -a $mondoiso $mountpoint/$isoprefix/$bfolder
 			else
 				echo "Fatal! Cannot find mondorescue.iso!"
-				status=1
+				RC=1
 			fi
 			setstokeep=$keepfull
 			;;
@@ -431,7 +437,7 @@ else
 
 	fi
 
-fi # status = 0
+fi # RC = 0
 
 
 # cleaning up tmp dirs
@@ -503,15 +509,16 @@ rm $mypidfile
 
 
 # logging exit status
-echo $status > $LOGDIR/linuxmuster-backup.status
+echo $RC > $LOGDIR/linuxmuster-backup.status
 
 
 # all done
-if [ "$status" = "0" ]; then
+if [ "$RC" = "0" ]; then
 	echo "Done! :-)"
 else
 	echo "Done with mondoarchive error! :-("
 fi
 
 
-exit $status
+exit $RC
+

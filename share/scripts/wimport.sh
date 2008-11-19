@@ -1,7 +1,7 @@
 # workstation import for paedML Linux
 #
 # Thomas Schmitt <schmitt@lmz-bw.de>
-# 14.04.2008
+# 19.11.2008
 #
 # GPL v2
 #
@@ -12,6 +12,8 @@ WDATATMP=/var/tmp/workstations.$$
 MACHINE_PASSWORD=12345678
 HOST_PASSWORD=`pwgen -s 8 1`
 QUOTA=`grep ^'\$use_quota' $SOPHOMORIXCONF | awk -F\" '{ print $2 }' | tr A-Z a-z`
+
+RC=0
 
 # functions
 # check for unique entry
@@ -208,18 +210,6 @@ if [ "$imaging" = "linbo" ]; then
 		done
 	fi
 
-	# check for correct serverip in /etc/linuxmuster/linbo/pxegrub.lst.default
-	if ! grep -q $serverip $PXEGRUBCFG; then
-		echo -n "Fixing server ip in $PXEGRUBCFG ... "
-		backup_file $PXEGRUBCFG &> /dev/null
-		if sed -e "s/server=\([0-9]\{1,3\}[.]\)\{3\}[0-9]\{1,3\}/server=$serverip/" -i $PXEGRUBCFG; then
-			echo "Ok!"
-		else
-			echo "failed!"
-			RC=1
-		fi
-	fi
-
 fi
 
 
@@ -257,9 +247,7 @@ if [ -s "$WIMPORTDATA" ]; then
 		pxe=`echo $line | awk -F\; '{ print $11 }'`
 		[ -z "$pxe" ] && continue
 
-		optional=`echo $line | awk -F\; '{ print $12 }'`
-
-		echo "$room;$hostname;$hostgroup;$mac;$ip;$internmask;1;1;1;1;$pxe;$optional" >> $WDATATMP
+		echo "$room;$hostname;$hostgroup;$mac;$ip;$internmask;1;1;1;1;$pxe" >> $WDATATMP
 
 	done <$WIMPORTDATA
 
@@ -330,7 +318,6 @@ if [ -s "$WIMPORTDATA" ]; then
 		mac=`echo $line | awk -F\; '{ print $4 }'`
 		ip=`echo $line | awk -F\; '{ print $5 }'`
 		pxe=`echo $line | awk -F\; '{ print $11 }'`
-		optional=`echo $line | awk -F\; '{ print $12 }'`
 		echo "Processing host $hostname:"
 
 		# create workstation and machine accounts
@@ -366,7 +353,7 @@ if [ -s "$WIMPORTDATA" ]; then
 				if cp $LINBODEFAULTCONF $LINBODIR/start.conf.$hostgroup; then
 					sed -e "s/^Server.*/Server = $serverip/
 						s/^Description.*/Description = Windows XP/
-						s/^Image.*/Image =/
+						s/^Image.*/#Image =/
 						s/^BaseImage.*/BaseImage = winxp-$hostgroup.cloop/" -i $LINBODIR/start.conf.$hostgroup
 					echo "Ok!"
 				else
@@ -375,82 +362,41 @@ if [ -s "$WIMPORTDATA" ]; then
 				fi
 			fi
 
-			RC_LINE=0
 			echo -n "  * LINBO: Linking IP $ip to hostgroup $hostgroup ... "
 
 			# remove start.conf links but preserve start.conf file for this ip
 			if [[ -e "$LINBODIR/start.conf-$ip" && -L "$LINBODIR/start.conf-$ip" ]]; then
-				rm -rf $LINBODIR/start.conf-$ip ; RC_LINE=$?
+				rm $LINBODIR/start.conf-$ip
 			fi
 
 			# create start.conf link if there is no file for this ip
 			if [ ! -e "$LINBODIR/start.conf-$ip" ]; then
-				ln -sf start.conf.$hostgroup $LINBODIR/start.conf-$ip ; RC_LINE=$?
-			fi
-
-			# remove pxegrub.lst links but preserve pxegrub.lst file for this ip
-			if [[ -e "$LINBODIR/pxegrub.lst-$ip" && -L "$LINBODIR/pxegrub.lst-$ip" ]]; then
-				rm -rf $LINBODIR/pxegrub.lst-$ip ; RC_LINE=$?
-			fi
-
-			# if there is no pxegrub.lst file for the group
-			if [ ! -e "$LINBODIR/pxegrub.lst.$hostgroup" ]; then
-				# create one
-				cp $PXEGRUBCFG $LINBODIR/pxegrub.lst.$hostgroup ; RC_LINE=$?
-				sed -e "s/\/linbofs.*/\/linbofs.$hostgroup.gz/g" -i $LINBODIR/pxegrub.lst.$hostgroup ; RC_LINE=$?
+				ln -sf start.conf.$hostgroup $LINBODIR/start.conf-$ip
 			fi
 
 			# if there is no pxelinux boot file for the group
 			if [ ! -s "$LINBODIR/pxelinux.cfg/$hostgroup" ]; then
 				# create one
-				sed -e "s/initrd=linbofs.gz/initrd=linbofs.$hostgroup.gz/g" $PXELINUXCFG > $LINBODIR/pxelinux.cfg/$hostgroup ; RC_LINE=$?
+				sed -e "s/initrd=linbofs.gz/initrd=linbofs.$hostgroup.gz/g" $PXELINUXCFG > $LINBODIR/pxelinux.cfg/$hostgroup
 			fi
 
-			if [ $RC_LINE -ne 0 ]; then
-				echo "Error!"
-				RC=1
-			else
-				echo "Ok!"
-			fi
+			echo "Ok!"
 
 		fi
 
 		# write dhcpd.conf entry
-		RC_LINE=0
 		echo -n "  * DHCP: Writing entry for $hostname ... "
-		echo "host $hostname {" >> $DHCPDCONF ; RC_LINE=$?
-		echo "  hardware ethernet $mac;" >> $DHCPDCONF ; RC_LINE=$?
-		echo "  fixed-address $ip;" >> $DHCPDCONF ; RC_LINE=$?
-		echo "  option host-name \"$hostname\";" >> $DHCPDCONF ; RC_LINE=$?
+		echo "host $hostname {" >> $DHCPDCONF
+		echo "  hardware ethernet $mac;" >> $DHCPDCONF
+		echo "  fixed-address $ip;" >> $DHCPDCONF
+		echo "  option host-name \"$hostname\";" >> $DHCPDCONF
 		if [[ "$pxe" != "0" && "$imaging" = "linbo" ]]; then
-			# assign group specific pxelinux config to clients which use grub.exe
-			if grep ^Kernel $LINBODIR/start.conf.$hostgroup | awk -F\= '{ print $2 }' | awk '{ print $1 }' | grep -q grub.exe; then
-				echo "  option pxelinux.configfile \"pxelinux.cfg/$hostgroup\";" >> $DHCPDCONF ; RC_LINE=$?
-			else
-				# this client uses pxegrub
-				# assign ip specific pxegrub.lst if present
-				if [ -e "$LINBODIR/pxegrub.lst-$ip" ]; then
-			    		echo "  option configfile \"/pxegrub.lst-$ip\";" >> $DHCPDCONF ; RC_LINE=$?
-				else
-			    		echo "  option configfile \"/pxegrub.lst.$hostgroup\";" >> $DHCPDCONF ; RC_LINE=$?
-				fi
-				# alternative pxegrub
-				bootfile=pxegrub
-				if stringinstring pxegrub "$optional"; then
-					[ -s "$LINBODIR/$optional" ] && bootfile="$optional"
-				fi
-				echo "  filename \"/$bootfile\";" >> $DHCPDCONF ; RC_LINE=$?
-			fi
+			# assign group specific pxelinux config
+			echo "  option pxelinux.configfile \"pxelinux.cfg/$hostgroup\";" >> $DHCPDCONF
 		fi
-		echo "}" >> $DHCPDCONF ; RC_LINE=$?
+		echo "}" >> $DHCPDCONF
 
-		if [ $RC_LINE -ne 0 ]; then
-			echo "Error!"
-			RC=1
-		else
-			echo "Ok!"
-		fi
-
+		echo "Ok!"
 		echo
 
 	done <$WDATATMP
@@ -458,74 +404,10 @@ if [ -s "$WIMPORTDATA" ]; then
 fi
 
 
-# creating/updateing group specific linbofs
-if [ "$imaging" = "linbo" ]; then
-	linbo_passwd=`grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }'`
-	[ -n "$linbo_passwd" ] && sophomorix-passwd --user linbo --pass $linbo_passwd 2>> $TMPLOG 1>> $TMPLOG
-	if [ -e "$LINBODIR/linbofs.gz" ]; then
-		FOUND=0; RC_LINE=0
-		echo "Processing LINBO groups:"
-		# md5sum of linbo password goes into ramdisk
-		[ -n "$linbo_passwd" ] && linbo_md5passwd=`echo -n $linbo_passwd | md5sum | awk '{ print $1 }'`
-		# temp dir for ramdisk
-		tmpdir=/var/tmp/linbofs.$$
-		curdir=`pwd`
-		mkdir -p /var/tmp/linbofs.$$
-		cd $tmpdir
-		zcat $LINBODIR/linbofs.gz | cpio -i -d -H newc --no-absolute-filenames &> /dev/null ; RC_LINE=$?
-		if [ $RC_LINE -eq 0 ]; then
-			# store linbo md5 password
-			[ -n "$linbo_md5passwd" ] && echo -n "$linbo_md5passwd" > etc/linbo_passwd
-			# create ssmtp.conf
-			mkdir -p etc/ssmtp
-			echo "mailhub=$serverip:25" > etc/ssmtp/ssmtp.conf
-			# patch default linbofs.gz
-			echo -n "  * default ... "
-			RC_LINE=0
-			cp -f $LINBODIR/start.conf .
-			find . | cpio --quiet -o -H newc | gzip -9c > $LINBODIR/linbofs.gz ; RC_LINE=$?
-			echo -e "[LINBOFS]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $LINBODIR/linbofs.gz | awk '{print $5}'`" > $LINBODIR/linbofs.gz.info ; RC_LINE=$?
-			if [ $RC_LINE -ne 0 ]; then
-				echo "Error!"
-				RC=1
-			else
-				echo "Ok!"
-			fi
-			# create linbofs.gz for all groups found in $WDATATMP
-			for i in `awk -F\; '{ print $3 }' $WDATATMP | sort -u`; do
-				RC_LINE=0
-				if [ -e "$LINBODIR/start.conf.$i" ]; then
-					FOUND=1
-					echo -n "  * $i ... "
-					# adding group to start.conf
-					if grep -q ^Group $LINBODIR/start.conf.$i; then
-						sed -e "s/^Group.*/Group = $i/" -i $LINBODIR/start.conf.$i ; RC_LINE=$?
-					else
-						sed -e "/^Server/a\
-Group = $i" -i $LINBODIR/start.conf.$i ; RC_LINE=$?
-					fi
-					cp -f $LINBODIR/start.conf.$i start.conf ; RC_LINE=$?
-					find . | cpio --quiet -o -H newc | gzip -9c > $LINBODIR/linbofs.$i.gz ; RC_LINE=$?
-					echo -e "[LINBOFS]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $LINBODIR/linbofs.$i.gz | awk '{print $5}'`" > $LINBODIR/linbofs.$i.gz.info ; RC_LINE=$?
-					if [ $RC_LINE -ne 0 ]; then
-						echo "Error!"
-						RC=1
-					else
-						echo "Ok!"
-					fi
-				fi
-			done
-		else
-			echo "  * Decompressing of $LINBODIR/linbofs.gz failed!"
-			RC=1; FOUND=1
-		fi
-		cd $curdir
-		rm -rf $tmpdir
-		[ "$FOUND" = "0" ] && echo "  * Nothing to do!"
-	else
-		echo "Error: $LINBODIR/linbofs.gz not found!"
-		RC=1
-	fi
+# creating/updating group specific linbofs
+if [ "$imaging" = "linbo" -a -e "$LINBOUPDATE" ]; then
+	$LINBOUPDATE; RC_LINE=$?
+	[ $RC_LINE -ne 0 ] && RC=1
 fi
 
 
@@ -541,7 +423,7 @@ if [ "$imaging" = "rembo" ]; then
 			echo -n "  * Copying default config for group $g ... "
 			FOUND=1; RC_LINE=0
 			if [ ! -d "$MYSHNDIR/groups/$g" ]; then
-				mkdir -p $MYSHNDIR/groups/$g 2>> $TMPLOG 1>> $TMPLOG; RC_LINE="$?"
+				mkdir -p $MYSHNDIR/groups/$g 2>> $TMPLOG 1>> $TMPLOG
 			fi
 			cp $MYSHNCONFIG $MYSHNDIR/groups/$g/config 2>> $TMPLOG 1>> $TMPLOG; RC_LINE="$?"
 			if [ $RC_LINE -eq 0 ]; then
@@ -569,22 +451,20 @@ echo "Checking for obsolete hosts:"
 if ls $WSHOME/*/* &> /dev/null; then
 	for i in $WSHOME/*/*; do
 
-		RC_LINE=0
-
 		hostname=${i##*/}
 		if ! grep -qw $hostname $WDATATMP; then
 			FOUND=1
-			remove_account; RC_LINE="$?"
-			[ $RC_LINE -ne 0 ] && RC=1
+			remove_account ; RC_LINE="$?"
+			[ $RC_LINE -eq 0 ] || RC=1
 
 			if grep -v ^# $PRINTERS | grep -qw $hostname; then
-				remove_printeraccess $hostname; RC_LINE="$?"
-				[ $RC_LINE -ne 0 ] && RC=1
+				remove_printeraccess $hostname ; RC_LINE="$?"
+				[ $RC_LINE -eq 0 ] || RC=1
 			fi
 
 			if grep -q ^$hostname[[:space:]] $ROOMDEFAULTS; then
-				remove_defaults $hostname; RC_LINE="$?"
-				[ $RC_LINE -ne 0 ] && RC=1
+				remove_defaults $hostname ; RC_LINE="$?"
+				[ $RC_LINE -eq 0 ] || RC=1
 			fi
 		fi
 
@@ -597,8 +477,6 @@ FOUND=0
 echo
 echo "Checking for obsolete rooms:"
 for room in $rooms; do
-
-	RC_LINE=0
 
 	if ! grep -qw $room $WDATATMP; then
 		FOUND=1
@@ -613,21 +491,16 @@ for room in $rooms; do
 		if grep -qw ^$room $CLASSROOMS; then
 			echo -n "  * Removing $room from $CLASSROOMS ... "
 			backup_classrooms=yes
-			grep -wv ^$room $CLASSROOMS > $CLASSROOMS.tmp; RC_LINE=$?
-			mv $CLASSROOMS.tmp $CLASSROOMS; RC_LINE=$?
-			if [ $RC_LINE -ne 0 ]; then
-				echo "Error!"
-				RC=1
-			else
-				echo "Ok!"
-			fi
+			grep -wv ^$room $CLASSROOMS > $CLASSROOMS.tmp
+			mv $CLASSROOMS.tmp $CLASSROOMS
+			echo "Ok!"
 		fi
 
 		grep -q ^$room[[:space:]] $ROOMDEFAULTS && remove_defaults $room
 
 		if grep -v ^# $PRINTERS | grep -qw $room; then
-			remove_printeraccess $room; RC_LINE="$?"
-			[ $RC_LINE -ne 0 ] && RC=1
+			remove_printeraccess $room ; RC_LINE="$?"
+			[ $RC_LINE -eq 0 ] || RC=1
 		fi
 	fi
 
@@ -649,3 +522,7 @@ echo
 # delete tmp files
 rm $WDATATMP
 [ -n "$PRINTERSTMP" ] && [ -e "$PRINTERSTMP" ] && rm -rf $PRINTERSTMP
+
+# exit with return code
+exit $RC
+
