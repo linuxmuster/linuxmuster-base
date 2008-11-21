@@ -1,8 +1,8 @@
-linuxmuster-base (1.4.40-2) unstable; urgency=low
+linuxmuster-base (1.4.41-1) unstable; urgency=low
 
-  * rebuild package because of wrong version gets online, removed paedml from revision
+  * rebuild because a wrong test package was in repo, removed paedml from revision
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 21 Nov 2008 16:36:25 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 21 Nov 2008 16:51:01 +0100
 
 linuxmuster-base (1.4.40-paedml1) unstable; urgency=low
 
