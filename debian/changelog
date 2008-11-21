@@ -1,3 +1,9 @@
+linuxmuster-base (1.4.40-2) unstable; urgency=low
+
+  * rebuild package because of wrong version gets online, removed paedml from revision
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 21 Nov 2008 16:36:25 +0100
+
 linuxmuster-base (1.4.40-paedml1) unstable; urgency=low
 
   * decreased samba log level to 0 (closes #30)
@@ -7,7 +13,7 @@ linuxmuster-base (1.4.40-paedml1) unstable; urgency=low
     services were not restarted when script exits because backup medium runs out of space (closes #33)
   * removed obsolete pxegrub handling from wimport.sh
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 19 Nov 2008 19:33:00 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 19 Nov 2008 20:34:36 +0100
 
 linuxmuster-base (1.4.39-paedml1) unstable; urgency=low
 
