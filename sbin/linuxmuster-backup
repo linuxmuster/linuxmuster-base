@@ -4,7 +4,7 @@
 # wrapper script for serverbackup with mondo
 # schmitt@lmz-bw.de
 #
-# 19.11.2008
+# 23.11.2008
 #
 
 
@@ -15,10 +15,12 @@
 # source helperfunctions
 . $HELPERFUNCTIONS || exit 1
 
+# default return code
+RC=0
 
 # default values
-mondocache=/var/cache/mondo-archive
-cachefiles="difflevel.0 mondo-restore.cfg mountlist.txt"
+mondocache=/var/cache/mondo
+difflevel="difflevel.0"
 verify=yes
 isoprefix=server
 mediasize=650
@@ -167,8 +169,7 @@ case $restoremethod in
 	;;
 
     *)
-	echo "Unknown restore method!"
-	error
+	error "Unknown restore method!"
 	;;
 
 esac
@@ -282,6 +283,7 @@ case $btype in
 		else
 
 			echo "Last full backup set not found!"
+			RC=1
 
 		fi
 		;;
@@ -296,6 +298,7 @@ case $btype in
 		else
 
 			echo "Last backup set not found!"
+			RC=1
 
 		fi
 		;;
@@ -311,28 +314,24 @@ if [ "$btype" != "full" ]; then
 
 	if [ -d "$lastset/cache" ]; then
 
-		# test if all cachefiles are present
-		echo "Testing cachefiles in $lastset/cache ..."
-		STATUS=0
-		for i in $cachefiles; do
-			[ -e "$lastset/cache/$i" ] || STATUS=1
-		done
+		# test if difflevel file is present
+		if [ -s "$lastset/cache/$difflevel" ]; then
 
-		if [ "$STATUS" -eq 0 ]; then
-
-			echo "Restoring cache from $lastset/cache ..."
-			rsync -a --delete $lastset/cache/ $mondocache/
+			echo "Restoring difflevel from $lastset/cache ..."
+			cp -f $lastset/cache/$difflevel $mondocache/ || RC=1
 
 		else
 
-			echo "At least one of $cachefiles is missing!"
-			echo "Cannot restore cache!"
+			echo "$lastset/cache/$difflevel is missing!"
+			echo "Cannot restore difflevel!"
+			RC=1
 
 		fi
 
 	else
 
-		echo "$lastset/cache does not exist! Cannot restore cache!"
+		echo "Cache directory $lastset/cache does not exist! Cannot restore difflevel!"
+		RC=1
 
 	fi
 
@@ -340,7 +339,6 @@ fi
 
 
 # create backup folder if necessary
-RC=0
 [ -d "$mountpoint/$isoprefix/$bfolder/cache" ] || mkdir -p $mountpoint/$isoprefix/$bfolder/cache
 if [ ! -d "$mountpoint/$isoprefix/$bfolder/cache" ]; then
 	[ -d "$mountpoint/$isoprefix/$bfolder" ] && rm -rf $mountpoint/$isoprefix/$bfolder
@@ -351,7 +349,7 @@ fi
 
 # starting mondoarchive
 if [ $RC -eq 0 ]; then
-	nice -n 19 mondoarchive $btypeparam -p $isoprefix $rtypeparam -I "$includedirs" -E "$mountpoint $excludedirs" -N -d $target -s ${mediasize}m -F -$compression -L
+	nice -n 19 mondoarchive $btypeparam -p $isoprefix $rtypeparam -I "$includedirs" -E "$mountpoint $excludedirs" -N -d $target -s ${mediasize}m -$compression -L
 	RC=$?
 fi
 
@@ -361,9 +359,9 @@ if [ "$RC" = "0" ]; then
 
 	echo "mondoarchive finished successfully!"
 
-	# store cache files
-	echo "Storing cache to $mountpoint/$isoprefix/$bfolder/cache ..."
-	rsync -a --delete $mondocache/ $mountpoint/$isoprefix/$bfolder/cache/
+	# store difflevel
+	echo "Storing difflevel to $mountpoint/$isoprefix/$bfolder/cache ..."
+	cp -f $mondocache/$difflevel $mountpoint/$isoprefix/$bfolder/cache/
 
 	case $btype in
 
@@ -388,12 +386,12 @@ if [ "$RC" = "0" ]; then
 		diff)
 			setstokeep=$keepdiff
 			# store difflevel
-			echo $backuptime > $mountpoint/$isoprefix/$bfolder/cache/difflevel.0
+			echo $backuptime > $mountpoint/$isoprefix/$bfolder/cache/$difflevel
 			;;
 
 		inc)
 			setstokeep=$keepinc
-			echo $backuptime > $mountpoint/$isoprefix/$bfolder/cache/difflevel.0
+			echo $backuptime > $mountpoint/$isoprefix/$bfolder/cache/$difflevel
 			;;
 
 	esac
