@@ -26,7 +26,6 @@ if [[ "$1" = "--first" || "$update_fw" = "yes" ]]; then
 		# setting ipcop ram to 128mb if server ram is greater than 1 GB
 		MEM=64M
 		[[ $memtotal -gt 1048576 ]] && MEM=128M
-		[[ $memtotal -gt 2097152 ]] && MEM=256M
 
 		# detect host architecture and set SKAS_KERNEL=no if amd64 or xen
 		skas=yes
