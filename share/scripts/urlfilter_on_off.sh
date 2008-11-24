@@ -1,7 +1,10 @@
-#!/bin/sh
+#!/bin/bash
+#
 # add|remove ips to|from urlfilter
-
-#set -x
+#
+# Thomas Schmitt <schmitt@lmz-bw.de>
+# 24.11.2008
+#
 
 # source linuxmuster defaults
 . /usr/share/linuxmuster/config/dist.conf || exit 1
@@ -33,10 +36,6 @@ checklock || exit 1
 # check if urlfilter is active at all
 check_urlfilter || cancel "Urlfilter is not active!"
 
-# tmpdir & file
-tmpdir=/var/tmp/urlfilter.$$
-tmpfile=$tmpdir/unfilter.tmp
-
 # parse hostlist
 n=0
 OIFS=$IFS
@@ -67,54 +66,46 @@ nr_of_ips=$m
 get_ipcop /var/ipcop/urlfilter/settings $CACHEDIR/urlfilter.settings &> /dev/null || cancel "Download of urlfilter settings failed!"
 . $CACHEDIR/urlfilter.settings &> /dev/null || cancel "Cannot read urlfilter settings!"
 
-# strip ip from $UNFILTERED_CLIENTS
+# strip ip from $IPLIST
 strip_ip() {
 
-  ip=$1
-  [ -z "$ip" ] && return
-
-  [ -d "$tmpdir" ] || mkdir -p $tmpdir
-  [ -e "$tmpfile" ] && rm $tmpfile
-
-  for i in $UNFILTERED_CLIENTS; do
-    echo $i >> $tmpfile
-  done
-
-  grep -vw $ip $tmpfile > ${tmpfile}.new
-
-  UNFILTERED_CLIENTS=`cat ${tmpfile}.new`
+  IPLIST=${IPLIST/$1/}
+  IPLIST=${IPLIST/  / }
+  strip_spaces "$IPLIST"
+  IPLIST="$RET"
 
 } # strip_ip
 
-# add ips to unfiltered clients
+# add ips to list
 if [ "$trigger" = "off" ]; then
 
   n=0
   while [[ $n -lt $nr_of_ips ]]; do
-    echo "$UNFILTERED_CLIENTS" | grep -wq ${ip[$n]} || UNFILTERED_CLIENTS="$UNFILTERED_CLIENTS ${ip[$n]}"
+    if ! echo "$IPLIST" | grep -wq "${ip[$n]}"; then
+      if [ -z "$IPLIST" ]; then
+	IPLIST="${ip[$n]}"
+      else
+	IPLIST="$IPLIST ${ip[$n]}"
+      fi
+    fi
     let n+=1
   done
 
-else # remove ip from list
+else # remove ips from list
 
   n=0
   while [[ $n -lt $nr_of_ips ]]; do
-    echo "$UNFILTERED_CLIENTS" | grep -wq ${ip[$n]} && strip_ip ${ip[$n]}
+    echo "$IPLIST" | grep -wq "${ip[$n]}" && strip_ip "${ip[$n]}"
     let n+=1
   done
 
 fi
 
 # remove serverip from ip list
-strip_ip $serverip
-
-# stripping spaces
-UNFILTERED_CLIENTS="${UNFILTERED_CLIENTS//  / }"
-strip_spaces "$UNFILTERED_CLIENTS"
-UNFILTERED_CLIENTS="$RET"
+strip_ip "$serverip"
 
 # uploading new iplist and restarting proxy
-exec_ipcop /var/linuxmuster/linuxmuster-unfilter.pl "$serverip $UNFILTERED_CLIENTS" || cancel "IP upload to IPCop failed!"
+exec_ipcop /var/linuxmuster/linuxmuster-unfilter.pl "$serverip $IPLIST" || cancel "IP upload to IPCop failed!"
 
 # renew list of unfiltered hosts
 # delete old list
@@ -124,8 +115,8 @@ fi
 touch $UNFILTEREDHOSTS || cancel "Cannot create $UNFILTEREDHOSTS!"
 
 # create new list
-if [ -n "$UNFILTERED_CLIENTS" ]; then
-  for i in $UNFILTERED_CLIENTS; do
+if [ -n "$IPLIST" ]; then
+  for i in $IPLIST; do
     get_mac $i || cancel "Read failure! Cannot determine mac address!"
     if [ -n "$RET" ]; then
       echo $RET >> $UNFILTEREDHOSTS || cancel "Cannot write $UNFILTEREDHOSTS!"
@@ -134,10 +125,8 @@ if [ -n "$UNFILTERED_CLIENTS" ]; then
 fi
 
 # end, delete lockfile and cache files
-[ -d "$tmpdir" ] && rm -rf $tmpdir
 rm -f $CACHEDIR/urlfilter.settings
 rm -f $lockflag || exit 1
 
 echo "Success!"
 
-exit 0
