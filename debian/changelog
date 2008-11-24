@@ -4,7 +4,7 @@ linuxmuster-base (1.4.42-1) testing; urgency=low
   * bugfix in urlfilter_on_off.sh: similar ips were not processed (closes #37)
   * bugfix in linuxmuster-setup: limited integrated IPCop's maxmem to 128MB
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 24 Nov 2008 14:39:44 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 24 Nov 2008 18:03:41 +0100
 
 linuxmuster-base (1.4.41-1) unstable; urgency=low
 

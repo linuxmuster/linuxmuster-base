@@ -65,14 +65,24 @@ nr_of_ips=$m
 [ -e "$CACHEDIR/urlfilter.settings" ] && rm -f $CACHEDIR/urlfilter.settings
 get_ipcop /var/ipcop/urlfilter/settings $CACHEDIR/urlfilter.settings &> /dev/null || cancel "Download of urlfilter settings failed!"
 . $CACHEDIR/urlfilter.settings &> /dev/null || cancel "Cannot read urlfilter settings!"
+IPLIST="$UNFILTERED_CLIENTS"
 
 # strip ip from $IPLIST
 strip_ip() {
 
-  IPLIST=${IPLIST/$1/}
-  IPLIST=${IPLIST/  / }
-  strip_spaces "$IPLIST"
-  IPLIST="$RET"
+  [ -z "$IPLIST" ] && return 0
+  local IPLIST_NEW=""
+  local i
+  for i in $IPLIST; do
+    if [ "$i" != "$1" ]; then
+      if [ -z "$IPLIST_NEW" ]; then
+        IPLIST_NEW="$i"
+      else
+        IPLIST_NEW="$IPLIST_NEW $i"
+      fi
+    fi
+  done
+  IPLIST="$IPLIST_NEW"
 
 } # strip_ip
 
