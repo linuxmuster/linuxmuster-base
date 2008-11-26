@@ -4,7 +4,7 @@
 # wrapper script for serverbackup with mondo
 # schmitt@lmz-bw.de
 #
-# 23.11.2008
+# 26.11.2008
 #
 
 
@@ -15,12 +15,10 @@
 # source helperfunctions
 . $HELPERFUNCTIONS || exit 1
 
-# default return code
-RC=0
 
 # default values
 mondocache=/var/cache/mondo
-difflevel="difflevel.0"
+cachefiles="difflevel.0"
 verify=yes
 isoprefix=server
 mediasize=650
@@ -169,7 +167,8 @@ case $restoremethod in
 	;;
 
     *)
-	error "Unknown restore method!"
+	echo "Unknown restore method!"
+	error
 	;;
 
 esac
@@ -206,41 +205,23 @@ stmp=/var/tmp/tmp.services.$mypid
 
 # shut down services
 if [ -n "$services" ]; then
-
 	echo "Shutting down services ..."
-
 	if [ "$services" = "all" ]; then
-
 		for s in `ls -r /etc/rc${rl}.d/S*`; do
-
 			$s stop
-
 		done
-	
 	else
-
 		for s in $services; do
-
 			[ -e /etc/rc${rl}.d/S??${s} ] && echo /etc/rc${rl}.d/S??${s} >> $stmp
-
 		done
-
 		if [ -s "$stmp" ]; then
-
 			for s in `sort -r $stmp`; do
-
 				$s stop
-
 			done
-
 		else
-
 			echo "No services to shut down!"
-
 		fi
-
 	fi
-
 fi
 
 
@@ -269,72 +250,53 @@ echo
 # storing backup time in unix format
 backuptime=`date +%s`
 
+RC=0
 
 # determine last backup set
 case $btype in
-
 	diff)
 		# difflevel of last full backup
 		if sets=`ls -dr $mountpoint/$isoprefix/*-*_full`; then
-
 			lastset=`echo $sets | awk '{ print $1 }'`
 			echo "Found last full backup set in $lastset."
-			
 		else
-
 			echo "Last full backup set not found!"
 			RC=1
-
 		fi
 		;;
-
 	inc)
 		# difflevel of last backup (full, diff or inc)
 		if sets=`ls -dr $mountpoint/$isoprefix/*-*_* | grep -G _[dfi][inu][cfl]`; then
-
 			lastset=`echo $sets | awk '{ print $1 }'`
 			echo "Found last backup set in $lastset."
-			
 		else
-
 			echo "Last backup set not found!"
 			RC=1
-
 		fi
 		;;
-
 	*)
 		;;
-
 esac
-
 
 # restore mondo-archive cache if no full backup
 if [ "$btype" != "full" ]; then
-
 	if [ -d "$lastset/cache" ]; then
-
-		# test if difflevel file is present
-		if [ -s "$lastset/cache/$difflevel" ]; then
-
-			echo "Restoring difflevel from $lastset/cache ..."
-			cp -f $lastset/cache/$difflevel $mondocache/ || RC=1
-
+		# test if all cachefiles are present
+		echo "Testing cachefiles in $lastset/cache ..."
+		for i in $cachefiles; do
+			[ -e "$lastset/cache/$i" ] || RC=1
+		done
+		if [ "$RC" -eq 0 ]; then
+			echo "Restoring cache from $lastset/cache ..."
+			rsync -a --delete $lastset/cache/ $mondocache/
 		else
-
-			echo "$lastset/cache/$difflevel is missing!"
-			echo "Cannot restore difflevel!"
-			RC=1
-
+			echo "At least one of $cachefiles is missing!"
+			echo "Cannot restore cache!"
 		fi
-
 	else
-
-		echo "Cache directory $lastset/cache does not exist! Cannot restore difflevel!"
+		echo "$lastset/cache does not exist! Cannot restore cache!"
 		RC=1
-
 	fi
-
 fi
 
 
@@ -347,10 +309,28 @@ if [ ! -d "$mountpoint/$isoprefix/$bfolder/cache" ]; then
 fi 
 
 
+# remove backupdevice from fstab
+if [ $RC -eq 0 ]; then
+	if grep -q ^$backupdevice /etc/fstab; then
+		echo "Removing backup device $backupdevice from /etc/fstab!"
+		fstabtmp=/var/tmp/fstab.$$
+		cp -f /etc/fstab $fstabtmp || RC=1
+		grep -v $backupdevice $fstabtmp > /etc/fstab || RC=1
+	fi
+fi
+
+
 # starting mondoarchive
 if [ $RC -eq 0 ]; then
 	nice -n 19 mondoarchive $btypeparam -p $isoprefix $rtypeparam -I "$includedirs" -E "$mountpoint $excludedirs" -N -d $target -s ${mediasize}m -$compression -L
 	RC=$?
+fi
+
+
+# restoring fstab
+if [ -n "$fstabtmp" -a -e "$fstabtmp" ]; then
+	echo "Restoring /etc/fstab!"
+	mv -f $fstabtmp /etc/fstab
 fi
 
 
@@ -359,9 +339,9 @@ if [ "$RC" = "0" ]; then
 
 	echo "mondoarchive finished successfully!"
 
-	# store difflevel
-	echo "Storing difflevel to $mountpoint/$isoprefix/$bfolder/cache ..."
-	cp -f $mondocache/$difflevel $mountpoint/$isoprefix/$bfolder/cache/
+	# store cache files
+	echo "Storing cache to $mountpoint/$isoprefix/$bfolder/cache ..."
+	rsync -a --delete $mondocache/ $mountpoint/$isoprefix/$bfolder/cache/
 
 	case $btype in
 
@@ -386,12 +366,12 @@ if [ "$RC" = "0" ]; then
 		diff)
 			setstokeep=$keepdiff
 			# store difflevel
-			echo $backuptime > $mountpoint/$isoprefix/$bfolder/cache/$difflevel
+			echo $backuptime > $mountpoint/$isoprefix/$bfolder/cache/difflevel.0
 			;;
 
 		inc)
 			setstokeep=$keepinc
-			echo $backuptime > $mountpoint/$isoprefix/$bfolder/cache/$difflevel
+			echo $backuptime > $mountpoint/$isoprefix/$bfolder/cache/difflevel.0
 			;;
 
 	esac

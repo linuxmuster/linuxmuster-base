@@ -1,3 +1,11 @@
+linuxmuster-base (1.4.43-1) testing; urgency=low
+
+  * linuxmuster-backup:
+    - minor improvements in handling incremental and differential backupsets
+    - backup device will be temporarily removed from fstab during backup
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 26 Nov 2008 18:43:19 +0100
+
 linuxmuster-base (1.4.42-1) testing; urgency=low
 
   * modified linuxmuster-backup according to mondo/mindi 2.2.7
