@@ -495,6 +495,12 @@ echo
 RC=0 ; failed_packages=""
 echo "Überprüfe installierte Pakete:"
 for i in $checkpackages; do
+	if [ "$i" = "rembo" -o "$i" = "myshn" ]; then
+		[ "$imaging" = "rembo" ] || continue
+	fi
+	if [ "$i" = "linuxmuster-linbo" ]; then
+		[ "$imaging" = "linbo" ] || continue
+	fi
 	unset status
 	status=`dpkg -s $i | grep ^Status`
 	if echo "$status" | grep -q "install ok installed"; then
@@ -671,7 +677,8 @@ echo
 
 # restore nagios2 configuration
 echo "Stelle Nagios2-Konfiguration wieder her ..."
-rm -rf /etc/nagios2
+# test
+#rm -rf /etc/nagios2
 tar xzf $nagiosbackup -C /
 [ -e /etc/nagios2/resource.cfg ] || echo "# dummy config file created by paedML's etch-upgrade script" > /etc/nagios2/resource.cfg
 backup_file /etc/nagios2/apache2.conf
@@ -744,10 +751,21 @@ if [ -n "$cdrom" ]; then
 	echo
 fi
 
-# finally update release information
+# update release information
 echo "$(getdistname) $DISTFULLVERSION / Codename $CODENAME" > /etc/issue
 cp /etc/issue /etc/issue.net
 cat /etc/issue
+echo
+
+# update kdm greetstring
+if [ -e /etc/kde/kdm/kdmrc ]; then
+	greetstr="`cat /etc/issue` auf %n"
+	sed -e "s|^GreetString=.*|GreetString=$greetstr|g" -i /etc/kde/kdm/kdmrc 
+fi
+
+# finally do a reconfigure
+/etc/init.d/slapd start
+dpkg-reconfigure linuxmuster-base
 echo
 
 echo "Jetzt muss der Server neu gestartet werden!"

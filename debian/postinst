@@ -600,8 +600,11 @@ export LANG" -i /etc/profile
 		postgres_reload=yes
 	fi
 
-	# ldap db user needs password (1.4.36-paedml1)
-	if ! grep -q "02.11.2008" /etc/linuxmuster/schulkonsole/db.conf; then
+	# ldap db user needs password (1.4.44-1)
+	dbconf=/etc/linuxmuster/schulkonsole/db.conf
+	dbuser=`grep ^Username $dbconf | awk -F\= '{ print $2 }'`
+	dbpwd=`grep ^Password $dbconf | awk -F\= '{ print $2 }'`
+	if [ "$dbuser" != "ldap" -o -z "$dbpwd" ]; then
 		echo "Providing a random password for postgresql user ldap."
 		echo "Warning: Backing up /etc/linuxmuster/schulkonsole/db.conf to db.conf.dpkg-old!"
 		cp /etc/linuxmuster/schulkonsole/db.conf /etc/linuxmuster/schulkonsole/db.conf.dpkg-old

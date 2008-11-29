@@ -1,3 +1,10 @@
+linuxmuster-base (1.4.44-1) testing; urgency=low
+
+  * paedml40-upgrade: minor fixes according to paedML Linux 4.0.2
+  * postinst: minor improvements for schulkonsole's db.conf update
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 29 Nov 2008 19:44:50 +0100
+
 linuxmuster-base (1.4.43-1) testing; urgency=low
 
   * linuxmuster-backup:
