@@ -6,6 +6,11 @@ services="linuxmuster-base atftpd rsync linbo-multicast nagios2 atd cron\
           ssh samba slapd postgresql-8.1 postgresql-7.4 nscd linuxmuster-ipcop uml-utilities \
           portmap openbsd-inetd bind9 dhcp3-server avahi-daemon webmin"
 
+# make sure they are enabled to be able to shut them down
+[ -e /etc/default/atftpd ] && sed -e 's/^USE_INETD=.*/USE_INETD=false/' -i /etc/default/atftpd
+[ -e /etc/default/rsync ] && sed -e 's/^RSYNC_ENABLE=.*/RSYNC_ENABLE=true/' -i /etc/default/rsync
+[ -e /etc/default/rembo ] && sed -e 's/^START_REMBO=.*/START_REMBO=yes/' -i /etc/default/rembo
+
 for service in $services; do
 
 	[ -e "/etc/init.d/$service" ] && /etc/init.d/$service stop

@@ -615,6 +615,26 @@ export LANG" -i /etc/profile
 		chmod 400 /etc/linuxmuster/schulkonsole/db.conf*
 	fi
 
+	# https://bugs.launchpad.net/ubuntu/+source/php5/+bug/63141, 1.4.44-1)
+	if grep -q ^"extension=curl.so" /etc/php5/conf.d/curl.ini; then
+		backup_file /etc/php5/conf.d/curl.ini
+		echo "Fixing /etc/php5/conf.d/curl.ini ..."
+		sed -e 's|^extension=curl.so|#extension=curl.so|' -i /etc/php5/conf.d/curl.ini
+		echo "# tschmitt: moved to pgsql.ini -> https://bugs.launchpad.net/ubuntu/+source/php5/+bug/63141" >> /etc/php5/conf.d/curl.ini
+	fi
+	if ! grep -q ^"extension=curl.so" /etc/php5/conf.d/pgsql.ini; then
+		backup_file /etc/php5/conf.d/pgsql.ini
+		echo "Fixing /etc/php5/conf.d/pgsql.ini ..."
+		echo "# tschmitt: moved from curl.ini -> https://bugs.launchpad.net/ubuntu/+source/php5/+bug/63141" >> /etc/php5/conf.d/pgsql.ini
+		echo "extension=curl.so" >> /etc/php5/conf.d/pgsql.ini
+	fi
+
+	# provide a default mindi.conf (1.4.44-1)
+	if [ ! -e /etc/mindi/mindi.conf ]; then
+		echo "Providing a default mindi.conf ..."
+		cp $STATICTPLDIR/etc/mindi/mindi.conf /etc/mindi
+	fi
+
 	# updating release information
 	echo "$(getdistname) $DISTFULLVERSION / Codename $CODENAME" > /etc/issue
 	cp /etc/issue /etc/issue.net

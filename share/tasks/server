@@ -57,7 +57,6 @@ php-xml-util
 php-xml-serializer
 php-mail-mime
 php-cache
-php-crypt-chap
 php-file
 php-net-ftp
 php-pear

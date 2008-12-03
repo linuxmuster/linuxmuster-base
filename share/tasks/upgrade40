@@ -294,6 +294,7 @@ libproc-process-perl
 libquota-perl
 libradius1
 libreadline5
+librecode0
 libruby1.8
 libsasl2
 libsasl2-2
@@ -397,6 +398,7 @@ memtester
 mime-support
 mimetex
 mindi
+mindi-busybox
 mkisofs
 mktemp
 mlock
@@ -523,6 +525,7 @@ radiusclient1
 rar
 razor
 readline-common
+recode
 rsync
 ruby1.8
 samba

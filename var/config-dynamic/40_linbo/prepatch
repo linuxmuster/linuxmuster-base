@@ -84,11 +84,11 @@ if  [ "$imaging" = "linbo" ]; then
 		sed -e "s/^Server = \([0-9]\{1,3\}[.]\)\{3\}[0-9]\{1,3\}/Server = $serverip/" -i $i
 	done
 
-	# patch pxe confs with serverip
-	for i in $PXEGRUBCFG $PXELINUXCFG `find $LINBODIR/ -type f -name 'pxegrub.lst.*'`; do
-		backup_file $i
-		sed -e "s/server=\([0-9]\{1,3\}[.]\)\{3\}[0-9]\{1,3\}/server=$serverip/g" -i $i
-	done
+	# patch pxe confs with serverip (obsolete)
+	#for i in $PXEGRUBCFG $PXELINUXCFG `find $LINBODIR/ -type f -name 'pxegrub.lst.*'`; do
+	#	backup_file $i
+	#	sed -e "s/server=\([0-9]\{1,3\}[.]\)\{3\}[0-9]\{1,3\}/server=$serverip/g" -i $i
+	#done
 
 	# patch regs with workgroup
 	for i in `find $LINBODIR/ -type f -name '*.reg'`; do

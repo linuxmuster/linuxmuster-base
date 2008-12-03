@@ -223,7 +223,7 @@ fi
 if [ -n "$packages" ]; then
 	if [ ! -e /var/cache/linuxmuster/.paedml40-upgrade ]; then
 		touch /var/cache/linuxmuster/.paedml40-upgrade
-		apt-get clean
+		#apt-get clean
 	fi
 	echo "Lade Software-Pakete herunter ..."
 	cd $PKGCACHE
@@ -387,6 +387,8 @@ echo
 echo "Installiere OpenLDAP ..."
 echo -e "Ja\nJa\n" | aptitude -y install slapd postgresql
 reinstall "slapd postgresql"
+ps -e | grep -q slapd || /etc/init.d/slapd start
+ps -e | grep -q postmaster || /etc/init.d/postgresql-8.1 restart
 echo
 
 
@@ -760,11 +762,13 @@ echo
 # update kdm greetstring
 if [ -e /etc/kde/kdm/kdmrc ]; then
 	greetstr="`cat /etc/issue` auf %n"
-	sed -e "s|^GreetString=.*|GreetString=$greetstr|g" -i /etc/kde/kdm/kdmrc 
+	sed -e "s|^GreetString=.*|GreetString=$greetstr|" -i /etc/kde/kdm/kdmrc 
 fi
 
-# finally do a reconfigure
-/etc/init.d/slapd start
+# finally start necessary services and do a reconfigure to fix things which are not yet fixed
+ps -e | grep -q slapd || /etc/init.d/slapd start
+ps -e | grep -q smbd || /etc/init.d/samba start
+ps ax | grep postgresql/8.1 | grep -qv grep || /etc/init.d/postgresql-8.1 start
 dpkg-reconfigure linuxmuster-base
 echo
 

@@ -1,9 +1,17 @@
 linuxmuster-base (1.4.44-1) testing; urgency=low
 
-  * paedml40-upgrade: minor fixes according to paedML Linux 4.0.2
-  * postinst: minor improvements for schulkonsole's db.conf update
+  * paedml40-upgrade: several modifications according to paedML Linux 4.0.2
+  * postinst:
+    - minor improvements for schulkonsole's db.conf update
+    - modified php5 configuration (see below)
+    - adding default mindi.conf (see below)
+  * linuxmuster-setup:
+    - removed obsolete postgres configuration files
+    - modified sophomorix configuration according to version 2.0.3-2
+    - added a default mindi.conf
+    - added php5 conf.d files (https://bugs.launchpad.net/ubuntu/+source/php5/+bug/63141)
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 29 Nov 2008 19:44:50 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 03 Dec 2008 10:28:01 +0100
 
 linuxmuster-base (1.4.43-1) testing; urgency=low
 

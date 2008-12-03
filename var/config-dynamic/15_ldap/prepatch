@@ -1,5 +1,14 @@
-# start postgresql
-/etc/init.d/postgresql-8.1 start
+# recreate pg clusters on first install
+if [ "$1" = "--first" ]; then
+    for i in 7.4 8.1; do
+	pg_dropcluster $i main
+	pg_createcluster $i main
+	cp -f $STATICTPLDIR/etc/postgresql/$i/main/* /etc/postgresql/$i/main
+	/etc/init.d/postgresql-$i start
+    done
+else
+    /etc/init.d/postgresql-8.1 start
+fi
 
 
 # set samba sid
@@ -104,18 +113,29 @@ if [ "$1" = "--first" ]; then
 	# openldap access to ssl-certs
 	addgroup openldap ssl-cert
 
-	# create new database
-	sophomorix-setup-pgldap --new-database
+	# create new ldap database
+	new_soph_version=`dpkg -l sophomorix-pgldap | grep 'sophomorix-pg' | { read status name version desc; echo "$version";}`
+	old_soph_version="0.0.0-0"
+	sophomorix-setup-pgldap --oldversion "$old_soph_version" --newversion "$new_soph_version" --new-database
 
-	# random password for ldap db user
+	# new random password for ldap db user
 	ldapdbpw=`pwgen -s 8 1`
+
+	# set ldap db password for schulkonsole
 	psql -U postgres -d template1 -qc "ALTER USER ldap WITH PASSWORD '"$ldapdbpw"';"
-	sed -e "s/^Password=.*/Password=$ldapdbpw/" -i /etc/linuxmuster/schulkonsole/db.conf
+	sed -e "s|^Password=.*|Password=$ldapdbpw|" -i /etc/linuxmuster/schulkonsole/db.conf
+
+	# deactivate postgres 7.4
+	/etc/init.d/postgresql-7.4 stop
+	update-rc.d -f postgresql-7.4 remove
 
 else
 
 	# update user database with basedn and workgroup if necessary
-	[ "$update_ldap" = "yes" ] && sophomorix-setup-pgldap
+	if [ "$update_ldap" = "yes" ]; then
+		ldapdbpw=`grep ^Password /etc/linuxmuster/schulkonsole/db.conf | awk -F\= '{ print $2 }'`
+		sophomorix-setup-pgldap --slapd-standalone --dbpw "$ldapdbpw" --keep-database
+	fi
 
 fi
 
