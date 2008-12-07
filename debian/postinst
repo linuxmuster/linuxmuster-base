@@ -564,10 +564,6 @@ export LANG" -i /etc/profile
 
 	# adding tls support to slapd.conf
 	slapdtpl=/usr/share/sophomorix/config-templates/ldap/slapd-standalone.conf.template
-	if ! grep -q ^TLS $slapdtpl || ! grep -q misc.schema $slapdtpl; then
-		cp $slapdtpl $slapdtpl.dpkg-old
-		cp $STATICTPLDIR$slapdtpl $slapdtpl
-	fi
 	[ -e /etc/ldap/slapd.conf.custom ] || cp $STATICTPLDIR/etc/ldap/slapd.conf.custom /etc/ldap
 	if ! grep -q ^TLS /etc/ldap/slapd.conf || ! grep -q misc.schema /etc/ldap/slapd.conf; then
 		echo "Updating openldap configuration ..."
@@ -577,8 +573,10 @@ export LANG" -i /etc/profile
 			s/@@message2@@/${message2}/
 			s/@@message3@@/${message3}/
 			s/@@basedn@@/${basedn}/g
+			s/@@tls_comment@@//g
 			s/@@ldappassword@@/${rootpw}/g" $slapdtpl > /etc/ldap/slapd.conf
 		addgroup openldap ssl-cert
+		chmod 600 /etc/ldap/slapd.conf*
 		slapd_reload=yes
 	fi
 	if grep -q ^TLS /etc/ldap/slapd.conf; then

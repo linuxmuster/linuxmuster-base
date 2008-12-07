@@ -383,12 +383,19 @@ aptitude update 2>> $LOGFILE 1>> $LOGFILE
 echo
 
 
-# update slapd and old postgresql before server task is reinstalled
-echo "Installiere OpenLDAP ..."
-echo -e "Ja\nJa\n" | aptitude -y install slapd postgresql
-reinstall "slapd postgresql"
-ps -e | grep -q slapd || /etc/init.d/slapd start
-ps -e | grep -q postmaster || /etc/init.d/postgresql-8.1 restart
+# update slapd, postgresql etc. before server task is reinstalled
+echo "Installiere OpenLDAP, Postgresql, Cyrus, Postfix ..."
+echo -e "Ja\nJa\n" | aptitude -y install slapd postgresql cyrus-common-2.2 postfix
+reinstall "slapd postgresql cyrus-common-2.2 postfix"
+echo
+
+
+# add cyrus and postfix user to group ssl-cert
+echo "Aktualisiere Systembenutzer ..."
+for i in cyrus postfix openldap; do
+	addgroup $i ssl-cert
+done
+chown root:ssl-cert /etc/ssl/private -R
 echo
 
 
@@ -453,6 +460,33 @@ reinstall "$imagingtask"
 echo
 
 
+# install nonfree or free components
+basetpl=linuxmuster-schulkonsole-templates-base
+paedmltpl=linuxmuster-schulkonsole-templates-paedml
+if [ -n "$(aptitude search $paedmltpl)" ]; then
+	# check if base-template is installed and remove it
+	if dpkg -L $basetpl &> /dev/null; then
+		echo "Deinstalliere $basetpl ..."
+		dpkg -r --force-all $basetpl &> /dev/null
+	fi
+	echo "Installiere $paedmltpl ..."
+	echo -e "Ja\nJa\n" | aptitude -y install $paedmltpl
+	reinstall $paedmltpl
+	checkpackages=$paedmltpl
+else
+	echo -e "Ja\nJa\n" | aptitude -y install $basetpl
+	reinstall $basetpl
+	checkpackages=$basetpl
+fi
+indexpage=linuxmuster-indexpage
+if [ -n "$(aptitude search $indexpage)" ]; then
+	echo "Installiere $indexpage ..."
+	echo -e "Ja\nJa\n" | aptitude -y install $indexpage
+	reinstall $indexpage
+	checkpackages="$checkpackages $indexpage"
+fi
+
+
 # install the paedml release key
 echo -n "Installiere paedML-Release-Schlüssel ... "
 for i in /cdrom/paedml-release.asc /tmp/paedml-release.asc; do
@@ -481,9 +515,9 @@ if [ -n "$KDE" ]; then
 	echo -e "Ja\nJa\n" | aptitude -y install $desktoptask
 	reinstall "$desktoptask"
 	echo
-	checkpackages="$commontask $servertask $imagingtask $desktoptask"
+	checkpackages="$commontask $servertask $checkpackages $imagingtask $desktoptask"
 else
-	checkpackages="$commontask $servertask $imagingtask"
+	checkpackages="$commontask $servertask $checkpackages $imagingtask"
 fi
 
 
@@ -514,25 +548,6 @@ for i in $checkpackages; do
 	fi
 done
 echo
-
-
-# check for nonfree components
-basetplname=linuxmuster-schulkonsole-templates-base
-paedmltpldeb="$(ls -1r /var/cache/apt/archives/linuxmuster-schulkonsole-templates-paedml_*_all.deb 2> /dev/null)"
-if [ -n "$paedmltpldeb" ]; then
-	# check if base-template is installed and remove it
-	if ! dpkg -s $basetplname | grep ^Status | grep -q not-installed; then
-		echo "Deinstalliere $basetplname ..."
-		dpkg -r --force-all $basetplname &> /dev/null
-	fi
-	echo "Installiere $paedmltpldeb ..."
-	dpkg -i $paedmltpldeb
-fi
-indexpagedeb="$(ls -1r /var/cache/apt/archives/linuxmuster-indexpage_4.0-*_all.deb 2> /dev/null)"
-if [ -n "$indexpagedeb" ]; then
-	echo "Installiere $indexpagedeb ..."
-	dpkg -i $indexpagedeb
-fi
 
 
 # restore apache's default index.html
@@ -627,20 +642,20 @@ if [ "$imaging" = "linbo" ]; then
 		update-rc.d linbo-multicast defaults
 fi
 
+
+# fix running atftpd if imaging=rembo
+if [ "$imaging" = "rembo" -a -e /etc/default/atftpd ]; then
+	echo "Deactivating atftpd because imaging is rembo ..."
+	sed -e 's|^USE_INETD=.*|USE_INETD=true|' -i /etc/default/atftpd
+fi
+
+
 # deny client-updates
 if grep -q ^"ignore client-updates" /etc/dhcp3/dhcpd.conf; then
 	echo "Updating dhcp-server configuration to deny client updates ..."
 	[ -z "$dhcp_backup" ] && backup_file /etc/dhcp3/dhcpd.conf
 	sed -e "s/^ignore client-updates/deny client-updates/" -i /etc/dhcp3/dhcpd.conf
 fi
-
-# add cyrus and postfix user to group ssl-cert
-echo "Aktualisiere Systembenutzer ..."
-for i in cyrus postfix openldap; do
-	addgroup $i ssl-cert
-done
-chown root:ssl-cert /etc/ssl/private -R
-echo
 
 # clean up old cron jobs
 echo "Entferne alte cron jobs ..."
@@ -682,6 +697,11 @@ echo "Stelle Nagios2-Konfiguration wieder her ..."
 # test
 #rm -rf /etc/nagios2
 tar xzf $nagiosbackup -C /
+# move probably obsolete config files out of the way
+mkdir -p /etc/nagios2/conf.d_backup
+for i in /etc/nagios2/conf.d/*.cfg; do
+	echo $i | grep -q linuxmuster || mv $i /etc/nagios2/conf.d_backup
+done
 [ -e /etc/nagios2/resource.cfg ] || echo "# dummy config file created by paedML's etch-upgrade script" > /etc/nagios2/resource.cfg
 backup_file /etc/nagios2/apache2.conf
 sed -e "s/@@serverip@@/$serverip/
@@ -710,27 +730,6 @@ if [ -e /etc/moodle/config.php ]; then
 fi
 if [ -d /usr/share/moodle ]; then
 	[ -L /usr/share/moodle/moodle ] || ln -s . /usr/share/moodle/moodle
-fi
-
-
-# adding tls support to slapd.conf
-slapdtpl=/usr/share/sophomorix/config-templates/ldap/slapd-standalone.conf.template
-if ! grep -q ^TLS $slapdtpl || ! grep -q misc.schema $slapdtpl; then
-	cp $slapdtpl $slapdtpl.dpkg-old
-	cp $STATICTPLDIR$slapdtpl $slapdtpl
-fi
-[ -e /etc/ldap/slapd.conf.custom ] || cp $STATICTPLDIR/etc/ldap/slapd.conf.custom /etc/ldap
-if ! grep -q ^TLS /etc/ldap/slapd.conf || ! grep -q misc.schema $slapdtpl; then
-	echo "Aktualisiere LDAP-Konfiguration ..."
-	backup_file /etc/ldap/slapd.conf
-	backup_file /etc/default/slapd
-	rootpw=`grep ^rootpw /etc/ldap/slapd.conf | awk '{ print $2 }'`
-	sed -e "s/@@message1@@/${message1}/
-		s/@@message2@@/${message2}/
-		s/@@message3@@/${message3}/
-		s/@@basedn@@/${basedn}/g
-		s/@@ldappassword@@/${rootpw}/g" $slapdtpl > /etc/ldap/slapd.conf
-	cp $STATICTPLDIR/etc/default/slapd /etc/default
 fi
 
 

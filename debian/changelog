@@ -1,17 +1,22 @@
 linuxmuster-base (1.4.44-1) testing; urgency=low
 
-  * paedml40-upgrade: several modifications according to paedML Linux 4.0.2
+  * paedml40-upgrade:
+    - some improvements according to paedML Linux 4.0.2
+    - removed slapd.conf tls patch according to sophomorix 2.0.3
   * postinst:
     - minor improvements for schulkonsole's db.conf update
     - modified php5 configuration (see below)
-    - adding default mindi.conf (see below)
+    - providing default mindi.conf if not present (see below)
+    - modified slapd.conf tls patching according to sophomorix 2.0.3
   * linuxmuster-setup:
     - removed obsolete postgres configuration files
+    - removed slapd.conf template
     - modified sophomorix configuration according to version 2.0.3-2
     - added a default mindi.conf
     - added php5 conf.d files (https://bugs.launchpad.net/ubuntu/+source/php5/+bug/63141)
+  * removed deprecated repair-admins.sh
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 03 Dec 2008 10:28:01 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 06 Dec 2008 12:19:24 +0100
 
 linuxmuster-base (1.4.43-1) testing; urgency=low
 

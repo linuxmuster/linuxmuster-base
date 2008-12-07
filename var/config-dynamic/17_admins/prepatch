@@ -14,14 +14,11 @@ if [ "$1" = "--first" ]; then
   fi
 
   # set passwords for admins
-  #echo -e "$adminpw\n$adminpw\n" | smbldap-passwd -e $DOMADMIN
   sophomorix-passwd --force --user $DOMADMIN --pass $adminpw
-  #echo -e "$adminpw\n$adminpw\n" | smbldap-passwd -e $ADMINISTRATOR
   sophomorix-passwd --user $ADMINISTRATOR --pass $adminpw
-  #echo -e "$pgmadminpw\n$pgmadminpw\n" | smbldap-passwd -e $PGMADMIN
   sophomorix-passwd --user $PGMADMIN --pass $pgmadminpw
-  #echo -e "$wwwadminpw\n$wwwadminpw\n" | smbldap-passwd -e $WWWADMIN
   sophomorix-passwd --user $WWWADMIN --pass $wwwadminpw
+  sophomorix-usermod -I wwwadmin
 
   # create mailboxes again
   mailquota=`grep ^$ADMINISTRATOR $MAILQUOTACONF | awk -F: '{ print $2 }'`

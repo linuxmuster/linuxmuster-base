@@ -1,14 +1,11 @@
-# recreate pg clusters on first install
+# necessary to trick sophomorix
 if [ "$1" = "--first" ]; then
-    for i in 7.4 8.1; do
-	pg_dropcluster $i main
-	pg_createcluster $i main
-	cp -f $STATICTPLDIR/etc/postgresql/$i/main/* /etc/postgresql/$i/main
-	/etc/init.d/postgresql-$i start
-    done
-else
-    /etc/init.d/postgresql-8.1 start
+	pg_dropcluster 7.4 main &> /dev/null
+	pg_dropcluster 8.1 main &> /dev/null
+	pg_createcluster 8.1 main
+	cp $STATICTPLDIR/etc/postgresql/8.1/main/* /etc/postgresql/8.1/main
 fi
+/etc/init.d/postgresql-8.1 start
 
 
 # set samba sid
@@ -22,14 +19,6 @@ if [ -z "$ldapadminpw" ]; then
 	echo -n $ldapadminpw > /etc/ldap.secret
 fi
 smbpasswd -w $ldapadminpw
-
-
-# adding tls support to slapd.conf
-slapdtpl=/usr/share/sophomorix/config-templates/ldap/slapd-standalone.conf.template
-if ! grep -q ^TLS $slapdtpl; then
-	cp $slapdtpl $slapdtpl.dpkg-old
-	cp $STATICTPLDIR$slapdtpl $slapdtpl
-fi
 
 
 # patch libnss-ldap.conf with basedn
@@ -59,6 +48,7 @@ sed -e "s/@@message1@@/${message1}/
 	s/@@message2@@/${message2}/
 	s/@@message3@@/${message3}/
 	s/@@basedn@@/${basedn}/g
+	s/@@tls_comment@@//g
 	s/@@ldappassword@@/${ldapadminpw}/" $template > /etc/ldap/slapd.conf
 
 
@@ -113,10 +103,8 @@ if [ "$1" = "--first" ]; then
 	# openldap access to ssl-certs
 	addgroup openldap ssl-cert
 
-	# create new ldap database
-	new_soph_version=`dpkg -l sophomorix-pgldap | grep 'sophomorix-pg' | { read status name version desc; echo "$version";}`
-	old_soph_version="0.0.0-0"
-	sophomorix-setup-pgldap --oldversion "$old_soph_version" --newversion "$new_soph_version" --new-database
+	# create a new ldap database with tricky sophomorix
+	sophomorix-setup-pgldap --oldversion=0.0.0-0 --newversion=0.0.0-0 --new-database
 
 	# new random password for ldap db user
 	ldapdbpw=`pwgen -s 8 1`
@@ -125,16 +113,12 @@ if [ "$1" = "--first" ]; then
 	psql -U postgres -d template1 -qc "ALTER USER ldap WITH PASSWORD '"$ldapdbpw"';"
 	sed -e "s|^Password=.*|Password=$ldapdbpw|" -i /etc/linuxmuster/schulkonsole/db.conf
 
-	# deactivate postgres 7.4
-	/etc/init.d/postgresql-7.4 stop
-	update-rc.d -f postgresql-7.4 remove
-
 else
 
 	# update user database with basedn and workgroup if necessary
 	if [ "$update_ldap" = "yes" ]; then
 		ldapdbpw=`grep ^Password /etc/linuxmuster/schulkonsole/db.conf | awk -F\= '{ print $2 }'`
-		sophomorix-setup-pgldap --slapd-standalone --dbpw "$ldapdbpw" --keep-database
+		sophomorix-setup-pgldap --oldversion=0.0.0-0 --newversion=0.0.0-0 --dbpw "$ldapdbpw" --keep-database
 	fi
 
 fi
