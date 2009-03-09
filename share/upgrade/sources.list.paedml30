@@ -1,0 +1,6 @@
+deb http://archive.debian.org/debian/ sarge main contrib non-free
+deb http://archive.debian.org/debian-security/ sarge/updates main contrib non-free
+deb http://archive.debian.org/debian-volatile/ sarge/volatile main
+deb http://pkg.lml.support-netz.de/lml30-updates ./
+deb http://archive.debian.org/backports.org/ sarge-backports main contrib non-free
+

@@ -1,3 +1,18 @@
+#
+# upgrade paedML 3.0 to 4.0
+# main script
+#
+# 09.03.2009
+# 
+# Thomas Schmitt
+# <schmitt@lmz-bw.de>
+# GPL V3
+#
+
+PKGCACHE=/var/cache/apt/archives
+KDESPACE=300000
+
+
 echo
 echo "##########################################################"
 echo "# paedML Linux Distributions-Upgrade auf Debian 4.0 Etch #"
@@ -19,6 +34,12 @@ for i in ftp.de.debian.org/debian/ ftp.de.debian.org/debian-volatile/ security.d
 		exit 1
 	fi
 done
+echo
+
+
+echo "Aktualisiere Paketlisten ..."
+aptitude update &> /dev/null
+aptitude update 2>> $LOGFILE 1>> $LOGFILE
 echo
 
 echo "Pruefe Setup-Variablen:"
@@ -66,19 +87,6 @@ basedn="dc=`echo $domainname|sed 's/\./,dc=/g'`"
 echo "  * basedn=$basedn"
 echo 
 
-PKGCACHE="/var/cache/apt/archives"
-
-echo "Pruefe freien Platz unter $PKGCACHE:"
-available=`LANG=C df -P $PKGCACHE | grep -v Filesystem | awk '{ print $4 }'`
-echo -n "  * ${available}kb sind verfügbar ... "
-if [ $available -ge 800000 ]; then
-	echo "Ok!"
-	echo
-else
-	echo "zu wenig! Sie benötigen mindestens 800000kb!"
-	exit 1
-fi
-
 nagiosbackupdir=$BACKUPDIR/nagios
 mkdir -p $nagiosbackupdir
 nagiosbackup=$nagiosbackupdir/paedml40-upgrade.tar.gz
@@ -96,7 +104,7 @@ if dpkg -L kdebase &> /dev/null; then
 fi
 
 # tasks
-echo "Prüfe Tasks:"
+echo "Pruefe Tasks:"
 cd /usr/share/linuxmuster/tasks
 echo -n "  * common ... "
 if [ -s common ]; then
@@ -132,6 +140,7 @@ else
 fi
 echo
 
+
 # stopping internal firewall
 /etc/init.d/linuxmuster-base stop &> /dev/null
 
@@ -141,6 +150,7 @@ if [ -e "$SOPHOMORIXLOCK" ]; then
 	sophomorix-check --unlock
 	echo
 fi
+
 
 # remove obsolete stuff
 if [ ! -e "$DISABLED_INSECURE" ]; then
@@ -155,120 +165,9 @@ if [ ! -e "$REMOVED_OGO" ]; then
 fi
 
 
-# restore old apt config and cancel
-rollback(){
-	local msg=$1
-	cd /etc/apt
-	for i in *.paedml30; do
-		mv $i ${i%.paedml30}
-	done
-	[ -e sources.list.before-upgrade ] && mv sources.list.before-upgrade sources.list
-	echo "$msg"
-	aptitude update &> /dev/null
-	aptitude update &> /dev/null
-	exit 1
-}
-
-
-# update apt configuration and online sources
-echo -n "Aktualisiere Paketlisten ... "
-cd /etc/apt
-for i in preferences apt.conf sources.list; do
-	if [ -e "$i" -a ! -e "$i.paedml30" ]; then
-		mv $i $i.paedml30
-	elif [ -e "$i" ]; then
-		rm  $i
-	fi
-done
-cp /etc/apt/apt.conf.etch /etc/apt/apt.conf
-cp /etc/apt/sources.list.etch /etc/apt/sources.list
-cat /etc/apt/sources.list.d/paedml40.list >> /etc/apt/sources.list
-if [ -n "$cdrom" ]; then
-	cp /usr/share/linuxmuster/upgrade/preferences.cdrom /etc/apt/preferences
-else
-	cp /usr/share/linuxmuster/upgrade/preferences.online /etc/apt/preferences
-fi
-# add cdrom source if given
-#if [ -n "$cdrom" ]; then
-#	echo "deb file:///cdrom/ etch contrib main non-free" > /etc/apt/sources.list.tmp
-#	grep -v paedml40 /etc/apt/sources.list >> /etc/apt/sources.list.tmp
-#	mv /etc/apt/sources.list.tmp /etc/apt/sources.list
-#fi
-rm /var/cache/apt/*.bin
-aptitude update  &> /dev/null
-if ! aptitude update 2>> $LOGFILE 1>> $LOGFILE; then
-	rollback "Fehler!"
-fi
-echo "Ok!"
-echo
-
-
-# compute packages to download
-if [ -n "$cdrom" ]; then
-	if [ "$KDE" = "yes" ]; then
-		packages=`cat /usr/share/linuxmuster/tasks/upgrade40-kde`
-	else
-		packages=""
-	fi
-else
-	if [ "$KDE" = "yes" ]; then
-		packages="`cat /usr/share/linuxmuster/tasks/upgrade40` `cat /usr/share/linuxmuster/tasks/upgrade40-kde`"
-	else
-		packages=`cat /usr/share/linuxmuster/tasks/upgrade40`
-	fi	
-fi
-
-
-# download all needed packages
-if [ -n "$packages" ]; then
-	if [ ! -e /var/cache/linuxmuster/.paedml40-upgrade ]; then
-		touch /var/cache/linuxmuster/.paedml40-upgrade
-		#apt-get clean
-	fi
-	echo "Lade Software-Pakete herunter ..."
-	cd $PKGCACHE
-	aptitude -y download $packages
-	echo
-	echo -n "Überprüfe Downloads ... "
-	for i in $packages; do
-		if ! ls ${i}_*.deb &> /dev/null; then
-			rollback "Paket $i nicht vorhanden!"
-		fi
-	done
-	echo "Ok!"
-fi
-
-
-# get the paedml release key
-if [ ! -e /cdrom/paedml-release.asc ]; then
-	echo -n "Lade paedML-Release-Schlüssel herunter ... "
-	cd /tmp
-	if ! wget http://pkg.lml.support-netz.de/paedml-release.asc 2>> $LOGFILE 1>> $LOGFILE; then
-		rollback "Fehler!"
-	fi
-	echo "Ok!"
-	echo
-fi
-
-
-# temporary rollback to paedml30 apt
-echo -n "Aktualisiere Paketlisten ... "
-cd /etc/apt
-for i in apt.conf preferences sources.list; do
-	mv $i $i.paedml40 &> /dev/null
-done
-for i in *.paedml30; do
-	cp $i ${i%.paedml30}
-done
-aptitude update &> /dev/null
-aptitude update 2>> $LOGFILE 1>> $LOGFILE
-apt-cache gencaches 2>> $LOGFILE 1>> $LOGFILE
-echo "Ok!"
-
-
 # backup nagios2 configuration
 if [ -s "$nagiosbackup" ]; then
-	echo "Nagios2-Sicherung gefunden. Überspringe Sicherung!"
+	echo "Nagios2-Sicherung gefunden. ueberspringe Sicherung!"
 else
 	echo "Sichere Nagios-Konfiguration."
 	tar czf $nagiosbackup /etc/nagios2 2>> $LOGFILE 1>> $LOGFILE
@@ -276,6 +175,7 @@ fi
 # remove nagios2's apache2.conf
 [ -e /etc/apache2/conf.d/nagios2.conf ] && rm /etc/apache2/conf.d/nagios2.conf
 echo
+
 
 # update locales configuration
 cp $STATICTPLDIR/etc/locale.gen /etc
@@ -297,16 +197,23 @@ for i in $toremove; do
 	fi
 done
 
+
 # vmware related
 [ -e /usr/X11R6/bin/X.BeforeVMwareToolsInstall ] && rm /usr/X11R6/bin/X.BeforeVMwareToolsInstall
 
+
+# kill ntpd if not stopped
 killall ntpd &> /dev/null
+
+
+# purge nagios
 aptitude -y purge nagios2 nagios2-common
 [ -d /etc/nagios2 ] && rm -rf /etc/nagios2
 echo
 
 
-echo "Führe Konfigurationsanpassungen durch ..."
+# several configuration issues
+echo "Fuehre Konfigurationsanpassungen durch ..."
 # remove obsolete amavisd.conf
 if [ -e /etc/amavis/amavisd.conf ]; then
 	backup_file /etc/amavis/amavisd.conf
@@ -321,26 +228,48 @@ touch /usr/lib/cups/backend-available/dnssd
 echo
 
 
-# back to paedml40 apt
+# restore old apt config and cancel
+rollback(){
+	local msg=$1
+	cd /etc/apt
+	for i in *.paedml30; do
+		mv $i ${i%.paedml30}
+	done
+	[ -e sources.list.before-upgrade ] && mv sources.list.before-upgrade sources.list
+	echo "$msg"
+	aptitude update &> /dev/null
+	aptitude update &> /dev/null
+	exit 1
+}
+
+
+# backup apt config
 cd /etc/apt
-for i in *.paedml40; do
-	cp $i ${i%.paedml40}
+for i in preferences apt.conf sources.list; do
+	if [ -e "$i" -a ! -e "$i.paedml30" ]; then
+		mv $i $i.paedml30
+	elif [ -e "$i" ]; then
+		rm  $i
+	fi
 done
-cp sources.list.etch sources.list
 
+# update apt config for cdrom use without online sources
+cp /etc/apt/apt.conf.etch /etc/apt/apt.conf
+echo "deb file:///cdrom etch main contrib non-free" > /etc/apt/sources.list
+echo >> /etc/apt/sources.list
+cat /etc/apt/sources.list.etch >> /etc/apt/sources.list
 
-# copy deb files from CDROM to tmp dir, remove online sources temporarily
-if [ -n "$cdrom" ]; then
-	echo "Kopiere Software-Pakete in den Cache ..."
-	find /cdrom/pool/ -name \*.deb -exec cp '{}' $PKGCACHE \;
-	echo
-	mv /etc/apt/sources.list.d/paedml40.list /var/tmp
-fi
+# remove bin files from cache
+rm /var/cache/apt/*.bin
+
+# update package lists
 echo -n "Aktualisiere Paketlisten ... "
-aptitude update &> /dev/null
-aptitude update 2>> $LOGFILE 1>> $LOGFILE
-apt-cache gencaches 2>> $LOGFILE 1>> $LOGFILE
+aptitude update  &> /dev/null
+if ! aptitude update 2>> $LOGFILE 1>> $LOGFILE; then
+	rollback "Fehler!"
+fi
 echo "Ok!"
+echo
 
 
 reinstall() {
@@ -354,6 +283,7 @@ reinstall() {
 	done
 }
 
+
 # first update apt-utils
 echo "Aktualisiere apt ..."
 aptitude -y install apt-utils tasksel debian-archive-keyring dpkg locales
@@ -362,23 +292,8 @@ echo 'DPkg::Options {"--force-confold";"--force-confdef";"--force-bad-verify";"-
 echo 'APT::Get::AllowUnauthenticated "true";' >> /etc/apt/apt.conf.d/99upgrade
 reinstall "apt-utils tasksel debian-archive-keyring dpkg locales"
 echo
-
-
-# make a local repo
-if [ -n "$cdrom" ]; then
-	echo "Erstelle lokales Paket-Repository ..."
-	cd $PKGCACHE
-	apt-ftparchive packages ./ | gzip > Packages.gz
-	mv /etc/apt/sources.list /etc/apt/sources.list.tmp
-	echo "deb file://$PKGCACHE ./" > /etc/apt/sources.list
-	cat /etc/apt/sources.list.tmp >> /etc/apt/sources.list
-	rm /etc/apt/sources.list.tmp
-	echo
-fi
-
-
-# update again
-echo -n "Aktualisiere Paketlisten ..."
+echo "Aktualisiere Paketlisten ... "
+aptitude update &> /dev/null
 aptitude update 2>> $LOGFILE 1>> $LOGFILE
 echo
 
@@ -488,33 +403,29 @@ fi
 
 
 # install the paedml release key
-echo -n "Installiere paedML-Release-Schlüssel ... "
-for i in /cdrom/paedml-release.asc /tmp/paedml-release.asc; do
-	if [ -e "$i" ]; then
-		apt-key add $i
-		break
-	fi
-done
+echo -n "Installiere paedML-Release-Schluessel ... "
+apt-key add /cdrom/paedml-release.asc
 echo
 
 
-# restore correct apt configuration
+# remove cdrom source from sources.list
 echo "Aktualisiere APT-Konfiguration ..."
-cp /etc/apt/apt.conf.etch /etc/apt/apt.conf
 cp /etc/apt/sources.list.etch /etc/apt/sources.list
-rm /etc/apt/*.paedml40
-rm /etc/apt/preferences
-[ -n "$cdrom" ] && rm -rf $PKGCACHE/Packages*
+rm -f /etc/apt/*.paedml40
+aptitude update &> /dev/null
 aptitude update 2>> $LOGFILE 1>> $LOGFILE
 echo
 
-
 # install desktop task
 if [ -n "$KDE" ]; then
-	echo "Aktualisiere Desktop-Software ..."
-	echo -e "Ja\nJa\n" | aptitude -y install $desktoptask
-	reinstall "$desktoptask"
-	echo
+	if check_free_space $PKGCACHE $KDESPACE; then
+		echo "Aktualisiere Desktop-Software ..."
+		echo -e "Ja\nJa\n" | aptitude -y install $desktoptask
+		reinstall "$desktoptask"
+		echo
+	else
+		echo "Ueberspringe Desktop-Aktualisierung!"
+	fi
 	checkpackages="$commontask $servertask $checkpackages $imagingtask $desktoptask"
 else
 	checkpackages="$commontask $servertask $checkpackages $imagingtask"
@@ -529,7 +440,7 @@ echo
 
 # check if all packages are installed
 RC=0 ; failed_packages=""
-echo "Überprüfe installierte Pakete:"
+echo "ueberpruefe installierte Pakete:"
 for i in $checkpackages; do
 	if [ "$i" = "rembo" -o "$i" = "myshn" ]; then
 		[ "$imaging" = "rembo" ] || continue
@@ -744,14 +655,6 @@ if [ -n "$timezone" ]; then
 	fi
 fi
 
-
-if [ -n "$cdrom" ]; then
-	echo "Aktualisiere Paketlisten ..."
-	mv /var/tmp/paedml40.list /etc/apt/sources.list.d
-	aptitude update 2>> $LOGFILE 1>> $LOGFILE
-	echo
-fi
-
 # update release information
 echo "$(getdistname) $DISTFULLVERSION / Codename $CODENAME" > /etc/issue
 cp /etc/issue /etc/issue.net
@@ -772,7 +675,7 @@ dpkg-reconfigure linuxmuster-base
 echo
 
 echo "Jetzt muss der Server neu gestartet werden!"
-[ -n "$cdrom" ] && echo "Führen Sie nach dem Neustart eine Systemaktualisierung durch!"
+#[ -n "$cdrom" ] && echo "Fuehren Sie nach dem Neustart eine Systemaktualisierung durch!"
 
 if [ "$RC" != "0" ]; then
 	echo
@@ -787,3 +690,4 @@ fi
 
 echo
 echo "Beendet um `date`!"
+

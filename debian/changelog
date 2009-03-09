@@ -1,3 +1,15 @@
+linuxmuster-base (1.4.45-1) testing; urgency=low
+
+  * paedml40-upgrade:
+    - fix broken upgrade (closes #71)
+  * changed version to 4.0.2a
+  * changed security sources in sources.list.etch to http://ftp2.de.debian.org/debian-security/
+  * changed name from Linux Musterloesung to openML Linux
+  * changed license of some scripts from GPL V2 to GPL V3
+  * fix getdistname() in helperfunctions.sh
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 09 Mar 2009 14:51:31 +0100
+
 linuxmuster-base (1.4.44-1) testing; urgency=low
 
   * paedml40-upgrade:

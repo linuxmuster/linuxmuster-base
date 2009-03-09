@@ -1,6 +1,14 @@
 #!/bin/bash
-# postinst script for linuxmuster
 #
+# postinst script for paedML/openML
+#
+# 06.03.2009
+# 
+# Thomas Schmitt
+# <schmitt@lmz-bw.de>
+# GPL V3
+#
+
 # see: dh_installdeb(1)
 
 set -e

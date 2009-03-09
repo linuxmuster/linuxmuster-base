@@ -104,16 +104,24 @@ backup_file() {
 
 # get legal distro name
 getdistname() {
-	local indexhtml=/var/www/paedml-default/index.html
-	local csshtml=/usr/share/schulkonsole/shtml/css.shtml.inc
-	local distname=""
-	if [ -s "$indexhtml" ]; then
-		if grep -q "$NONFREEDISTNAME" $indexhtml; then
-			grep -q "$NONFREEDISTNAME" $csshtml && distname="$NONFREEDISTNAME"
-		fi
+	cat /etc/issue | awk '{ print $1 " " $2 }'
+}
+
+# check free space: check_free_space path size
+check_free_space(){
+	local cpath=$1
+	local csize=$2
+	echo -n "Pruefe freien Platz unter $cpath: " | tee -a $LOGFILE
+	local available=`LANG=C df -P $cpath | grep -v Filesystem | awk '{ print $4 }'`
+	echo -n "${available}kb sind verfuegbar ... " | tee -a $LOGFILE
+	if [ $available -ge $csize ]; then
+		echo "Ok!" | tee -a $LOGFILE
+		echo
+		return 0
+	else
+		echo "zu wenig! Sie benoetigen mindestens ${csize}kb!" | tee -a $LOGFILE
+		return 1
 	fi
-	[ -z "$distname" ] && distname="$FREEDISTNAME"
-	echo "$distname"
 }
 
 ##########################
