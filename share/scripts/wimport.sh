@@ -13,22 +13,24 @@ MACHINE_PASSWORD=12345678
 HOST_PASSWORD=`pwgen -s 8 1`
 QUOTA=`grep ^'\$use_quota' $SOPHOMORIXCONF | awk -F\" '{ print $2 }' | tr A-Z a-z`
 
+# get host and machine accounts
+HOSTS_DB="$(hosts_db)"
+HOSTS_LDAP="$(hosts_ldap)"
+MACHINES_DB="$(machines_db)"
+MACHINES_LDAP="$(machines_ldap)"
+
 RC=0
 
 # functions
 # check for unique entry
 check_unique() {
-#	local searchstr=${1//./\\.}
 	local found=""
 	local s
-#	n=`grep -c ";$1;" $WDATATMP`
-#	n=`echo "$2" | grep -cw "$1"`
-#	[ $n -ne 1 ] && return 1
 	for s in $2; do
-	    if [ "$s" = "$1" ]; then
-		[ -n "$found" ] && return 1
-		found=yes
-	    fi
+    if [ "$s" = "$1" ]; then
+			[ -n "$found" ] && return 1
+			found=yes
+    fi
 	done
 	return 0
 }
@@ -45,12 +47,12 @@ exitmsg() {
 # checking for valid host/machine account
 check_account() {
 	if [ "$1" = "--all" -o "$1" = "--host" ]; then
-		check_id $hostname || return 1
-		smbldap-usershow $hostname &> /dev/null || return 1
+		echo "$HOSTS_DB" | grep -qw $hostname || return 1
+		echo "$HOSTS_LDAP" | grep -qw $hostname || return 1
 	fi
 	if [ "$1" = "--all" -o "$1" = "--machine" ]; then
-		check_id ${hostname}$ || return 1
-		smbldap-usershow ${hostname}$ &> /dev/null || return 1
+		stringinstring "${hostname}$" "$MACHINES_DB" || return 1
+		stringinstring "${hostname}$" "$MACHINES_LDAP" || return 1
 	fi
 	return 0
 }
@@ -62,12 +64,7 @@ create_account() {
 		return 1
 	fi
 	echo -n "  * Creating exam account $hostname ... "
-	sophomorix-useradd --examaccount $hostname --unix-group $room 2>> $TMPLOG 1>> $TMPLOG
-	if ! check_account --host 2>> $TMPLOG 1>> $TMPLOG; then
-	    sophomorix-kill --killuser $hostname 2>> $TMPLOG 1>> $TMPLOG
-	    sophomorix-useradd --examaccount $hostname --unix-group $room 2>> $TMPLOG 1>> $TMPLOG
-	fi
-	if check_account --host 2>> $TMPLOG 1>> $TMPLOG; then
+	if sophomorix-useradd --examaccount $hostname --unix-group $room 2>> $TMPLOG 1>> $TMPLOG; then
 		echo "Ok!"
 	else
 		echo "sophomorix error!"
@@ -93,12 +90,7 @@ create_account() {
 		fi
 	fi
 	echo -n "  * Creating machine account ${hostname}$ ... "
-	sophomorix-useradd --computer ${hostname}$ 2>> $TMPLOG 1>> $TMPLOG
-	if ! check_account --machine 2>> $TMPLOG 1>> $TMPLOG; then
-	    sophomorix-kill --killuser ${hostname}$ 2>> $TMPLOG 1>> $TMPLOG
-	    sophomorix-useradd --computer ${hostname}$ 2>> $TMPLOG 1>> $TMPLOG
-	fi
-	if check_account --machine 2>> $TMPLOG 1>> $TMPLOG; then
+	if sophomorix-useradd --computer ${hostname}$ 2>> $TMPLOG 1>> $TMPLOG; then
 		echo "Ok!"
 	else
 		echo "sophomorix error!"
@@ -120,26 +112,18 @@ remove_account() {
 		return 1
 	fi
 	echo -n "  * Removing exam account $hostname ... "
-	sophomorix-kill --killuser $hostname 2>> $TMPLOG 1>> $TMPLOG
-	if check_account --host 2>> $TMPLOG 1>> $TMPLOG; then
-	    sophomorix-kill --killuser $hostname 2>> $TMPLOG 1>> $TMPLOG
-	fi
-	if check_account --host 2>> $TMPLOG 1>> $TMPLOG; then
+	if sophomorix-kill --killuser $hostname 2>> $TMPLOG 1>> $TMPLOG; then
+		echo "Ok!"
+	else
 		echo "sophomorix error!"
 		return 1
-	else
-		echo "Ok!"
 	fi
 	echo -n "  * Removing machine account ${hostname}$ ... "
-	sophomorix-kill --killuser ${hostname}$ 2>> $TMPLOG 1>> $TMPLOG
-	if check_account --machine 2>> $TMPLOG 1>> $TMPLOG; then
-	    sophomorix-kill --killuser ${hostname}$ 2>> $TMPLOG 1>> $TMPLOG
-	fi
-	if check_account --machine 2>> $TMPLOG 1>> $TMPLOG; then
+	if sophomorix-kill --killuser ${hostname}$ 2>> $TMPLOG 1>> $TMPLOG; then
+		echo "Ok!"
+	else
 		echo "sophomorix error!"
 		return 1
-	else
-		echo "Ok!"
 	fi
 }
 
@@ -449,6 +433,7 @@ backup_file $ROOMDEFAULTS &> /dev/null
 FOUND=0
 echo "Checking for obsolete hosts:"
 if ls $WSHOME/*/* &> /dev/null; then
+
 	for i in $WSHOME/*/*; do
 
 		hostname=${i##*/}
@@ -456,6 +441,11 @@ if ls $WSHOME/*/* &> /dev/null; then
 			FOUND=1
 			remove_account ; RC_LINE="$?"
 			[ $RC_LINE -eq 0 ] || RC=1
+			if [ -z "$HOSTS_REMOVED" ]; then
+				HOSTS_REMOVED=$hostname
+			else
+				HOSTS_REMOVED="$HOSTS_REMOVED $hostname"
+			fi
 
 			if grep -v ^# $PRINTERS | grep -qw $hostname; then
 				remove_printeraccess $hostname ; RC_LINE="$?"
@@ -469,6 +459,7 @@ if ls $WSHOME/*/* &> /dev/null; then
 		fi
 
 	done
+
 fi
 [ "$FOUND" = "0" ] && echo "  * Nothing to do!"
 

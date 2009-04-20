@@ -650,6 +650,54 @@ check_group() {
   return 0
 }
 
+# get all host accounts from db
+hosts_db() {
+  unset RET
+  RET=`psql -U ldap -d ldap -t -c "select uid from posix_account where firstname = 'Exam';"`
+  if [ -n "$RET" ]; then
+		echo "$RET"
+    return 0
+  else
+    return 1
+  fi
+}
+
+# get all host accounts from ldap
+hosts_ldap() {
+  unset RET
+  RET=`ldapsearch -c -LL -b ou=accounts,$basedn -x filter cn=ExamAccount | grep uid= | awk -F= '{ print $2 }' | awk -F, '{ print $1 }'`
+  if [ -n "$RET" ]; then
+		echo "$RET"
+    return 0
+  else
+    return 1
+  fi
+}
+
+# get all host accounts
+machines_db() {
+  unset RET
+  RET=`psql -U ldap -d ldap -t -c "select uid from posix_account where firstname = 'Computer';"`
+  if [ -n "$RET" ]; then
+		echo "$RET"
+    return 0
+  else
+    return 1
+  fi
+}
+
+# get all host accounts from ldap
+machines_ldap() {
+  unset RET
+  RET=`ldapsearch -c -LL -b ou=machines,$basedn -x filter cn=Computer | grep uid= | awk -F= '{ print $2 }' | awk -F, '{ print $1 }'`
+  if [ -n "$RET" ]; then
+		echo "$RET"
+    return 0
+  else
+    return 1
+  fi
+}
+
 # check if account exists
 # username=$1
 check_id() {

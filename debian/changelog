@@ -1,3 +1,10 @@
+linuxmuster-base (1.4.46-1) testing; urgency=low
+
+  * workstations import:
+    - removed account check by adding and removing accounts, trusting sophomorix return codes
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 20 Apr 2009 20:34:07 +0200
+
 linuxmuster-base (1.4.45-1) testing; urgency=low
 
   * paedml40-upgrade:
