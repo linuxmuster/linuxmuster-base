@@ -102,6 +102,9 @@ case $opt in
       fi
     done
 
+		# tweak system time due to debian bug #531569 (http://www.mail-archive.com/debian-bugs-dist@lists.debian.org/msg654573.html)
+		date 0101000009
+
     # force apt to do ugly things during upgrade
     echo 'DPkg::Options {"--force-confold";"--force-confdef";"--force-bad-verify";"--force-overwrite";};' > /etc/apt/apt.conf.d/99upgrade
 

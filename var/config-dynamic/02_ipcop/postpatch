@@ -22,6 +22,7 @@ if [[ "$1" = "--first" || "$update_fw" = "yes" ]]; then
 
 		echo "  Building integrated ipcop ..."
 		/usr/share/linuxmuster-ipcop/build-uml.sh
+		chown ipcop /var/lib/uml/ipcop -R
 
 		# setting ipcop ram to 128mb if server ram is greater than 1 GB
 		MEM=64M

@@ -283,6 +283,8 @@ reinstall() {
 	done
 }
 
+# tweak system time due to debian bug #531569 (http://www.mail-archive.com/debian-bugs-dist@lists.debian.org/msg654573.html)
+date 0101000009
 
 # first update apt-utils
 echo "Aktualisiere apt ..."
@@ -673,6 +675,11 @@ ps -e | grep -q smbd || /etc/init.d/samba start
 ps ax | grep postgresql/8.1 | grep -qv grep || /etc/init.d/postgresql-8.1 start
 dpkg-reconfigure linuxmuster-base
 echo
+
+# reconfigure time
+echo "Aktualisiere Systemzeit ..."
+/etc/init.d/openntpd stop 2>> $LOGFILE 1>> $LOGFILE
+ntpdate pool.ntp.org
 
 echo "Jetzt muss der Server neu gestartet werden!"
 #[ -n "$cdrom" ] && echo "Fuehren Sie nach dem Neustart eine Systemaktualisierung durch!"

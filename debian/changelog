@@ -1,9 +1,20 @@
+linuxmuster-base (1.4.47-1) testing; urgency=low
+
+  * linuxmuster-setup/upgrade:
+    - tweaking system time during first time installation and upgrade due to debian bug #531569
+      (http://www.mail-archive.com/debian-bugs-dist@lists.debian.org/msg654573.html)
+  * dist.conf: setting version to 4.0.3
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 05 Jun 2009 15:28:59 +0200
+
 linuxmuster-base (1.4.46-1) testing; urgency=low
 
   * workstations import:
-    - removed account check by adding and removing accounts, trusting sophomorix return codes
+    - removed account check to decrease duration of import, trusting sophomorix return codes from now on
+  * linuxmuster-setup:
+    - IPCop: fix ipcop owner of hd images on integrated installation
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 20 Apr 2009 20:34:07 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 04 May 2009 13:49:04 +0200
 
 linuxmuster-base (1.4.45-1) testing; urgency=low
 
