@@ -104,7 +104,11 @@ backup_file() {
 
 # get legal distro name
 getdistname() {
-	cat /etc/issue | awk '{ print $1 " " $2 }'
+	if dpkg -s linuxmuster-schulkonsole-templates-paedml | grep -q ^Installed-Size; then
+		echo "$NONFREEDISTNAME"
+	else
+		echo "$FREEDISTNAME"
+	fi
 }
 
 # check free space: check_free_space path size

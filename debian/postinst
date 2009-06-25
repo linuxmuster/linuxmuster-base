@@ -129,8 +129,8 @@ case "$1" in
 
         # messages for config file headers
         message1="##### Do not change this file! It will be overwritten!"
-	message2="##### This configuration file was automatically created by linuxmuster-base!"
-	message3="##### Last Modification: `date`"
+				message2="##### This configuration file was automatically created by linuxmuster-base!"
+				message3="##### Last Modification: `date`"
 
         # some variables we need for patching
         # added imaging (1.2-6)
@@ -148,8 +148,8 @@ case "$1" in
         workgroup=$RET
         workgroup=${workgroup#[0-9] }
         internsub=`echo $serverip | awk -F. '{ print $2 }'`
-	serverrev_short=1.1.$internsub
-	ipcoprev_short=254.1.$internsub
+				serverrev_short=1.1.$internsub
+				ipcoprev_short=254.1.$internsub
 
         # patch samba
         sed -e "s/@@message1@@/${message1}/g
@@ -164,20 +164,20 @@ case "$1" in
                 s/@@teachersgroup@@/${TEACHERSGROUP}/g
                 s/@@basedn@@/${basedn}/g" $SMBCONFTEMPLATE.$imaging > /etc/samba/smb.conf
 
-	# samba reload only if postgres and/or samba are running
-	if ps ax | grep slapd | grep -v grep &> /dev/null; then
-		if ps ax | grep smbd | grep -v grep &> /dev/null; then
-			/etc/init.d/samba reload
+				# samba reload only if postgres and/or samba are running
+				if ps ax | grep slapd | grep -v grep &> /dev/null; then
+					if ps ax | grep smbd | grep -v grep &> /dev/null; then
+						/etc/init.d/samba reload
 	        	# restore samba ldap admin password
         		smbpasswd -w `cat /etc/ldap.secret`
-		else
-			echo "Samba is not running! Skipping samba reload!"
-			echo "You have to restart samba after package update!"
-		fi
-	else
-		echo "The LDAP daemon (slapd) is not running! Skipping samba reload!"
-		echo "You have to reload samba after package update!"
-	fi
+					else
+						echo "Samba is not running! Skipping samba reload!"
+						echo "You have to restart samba after package update!"
+					fi
+				else
+					echo "The LDAP daemon (slapd) is not running! Skipping samba reload!"
+					echo "You have to reload samba after package update!"
+				fi
 
         # apache2 adding port 242 for schulkonsole
         apache_ports=/etc/apache2/ports.conf
@@ -185,36 +185,36 @@ case "$1" in
           cp -f $STATICTPLDIR$apache_ports $apache_ports
         fi
 
-	# removing schulkonsole's obsolete apache2 configuration
-	if [ -L /etc/apache2/conf.d/schulkonsole ]; then
-		rm /etc/apache2/conf.d/schulkonsole
+				# removing schulkonsole's obsolete apache2 configuration
+				if [ -L /etc/apache2/conf.d/schulkonsole ]; then
+					rm /etc/apache2/conf.d/schulkonsole
         fi
 
-	# create new certificate skript and create new certificate
-	if [ ! -e "$SCRIPTSDIR/create-ssl-cert.sh" ]; then
-		echo "Creating new server certificate ..."
-		sed -e "s/@@country@@/${country}/
-			s/@@state@@/${state}/
-			s/@@location@@/${location}/
-			s/@@schoolname@@/${schoolname}/
-			s/@@servername@@/${servername}/
-			s/@@domainname@@/${domainname}/g
-			s/@@administrator@@/${ADMINISTRATOR}/" $DYNTPLDIR/01_certificates/create-ssl-cert.sh > $SCRIPTSDIR/create-ssl-cert.sh
-		chmod 744 $SCRIPTSDIR/create-ssl-cert.sh
-		$SCRIPTSDIR/create-ssl-cert.sh
-	fi
+				# create new certificate skript and create new certificate
+				if [ ! -e "$SCRIPTSDIR/create-ssl-cert.sh" ]; then
+					echo "Creating new server certificate ..."
+					sed -e "s/@@country@@/${country}/
+									s/@@state@@/${state}/
+									s/@@location@@/${location}/
+									s/@@schoolname@@/${schoolname}/
+									s/@@servername@@/${servername}/
+									s/@@domainname@@/${domainname}/g
+									s/@@administrator@@/${ADMINISTRATOR}/" $DYNTPLDIR/01_certificates/create-ssl-cert.sh > $SCRIPTSDIR/create-ssl-cert.sh
+					chmod 744 $SCRIPTSDIR/create-ssl-cert.sh
+					$SCRIPTSDIR/create-ssl-cert.sh
+				fi
 
         # fixing pam configuration
         if grep ^account /etc/pam.d/login | grep -q pam_access.so; then
-  	  echo "pam configuration is up to date. :-)"
+  	  		echo "pam configuration is up to date. :-)"
         else
           echo "Updating pam configuration ..."
           cp -f $STATICTPLDIR/etc/pam.d/* /etc/pam.d
           cp -f $STATICTPLDIR/etc/nsswitch.conf /etc
           sed -e "s/@@administrator@@/$ADMINISTRATOR/" $DYNTPLDIR/17_admins/access.conf > /etc/security/access.conf
-	  echo "ATTENTION!"
-	  echo "Only root and $ADMINISTRATOR are allowed to login on the server!"
-	  echo "To change this behaviour you have to edit /etc/security/access.conf!"
+	  			echo "ATTENTION!"
+	  			echo "Only root and $ADMINISTRATOR are allowed to login on the server!"
+	  			echo "To change this behaviour you have to edit /etc/security/access.conf!"
         fi
 
         # update cron scripts
@@ -238,12 +238,12 @@ case "$1" in
 #        [ -e /etc/apt/apt.conf ] && cp /etc/apt/apt.conf /etc/apt/apt.conf.dpkg-old
 #        echo "Updating /etc/apt/apt.conf ..."
 #        cp -f $STATICTPLDIR/etc/apt/apt.conf /etc/apt
-	# checking for correct sources.list
-	if grep -q lml40-updates /etc/apt/sources.list; then
-		backup_file /etc/apt/sources.list
-		echo "Updating sources.list ..."
-		sed -e 's/lml40-updates/paedml40-updates/' -i /etc/apt/sources.list
-	fi
+				# checking for correct sources.list
+				if grep -q lml40-updates /etc/apt/sources.list; then
+					backup_file /etc/apt/sources.list
+					echo "Updating sources.list ..."
+					sed -e 's/lml40-updates/paedml40-updates/' -i /etc/apt/sources.list
+				fi
 #	while read line; do
 #		[ "${line:0:3}" != "deb" ] && continue
 #		if ! grep -q "$line" /etc/apt/sources.list; then
@@ -260,11 +260,11 @@ case "$1" in
           cp -f $STATICTPLDIR/etc/environment /etc
           cp -f $STATICTPLDIR/etc/profile /etc
         fi
-	if ! grep -q "export LANG" /etc/profile; then
-		backup_file /etc/profile
-		sed -e "/^export PATH/a\
-export LANG" -i /etc/profile
-	fi
+				if ! grep -q "export LANG" /etc/profile; then
+					backup_file /etc/profile
+					sed -e "/^export PATH/a\
+					export LANG" -i /etc/profile
+				fi
 
         # shadow passwords
         if [ ! -e /etc/shadow ]; then
@@ -272,7 +272,7 @@ export LANG" -i /etc/profile
         fi
 
         # remove false link to backup mountpoint
-	[ -L /_backup ] && rm /_backup
+				[ -L /_backup ] && rm /_backup
 
         # openldap permissions
         chown root:root /etc/ldap/ldap.conf
@@ -289,113 +289,87 @@ export LANG" -i /etc/profile
           cp /etc/init.d/networking /etc/init.d/networking.dpkg-dist
           cp $STATICTPLDIR/etc/init.d/networking /etc/init.d
         fi
-	# fixing typo in /etc/init.d/networking
+				# fixing typo in /etc/init.d/networking
         if grep -q dopicop /etc/init.d/networking; then
           echo "Fixing typo in /etc/init.d/networking ..."
           cp $STATICTPLDIR/etc/init.d/networking /etc/init.d
         fi
-	[ -e /etc/init.d/networking.dpkg-dist ] && chmod 644 /etc/init.d/networking.dpkg-dist
+				[ -e /etc/init.d/networking.dpkg-dist ] && chmod 644 /etc/init.d/networking.dpkg-dist
 
-	# remove old nameif script and installing new linuxmuster-nic-setup
-	if [ -e /etc/init.d/nameif ]; then
-		echo "Fixing mac address handling (Bug #86) ..."
-		#  first save the mac assignments
-		mac_extern=`grep "^nameif extern" /etc/init.d/nameif | cut -f3 -d" "`
-		if [ -n "$mac_extern" ]; then
-			toupper $mac_extern
-			mac_extern=$RET
-			db_set linuxmuster-base/mac_extern $mac_extern || true
-		fi
-		mac_intern=`grep "^nameif intern" /etc/init.d/nameif | cut -f3 -d" "`
-		if [ -n "$mac_intern" ]; then
-			toupper $mac_intern
-			mac_intern=$RET
-			db_set linuxmuster-base/mac_intern $mac_intern || true
-		fi
-		mac_wlan=`grep "^nameif wlan" /etc/init.d/nameif | cut -f3 -d" "`
-		if [ -n "$mac_wlan" ]; then
-			toupper $mac_wlan
-			mac_wlan=$RET
-			db_set linuxmuster-base/mac_wlan $mac_wlan || true
-		fi
-		mac_dmz=`grep "^nameif dmz" /etc/init.d/nameif | cut -f3 -d" "`
-		if [ -n "$mac_dmz" ]; then
-			toupper $mac_dmz
-			mac_dmz=$RET
-			db_set linuxmuster-base/mac_dmz $mac_dmz || true
-		fi
-		# write them to network.settings
-		grep -v ^mac_ $NETWORKSETTINGS > $NETWORKSETTINGS.tmp
-		mv $NETWORKSETTINGS.tmp $NETWORKSETTINGS
-		echo "mac_extern=$mac_extern" >> $NETWORKSETTINGS
-		echo "mac_intern=$mac_intern" >> $NETWORKSETTINGS
-		echo "mac_wlan=$mac_wlan" >> $NETWORKSETTINGS
-		echo "mac_dmz=$mac_dmz" >> $NETWORKSETTINGS
-		update-rc.d -f nameif remove
-		mv /etc/init.d/nameif /etc/init.d/nameif.dpkg-old
-		chmod 644 /etc/init.d/nameif.dpkg-old
+				# remove old nameif script and installing new linuxmuster-nic-setup
+				if [ -e /etc/init.d/nameif ]; then
+					echo "Fixing mac address handling (Bug #86) ..."
+					#  first save the mac assignments
+					mac_extern=`grep "^nameif extern" /etc/init.d/nameif | cut -f3 -d" "`
+					if [ -n "$mac_extern" ]; then
+						toupper $mac_extern
+						mac_extern=$RET
+						db_set linuxmuster-base/mac_extern $mac_extern || true
+					fi
+					mac_intern=`grep "^nameif intern" /etc/init.d/nameif | cut -f3 -d" "`
+					if [ -n "$mac_intern" ]; then
+						toupper $mac_intern
+						mac_intern=$RET
+						db_set linuxmuster-base/mac_intern $mac_intern || true
+					fi
+					mac_wlan=`grep "^nameif wlan" /etc/init.d/nameif | cut -f3 -d" "`
+					if [ -n "$mac_wlan" ]; then
+						toupper $mac_wlan
+						mac_wlan=$RET
+						db_set linuxmuster-base/mac_wlan $mac_wlan || true
+					fi
+					mac_dmz=`grep "^nameif dmz" /etc/init.d/nameif | cut -f3 -d" "`
+					if [ -n "$mac_dmz" ]; then
+						toupper $mac_dmz
+						mac_dmz=$RET
+						db_set linuxmuster-base/mac_dmz $mac_dmz || true
+					fi
+					# write them to network.settings
+					grep -v ^mac_ $NETWORKSETTINGS > $NETWORKSETTINGS.tmp
+					mv $NETWORKSETTINGS.tmp $NETWORKSETTINGS
+					echo "mac_extern=$mac_extern" >> $NETWORKSETTINGS
+					echo "mac_intern=$mac_intern" >> $NETWORKSETTINGS
+					echo "mac_wlan=$mac_wlan" >> $NETWORKSETTINGS
+					echo "mac_dmz=$mac_dmz" >> $NETWORKSETTINGS
+					update-rc.d -f nameif remove
+					mv /etc/init.d/nameif /etc/init.d/nameif.dpkg-old
+					chmod 644 /etc/init.d/nameif.dpkg-old
+				fi # nameif
 
-	fi
+				# fixing cupsys init start nr
+				if [ -e /etc/rc2.d/S20cupsys ]; then
+					echo "Fixing cupsys' init start nr ..."
+					update-rc.d -f cupsys remove
+					update-rc.d cupsys start 21 2 3 4 5 . stop 19 0 1 6 .
+					cups_restart=yes
+				fi
+				if [ -n "$cups_restart" ]; then
+					/etc/init.d/cupsys force-reload || true
+				fi
 
-	# restoring PDF-Printer
-#	if [ ! -f /etc/cups/ppd/PDF-Printer.ppd ]; then
-#		echo "Restoring PDF-Printer driver ..."
-#		cp $STATICTPLDIR/etc/cups/ppd/PDF-Printer.ppd /etc/cups/ppd
-#		cups_restart=yes
-#	fi
-	# restoring PDF-Printer definition
-#	if ! grep -q PDF-Printer /etc/cups/printers.conf; then
-#		echo "Restoring PDF-Printer definition ..."
-#		cp /etc/cups/printers.conf /etc/cups/printers.conf.dpkg-old
-#		cat $STATICTPLDIR/etc/cups/printers.conf | grep -v ^# >> /etc/cups/printers.conf
-#		cups_restart=yes
-#	fi
-	# upgrading cups-pdf printer driver
-#	if [ -f /usr/share/ppd/cups-pdf/PostscriptColor.ppd ]; then
-#		if ! diff -q /usr/share/ppd/cups-pdf/PostscriptColor.ppd /etc/cups/ppd/PDF-Printer.ppd &> /dev/null; then
-#			echo "Upgrading cups-pdf printer driver ..."
-#			cp /usr/share/ppd/cups-pdf/PostscriptColor.ppd /etc/cups/ppd/PDF-Printer.ppd
-#			cups_restart=yes
-#		fi
-#	fi
-	# fixing cupsys init start nr
-	if [ -e /etc/rc2.d/S20cupsys ]; then
-		echo "Fixing cupsys' init start nr ..."
-		update-rc.d -f cupsys remove
-		update-rc.d cupsys start 21 2 3 4 5 . stop 19 0 1 6 .
-		cups_restart=yes
-	fi
-	if [ -n "$cups_restart" ]; then
-			/etc/init.d/cupsys force-reload || true
-	fi
-
-	# extraschueler.txt, extrakurse.txt
-	for i in extraschueler.txt extrakurse.txt entfernen.txt sperrklassen.txt; do
-		[ -e "/etc/sophomorix/user/$i" ] || cp $STATICTPLDIR/etc/sophomorix/user/$i /etc/sophomorix/user
-	done
+				# extraschueler.txt, extrakurse.txt
+				for i in extraschueler.txt extrakurse.txt entfernen.txt sperrklassen.txt; do
+					[ -e "/etc/sophomorix/user/$i" ] || cp $STATICTPLDIR/etc/sophomorix/user/$i /etc/sophomorix/user
+				done
 
         # removing old cyrus21 runlevel links
-	if [ -e /etc/rc2.d/S20cyrus2.2 ]; then
-		if [ -e /etc/rc2.d/S20cyrus21 ]; then
-			update-rc.d -f cyrus21 remove
-		fi
-	fi
+				if [ -e /etc/rc2.d/S20cyrus2.2 ]; then
+					if [ -e /etc/rc2.d/S20cyrus21 ]; then
+						update-rc.d -f cyrus21 remove
+					fi
+				fi
 
-	# repair admin accounts and groupmappings
-	# no more necessary (1.4.37-paedml1)
-	#$SCRIPTSDIR/repair-admins.sh
+				# restore apache's default index.html
+				indexhtml=/var/www/apache2-default/index.html
+				if grep -q "paedML" $indexhtml; then
+					cp $indexhtml $indexhtml.dpkg-old
+					echo -n "<html><body><h1>It works!</h1></body></html>" > $indexhtml
+				fi
 
-	# restore apache's default index.html
-	indexhtml=/var/www/apache2-default/index.html
-	if grep -q "paedML" $indexhtml; then
-		cp $indexhtml $indexhtml.dpkg-old
-		echo -n "<html><body><h1>It works!</h1></body></html>" > $indexhtml
-	fi
-
-	# removing passwd3 files (1.1-7)
-	[ -e /etc/horde/passwd3 ] && rm -rf /etc/horde/passwd3
-	[ -e /usr/share/horde3/passwd ] && rm -rf /usr/share/horde3/passwd
-	[ -e /usr/share/doc/passwd3 ] && rm -rf /usr/share/doc/passwd3
+				# removing passwd3 files (1.1-7)
+				[ -e /etc/horde/passwd3 ] && rm -rf /etc/horde/passwd3
+				[ -e /usr/share/horde3/passwd ] && rm -rf /usr/share/horde3/passwd
+				[ -e /usr/share/doc/passwd3 ] && rm -rf /usr/share/doc/passwd3
 
         # restoring internal firewall
         . /etc/default/linuxmuster-base
@@ -405,260 +379,259 @@ export LANG" -i /etc/profile
           fi
         fi
 
-	# adding imaging variable (1.2-14)
-	if ! grep -q ^imaging $NETWORKSETTINGS; then
-		if [ -z "$imaging" ]; then
-			imaging=rembo
-			db_set linuxmuster-base/imaging $imaging || true
-		fi
-		echo "imaging=$imaging" >> $NETWORKSETTINGS
-	fi
-
-	# patch path to wimport_data in dist.conf (1.1-8)
-	if [ -n "$imaging" ]; then
-		case "$imaging" in
-			linbo|tivoli)
-				sed -e "s/^WIMPORTDATA=.*/WIMPORTDATA=\"\$SYSCONFDIR\/workstations\"/" -i /usr/share/linuxmuster/config/dist.conf
-				if [[ -L "$SYSCONFDIR/workstations" && -f "$REMBOFILES/files/global/wimport_data" ]]; then
-					rm $SYSCONFDIR/workstations
-					cp $REMBOFILES/files/global/wimport_data $SYSCONFDIR/workstations
+				# adding imaging variable (1.2-14)
+				if ! grep -q ^imaging $NETWORKSETTINGS; then
+					if [ -z "$imaging" ]; then
+						imaging=rembo
+						db_set linuxmuster-base/imaging $imaging || true
+					fi
+					echo "imaging=$imaging" >> $NETWORKSETTINGS
 				fi
-				;;
-			*)
-				sed -e "s/^WIMPORTDATA=.*/WIMPORTDATA=\"\$REMBOFILES\/files\/global\/wimport_data\"/" -i /usr/share/linuxmuster/config/dist.conf
-				;;
-		esac
-	fi
 
-	# fixing backup.conf
-	# remove obsolete unmount_shm (1.2-17)
-	if grep -q ^unmount_shm /etc/linuxmuster/backup.conf; then
-		echo "Removing obsolete parameter unmount_shm from backup.conf ..."
-		cp /etc/linuxmuster/backup.conf /etc/linuxmuster/backup.conf.dpkg-old
-		sed -e 's/^unmount_shm.*/# obsolete with linuxmuster-base 1.2-17/' -i /etc/linuxmuster/backup.conf
-	fi
-	# change postgresql to postgresql-8.1 (1.4.36-paedml1)
-	if grep -q ,postgresql, /etc/linuxmuster/backup.conf; then
-		echo "Changing postgresql to postgresql-8.1 in backup.conf ..."
-		cp /etc/linuxmuster/backup.conf /etc/linuxmuster/backup.conf.dpkg-old
-		sed -e 's/,postgresql,/,postgresql-8.1,/g' -i /etc/linuxmuster/backup.conf
-	fi
+				# patch path to wimport_data in dist.conf (1.1-8)
+				if [ -n "$imaging" ]; then
+					case "$imaging" in
+						linbo|tivoli)
+							sed -e "s/^WIMPORTDATA=.*/WIMPORTDATA=\"\$SYSCONFDIR\/workstations\"/" -i /usr/share/linuxmuster/config/dist.conf
+							if [[ -L "$SYSCONFDIR/workstations" && -f "$REMBOFILES/files/global/wimport_data" ]]; then
+								rm $SYSCONFDIR/workstations
+								cp $REMBOFILES/files/global/wimport_data $SYSCONFDIR/workstations
+							fi
+							;;
+						*)
+							sed -e "s/^WIMPORTDATA=.*/WIMPORTDATA=\"\$REMBOFILES\/files\/global\/wimport_data\"/" -i /usr/share/linuxmuster/config/dist.conf
+							;;
+					esac
+				fi
 
-	# change obsolete cyrus21 to cyrus2.2 in services parameter in backup.conf (1.2-25)
-	if grep -w cyrus21 /etc/linuxmuster/backup.conf | grep -qv ^#; then
-		echo "Changing service cyrus21 to cyrus2.2 in backup.conf ..."
-		cp /etc/linuxmuster/backup.conf /etc/linuxmuster/backup.conf.dpkg-old
-		sed -e 's/cyrus21/cyrus2.2/' -i /etc/linuxmuster/backup.conf
-	fi
+				# fixing backup.conf
+				# remove obsolete unmount_shm (1.2-17)
+				if grep -q ^unmount_shm /etc/linuxmuster/backup.conf; then
+					echo "Removing obsolete parameter unmount_shm from backup.conf ..."
+					cp /etc/linuxmuster/backup.conf /etc/linuxmuster/backup.conf.dpkg-old
+					sed -e 's/^unmount_shm.*/# obsolete with linuxmuster-base 1.2-17/' -i /etc/linuxmuster/backup.conf
+				fi
+				# change postgresql to postgresql-8.1 (1.4.36-paedml1)
+				if grep -q ,postgresql, /etc/linuxmuster/backup.conf; then
+					echo "Changing postgresql to postgresql-8.1 in backup.conf ..."
+					cp /etc/linuxmuster/backup.conf /etc/linuxmuster/backup.conf.dpkg-old
+					sed -e 's/,postgresql,/,postgresql-8.1,/g' -i /etc/linuxmuster/backup.conf
+				fi
 
-	# custom login/logout scripts (1.2-6)
-	for i in in out; do
-		if [ ! -e "$NETLOGONDIR/custom-log$i.sh" ]; then
-			echo "Copying $NETLOGONDIR/custom-log$i.sh ..."
-			cp $STATICTPLDIR$NETLOGONDIR/custom-log$i.sh $NETLOGONDIR
-		fi
-	done
-	# reparing permissions in netlogondir (1.2-15)
-	chown $ADMINISTRATOR:$DOMADMINS $NETLOGONDIR/*
-	chmod 664 $NETLOGONDIR/*
+				# change obsolete cyrus21 to cyrus2.2 in services parameter in backup.conf (1.2-25)
+				if grep -w cyrus21 /etc/linuxmuster/backup.conf | grep -qv ^#; then
+					echo "Changing service cyrus21 to cyrus2.2 in backup.conf ..."
+					cp /etc/linuxmuster/backup.conf /etc/linuxmuster/backup.conf.dpkg-old
+					sed -e 's/cyrus21/cyrus2.2/' -i /etc/linuxmuster/backup.conf
+				fi
 
-	# removing obsolete samba-userlog lockfile (1.2-10)
-	if [ -e "${USERLOG}.lock" ]; then
-		echo "Removing obsolete lockfile ${USERLOG}.lock ..."
-		rm -f ${USERLOG}.lock
-	fi
+				# custom login/logout scripts (1.2-6)
+				for i in in out; do
+					if [ ! -e "$NETLOGONDIR/custom-log$i.sh" ]; then
+						echo "Copying $NETLOGONDIR/custom-log$i.sh ..."
+						cp $STATICTPLDIR$NETLOGONDIR/custom-log$i.sh $NETLOGONDIR
+					fi
+				done
+				# reparing permissions in netlogondir (1.2-15)
+				chown $ADMINISTRATOR:$DOMADMINS $NETLOGONDIR/*
+				chmod 664 $NETLOGONDIR/*
 
-	# linking registry-patches to administrator's home (1.2-15)
-	if [ ! -e "$ADMINSHOME/$ADMINISTRATOR/registry-patches" ]; then
-		echo "Linking registry-patches to administrator's home ..."
-		ln -sf /usr/share/linuxmuster/registry-patches $ADMINSHOME/$ADMINISTRATOR/registry-patches
-	fi
+				# removing obsolete samba-userlog lockfile (1.2-10)
+				if [ -e "${USERLOG}.lock" ]; then
+					echo "Removing obsolete lockfile ${USERLOG}.lock ..."
+					rm -f ${USERLOG}.lock
+				fi
 
-	# linbo related update stuff
-	if [ "$imaging" = "linbo" ]; then
-		# updating rsyncd.conf according to linbo revision 119 (1.2-13)
-		if ! grep -q pre-xfer /etc/rsyncd.conf; then
-			echo "Updating rsync configuration ..."
-			cp $STATICTPLDIR/etc/rsyncd.conf /etc
-			/etc/init.d/rsync restart
-		fi
-		# updating LINBO's dhcp configuration (1.4.36-paedml1)
-		if ! grep -q ^"# pxelinux options for LINBO" /etc/dhcp3/dhcpd.conf; then
-			echo "Updating dhcp-server configuration for LINBO ..."
-			cp /etc/dhcp3/dhcpd.conf /etc/dhcp3/dhcpd.conf.dpkg-old
-			dhcp_backup=yes
-			sed -e "s/@@servername@@/${servername}/g
-				s/@@domainname@@/${domainname}/g
-				s/@@serverip@@/${serverip}/g
-				s/@@ipcopip@@/${ipcopip}/g
-				s/@@broadcast@@/${broadcast}/g
-				s/@@internalnet@@/${internalnet}/g
-				s/@@internsub@@/${internsub}/g
-				s/@@internmask@@/${internmask}/g" $DYNTPLDIR/03_dhcp3-server/dhcpd.conf.linbo > /etc/dhcp3/dhcpd.conf
-			dhcp_reload=yes
-		fi
-		# linbo administrative user
-		if ! check_id linbo; then
-			linbopasswd=`grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }'`
-			if [ -n "$linbopasswd" ]; then
-				echo "Creating linbo user ..."
-				sophomorix-useradd --administrator linbo --unix-group $ADMINGROUP --shell /bin/false --gecos "LINBO Administrator" &> /dev/null || true
-				sophomorix-passwd --user linbo --pass $linbopasswd &> /dev/null || true
-				smbldap-usermod -H '[UX         ]' linbo || true
-			fi
-		fi
-		
-	fi
+				# linking registry-patches to administrator's home (1.2-15)
+				if [ ! -e "$ADMINSHOME/$ADMINISTRATOR/registry-patches" ]; then
+					echo "Linking registry-patches to administrator's home ..."
+					ln -sf /usr/share/linuxmuster/registry-patches $ADMINSHOME/$ADMINISTRATOR/registry-patches
+				fi
 
-	# deny client-updates
-	if grep -q ^"ignore client-updates" /etc/dhcp3/dhcpd.conf; then
-		echo "Updating dhcp-server configuration to deny client updates ..."
-		[ -z "$dhcp_backup" ] && cp /etc/dhcp3/dhcpd.conf /etc/dhcp3/dhcpd.conf.dpkg-old
-		sed -e "s/^ignore client-updates/deny client-updates/" -i /etc/dhcp3/dhcpd.conf
-		dhcp_reload=yes
-	fi
+				# linbo related update stuff
+				if [ "$imaging" = "linbo" ]; then
+					# updating rsyncd.conf according to linbo revision 119 (1.2-13)
+					if ! grep -q pre-xfer /etc/rsyncd.conf; then
+						echo "Updating rsync configuration ..."
+						cp $STATICTPLDIR/etc/rsyncd.conf /etc
+						/etc/init.d/rsync restart
+					fi
+					# updating LINBO's dhcp configuration (1.4.36-paedml1)
+					if ! grep -q ^"# pxelinux options for LINBO" /etc/dhcp3/dhcpd.conf; then
+						echo "Updating dhcp-server configuration for LINBO ..."
+						cp /etc/dhcp3/dhcpd.conf /etc/dhcp3/dhcpd.conf.dpkg-old
+						dhcp_backup=yes
+						sed -e "s/@@servername@@/${servername}/g
+										s/@@domainname@@/${domainname}/g
+										s/@@serverip@@/${serverip}/g
+										s/@@ipcopip@@/${ipcopip}/g
+										s/@@broadcast@@/${broadcast}/g
+										s/@@internalnet@@/${internalnet}/g
+										s/@@internsub@@/${internsub}/g
+										s/@@internmask@@/${internmask}/g" $DYNTPLDIR/03_dhcp3-server/dhcpd.conf.linbo > /etc/dhcp3/dhcpd.conf
+						dhcp_reload=yes
+					fi
+					# linbo administrative user
+					if ! check_id linbo; then
+						linbopasswd=`grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }'`
+						if [ -n "$linbopasswd" ]; then
+							echo "Creating linbo user ..."
+							sophomorix-useradd --administrator linbo --unix-group $ADMINGROUP --shell /bin/false --gecos "LINBO Administrator" &> /dev/null || true
+							sophomorix-passwd --user linbo --pass $linbopasswd &> /dev/null || true
+							smbldap-usermod -H '[UX         ]' linbo || true
+						fi
+					fi
+				fi # linbo
 
-	# reparing nagios2, apache2.conf
-	if ! grep -q "$basedn" /etc/nagios2/apache2.conf; then
-	sed -e "s/@@serverip@@/$serverip/
-		s/@@basedn@@/$basedn/" $DYNTPLDIR/22_nagios/apache2.conf > /etc/nagios2/apache2.conf
-		cp /etc/nagios2/apache2.conf /var/lib/linuxmuster-nagios/config/nagios2
-		ln -sf /etc/nagios2/apache2.conf /etc/apache2/conf.d/nagios2.conf
-	fi
-	if ! grep -q "$(getdistname)" $SYSCONFDIR/nagios.conf; then
-		cp $SYSCONFDIR/nagios.conf $SYSCONFDIR/nagios.conf.dpkg-old
-		sed -e "s/^DESC_SERVER=.*/DESC_SERVER=\"Server der $(getdistname) $DISTMAJORVERSION\"/
-			s/^DESC_FW=.*/DESC_FW=\"Firewall der $(getdistname) $DISTMAJORVERSION\"/
-			s/^DESC_SERVERGROUP=.*/DESC_SERVERGROUP=\"Server der $(getdistname) $DISTMAJORVERSION\"/" -i /etc/linuxmuster/nagios.conf
-		sed -e "s/Server der .*/Server der $(getdistname) $DISTMAJORVERSION/g
-			s/Firewall der .*/Firewall der $(getdistname) $DISTMAJORVERSION/g" -i /etc/nagios2/conf.d/linuxmuster_main.cfg
-		nagios_reload=yes
-	fi
+				# deny client-updates
+				if grep -q ^"ignore client-updates" /etc/dhcp3/dhcpd.conf; then
+					echo "Updating dhcp-server configuration to deny client updates ..."
+					[ -z "$dhcp_backup" ] && cp /etc/dhcp3/dhcpd.conf /etc/dhcp3/dhcpd.conf.dpkg-old
+					sed -e "s/^ignore client-updates/deny client-updates/" -i /etc/dhcp3/dhcpd.conf
+					dhcp_reload=yes
+				fi
 
-	# creating pam_ldap.secret link
-	[ -e /etc/pam_ldap.secret ] || ln -sf ldap.secret /etc/pam_ldap.secret
+				# reparing nagios2, apache2.conf
+				if ! grep -q "$basedn" /etc/nagios2/apache2.conf; then
+					sed -e "s/@@serverip@@/$serverip/
+									s/@@basedn@@/$basedn/" $DYNTPLDIR/22_nagios/apache2.conf > /etc/nagios2/apache2.conf
+					cp /etc/nagios2/apache2.conf /var/lib/linuxmuster-nagios/config/nagios2
+					ln -sf /etc/nagios2/apache2.conf /etc/apache2/conf.d/nagios2.conf
+				fi
+				if ! grep -q "$(getdistname)" $SYSCONFDIR/nagios.conf; then
+					cp $SYSCONFDIR/nagios.conf $SYSCONFDIR/nagios.conf.dpkg-old
+					sed -e "s/^DESC_SERVER=.*/DESC_SERVER=\"Server der $(getdistname) $DISTMAJORVERSION\"/
+									s/^DESC_FW=.*/DESC_FW=\"Firewall der $(getdistname) $DISTMAJORVERSION\"/
+									s/^DESC_SERVERGROUP=.*/DESC_SERVERGROUP=\"Server der $(getdistname) $DISTMAJORVERSION\"/" -i /etc/linuxmuster/nagios.conf
+					sed -e "s/Server der .*/Server der $(getdistname) $DISTMAJORVERSION/g
+									s/Firewall der .*/Firewall der $(getdistname) $DISTMAJORVERSION/g" -i /etc/nagios2/conf.d/linuxmuster_main.cfg
+					nagios_reload=yes
+				fi
 
-	# repairing openntpd
-	if ! grep -q ^"listen on $serverip" /etc/openntpd/ntpd.conf; then
-		cp /etc/openntpd/ntpd.conf /etc/openntpd/ntpd.conf.dpkg-old
-		sed -e "s/@@serverip@@/$serverip/" $DYNTPLDIR/99_start-services/ntpd.conf > /etc/openntpd/ntpd.conf
-		/etc/init.d/openntpd restart
-	fi
+				# creating pam_ldap.secret link
+				[ -e /etc/pam_ldap.secret ] || ln -sf ldap.secret /etc/pam_ldap.secret
 
-	# repairing webmin
-	if [ ! -d /var/log/webmin ]; then
-		mkdir -p /var/log/webmin
-		/etc/init.d/webmin restart
-	fi
+				# repairing openntpd
+				if ! grep -q ^"listen on $serverip" /etc/openntpd/ntpd.conf; then
+					cp /etc/openntpd/ntpd.conf /etc/openntpd/ntpd.conf.dpkg-old
+					sed -e "s/@@serverip@@/$serverip/" $DYNTPLDIR/99_start-services/ntpd.conf > /etc/openntpd/ntpd.conf
+					/etc/init.d/openntpd restart
+				fi
 
-	# repairing moodle
-	if [ -e /etc/moodle/config.php ]; then
-		if ! grep -q "\$CFG->wwwroot = '/moodle';" /etc/moodle/config.php; then
-			cp /etc/moodle/config.php /etc/moodle/config.php.dpkg-old
-			sed -e "s/\$CFG->wwwroot =.*/\$CFG->wwwroot = \'\/moodle\';/g" -i /etc/moodle/config.php
-		fi
-	fi
-	if [ -d /usr/share/moodle ]; then
-		[[ -e /usr/share/moodle/moodle && ! -L /usr/share/moodle/moodle ]] && mv /usr/share/moodle/moodle /usr/share/moodle/moodle.dpkg-old
-		[ -L /usr/share/moodle/moodle ] || ln -s . /usr/share/moodle/moodle
-	fi
+				# repairing webmin
+				if [ ! -d /var/log/webmin ]; then
+					mkdir -p /var/log/webmin
+					/etc/init.d/webmin restart
+				fi
 
-	# repair ssl-cert permissions (1.4.37-paedml1 & 1.4.38-paedml1)
-	chgrp ssl-cert /etc/ssl/private -R
-	if grep -q root:sasl $SCRIPTSDIR/create-ssl-cert.sh; then
-		sed -e 's/root:sasl/root:ssl-cert/g' -i $SCRIPTSDIR/create-ssl-cert.sh
-		chmod 744 $SCRIPTSDIR/create-ssl-cert.sh
-	fi
+				# repairing moodle
+				if [ -e /etc/moodle/config.php ]; then
+					if ! grep -q "\$CFG->wwwroot = '/moodle';" /etc/moodle/config.php; then
+						cp /etc/moodle/config.php /etc/moodle/config.php.dpkg-old
+						sed -e "s/\$CFG->wwwroot =.*/\$CFG->wwwroot = \'\/moodle\';/g" -i /etc/moodle/config.php
+					fi
+				fi
+				if [ -d /usr/share/moodle ]; then
+					[[ -e /usr/share/moodle/moodle && ! -L /usr/share/moodle/moodle ]] && mv /usr/share/moodle/moodle /usr/share/moodle/moodle.dpkg-old
+					[ -L /usr/share/moodle/moodle ] || ln -s . /usr/share/moodle/moodle
+				fi
 
-	# adding tls support to slapd.conf
-	slapdtpl=/usr/share/sophomorix/config-templates/ldap/slapd-standalone.conf.template
-	[ -e /etc/ldap/slapd.conf.custom ] || cp $STATICTPLDIR/etc/ldap/slapd.conf.custom /etc/ldap
-	if ! grep -q ^TLS /etc/ldap/slapd.conf || ! grep -q misc.schema /etc/ldap/slapd.conf; then
-		echo "Updating openldap configuration ..."
-		cp /etc/ldap/slapd.conf /etc/ldap/slapd.conf.dpkg-old
-		rootpw=`grep ^rootpw /etc/ldap/slapd.conf | awk '{ print $2 }'`
-		sed -e "s/@@message1@@/${message1}/
-			s/@@message2@@/${message2}/
-			s/@@message3@@/${message3}/
-			s/@@basedn@@/${basedn}/g
-			s/@@tls_comment@@//g
-			s/@@ldappassword@@/${rootpw}/g" $slapdtpl > /etc/ldap/slapd.conf
-		addgroup openldap ssl-cert
-		chmod 600 /etc/ldap/slapd.conf*
-		slapd_reload=yes
-	fi
-	if grep -q ^TLS /etc/ldap/slapd.conf; then
-		if ! grep ^SLAPD_SERVICES /etc/default/slapd | grep -q ldaps; then
-			cp /etc/default/slapd /etc/default/slapd.dpkg-old
-			cp $STATICTPLDIR/etc/default/slapd /etc/default
-			slapd_reload=yes
-		fi
-	fi
+				# repair ssl-cert permissions (1.4.37-paedml1 & 1.4.38-paedml1)
+				chgrp ssl-cert /etc/ssl/private -R
+				if grep -q root:sasl $SCRIPTSDIR/create-ssl-cert.sh; then
+					sed -e 's/root:sasl/root:ssl-cert/g' -i $SCRIPTSDIR/create-ssl-cert.sh
+					chmod 744 $SCRIPTSDIR/create-ssl-cert.sh
+				fi
 
-	# fixing postgresql-8.1 pg_hba.conf (1.4.37-paedml1)
-	grep -q ^"# changed for Ogo" /etc/postgresql/8.1/main/pg_hba.conf && pg_update=yes
-	grep -q moodle /etc/postgresql/8.1/main/pg_hba.conf || pg_update=yes
-	if [ -n "$pg_update" ]; then
-		echo "Updating postgresql configuration ..."
-		echo "Warning: pg_hba.conf will be backupd up to pg_hba.conf.dpkg-old!"
-		cp /etc/postgresql/8.1/main/pg_hba.conf /etc/postgresql/8.1/main/pg_hba.conf.dpkg-old
-		cp $STATICTPLDIR/etc/postgresql/8.1/main/pg_hba.conf /etc/postgresql/8.1/main
-		postgres_reload=yes
-	fi
+				# adding tls support to slapd.conf
+				slapdtpl=/usr/share/sophomorix/config-templates/ldap/slapd-standalone.conf.template
+				[ -e /etc/ldap/slapd.conf.custom ] || cp $STATICTPLDIR/etc/ldap/slapd.conf.custom /etc/ldap
+				if ! grep -q ^TLS /etc/ldap/slapd.conf || ! grep -q misc.schema /etc/ldap/slapd.conf; then
+					echo "Updating openldap configuration ..."
+					cp /etc/ldap/slapd.conf /etc/ldap/slapd.conf.dpkg-old
+					rootpw=`grep ^rootpw /etc/ldap/slapd.conf | awk '{ print $2 }'`
+					sed -e "s/@@message1@@/${message1}/
+									s/@@message2@@/${message2}/
+									s/@@message3@@/${message3}/
+									s/@@basedn@@/${basedn}/g
+									s/@@tls_comment@@//g
+									s/@@ldappassword@@/${rootpw}/g" $slapdtpl > /etc/ldap/slapd.conf
+					addgroup openldap ssl-cert
+					chmod 600 /etc/ldap/slapd.conf*
+					slapd_reload=yes
+				fi
+				if grep -q ^TLS /etc/ldap/slapd.conf; then
+					if ! grep ^SLAPD_SERVICES /etc/default/slapd | grep -q ldaps; then
+						cp /etc/default/slapd /etc/default/slapd.dpkg-old
+						cp $STATICTPLDIR/etc/default/slapd /etc/default
+						slapd_reload=yes
+					fi
+				fi
 
-	# ldap db user needs password (1.4.44-1)
-	dbconf=/etc/linuxmuster/schulkonsole/db.conf
-	dbuser=`grep ^Username $dbconf | awk -F\= '{ print $2 }'`
-	dbpwd=`grep ^Password $dbconf | awk -F\= '{ print $2 }'`
-	if [ "$dbuser" != "ldap" -o -z "$dbpwd" ]; then
-		echo "Providing a random password for postgresql user ldap."
-		echo "Warning: Backing up /etc/linuxmuster/schulkonsole/db.conf to db.conf.dpkg-old!"
-		cp /etc/linuxmuster/schulkonsole/db.conf /etc/linuxmuster/schulkonsole/db.conf.dpkg-old
-		ldapdbpw=`pwgen -s 8 1`
-		psql -U postgres -d template1 -qc "ALTER USER ldap WITH PASSWORD '"$ldapdbpw"';"
-		sed -e "s/^Password=.*/Password=$ldapdbpw/" $STATICTPLDIR/etc/linuxmuster/schulkonsole/db.conf > /etc/linuxmuster/schulkonsole/db.conf
-		chown www-data:www-data /etc/linuxmuster/schulkonsole/db.conf*
-		chmod 400 /etc/linuxmuster/schulkonsole/db.conf*
-	fi
+				# fixing postgresql-8.1 pg_hba.conf (1.4.37-paedml1)
+				grep -q ^"# changed for Ogo" /etc/postgresql/8.1/main/pg_hba.conf && pg_update=yes
+				grep -q moodle /etc/postgresql/8.1/main/pg_hba.conf || pg_update=yes
+				if [ -n "$pg_update" ]; then
+					echo "Updating postgresql configuration ..."
+					echo "Warning: pg_hba.conf will be backupd up to pg_hba.conf.dpkg-old!"
+					cp /etc/postgresql/8.1/main/pg_hba.conf /etc/postgresql/8.1/main/pg_hba.conf.dpkg-old
+					cp $STATICTPLDIR/etc/postgresql/8.1/main/pg_hba.conf /etc/postgresql/8.1/main
+					postgres_reload=yes
+				fi
 
-	# https://bugs.launchpad.net/ubuntu/+source/php5/+bug/63141, 1.4.44-1)
-	if grep -q ^"extension=curl.so" /etc/php5/conf.d/curl.ini; then
-		backup_file /etc/php5/conf.d/curl.ini
-		echo "Fixing /etc/php5/conf.d/curl.ini ..."
-		sed -e 's|^extension=curl.so|#extension=curl.so|' -i /etc/php5/conf.d/curl.ini
-		echo "# tschmitt: moved to pgsql.ini -> https://bugs.launchpad.net/ubuntu/+source/php5/+bug/63141" >> /etc/php5/conf.d/curl.ini
-	fi
-	if ! grep -q ^"extension=curl.so" /etc/php5/conf.d/pgsql.ini; then
-		backup_file /etc/php5/conf.d/pgsql.ini
-		echo "Fixing /etc/php5/conf.d/pgsql.ini ..."
-		echo "# tschmitt: moved from curl.ini -> https://bugs.launchpad.net/ubuntu/+source/php5/+bug/63141" >> /etc/php5/conf.d/pgsql.ini
-		echo "extension=curl.so" >> /etc/php5/conf.d/pgsql.ini
-	fi
+				# ldap db user needs password (1.4.44-1)
+				dbconf=/etc/linuxmuster/schulkonsole/db.conf
+				dbuser=`grep ^Username $dbconf | awk -F\= '{ print $2 }'`
+				dbpwd=`grep ^Password $dbconf | awk -F\= '{ print $2 }'`
+				if [ "$dbuser" != "ldap" -o -z "$dbpwd" ]; then
+					echo "Providing a random password for postgresql user ldap."
+					echo "Warning: Backing up /etc/linuxmuster/schulkonsole/db.conf to db.conf.dpkg-old!"
+					cp /etc/linuxmuster/schulkonsole/db.conf /etc/linuxmuster/schulkonsole/db.conf.dpkg-old
+					ldapdbpw=`pwgen -s 8 1`
+					psql -U postgres -d template1 -qc "ALTER USER ldap WITH PASSWORD '"$ldapdbpw"';"
+					sed -e "s/^Password=.*/Password=$ldapdbpw/" $STATICTPLDIR/etc/linuxmuster/schulkonsole/db.conf > /etc/linuxmuster/schulkonsole/db.conf
+					chown www-data:www-data /etc/linuxmuster/schulkonsole/db.conf*
+					chmod 400 /etc/linuxmuster/schulkonsole/db.conf*
+				fi
 
-	# provide a default mindi.conf (1.4.44-1)
-	if [ ! -e /etc/mindi/mindi.conf ]; then
-		echo "Providing a default mindi.conf ..."
-		cp $STATICTPLDIR/etc/mindi/mindi.conf /etc/mindi
-	fi
+				# https://bugs.launchpad.net/ubuntu/+source/php5/+bug/63141, 1.4.44-1)
+				if grep -q ^"extension=curl.so" /etc/php5/conf.d/curl.ini; then
+					backup_file /etc/php5/conf.d/curl.ini
+					echo "Fixing /etc/php5/conf.d/curl.ini ..."
+					sed -e 's|^extension=curl.so|#extension=curl.so|' -i /etc/php5/conf.d/curl.ini
+					echo "# tschmitt: moved to pgsql.ini -> https://bugs.launchpad.net/ubuntu/+source/php5/+bug/63141" >> /etc/php5/conf.d/curl.ini
+				fi
+				if ! grep -q ^"extension=curl.so" /etc/php5/conf.d/pgsql.ini; then
+					backup_file /etc/php5/conf.d/pgsql.ini
+					echo "Fixing /etc/php5/conf.d/pgsql.ini ..."
+					echo "# tschmitt: moved from curl.ini -> https://bugs.launchpad.net/ubuntu/+source/php5/+bug/63141" >> /etc/php5/conf.d/pgsql.ini
+					echo "extension=curl.so" >> /etc/php5/conf.d/pgsql.ini
+				fi
 
-	# updating release information
-	echo "$(getdistname) $DISTFULLVERSION / Codename $CODENAME" > /etc/issue
-	cp /etc/issue /etc/issue.net
+				# provide a default mindi.conf (1.4.44-1)
+				if [ ! -e /etc/mindi/mindi.conf ]; then
+					echo "Providing a default mindi.conf ..."
+					cp $STATICTPLDIR/etc/mindi/mindi.conf /etc/mindi
+				fi
+
+				# updating release information
+				echo "$(getdistname) $DISTFULLVERSION / Codename $CODENAME" > /etc/issue
+				cp /etc/issue /etc/issue.net
 
         # reload services
-	apache2ctl graceful || true
-	[ -n "$nagios_reload" ] && /etc/init.d/nagios2 restart
-	[ -n "$dhcp_reload" ] && /etc/init.d/dhcp3-server force-reload
-	[ -n "$slapd_reload" ] && /etc/init.d/slapd restart
-	[ -n "$postgres_reload" ] && /etc/init.d/postgresql-8.1 reload
+				apache2ctl graceful || true
+				[ -n "$nagios_reload" ] && /etc/init.d/nagios2 restart
+				[ -n "$dhcp_reload" ] && /etc/init.d/dhcp3-server force-reload
+				[ -n "$slapd_reload" ] && /etc/init.d/slapd restart
+				[ -n "$postgres_reload" ] && /etc/init.d/postgresql-8.1 reload
 	
-	# important message if upgrade is necessary
+				# important message if upgrade is necessary
         if [ -n "$upgrade" ]; then
           echo "IMPORTANT!"
           echo "Be sure to make apt-get update and apt-get dist-upgrade very soon!"
         fi
 
-      fi
+      fi # upgrade tasks
 
       ;;
 

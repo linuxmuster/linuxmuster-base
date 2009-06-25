@@ -1,3 +1,16 @@
+linuxmuster-base (1.4.49-1) testing; urgency=low
+
+  * fixed wrong /etc/issue after 4.0.3 upgrade
+  * minor cleanup in postinst
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 25 Jun 2009 11:17:33 +0200
+
+linuxmuster-base (1.4.48-1) testing; urgency=low
+
+  * dist.conf: setting CDDATE to 20090623
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 22 Jun 2009 15:25:46 +0200
+
 linuxmuster-base (1.4.47-1) testing; urgency=low
 
   * linuxmuster-setup/upgrade:
