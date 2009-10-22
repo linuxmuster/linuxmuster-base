@@ -2,7 +2,7 @@ linuxmuster-base (1.4.50-2) testing; urgency=low
 
   * fixed typo in /etc/apache2/mods-enabled/userdir.conf.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 22 Oct 2009 18:46:00 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 22 Oct 2009 19:08:32 +0200
 
 linuxmuster-base (1.4.50-1) testing; urgency=low
 
