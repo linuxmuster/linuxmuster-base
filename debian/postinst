@@ -613,10 +613,10 @@ case "$1" in
 					   cp $STATICTPLDIR/etc/mindi/mindi.conf /etc/mindi
 			   	fi
 
-       # fixing apache's userdir.conf (1.4.50-1)
+       # fixing apache's userdir.conf (1.4.50-2)
        conffile=/etc/apache2/mods-available/userdir.conf
        if [ -e "$conffile" ]; then
-        if ! grep -q "# modified by linuxmuster-base 1.4.50-1" $conffile; then
+        if ! grep -q "# modified by linuxmuster-base 1.4.50-2" $conffile; then
          echo "Fixing $conffile ..."
          cp $conffile ${conffile}.dpkg-old
          cp $STATICTPLDIR$conffile $conffile
