@@ -14,10 +14,20 @@ HOST_PASSWORD=`pwgen -s 8 1`
 QUOTA=`grep ^'\$use_quota' $SOPHOMORIXCONF | awk -F\" '{ print $2 }' | tr A-Z a-z`
 
 # get host and machine accounts
+echo -n "Reading account data ."
 HOSTS_DB="$(hosts_db)"
+echo -n .
 HOSTS_LDAP="$(hosts_ldap)"
+echo -n .
 MACHINES_DB="$(machines_db)"
+echo -n .
 MACHINES_LDAP="$(machines_ldap)"
+echo -n .
+ACCOUNTS_DB="$(accounts_db)"
+echo -n .
+ACCOUNTS_LDAP="$(accounts_ldap)"
+echo " Done!"
+echo
 
 RC=0
 
@@ -46,19 +56,31 @@ exitmsg() {
 
 # checking for valid host/machine account
 check_account() {
-	if [ "$1" = "--all" -o "$1" = "--host" ]; then
-		echo "$HOSTS_DB" | grep -qw $hostname || return 1
-		echo "$HOSTS_LDAP" | grep -qw $hostname || return 1
-	fi
-	if [ "$1" = "--all" -o "$1" = "--machine" ]; then
-		stringinstring "${hostname}$" "$MACHINES_DB" || return 1
-		stringinstring "${hostname}$" "$MACHINES_LDAP" || return 1
-	fi
+	echo "$HOSTS_LDAP" | grep -qw "$hostname" || return 1
+	echo "$MACHINES_LDAP" | grep -qw "${hostname}\\$" || return 1
+	echo "$HOSTS_DB" | grep -qw "$hostname" || return 1
+	echo "$MACHINES_DB" | grep -qw "${hostname}\\$" || return 1
 	return 0
 }
 
 # create workstation and machine accounts
 create_account() {
+ # check if hostname exists already as a user account
+ if echo "$ACCOUNTS_LDAP" | grep -qw "$hostname"; then
+  echo "  * ERROR: $hostname is already a ldap user account! Skipping!"
+  echo
+  return 1
+ fi
+ if echo "$ACCOUNTS_DB" | grep -qw "$hostname"; then
+  echo "  * ERROR: $hostname is already a postgresql user account! Skipping!"
+  echo
+  return 1
+ fi
+ if grep -q ^"${hostname}"\: /etc/passwd; then
+  echo "  * ERROR: $hostname is already a system account! Skipping!"
+  echo
+  return 1
+ fi
 	if [ -e "$SOPHOMORIXLOCK" ]; then
 		echo "Fatal! Sophomorix lockfile $SOPHOMORIXLOCK detected!"
 		return 1
@@ -113,6 +135,7 @@ remove_account() {
 	fi
 	echo -n "  * Removing exam account $hostname ... "
 	if sophomorix-kill --killuser $hostname 2>> $TMPLOG 1>> $TMPLOG; then
+  [ -d "$i" ] && rm -rf $i 2>> $TMPLOG 1>> $TMPLOG
 		echo "Ok!"
 	else
 		echo "sophomorix error!"
@@ -305,7 +328,7 @@ if [ -s "$WIMPORTDATA" ]; then
 		echo "Processing host $hostname:"
 
 		# create workstation and machine accounts
-		if check_account --all; then
+		if check_account; then
 			get_pgroup $hostname
 			strip_spaces $RET
 			pgroup=$RET

@@ -87,6 +87,7 @@
 # 'encrypt passwords' in the smb.conf(5) manpage before enabling.
    encrypt passwords = true
 
+   ldap ssl = Off
    ldap replication sleep = 5000
    ldap admin dn = cn=admin,@@basedn@@
    ldap suffix = @@basedn@@
@@ -149,7 +150,8 @@
    interfaces = @@serverip@@/@@internmask@@ 127.0.0.1/255.0.0.0
    domain logons = Yes
    admin users = @@domadmin@@
-   unix charset = ISO8859-15
+   unix charset = UTF8
+   dos charset =
    logon script = login.bat
    time server = Yes
    logon path =
@@ -298,7 +300,7 @@
    comment = Students Homes
    path = /home/students
    writeable = no
-   write list = @@administrator@@
+   write list = @@administrator@@,@@@teachersgroup@@
    valid users = @@administrator@@,@@@teachersgroup@@
    browseable = No
    guest ok = No

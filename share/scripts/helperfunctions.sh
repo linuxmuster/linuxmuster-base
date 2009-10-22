@@ -659,17 +659,17 @@ hosts_db() {
   unset RET
   RET=`psql -U ldap -d ldap -t -c "select uid from posix_account where firstname = 'Exam';"`
   if [ -n "$RET" ]; then
-		echo "$RET"
-    return 0
+	 	echo "$RET" | awk '{ print $1 }'
+   return 0
   else
-    return 1
+   return 1
   fi
 }
 
 # get all host accounts from ldap
 hosts_ldap() {
   unset RET
-  RET=`ldapsearch -c -LL -b ou=accounts,$basedn -x filter cn=ExamAccount | grep uid= | awk -F= '{ print $2 }' | awk -F, '{ print $1 }'`
+  RET=`ldapsearch -x -ZZ -h localhost "(cn=ExamAccount)" | grep ^uid\: | awk '{ print $2 }'`
   if [ -n "$RET" ]; then
 		echo "$RET"
     return 0
@@ -683,6 +683,18 @@ machines_db() {
   unset RET
   RET=`psql -U ldap -d ldap -t -c "select uid from posix_account where firstname = 'Computer';"`
   if [ -n "$RET" ]; then
+		 echo "$RET" | awk '{ print $1 }'
+   return 0
+  else
+   return 1
+  fi
+}
+
+# get all host accounts from ldap
+machines_ldap() {
+  unset RET
+  RET=`ldapsearch -x -ZZ -h localhost "(cn=Computer)" | grep ^uid\: | awk '{ print $2 }'`
+  if [ -n "$RET" ]; then
 		echo "$RET"
     return 0
   else
@@ -690,10 +702,22 @@ machines_db() {
   fi
 }
 
-# get all host accounts from ldap
-machines_ldap() {
+# get all user accounts
+accounts_db() {
   unset RET
-  RET=`ldapsearch -c -LL -b ou=machines,$basedn -x filter cn=Computer | grep uid= | awk -F= '{ print $2 }' | awk -F, '{ print $1 }'`
+  RET=`psql -U ldap -d ldap -t -c "select uid from posix_account where firstname <> 'Computer' and firstname <> 'Exam';"`
+  if [ -n "$RET" ]; then
+		 echo "$RET" | awk '{ print $1 }'
+   return 0
+  else
+   return 1
+  fi
+}
+
+# get all user accounts from ldap
+accounts_ldap() {
+  unset RET
+  RET=`ldapsearch -x -ZZ -h localhost "(&(!(cn=Computer))(!(cn=ExamAccount)))" | grep ^uid\: | awk '{ print $2 }'`
   if [ -n "$RET" ]; then
 		echo "$RET"
     return 0

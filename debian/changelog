@@ -1,3 +1,19 @@
+linuxmuster-base (1.4.50-1) testing; urgency=low
+
+  * modified dist.conf for release 4.0.4.
+  * smb.conf template:
+    - added "unix charset = UTF8" in global section.
+    - added "ldap ssl = Off" in global section.
+    - modified "write list = @@administrator@@,@@@teachersgroup@@" in students share.
+  * added ldap.conf to dynamic templates with new parameter "TLS_REQCERT never" to ignore
+    self signed server certificate by ldap queries from localhost (#144).
+  * fixed apache's UserDir in /etc/apache2/mods-enabled/userdir.conf as it should behave (#143).
+  * fixed ldap query for machine accounts in helperfunctions.sh (#116).
+  * fixed missing user account check in wimport.sh (#137).
+  * added Windows 7 registry patch example.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 22 Oct 2009 10:19:15 +0200
+
 linuxmuster-base (1.4.49-1) testing; urgency=low
 
   * fixed wrong /etc/issue after 4.0.3 upgrade
