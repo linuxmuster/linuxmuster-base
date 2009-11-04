@@ -1,3 +1,11 @@
+linuxmuster-base (1.5.0-1) etch; urgency=low
+
+  * added dependency to samba-common-bin.
+  * modified Windows 7 registry patch example according to samba 3.4.x.
+  * added "net setdomainsid $sambasid" to var/config-dynamic/15_ldap/prepatch.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 03 Nov 2009 14:01:00 +0100
+
 linuxmuster-base (1.4.50-2) testing; urgency=low
 
   * fixed typo in /etc/apache2/mods-enabled/userdir.conf.

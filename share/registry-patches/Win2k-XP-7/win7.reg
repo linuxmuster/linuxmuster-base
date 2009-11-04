@@ -8,6 +8,6 @@ Windows Registry Editor Version 5.00
 "DisablePasswordChange"=dword:00000001
 "MaximumPasswordAge"=dword:000f4240
 "RefusePasswordChange"=dword:00000001
-"RequireSignOrSeal"=dword:00000000
-"RequireStrongKey"=dword:00000000
+"RequireSignOrSeal"=dword:00000001
+"RequireStrongKey"=dword:00000001
 

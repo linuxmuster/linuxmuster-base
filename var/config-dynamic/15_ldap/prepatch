@@ -9,7 +9,10 @@ fi
 
 
 # set samba sid
-[ -n "$sambasid" ] && net setlocalsid $sambasid
+if [ -n "$sambasid" ]; then
+ net setlocalsid $sambasid
+ net setdomainsid $sambasid
+fi
 
 
 # restore ldapadmin password
