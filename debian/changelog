@@ -1,3 +1,9 @@
+linuxmuster-base (1.5.1-1) etch; urgency=low
+
+  * fixed BOT blockrule in internet_on_off.sh (closes #156).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 12 Nov 2009 09:00:00 +0100
+
 linuxmuster-base (1.5.0-1) etch; urgency=low
 
   * added dependency to samba-common-bin.

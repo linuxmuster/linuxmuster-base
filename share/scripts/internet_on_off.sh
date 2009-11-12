@@ -1,6 +1,11 @@
 #!/bin/sh
 #
 # blocking web access on ipcop
+#
+# Thomas Schmitt <schmitt@lmz-bw.de>
+# 12.11.2009
+# GPL v3
+#
 
 #set -x
 
@@ -15,7 +20,7 @@
 
 # default variables
 searchstr="Host with MAC @@mac@@ is blocked"
-blockrule="RULE,FORWARD,on,std,defaultSrcNet,green,off,textSrcAdrmac,@@mac@@,off,-,off,defaultDestNet,any,off,defaultDstIP,Any,off,-,-,off,log,average,10/minute,off,-,-,reject,off,$searchstr."
+blockrule="RULE,FORWARD,on,std,defaultSrcNet,Green,off,textSrcAdrmac,@@mac@@,off,-,off,colorDestNet,GREEN_COLOR,off,defaultDstIP,Any,off,-,-,off,log,average,10/minute,off,-,-,reject,off,$searchstr."
 
 
 # parsing parameters
