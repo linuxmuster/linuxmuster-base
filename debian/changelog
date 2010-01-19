@@ -1,3 +1,15 @@
+linuxmuster-base (1.5.3-1) etch; urgency=low
+
+  * postinst: fixed broken permissions in netlogon subdirs after package upgrade (closes #182).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 19 Jan 2010 13:06:24 +0100
+
+linuxmuster-base (1.5.2-1) etch; urgency=low
+
+  * reworked remoteadmin creation script, is now a system user (closes #153).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 18 Jan 2010 14:17:30 +0100
+
 linuxmuster-base (1.5.1-1) etch; urgency=low
 
   * fixed BOT blockrule in internet_on_off.sh (closes #156).

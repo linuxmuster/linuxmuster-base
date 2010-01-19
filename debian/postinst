@@ -432,8 +432,11 @@ case "$1" in
    					fi
    				done
    				# reparing permissions in netlogondir (1.2-15)
-   				chown $ADMINISTRATOR:$DOMADMINS $NETLOGONDIR/*
-   				chmod 664 $NETLOGONDIR/*
+       # fixed for subdirs in 1.5.3-1
+       echo "Repairing permissions in $NETLOGONDIR ..."
+   				find $NETLOGONDIR/ -type f -exec chmod 664 '{}' \;
+   				find $NETLOGONDIR/ -type d -exec chmod 775 '{}' \;
+   				chown $ADMINISTRATOR:$DOMADMINS $NETLOGONDIR -R
 
    				# removing obsolete samba-userlog lockfile (1.2-10)
    				if [ -e "${USERLOG}.lock" ]; then
