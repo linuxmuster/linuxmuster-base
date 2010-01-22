@@ -1,3 +1,9 @@
+linuxmuster-base (1.5.4-1) etch; urgency=low
+
+  * helperfunctions.sh, discover_nics(): added code to discover also bonding interfaces (bond*).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 22 Jan 2010 09:32:46 +0100
+
 linuxmuster-base (1.5.3-1) etch; urgency=low
 
   * postinst: fixed broken permissions in netlogon subdirs after package upgrade (closes #182).

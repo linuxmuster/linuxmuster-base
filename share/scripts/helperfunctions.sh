@@ -1,4 +1,11 @@
 # linuxmuster shell helperfunctions
+#
+# Thomas Schmitt
+# <schmitt@lmz-bw.de>
+# GPL v3
+#
+# 22.01.2010
+#
 
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
@@ -289,7 +296,7 @@ discover_nics() {
 
 	n=0
 	# fetch all interfaces and their macs from /sys
-	for i in /sys/class/net/eth* /sys/class/net/wlan* /sys/class/net/intern /sys/class/net/extern /sys/class/net/dmz; do
+	for i in /sys/class/net/bond* /sys/class/net/eth* /sys/class/net/wlan* /sys/class/net/intern /sys/class/net/extern /sys/class/net/dmz; do
 
 		[ -e $i/address ] || continue
 		address[$n]=`head -1 $i/address` || continue
