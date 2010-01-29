@@ -9,6 +9,9 @@
 WDATATMP=/var/tmp/workstations.$$
 [ -e "$WDATATMP" ] && rm -rf $WDATATMP
 
+DB10TMP=/var/tmp/db10.$$
+DBREVTMP=/var/tmp/dbrev.$$
+
 MACHINE_PASSWORD=12345678
 HOST_PASSWORD=`pwgen -s 8 1`
 QUOTA=`grep ^'\$use_quota' $SOPHOMORIXCONF | awk -F\" '{ print $2 }' | tr A-Z a-z`
@@ -303,6 +306,14 @@ if [ -e "$DHCPDCONF" ]; then
 fi
 touch $DHCPDCONF 2>> $TMPLOG 1>> $TMPLOG || exitmsg "Unable to create $DHCPDCONF!"
 
+# remove host entries from bind config
+backup_file $DB10 2>> $TMPLOG 1>> $TMPLOG || exitmsg "Unable to backup $DB10!"
+backup_file $DBREV 2>> $TMPLOG 1>> $TMPLOG || exitmsg "Unable to backup $DBREV!"
+removefrom_file $DB10 "/\;$BEGINSTR/,/\;$ENDSTR/"
+removefrom_file $DBREV "/\;$BEGINSTR/,/\;$ENDSTR/"
+echo ";$BEGINSTR" > $DB10TMP
+echo ";$BEGINSTR" > $DBREVTMP
+
 # read in rooms
 rooms=`ls $WSHOME/`
 
@@ -369,7 +380,7 @@ if [ -s "$WIMPORTDATA" ]; then
 				fi
 			fi
 
-			echo -n "  * LINBO: Linking IP $ip to hostgroup $hostgroup ... "
+			echo -n "  * LINBO: Linking $ip to group $hostgroup ... "
 
 			# remove start.conf links but preserve start.conf file for this ip
 			if [[ -e "$LINBODIR/start.conf-$ip" && -L "$LINBODIR/start.conf-$ip" ]]; then
@@ -392,7 +403,7 @@ if [ -s "$WIMPORTDATA" ]; then
 		fi
 
 		# write dhcpd.conf entry
-		echo -n "  * DHCP: Writing entry for $hostname ... "
+		echo -n "  * DHCP/BIND: Writing config ... "
 		echo "host $hostname {" >> $DHCPDCONF
 		echo "  hardware ethernet $mac;" >> $DHCPDCONF
 		echo "  fixed-address $ip;" >> $DHCPDCONF
@@ -402,6 +413,13 @@ if [ -s "$WIMPORTDATA" ]; then
 			echo "  option pxelinux.configfile \"pxelinux.cfg/$hostgroup\";" >> $DHCPDCONF
 		fi
 		echo "}" >> $DHCPDCONF
+		
+		# write bind config
+		okt2="$(echo $ip | awk -F. '{ print $2 }')"
+		okt3="$(echo $ip | awk -F. '{ print $3 }')"
+		okt4="$(echo $ip | awk -F. '{ print $4 }')"
+  echo "$okt4.$okt3.$okt2 PTR $hostname.`dnsdomainname`." >> $DB10TMP
+  echo "$hostname A $ip" >> $DBREVTMP
 
 		echo "Ok!"
 		echo
@@ -410,6 +428,13 @@ if [ -s "$WIMPORTDATA" ]; then
 
 fi
 
+# finalize bind config
+echo ";$ENDSTR" >> $DB10TMP
+echo ";$ENDSTR" >> $DBREVTMP
+addto_file "$DB10" "$DB10TMP" "ipcop"
+addto_file "$DBREV" "$DBREVTMP" "ipcop"
+rm $DB10TMP
+rm $DBREVTMP
 
 # creating/updating group specific linbofs
 if [ "$imaging" = "linbo" -a -e "$LINBOUPDATE" ]; then
@@ -530,6 +555,7 @@ done
 echo
 /etc/init.d/linuxmuster-base reload
 /etc/init.d/dhcp3-server force-reload
+/etc/init.d/bind9 force-reload
 [ "$imaging" = "rembo" ] && /etc/init.d/rembo reload
 [ -n "$update_printers" ] && import_printers
 

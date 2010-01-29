@@ -1,11 +1,11 @@
 # necessary to trick sophomorix
 if [ "$1" = "--first" ]; then
-	pg_dropcluster 7.4 main &> /dev/null
 	pg_dropcluster 8.1 main &> /dev/null
-	pg_createcluster 8.1 main
-	cp $STATICTPLDIR/etc/postgresql/8.1/main/* /etc/postgresql/8.1/main
+	pg_dropcluster 8.3 main &> /dev/null
+	pg_createcluster 8.3 main
+	cp $STATICTPLDIR/etc/postgresql/8.3/main/* /etc/postgresql/8.3/main
 fi
-/etc/init.d/postgresql-8.1 start
+/etc/init.d/postgresql-8.3 start
 
 
 # set samba sid
@@ -45,13 +45,21 @@ sed -e "s/^BASE.*/BASE $basedn/" -i $template
 
 
 # patch slapd.conf with basedn and password
-template=/usr/share/sophomorix/config-templates/ldap/slapd-standalone.conf.template
+#template=/usr/share/sophomorix/config-templates/ldap/slapd-standalone.conf.template
+#[ "$1" = "--modify" ] && backup_file /etc/ldap/slapd.conf
+#sed -e "s/@@message1@@/${message1}/
+#	s/@@message2@@/${message2}/
+#	s/@@message3@@/${message3}/
+#	s/@@basedn@@/${basedn}/g
+#	s/@@tls_comment@@//g
+#	s/@@ldappassword@@/${ldapadminpw}/" $template > /etc/ldap/slapd.conf
+## temporary for lenny upgrade
+template=slapd.conf
 [ "$1" = "--modify" ] && backup_file /etc/ldap/slapd.conf
 sed -e "s/@@message1@@/${message1}/
 	s/@@message2@@/${message2}/
 	s/@@message3@@/${message3}/
 	s/@@basedn@@/${basedn}/g
-	s/@@tls_comment@@//g
 	s/@@ldappassword@@/${ldapadminpw}/" $template > /etc/ldap/slapd.conf
 
 
@@ -128,14 +136,19 @@ fi
 
 
 # repair permissions
-for i in /etc/ldap.secret /etc/ldap/slapd.conf /etc/smbldap-tools/smbldap_bind.conf /etc/sophomorix/pgldap/pgldap.conf; do
+for i in /etc/ldap.secret /etc/smbldap-tools/smbldap_bind.conf /etc/sophomorix/pgldap/pgldap.conf; do
   chmod 600 $i
 done
 chown www-data:www-data /etc/linuxmuster/schulkonsole/*
 chmod 400 /etc/linuxmuster/schulkonsole/db.conf*
-chown root:root /etc/ldap/slapd.conf*
+chown root:openldap /etc/ldap/slapd.conf*
+chmod 640  /etc/ldap/slapd.conf*
 chown root:root /etc/ldap/ldap.conf
 chmod 644 /etc/ldap/ldap.conf
+chown openldap:openldap /var/lib/ldap -R
+chmod 700 /var/lib/ldap
+chmod 600 /var/lib/ldap/*
+rm /etc/pam_ldap.secret
 ln -sf ldap.secret /etc/pam_ldap.secret
 
 

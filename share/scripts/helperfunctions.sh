@@ -135,6 +135,38 @@ check_free_space(){
 	fi
 }
 
+#######################
+# config file editing #
+#######################
+
+addto_file()
+{
+	# Parameter 1 original file
+	# Parameter 2 changes file
+	# Parameter 3 search pattern after that content of changes file will be inserted
+ local ofile="$1"
+ local cfile="$2"
+ local pattern="$3"
+ local tfile="/var/tmp/addto_file.$$"
+	sed ''/$pattern/' r '$cfile'' <$ofile > $tfile || return 1
+	cp $tfile $ofile
+	rm $tfile
+	return 0
+}
+
+removefrom_file()
+{
+	# Parameter 1 original file
+	# Parameter 2 search pattern e.g. /\;### linuxmuster - begin ###/,/\;### linuxmuster - end ###/
+ local ofile="$1"
+ local pattern="$2"
+ local tfile="/var/tmp/removefrom_file.$$"
+	sed "$pattern"d <$ofile > $tfile || return 1
+	cp $tfile $ofile
+	rm $tfile
+	return 0
+}
+
 ##########################
 # check parameter values #
 ##########################

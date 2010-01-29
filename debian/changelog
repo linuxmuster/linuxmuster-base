@@ -1,19 +1,14 @@
 linuxmuster-base (1.5.4-1) etch; urgency=low
 
-  * helperfunctions.sh, discover_nics(): added code to discover also bonding interfaces (bond*).
-  * config files modified for Lenny upgrade:
-    var/config-static/etc/apache2/apache2.conf
-    var/config-static/etc/default/slapd
-    var/config-static/etc/default/saslauthd
-  * config files added for Lenny upgrade:
-    var/config-dynamic/15_ldap/slapd.conf
-    var/config-static/var/lib
-    var/config-static/var/lib/ldap
-    var/config-static/var/lib/ldap/DB_CONFIG
-    var/config-static/etc/default/uml-utilities
-    var/config-static/etc/php5/conf.d/paedml.ini
+  * helperfunctions.sh:
+    o discover_nics(): added code to discover also bonding interfaces (bond*).
+    o added config file editing functions addto_file() and removefrom_file().
+  * removed more obsolete tivoli stuff.
+  * various modifications according to lenny upgrade.
+  * removed ddns from dhcp and bind configuration, writing static bind9 configuration
+    during import_workstations .
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 27 Jan 2010 11:09:46 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 29 Jan 2010 16:14:31 +0100
 
 linuxmuster-base (1.5.3-1) etch; urgency=low
 

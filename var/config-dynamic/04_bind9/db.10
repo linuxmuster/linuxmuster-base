@@ -1,5 +1,5 @@
 $ORIGIN .
-$TTL 3600       ; 1 hour
+$TTL 7200       ; 2 hours
 10.in-addr.arpa         IN SOA	@@servername@@.@@domainname@@. @@domainname@@. (
 				2004030801
 				3600
@@ -9,7 +9,7 @@ $TTL 3600       ; 1 hour
 				)
 			NS	@@servername@@.@@domainname@@.
 
-$ORIGIN 1.@@internsub@@.10.in-addr.arpa.
-$TTL 7200       ; 2 hours
-1			PTR	@@servername@@.@@domainname@@.
-254			PTR	ipcop.@@domainname@@.
+$ORIGIN 10.in-addr.arpa
+1.1.@@internsub PTR	@@servername@@.@@domainname@@.
+254.1.@@internsub PTR	ipcop.@@domainname@@.
+

@@ -25,7 +25,6 @@ fi
 # check which imaging software is available
 linbo=`aptitude search linuxmuster-linbo`
 rembo=`aptitude search myshn`
-tivoli=`aptitude search tpmfos`
 
 if [ "$1" = "--first" ]; then
   # intro
@@ -202,22 +201,7 @@ done
 
 # imaging system
 imaging=""
-if [[ -n "$linbo" && -n "$rembo" && -n "$tivoli" ]]; then
-
-	IMG_CHOICES="linbo, rembo, tivoli"
-	IMG_DESC="LINBO [linbo], Rembo/mySHN (tm) [rembo] und IBM TPMfOS (tm) [tivoli]."
-
-elif [[ -n "$rembo" && -n "$tivoli" ]]; then
-
-	IMG_CHOICES="rembo, tivoli"
-	IMG_DESC="Rembo/mySHN (tm) [rembo] und IBM TPMfOS (tm) [tivoli]."
-
-elif [[ -n "$linbo" && -n "$tivoli" ]]; then
-
-	IMG_CHOICES="linbo, tivoli"
-	IMG_DESC="LINBO [linbo] und IBM TPMfOS (tm) [tivoli]."
-
-elif [[ -n "$linbo" && -n "$rembo" ]]; then
+if [[ -n "$linbo" && -n "$rembo" ]]; then
 
 	IMG_CHOICES="linbo, rembo"
 	IMG_DESC="LINBO [linbo] und Rembo/mySHN (tm) [rembo]."
@@ -229,10 +213,6 @@ elif [ -n "$linbo" ]; then
 elif [ -n "$rembo" ]; then
 
 	imaging=rembo
-
-elif [ -n "$tivoli" ]; then
-
-	imaging=tivoli
 
 fi
 
@@ -246,69 +226,6 @@ if [ -n "$IMG_CHOICES" ]; then
 	imaging=$RET
 else
 	db_set linuxmuster-base/imaging "$imaging" || true
-fi
-
-# present and let accept or decline sun java license if necessary
-# stolen from sun-java5-bin package
-if [ "$imaging" = "tivoli" ]; then
-
-	license=sun-dlj-v1-1
-
-	db_get shared/accepted-$license
-	if [ "$RET" = "true" ]; then
-
-		echo "$license license has already been accepted" >&2
-
-	else
-
-		STATE=1
-		while true; do
-    			case "$STATE" in
-				0)  # ensure going back from license presentment is harmless
-					STATE=1 
-					continue
-					;;
-				1)  # present license
-					db_fset shared/present-$license seen false
-					if ! db_input critical shared/present-$license ; then
-						echo "$license license could not be presented!"
-						echo "Please start linuxmuster-setup $1 again to repeat the configuration!" >&2
-						exit 2
-					fi
-					db_fset shared/accepted-$license seen false
-					if ! db_input critical shared/accepted-$license ; then
-						echo "$license agree question could not be asked!"
-						echo "Please start linuxmuster-setup $1 again to repeat the configuration!" >&2
-						exit 2
-					fi
-					;;
-				2)  # determine users' choice
-					db_get shared/accepted-$license
-					if [ "$RET" = "true" ]; then
-						# license accepted
-						break
-					fi
-					;;
-				3)  # user has confirmed declining license
-					echo "You did not accept the $license license!" >&2
-					echo "Please start linuxmuster-setup $1 again to repeat the configuration!" >&2
-					exit 1
-					;;
-				*)  # unknown state
-					echo "$license license state unknown: $STATE!" >&2
-					echo "Please start linuxmuster-setup $1 again to repeat the configuration!" >&2
-					exit 2
-					;;
-			esac
-			if db_go; then
-				STATE=$(($STATE + 1))
-			else
-				STATE=$(($STATE - 1))
-			fi
-		done
-
-	fi
-
 fi
 
 
