@@ -1,14 +1,17 @@
-linuxmuster-base (1.5.4-1) etch; urgency=low
+linuxmuster-base (1.5.4-1) lenny; urgency=low
 
   * helperfunctions.sh:
     o discover_nics(): added code to discover also bonding interfaces (bond*).
     o added config file editing functions addto_file() and removefrom_file().
   * removed more obsolete tivoli stuff.
+  * removed samba-common-bin from package depends.
   * various modifications according to lenny upgrade.
   * removed ddns from dhcp and bind configuration, writing static bind9 configuration
-    during import_workstations .
+    during import_workstations.
+  * allowed_ports: added tcp ports 6881:6969 for linbo torrent.
+  * postinst: removed old fixes.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 29 Jan 2010 16:14:31 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 01 Feb 2010 15:41:01 +0100
 
 linuxmuster-base (1.5.3-1) etch; urgency=low
 

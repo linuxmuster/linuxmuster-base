@@ -1,4 +1,4 @@
-APT::Default-Release "etch";
+APT::Default-Release "lenny";
 APT::Cache-Limit 20000000;
 Apt::Get::Purge;
 Aptitude::Recommends-Important "false";

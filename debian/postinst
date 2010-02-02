@@ -106,8 +106,9 @@ case "$1" in
       fi
 
       # check debian_version
-      if [ "$(cat /etc/debian_version)" != "4.0" ]; then
-        echo "Please upgrade your system to paedML Linux 4.0!"
+      DEBIANVERSION=`cat /etc/debian_version`
+      if ! echo "$DEBIANVERSION" | grep -q "5.0"; then
+        echo "Please upgrade your system!"
         exit 0
       fi
 
@@ -233,26 +234,6 @@ case "$1" in
        chmod 664 /etc/bind/db.linuxmuster
 
 
-       # apt
-#      [ -e /etc/apt/apt.conf ] && cp /etc/apt/apt.conf /etc/apt/apt.conf.dpkg-old
-#      echo "Updating /etc/apt/apt.conf ..."
-#      cp -f $STATICTPLDIR/etc/apt/apt.conf /etc/apt
-				   # checking for correct sources.list
-				   if grep -q lml40-updates /etc/apt/sources.list; then
-					   backup_file /etc/apt/sources.list
-					   echo "Updating sources.list ..."
-					   sed -e 's/lml40-updates/paedml40-updates/' -i /etc/apt/sources.list
-				   fi
-       #	while read line; do
-       #		[ "${line:0:3}" != "deb" ] && continue
-       #		if ! grep -q "$line" /etc/apt/sources.list; then
-       #			[ -z "$slist_changed" ] && gzip -c /etc/apt/sources.list > $BACKUPDIR/sources.list-$DATETIME.gz
-       #			echo "Adding $line to /etc/apt/sources.list ..."
-       #			echo "$line" >> /etc/apt/sources.list
-       #			slist_changed=yes
-       #		fi
-       #	done <$STATICTPLDIR/etc/apt/sources.list.online
-
        # environment
        if [ ! -e /etc/environment ]; then
         echo "Updating /etc/environment ..."
@@ -281,19 +262,6 @@ case "$1" in
        chown root:root /etc/odbc.ini
        chmod 644  /etc/odbc.ini
        chmod 600 /etc/ldap/slapd.conf*
-
-       # bug #123, adding ipcop handling to /etc/init.d/networking
-       if ! grep -q ^doipcop /etc/init.d/networking; then
-        echo "Updating /etc/init.d/networking (Bug #123) ..."
-        cp /etc/init.d/networking /etc/init.d/networking.dpkg-dist
-        cp $STATICTPLDIR/etc/init.d/networking /etc/init.d
-       fi
-			   	# fixing typo in /etc/init.d/networking
-       if grep -q dopicop /etc/init.d/networking; then
-        echo "Fixing typo in /etc/init.d/networking ..."
-        cp $STATICTPLDIR/etc/init.d/networking /etc/init.d
-       fi
-				   [ -e /etc/init.d/networking.dpkg-dist ] && chmod 644 /etc/init.d/networking.dpkg-dist
 
 			   	# remove old nameif script and installing new linuxmuster-nic-setup
    				if [ -e /etc/init.d/nameif ]; then
@@ -351,24 +319,12 @@ case "$1" in
    					[ -e "/etc/sophomorix/user/$i" ] || cp $STATICTPLDIR/etc/sophomorix/user/$i /etc/sophomorix/user
    				done
 
-       # removing old cyrus21 runlevel links
-   				if [ -e /etc/rc2.d/S20cyrus2.2 ]; then
-   					if [ -e /etc/rc2.d/S20cyrus21 ]; then
-   						update-rc.d -f cyrus21 remove
-   					fi
-   				fi
-
    				# restore apache's default index.html
    				indexhtml=/var/www/apache2-default/index.html
    				if grep -q "paedML" $indexhtml; then
    					cp $indexhtml $indexhtml.dpkg-old
    					echo -n "<html><body><h1>It works!</h1></body></html>" > $indexhtml
    				fi
-
-   				# removing passwd3 files (1.1-7)
-   				[ -e /etc/horde/passwd3 ] && rm -rf /etc/horde/passwd3
-   				[ -e /usr/share/horde3/passwd ] && rm -rf /usr/share/horde3/passwd
-   				[ -e /usr/share/doc/passwd3 ] && rm -rf /usr/share/doc/passwd3
 
        # restoring internal firewall
        . /etc/default/linuxmuster-base
@@ -493,23 +449,6 @@ case "$1" in
 			   		dhcp_reload=yes
 			   	fi
 
-			   	# reparing nagios2, apache2.conf
-			   	if ! grep -q "$basedn" /etc/nagios2/apache2.conf; then
-			   		sed -e "s/@@serverip@@/$serverip/
-			       						s/@@basedn@@/$basedn/" $DYNTPLDIR/22_nagios/apache2.conf > /etc/nagios2/apache2.conf
-			   		cp /etc/nagios2/apache2.conf /var/lib/linuxmuster-nagios/config/nagios2
-					   ln -sf /etc/nagios2/apache2.conf /etc/apache2/conf.d/nagios2.conf
-				   fi
-				   if ! grep -q "$(getdistname)" $SYSCONFDIR/nagios.conf; then
-					   cp $SYSCONFDIR/nagios.conf $SYSCONFDIR/nagios.conf.dpkg-old
-					   sed -e "s/^DESC_SERVER=.*/DESC_SERVER=\"Server der $(getdistname) $DISTMAJORVERSION\"/
-					       				s/^DESC_FW=.*/DESC_FW=\"Firewall der $(getdistname) $DISTMAJORVERSION\"/
-									       s/^DESC_SERVERGROUP=.*/DESC_SERVERGROUP=\"Server der $(getdistname) $DISTMAJORVERSION\"/" -i /etc/linuxmuster/nagios.conf
-					   sed -e "s/Server der .*/Server der $(getdistname) $DISTMAJORVERSION/g
-							       		s/Firewall der .*/Firewall der $(getdistname) $DISTMAJORVERSION/g" -i /etc/nagios2/conf.d/linuxmuster_main.cfg
-					   nagios_reload=yes
-				   fi
-
 				   # creating pam_ldap.secret link
 				   [ -e /etc/pam_ldap.secret ] || ln -sf ldap.secret /etc/pam_ldap.secret
 
@@ -543,42 +482,6 @@ case "$1" in
 				   if grep -q root:sasl $SCRIPTSDIR/create-ssl-cert.sh; then
 					   sed -e 's/root:sasl/root:ssl-cert/g' -i $SCRIPTSDIR/create-ssl-cert.sh
 					   chmod 744 $SCRIPTSDIR/create-ssl-cert.sh
-				   fi
-
-				   # adding tls support to slapd.conf
-				   slapdtpl=/usr/share/sophomorix/config-templates/ldap/slapd-standalone.conf.template
-				   [ -e /etc/ldap/slapd.conf.custom ] || cp $STATICTPLDIR/etc/ldap/slapd.conf.custom /etc/ldap
-				   if ! grep -q ^TLS /etc/ldap/slapd.conf || ! grep -q misc.schema /etc/ldap/slapd.conf; then
-				   	echo "Updating openldap configuration ..."
-				   	cp /etc/ldap/slapd.conf /etc/ldap/slapd.conf.dpkg-old
-					   rootpw=`grep ^rootpw /etc/ldap/slapd.conf | awk '{ print $2 }'`
-					   sed -e "s/@@message1@@/${message1}/
-						       			s/@@message2@@/${message2}/
-						       			s/@@message3@@/${message3}/
-				       					s/@@basedn@@/${basedn}/g
-									       s/@@tls_comment@@//g
-					       				s/@@ldappassword@@/${rootpw}/g" $slapdtpl > /etc/ldap/slapd.conf
-					   addgroup openldap ssl-cert
-					   chmod 600 /etc/ldap/slapd.conf*
-					   slapd_reload=yes
-			   	fi
-			   	if grep -q ^TLS /etc/ldap/slapd.conf; then
-		   			if ! grep ^SLAPD_SERVICES /etc/default/slapd | grep -q ldaps; then
-					   	cp /etc/default/slapd /etc/default/slapd.dpkg-old
-					   	cp $STATICTPLDIR/etc/default/slapd /etc/default
-					   	slapd_reload=yes
-					   fi
-				   fi
-
-				   # fixing postgresql-8.1 pg_hba.conf (1.4.37-paedml1)
-				   grep -q ^"# changed for Ogo" /etc/postgresql/8.1/main/pg_hba.conf && pg_update=yes
-				   grep -q moodle /etc/postgresql/8.1/main/pg_hba.conf || pg_update=yes
-	   			if [ -n "$pg_update" ]; then
-				   	echo "Updating postgresql configuration ..."
-			   		echo "Warning: pg_hba.conf will be backupd up to pg_hba.conf.dpkg-old!"
-					   cp /etc/postgresql/8.1/main/pg_hba.conf /etc/postgresql/8.1/main/pg_hba.conf.dpkg-old
-					   cp $STATICTPLDIR/etc/postgresql/8.1/main/pg_hba.conf /etc/postgresql/8.1/main
-					   postgres_reload=yes
 				   fi
 
 				   # ldap db user needs password (1.4.44-1)

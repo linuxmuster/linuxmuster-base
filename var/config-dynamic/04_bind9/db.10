@@ -10,6 +10,6 @@ $TTL 7200       ; 2 hours
 			NS	@@servername@@.@@domainname@@.
 
 $ORIGIN 10.in-addr.arpa
-1.1.@@internsub PTR	@@servername@@.@@domainname@@.
-254.1.@@internsub PTR	ipcop.@@domainname@@.
+1.1.@@internsub@@ PTR	@@servername@@.@@domainname@@.
+254.1.@@internsub@@ PTR	ipcop.@@domainname@@.
 
