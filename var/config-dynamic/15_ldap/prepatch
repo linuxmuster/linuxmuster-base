@@ -19,8 +19,8 @@ fi
 ldapadminpw=`grep ^rootpw /etc/ldap/slapd.conf | awk '{ print $2 }'`
 if [ -z "$ldapadminpw" ]; then
 	ldapadminpw=`pwgen -s 8 1`
-	echo -n $ldapadminpw > /etc/ldap.secret
 fi
+echo -n $ldapadminpw > /etc/ldap.secret
 smbpasswd -w $ldapadminpw
 
 
@@ -54,13 +54,13 @@ sed -e "s/^BASE.*/BASE $basedn/" -i $template
 #	s/@@tls_comment@@//g
 #	s/@@ldappassword@@/${ldapadminpw}/" $template > /etc/ldap/slapd.conf
 ## temporary for lenny upgrade
-template=slapd.conf
-[ "$1" = "--modify" ] && backup_file /etc/ldap/slapd.conf
-sed -e "s/@@message1@@/${message1}/
-	s/@@message2@@/${message2}/
-	s/@@message3@@/${message3}/
-	s/@@basedn@@/${basedn}/g
-	s/@@ldappassword@@/${ldapadminpw}/" $template > /etc/ldap/slapd.conf
+#template=slapd.conf
+#[ "$1" = "--modify" ] && backup_file /etc/ldap/slapd.conf
+#sed -e "s/@@message1@@/${message1}/
+#	s/@@message2@@/${message2}/
+#	s/@@message3@@/${message3}/
+#	s/@@basedn@@/${basedn}/g
+#	s/@@ldappassword@@/${ldapadminpw}/" $template > /etc/ldap/slapd.conf
 
 
 # patch smbldap_bind.conf with basedn and password
@@ -133,23 +133,6 @@ else
 	fi
 
 fi
-
-
-# repair permissions
-for i in /etc/ldap.secret /etc/smbldap-tools/smbldap_bind.conf /etc/sophomorix/pgldap/pgldap.conf; do
-  chmod 600 $i
-done
-chown www-data:www-data /etc/linuxmuster/schulkonsole/*
-chmod 400 /etc/linuxmuster/schulkonsole/db.conf*
-chown root:openldap /etc/ldap/slapd.conf*
-chmod 640  /etc/ldap/slapd.conf*
-chown root:root /etc/ldap/ldap.conf
-chmod 644 /etc/ldap/ldap.conf
-chown openldap:openldap /var/lib/ldap -R
-chmod 700 /var/lib/ldap
-chmod 600 /var/lib/ldap/*
-rm /etc/pam_ldap.secret
-ln -sf ldap.secret /etc/pam_ldap.secret
 
 
 # copy imaging related template

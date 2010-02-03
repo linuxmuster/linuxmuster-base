@@ -1,12 +1,12 @@
 #
 # paedML upgrade from 4.0 to 4.1
 # main script
-#
-# 30.01.2010
 # 
 # Thomas Schmitt
 # <schmitt@lmz-bw.de>
 # GPL V3
+#
+# 2010-02-03 11:31:40 
 #
 
 # environment variables
@@ -50,7 +50,7 @@ done
 echo
 
 echo "Pruefe Setup-Variablen:"
-for i in servername domainname internmask internsubrange imaging; do
+for i in servername domainname internmask internsubrange imaging sambasid workgroup; do
     RET=`echo get linuxmuster-base/$i | debconf-communicate`
     RET=${RET#[0-9] }
     esc_spec_chars "$RET"
@@ -92,6 +92,8 @@ internalnet=10.$internsub.0.0
 echo "  * internalnet=$internalnet"
 basedn="dc=`echo $domainname|sed 's/\./,dc=/g'`"
 echo "  * basedn=$basedn"
+echo "  * sambasid=$sambasid"
+echo "  * workgroup=$workgroup"
 
 #######
 # apt #
@@ -101,6 +103,7 @@ cp /etc/apt/sources.list /etc/apt/sources.list.lenny-upgrade
 cp /etc/apt/apt.conf /etc/apt/apt.conf.lenny-upgrade
 cp /etc/apt/sources.list.lenny /etc/apt/sources.list
 cp /etc/apt/apt.conf.lenny /etc/apt/apt.conf
+rm -f /etc/apt/sources.list.d/paedml40.list
 
 # force apt to do an unattended upgrade
 export DEBIAN_FRONTEND=noninteractive
@@ -125,6 +128,12 @@ CONF=/etc/default/linuxmuster-ipcop
 cp $CONF $CONF.lenny-upgrade
 sed -e 's|^SKAS_KERNEL=.*|SKAS_KERNEL=no|' -i $CONF
 
+# uml utilities
+echo " uml-utilities ..."
+CONF=/etc/default/uml-utilities
+cp $CONF $CONF.lenny-upgrade
+cp $STATICTPLDIR/$CONF $CONF
+
 # slapd
 echo " slapd ..."
 for i in /etc/ldap/slapd.conf /etc/default/slapd /var/lib/ldap/DB_CONFIG; do
@@ -145,6 +154,22 @@ for i in /etc/ldap/slapd.conf /etc/default/slapd /var/lib/ldap/DB_CONFIG; do
  chmod 700 /var/lib/ldap
  chmod 600 /var/lib/ldap/*
 done
+
+# smbldap-tools
+echo " smbldap-tools ..."
+CONF=/etc/smbldap-tools/smbldap.conf
+cp $CONF $CONF.lenny-upgrade
+sed -e "s/@@sambasid@@/${sambasid}/
+	       s/@@workgroup@@/${workgroup}/
+	       s/@@basedn@@/${basedn}/" $LDAPDYNTPLDIR/`basename $CONF` > $CONF
+CONF=/etc/smbldap-tools/smbldap_bind.conf
+cp $CONF $CONF.lenny-upgrade
+sed -e "s/@@message1@@/${message1}/
+	       s/@@message2@@/${message2}/
+	       s/@@message3@@/${message3}/
+	       s/@@basedn@@/${basedn}/g
+	       s/@@ldappassword@@/${ldapadminpw}/g" $LDAPDYNTPLDIR/`basename $CONF` > $CONF
+chmod 600 ${CONF}*
 
 # apache2
 echo " apache2 ..."
@@ -184,17 +209,25 @@ for i in db.10 db.linuxmuster named.conf.linuxmuster; do
 done
 rm /etc/bind/*.jnl
 
+# php5.ini
+echo " php5 ..."
+CONF=/etc/php5/conf.d/paedml.ini
+cp $CONF $CONF.lenny-upgrade
+cp $STATICTPLDIR/$CONF $CONF
+
 ################
 # dist-upgrade #
 ################
 
 echo
 echo "DIST-UPGRADE ..."
+# first remove stuff
+echo -e "\n\n" | aptitude -y remove linux-image-server
 #SOPHOPKGS=`dpkg -l | grep sophomorix | grep ^i | awk '{ print $2 }'`
 #apt-get -y remove $SOPHOPKGS
-aptitude -y install apt-utils tasksel debian-archive-keyring dpkg locales
+echo -e "\n\n" | aptitude -y install apt-utils tasksel debian-archive-keyring dpkg locales
 aptitude update
-aptitude -y install postgresql postgresql-8.3 postgresql-client-8.3
+echo -e "\n\n" | aptitude -y install postgresql postgresql-8.3 postgresql-client-8.3
 # handle postgresql update
 if ps ax | grep -q postgresql/8.3; then
  /etc/init.d/postgresql-8.3 stop
@@ -206,31 +239,20 @@ fi
 pg_upgradecluster 8.1 main
 update-rc.d -f postgresql-7.4 remove
 update-rc.d -f postgresql-8.1 remove
-aptitude -y dist-upgrade
-aptitude -y dist-upgrade
-aptitude -y dist-upgrade
-aptitude -y purge avahi-daemon
+echo -e "\n\n" | aptitude -y dist-upgrade
+echo -e "\n\n" | aptitude -y dist-upgrade
+echo -e "\n\n" | aptitude -y dist-upgrade
+echo -e "\n\n" | aptitude -y purge avahi-daemon
 #aptitude -y install $SOPHOPKGS
 linuxmuster-task --unattended --install=common
 linuxmuster-task --unattended --install=server
-[ "$imaging" = "linbo" ] && linuxmuster-task --unattended --install=imaging-$imaging
+linuxmuster-task --unattended --install=imaging-$imaging
 
 ##########
 # horde3 #
 ##########
 
-echo
-echo "horde3 ..."
-CONF=/etc/php5/conf.d/paedml.ini
-cp $CONF $CONF.lenny-upgrade
-cp $STATICTPLDIR/$CONF $CONF
-HORDEUPGRADE=/usr/share/doc/horde3/examples/scripts/upgrades/3.1_to_3.2.mysql.sql
-TURBAUPGRADE=/usr/share/doc/turba2/examples/scripts/upgrades/2.1_to_2.2_add_sql_share_tables.sql
-mysql horde < $HORDEUPGRADE
-mysql horde < $TURBAUPGRADE
-pear upgrade-all
-pear install DB MDB2 MDB2_Driver_mysql Auth_SASL Net_SMTP
-aptitude -y install php5-tidy
+$DATADIR/upgrade/horde3-upgrade.sh
 
 # webmin
 CONF=/etc/webmin/config

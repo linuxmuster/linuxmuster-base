@@ -31,7 +31,8 @@ libnss-db
 libnss-ldap
 libpam-ldap
 libsasl2-modules
-linux-image-server
+linux-headers-2.6-686-bigmem
+linux-image-686-bigmem
 linuxmuster-ipcop
 linuxmuster-schulkonsole
 mnemo2

@@ -708,7 +708,7 @@ hosts_db() {
 # get all host accounts from ldap
 hosts_ldap() {
   unset RET
-  RET=`ldapsearch -x -ZZ -h localhost "(cn=ExamAccount)" | grep ^uid\: | awk '{ print $2 }'`
+  RET=`ldapsearch -x -h localhost "(cn=ExamAccount)" | grep ^uid\: | awk '{ print $2 }'`
   if [ -n "$RET" ]; then
 		echo "$RET"
     return 0
@@ -732,7 +732,7 @@ machines_db() {
 # get all host accounts from ldap
 machines_ldap() {
   unset RET
-  RET=`ldapsearch -x -ZZ -h localhost "(cn=Computer)" | grep ^uid\: | awk '{ print $2 }'`
+  RET=`ldapsearch -x -h localhost "(cn=Computer)" | grep ^uid\: | awk '{ print $2 }'`
   if [ -n "$RET" ]; then
 		echo "$RET"
     return 0
@@ -756,7 +756,7 @@ accounts_db() {
 # get all user accounts from ldap
 accounts_ldap() {
   unset RET
-  RET=`ldapsearch -x -ZZ -h localhost "(&(!(cn=Computer))(!(cn=ExamAccount)))" | grep ^uid\: | awk '{ print $2 }'`
+  RET=`ldapsearch -x -h localhost "(&(!(cn=Computer))(!(cn=ExamAccount)))" | grep ^uid\: | awk '{ print $2 }'`
   if [ -n "$RET" ]; then
 		echo "$RET"
     return 0

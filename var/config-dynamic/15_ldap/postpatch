@@ -1,3 +1,20 @@
+# repair permissions
+for i in /etc/ldap.secret /etc/smbldap-tools/smbldap_bind.conf /etc/sophomorix/pgldap/pgldap.conf; do
+  chown root:root $i
+  chmod 600 $i
+done
+chown www-data:www-data /etc/linuxmuster/schulkonsole/*
+chmod 400 /etc/linuxmuster/schulkonsole/db.conf*
+chown root:openldap /etc/ldap/slapd.conf*
+chmod 640  /etc/ldap/slapd.conf*
+chown root:root /etc/ldap/ldap.conf
+chmod 644 /etc/ldap/ldap.conf
+chown openldap:openldap /var/lib/ldap -R
+chmod 700 /var/lib/ldap
+chmod 600 /var/lib/ldap/*
+rm /etc/pam_ldap.secret
+ln -sf ldap.secret /etc/pam_ldap.secret
+
 # remove template
 [ -e smb.conf ] && rm smb.conf
 

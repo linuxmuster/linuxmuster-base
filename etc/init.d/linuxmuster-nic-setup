@@ -1,8 +1,10 @@
 #!/bin/sh
 #
 # assign nics to interfaces on boot
+#
 # Thomas Schmitt <schmitt@lmz-bw.de>
-# 03.05.2007
+#
+# 2010-02-03
 #
 
 # source linuxmuster stuff
@@ -24,7 +26,8 @@ nic_setup() {
 	echo -n "Checking for changed mac addresses ..."
 
 	valid_macs=`LANG=C ifconfig -a | grep HWaddr | awk '{ print $5 }'`
-
+ toupper "$valid_macs" && valid_macs="$RET"
+ 
 	if [ -n "$mac_extern" ]; then
 		toupper $mac_extern && mac_extern=$RET
 		stringinstring $mac_extern "$valid_macs" || nic_setup=yes
