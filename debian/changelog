@@ -12,6 +12,8 @@ linuxmuster-base (1.5.4-1) lenny; urgency=low
     during import_workstations.
   * allowed_ports: added tcp ports 6881:6969 for linbo torrent.
   * postinst: removed old fixes.
+  * backup.conf: updated services list.
+  * changed distribution codename to "Kieslaschdr".
 
  -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 03 Feb 2010 18:01:25 +0100
 

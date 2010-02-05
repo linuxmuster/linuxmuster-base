@@ -15,7 +15,7 @@
 DHCPDYNTPLDIR=$DYNTPLDIR/03_dhcp3-server
 BINDDYNTPLDIR=$DYNTPLDIR/04_bind9
 LDAPDYNTPLDIR=$DYNTPLDIR/15_ldap
-
+PKGSTOREMOVE="linux-image-server mindi mondo"
 PKGREPOS="ftp.de.debian.org/debian/ \
           ftp.de.debian.org/debian-volatile/ \
           security.debian.org \
@@ -222,7 +222,7 @@ cp $STATICTPLDIR/$CONF $CONF
 echo
 echo "DIST-UPGRADE ..."
 # first remove stuff
-echo -e "\n\n" | aptitude -y remove linux-image-server
+echo -e "\n\n" | aptitude -y remove $PKGSTOREMOVE
 #SOPHOPKGS=`dpkg -l | grep sophomorix | grep ^i | awk '{ print $2 }'`
 #apt-get -y remove $SOPHOPKGS
 echo -e "\n\n" | aptitude -y install apt-utils tasksel debian-archive-keyring dpkg locales
