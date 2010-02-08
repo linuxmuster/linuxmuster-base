@@ -217,6 +217,12 @@ CONF=/etc/php5/conf.d/paedml.ini
 cp $CONF $CONF.lenny-upgrade
 cp $STATICTPLDIR/$CONF $CONF
 
+# mindi
+echo " mindi ..."
+CONF=/etc/mindi/mindi.conf
+cp $CONF $CONF.lenny-upgrade
+cp $STATICTPLDIR/$CONF $CONF
+
 # fixing backup.conf
 # change postgresql-8.1 to postgresql-8.3
 echo " backup ..."

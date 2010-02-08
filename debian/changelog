@@ -1,3 +1,9 @@
+linuxmuster-base (1.5.6-0) lenny; urgency=low
+
+  * replaced /etc/mindi/mindi.conf with the one shipped with the mindi package.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 08 Feb 2010 19:20:14 +0100
+
 linuxmuster-base (1.5.5-0) lenny; urgency=low
 
   * more modifications according to lenny upgrade.
