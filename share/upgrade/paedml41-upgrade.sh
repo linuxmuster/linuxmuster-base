@@ -15,7 +15,8 @@
 DHCPDYNTPLDIR=$DYNTPLDIR/03_dhcp3-server
 BINDDYNTPLDIR=$DYNTPLDIR/04_bind9
 LDAPDYNTPLDIR=$DYNTPLDIR/15_ldap
-PKGSTOREMOVE="linux-image-server mindi mondo"
+SOPHOPKGS=`dpkg -l | grep sophomorix | grep ^i | awk '{ print $2 }'`
+PKGSTOREMOVE="linux-image-server mindi mondo $SOPHOPKGS="
 PKGREPOS="ftp.de.debian.org/debian/ \
           ftp.de.debian.org/debian-volatile/ \
           security.debian.org \
@@ -104,6 +105,7 @@ cp /etc/apt/apt.conf /etc/apt/apt.conf.lenny-upgrade
 cp /etc/apt/sources.list.lenny /etc/apt/sources.list
 cp /etc/apt/apt.conf.lenny /etc/apt/apt.conf
 rm -f /etc/apt/sources.list.d/paedml40.list
+[ -s /etc/apt/sources.list.d/paedml41.list ] || cp $STATICTPLDIR/etc/apt/sources.list.d/paedml41.list /etc/apt/sources.list.d
 
 # force apt to do an unattended upgrade
 export DEBIAN_FRONTEND=noninteractive
@@ -145,15 +147,15 @@ for i in /etc/ldap/slapd.conf /etc/default/slapd /var/lib/ldap/DB_CONFIG; do
 	         s/@@message3@@/${message3}/
 	         s/@@basedn@@/${basedn}/g
 	         s/@@ldappassword@@/${ldapadminpw}/" $LDAPDYNTPLDIR/`basename $i` > $i
-  chown root:openldap ${i}*
-  chmod 640 ${i}*
  else
   cp $STATICTPLDIR/$i $i
  fi
- chown openldap:openldap /var/lib/ldap -R
- chmod 700 /var/lib/ldap
- chmod 600 /var/lib/ldap/*
 done
+chown root:openldap /etc/ldap/slapd.conf*
+chmod 640 /etc/ldap/slapd.conf*
+chown openldap:openldap /var/lib/ldap -R
+chmod 700 /var/lib/ldap
+chmod 600 /var/lib/ldap/*
 
 # smbldap-tools
 echo " smbldap-tools ..."
@@ -215,6 +217,13 @@ CONF=/etc/php5/conf.d/paedml.ini
 cp $CONF $CONF.lenny-upgrade
 cp $STATICTPLDIR/$CONF $CONF
 
+# fixing backup.conf
+# change postgresql-8.1 to postgresql-8.3
+echo " backup ..."
+CONF=/etc/linuxmuster/backup.conf
+cp $CONF $CONF.lenny-upgrade
+sed -e 's|postgresql-8.1|postgresql-8.3|g' -i $CONF
+
 ################
 # dist-upgrade #
 ################
@@ -223,8 +232,6 @@ echo
 echo "DIST-UPGRADE ..."
 # first remove stuff
 echo -e "\n\n" | aptitude -y remove $PKGSTOREMOVE
-#SOPHOPKGS=`dpkg -l | grep sophomorix | grep ^i | awk '{ print $2 }'`
-#apt-get -y remove $SOPHOPKGS
 echo -e "\n\n" | aptitude -y install apt-utils tasksel debian-archive-keyring dpkg locales
 aptitude update
 echo -e "\n\n" | aptitude -y install postgresql postgresql-8.3 postgresql-client-8.3
@@ -237,16 +244,17 @@ if ! ps ax | grep -q postgresql/8.1; then
  /etc/init.d/postgresql-8.1 start
 fi
 pg_upgradecluster 8.1 main
+/etc/init.d/postgresql-8.1 stop
 update-rc.d -f postgresql-7.4 remove
 update-rc.d -f postgresql-8.1 remove
 echo -e "\n\n" | aptitude -y dist-upgrade
 echo -e "\n\n" | aptitude -y dist-upgrade
 echo -e "\n\n" | aptitude -y dist-upgrade
 echo -e "\n\n" | aptitude -y purge avahi-daemon
-#aptitude -y install $SOPHOPKGS
 linuxmuster-task --unattended --install=common
 linuxmuster-task --unattended --install=server
 linuxmuster-task --unattended --install=imaging-$imaging
+aptitude -y install $SOPHOPKGS
 
 ##########
 # horde3 #

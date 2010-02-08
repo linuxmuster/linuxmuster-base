@@ -6,6 +6,7 @@ if  [ "$imaging" = "rembo" ]; then
 	  sed -e "s/^NetPassword.*/NetPassword \"$adminpw\"/" -i $REMBOCONF
 
 	  # create emtpy wimport_data
+   [ -d "$REMBOFILES/files/global" ] || mkdir -p $REMBOFILES/files/global
 	  [ -e "$REMBOFILES/files/global/wimport_data" ] && rm $REMBOFILES/files/global/wimport_data
 	  touch $REMBOFILES/files/global/wimport_data
 	  [ -e "$SYSCONFDIR/workstations" ] && rm $SYSCONFDIR/workstations

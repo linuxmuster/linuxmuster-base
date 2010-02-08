@@ -1,3 +1,12 @@
+linuxmuster-base (1.5.5-0) lenny; urgency=low
+
+  * more modifications according to lenny upgrade.
+  * removed obsolete odbc ini files.
+  * postinst: removed more obsolete stuff.
+  * control: removed unknown ${shlibs:Depends}.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 08 Feb 2010 12:02:40 +0100
+
 linuxmuster-base (1.5.4-1) lenny; urgency=low
 
   * helperfunctions.sh:
@@ -15,7 +24,7 @@ linuxmuster-base (1.5.4-1) lenny; urgency=low
   * backup.conf: updated services list.
   * changed distribution codename to "Kieslaschdr".
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 03 Feb 2010 18:01:25 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 06 Feb 2010 12:56:06 +0100
 
 linuxmuster-base (1.5.3-1) etch; urgency=low
 
