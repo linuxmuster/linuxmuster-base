@@ -7,7 +7,7 @@ linuxmuster-base (1.5.6-0) lenny; urgency=low
   * updated release information in dist.conf, removed online cd iso stuff.
   * changed repository to paedml41-updates.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 08 Feb 2010 19:20:14 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 10 Feb 2010 10:22:59 +0100
 
 linuxmuster-base (1.5.5-0) lenny; urgency=low
 

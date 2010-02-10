@@ -245,7 +245,7 @@ case "$1" in
 				    rm -f /etc/$i.secret
 				    ln -s ldap.secret /etc/$i.secret
 				    chmod 700 /etc/*.secret
-				   fi
+				   done
 
 			   	# repairing openntpd
 				   if ! grep -q ^"listen on $serverip" /etc/openntpd/ntpd.conf; then
