@@ -20,7 +20,7 @@ PKGSTOREMOVE="linux-image-server mindi mondo $SOPHOPKGS="
 PKGREPOS="ftp.de.debian.org/debian/ \
           ftp.de.debian.org/debian-volatile/ \
           security.debian.org \
-          pkg.lml.support-netz.de/paedml41-testing/"
+          pkg.lml.support-netz.de/paedml41-updates/"
 
 # messages for config file headers
 message1="##### Do not change this file! It will be overwritten!"
@@ -278,8 +278,13 @@ cp $STATICTPLDIR/$CONF $CONF
 rm -f /etc/apt/apt.conf.d/99upgrade
 
 # final stuff
+dpkg-reconfigure linuxmuster-base
+. /etc/default/linuxmuster-base
+[ "$START_LINUXMUSTER" = "[Yy][Ee][Ss]" ] && sed -e 's|^START_LINUXMUSTER=.*|START_LINUXMUSTER=no|' -i /etc/default/linuxmuster-base
 import_workstations
+[ "$START_LINUXMUSTER" = "[Yy][Ee][Ss]" ] && sed -e 's|^START_LINUXMUSTER=.*|START_LINUXMUSTER=yes|' -i /etc/default/linuxmuster-base
 
 echo
 echo "Beendet um `date`!"
+echo "Starten Sie den Server neu!"
 

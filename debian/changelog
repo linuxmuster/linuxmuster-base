@@ -1,6 +1,11 @@
 linuxmuster-base (1.5.6-0) lenny; urgency=low
 
+  * added "wide links = No" to smb.conf's global section.
+  * more cleaning in postinst.
+  * upgrade improvements.
   * replaced /etc/mindi/mindi.conf with the one shipped with the mindi package.
+  * updated release information in dist.conf, removed online cd iso stuff.
+  * changed repository to paedml41-updates.
 
  -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 08 Feb 2010 19:20:14 +0100
 
@@ -28,7 +33,6 @@ linuxmuster-base (1.5.4-1) lenny; urgency=low
   * allowed_ports: added tcp ports 6881:6969 for linbo torrent.
   * postinst: removed old fixes.
   * backup.conf: updated services list.
-  * changed distribution codename to "Kieslaschdr".
 
  -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 06 Feb 2010 12:56:06 +0100
 

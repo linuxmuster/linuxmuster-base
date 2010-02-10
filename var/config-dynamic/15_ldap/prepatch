@@ -1,6 +1,5 @@
 # necessary to trick sophomorix
 if [ "$1" = "--first" ]; then
-	pg_dropcluster 8.1 main &> /dev/null
 	pg_dropcluster 8.3 main &> /dev/null
 	pg_createcluster 8.3 main
 	cp $STATICTPLDIR/etc/postgresql/8.3/main/* /etc/postgresql/8.3/main

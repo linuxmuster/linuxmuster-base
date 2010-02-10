@@ -158,6 +158,7 @@
    logon home = \\%L\%u
    use sendfile = No
    os level = 99
+   wide links = No
 
    # server side cifs configuration
    unix extensions = yes

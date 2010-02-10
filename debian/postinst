@@ -189,13 +189,6 @@ case "$1" in
    					[ -e "/etc/sophomorix/user/$i" ] || cp $STATICTPLDIR/etc/sophomorix/user/$i /etc/sophomorix/user
    				done
 
-   				# restore apache's default index.html
-   				indexhtml=/var/www/apache2-default/index.html
-   				if grep -q "paedML" $indexhtml; then
-   					cp $indexhtml $indexhtml.dpkg-old
-   					echo -n "<html><body><h1>It works!</h1></body></html>" > $indexhtml
-   				fi
-
        # restoring internal firewall
        . /etc/default/linuxmuster-base
        if [ "$START_LINUXMUSTER" = "yes" ]; then
@@ -207,15 +200,15 @@ case "$1" in
    				# patch path to wimport_data in dist.conf (1.1-8)
    				if [ -n "$imaging" ]; then
    					case "$imaging" in
-   						linbo|tivoli)
+   						rembo)
+   							sed -e "s/^WIMPORTDATA=.*/WIMPORTDATA=\"\$REMBOFILES\/files\/global\/wimport_data\"/" -i /usr/share/linuxmuster/config/dist.conf
+   							;;
+   						*)
    							sed -e "s/^WIMPORTDATA=.*/WIMPORTDATA=\"\$SYSCONFDIR\/workstations\"/" -i /usr/share/linuxmuster/config/dist.conf
    							if [[ -L "$SYSCONFDIR/workstations" && -f "$REMBOFILES/files/global/wimport_data" ]]; then
    								rm $SYSCONFDIR/workstations
    								cp $REMBOFILES/files/global/wimport_data $SYSCONFDIR/workstations
    							fi
-   							;;
-   						*)
-   							sed -e "s/^WIMPORTDATA=.*/WIMPORTDATA=\"\$REMBOFILES\/files\/global\/wimport_data\"/" -i /usr/share/linuxmuster/config/dist.conf
    							;;
    					esac
    				fi
@@ -234,27 +227,6 @@ case "$1" in
 
    				# linbo related update stuff
    				if [ "$imaging" = "linbo" ]; then
-   					# updating rsyncd.conf according to linbo revision 119 (1.2-13)
-   					if ! grep -q pre-xfer /etc/rsyncd.conf; then
-   						echo "Updating rsync configuration ..."
-   						cp $STATICTPLDIR/etc/rsyncd.conf /etc
-   						/etc/init.d/rsync restart
-   					fi
-   					# updating LINBO's dhcp configuration (1.4.36-paedml1)
-   					if ! grep -q ^"# pxelinux options for LINBO" /etc/dhcp3/dhcpd.conf; then
-   						echo "Updating dhcp-server configuration for LINBO ..."
-   						cp /etc/dhcp3/dhcpd.conf /etc/dhcp3/dhcpd.conf.dpkg-old
-   						dhcp_backup=yes
-   						sed -e "s/@@servername@@/${servername}/g
-       										s/@@domainname@@/${domainname}/g
-							       			s/@@serverip@@/${serverip}/g
-							       			s/@@ipcopip@@/${ipcopip}/g
-										       s/@@broadcast@@/${broadcast}/g
-							       			s/@@internalnet@@/${internalnet}/g
-							       			s/@@internsub@@/${internsub}/g
-					       					s/@@internmask@@/${internmask}/g" $DYNTPLDIR/03_dhcp3-server/dhcpd.conf.linbo > /etc/dhcp3/dhcpd.conf
-					   	dhcp_reload=yes
-   					fi
 			   		# linbo administrative user
 			   		if ! check_id linbo; then
 			   			linbopasswd=`grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }'`
@@ -267,8 +239,13 @@ case "$1" in
 			   		fi
 			   	fi # linbo
 
-				   # creating pam_ldap.secret link
-				   [ -e /etc/pam_ldap.secret ] || ln -sf ldap.secret /etc/pam_ldap.secret
+				   # creating ldap.secret links
+				   [ -s /etc/ldap.secret ] || echo $(grep ^rootpw /etc/ldap/slapd.conf | awk '{ print $2 }') > /etc/ldap.secret
+				   for i in pam_ldap libnss-ldap; do
+				    rm -f /etc/$i.secret
+				    ln -s ldap.secret /etc/$i.secret
+				    chmod 700 /etc/*.secret
+				   fi
 
 			   	# repairing openntpd
 				   if ! grep -q ^"listen on $serverip" /etc/openntpd/ntpd.conf; then
@@ -330,12 +307,6 @@ case "$1" in
 				   	echo "# tschmitt: moved from curl.ini -> https://bugs.launchpad.net/ubuntu/+source/php5/+bug/63141" >> /etc/php5/conf.d/pgsql.ini
 				   	echo "extension=curl.so" >> /etc/php5/conf.d/pgsql.ini
 				   fi
-
-				   # provide a default mindi.conf (1.4.44-1)
-				   if [ ! -e /etc/mindi/mindi.conf ]; then
-				   	echo "Providing a default mindi.conf ..."
-					   cp $STATICTPLDIR/etc/mindi/mindi.conf /etc/mindi
-			   	fi
 
        # fixing apache's userdir.conf (1.4.50-2)
        conffile=/etc/apache2/mods-available/userdir.conf
