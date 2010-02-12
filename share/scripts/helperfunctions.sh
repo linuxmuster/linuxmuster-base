@@ -695,7 +695,7 @@ check_group() {
 
 # get all host accounts from db
 hosts_db() {
-  unset RET
+  local RET
   RET=`psql -U ldap -d ldap -t -c "select uid from posix_account where firstname = 'Exam';"`
   if [ -n "$RET" ]; then
 	 	echo "$RET" | awk '{ print $1 }'
@@ -707,8 +707,8 @@ hosts_db() {
 
 # get all host accounts from ldap
 hosts_ldap() {
-  unset RET
-  RET=`ldapsearch -x -h localhost "(cn=ExamAccount)" | grep ^uid\: | awk '{ print $2 }'`
+  local RET
+  RET=`ldapsearch -x -h localhost "(displayName=ExamAccount)" | grep ^uid\: | awk '{ print $2 }'`
   if [ -n "$RET" ]; then
 		echo "$RET"
     return 0
@@ -719,7 +719,7 @@ hosts_ldap() {
 
 # get all host accounts
 machines_db() {
-  unset RET
+  local RET
   RET=`psql -U ldap -d ldap -t -c "select uid from posix_account where firstname = 'Computer';"`
   if [ -n "$RET" ]; then
 		 echo "$RET" | awk '{ print $1 }'
@@ -731,8 +731,8 @@ machines_db() {
 
 # get all host accounts from ldap
 machines_ldap() {
-  unset RET
-  RET=`ldapsearch -x -h localhost "(cn=Computer)" | grep ^uid\: | awk '{ print $2 }'`
+  local RET
+  RET=`ldapsearch -x -h localhost "(gidNumber=515)" | grep ^uid\: | awk '{ print $2 }'`
   if [ -n "$RET" ]; then
 		echo "$RET"
     return 0
@@ -743,7 +743,7 @@ machines_ldap() {
 
 # get all user accounts
 accounts_db() {
-  unset RET
+  local RET
   RET=`psql -U ldap -d ldap -t -c "select uid from posix_account where firstname <> 'Computer' and firstname <> 'Exam';"`
   if [ -n "$RET" ]; then
 		 echo "$RET" | awk '{ print $1 }'
@@ -755,8 +755,8 @@ accounts_db() {
 
 # get all user accounts from ldap
 accounts_ldap() {
-  unset RET
-  RET=`ldapsearch -x -h localhost "(&(!(cn=Computer))(!(cn=ExamAccount)))" | grep ^uid\: | awk '{ print $2 }'`
+  local RET
+  RET=`ldapsearch -x -h localhost "(&(!(gidNumber=515))(!(displayName=ExamAccount)))" | grep ^uid\: | awk '{ print $2 }'`
   if [ -n "$RET" ]; then
 		echo "$RET"
     return 0

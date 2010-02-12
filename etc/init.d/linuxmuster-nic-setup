@@ -1,11 +1,19 @@
 #!/bin/sh
-#
-# assign nics to interfaces on boot
-#
+
+### BEGIN INIT INFO
+# Provides:          linuxmuster-nic-setup
+# Required-Start:    $local_fs
+# Required-Stop:     $local_fs
+# Should-Start:
+# Should-Stop:
+# Default-Start:     S
+# Default-Stop:
+# Short-Description: assign nics to interfaces on boot
+# Description:       assign nics to interfaces on boot
+### END INIT INFO
+
 # Thomas Schmitt <schmitt@lmz-bw.de>
-#
 # 2010-02-03
-#
 
 # source linuxmuster stuff
 . /usr/share/linuxmuster/config/dist.conf || exit 1

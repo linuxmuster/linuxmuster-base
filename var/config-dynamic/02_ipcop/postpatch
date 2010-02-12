@@ -28,10 +28,8 @@ if [[ "$1" = "--first" || "$update_fw" = "yes" ]]; then
 		MEM=64M
 		[[ $memtotal -gt 1048576 ]] && MEM=128M
 
-		# detect host architecture and set SKAS_KERNEL=no if amd64 or xen
-		skas=yes
-		dpkg-architecture | grep amd64 && skas=no
-		uname -r | grep -i xen && skas=no
+		# set SKAS_KERNEL=no always
+		skas=no
 
 		# patch ipcop default file with mem and start variables
 		sed -e "s/^START_IPCOP=.*/START_IPCOP=yes/

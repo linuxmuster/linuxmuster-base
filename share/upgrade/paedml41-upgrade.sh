@@ -101,11 +101,9 @@ echo "  * workgroup=$workgroup"
 #######
 
 cp /etc/apt/sources.list /etc/apt/sources.list.lenny-upgrade
-cp /etc/apt/apt.conf /etc/apt/apt.conf.lenny-upgrade
-cp /etc/apt/sources.list.lenny /etc/apt/sources.list
-cp /etc/apt/apt.conf.lenny /etc/apt/apt.conf
+mv /etc/apt/apt.conf /etc/apt/apt.conf.lenny-upgrade
+cp $STATICTPLDIR/etc/apt/sources.list /etc/apt
 rm -f /etc/apt/sources.list.d/paedml40.list
-[ -s /etc/apt/sources.list.d/paedml41.list ] || cp $STATICTPLDIR/etc/apt/sources.list.d/paedml41.list /etc/apt/sources.list.d
 
 # force apt to do an unattended upgrade
 export DEBIAN_FRONTEND=noninteractive
@@ -209,7 +207,7 @@ for i in db.10 db.linuxmuster named.conf.linuxmuster; do
          s/@@ipcopip@@/${ipcopip}/g
          s/@@internsub@@/${internsub}/g" $BINDDYNTPLDIR/$i > $CONF
 done
-rm /etc/bind/*.jnl
+rm -f /etc/bind/*.jnl
 
 # php5.ini
 echo " php5 ..."
@@ -224,11 +222,11 @@ cp $CONF $CONF.lenny-upgrade
 cp $STATICTPLDIR/$CONF $CONF
 
 # fixing backup.conf
-# change postgresql-8.1 to postgresql-8.3
 echo " backup ..."
 CONF=/etc/linuxmuster/backup.conf
 cp $CONF $CONF.lenny-upgrade
-sed -e 's|postgresql-8.1|postgresql-8.3|g' -i $CONF
+sed -e 's|postgresql-8.1|postgresql-8.3|g
+        s|nagios2|nagios3|g' -i $CONF
 
 ################
 # dist-upgrade #
@@ -253,14 +251,24 @@ pg_upgradecluster 8.1 main
 /etc/init.d/postgresql-8.1 stop
 update-rc.d -f postgresql-7.4 remove
 update-rc.d -f postgresql-8.1 remove
-echo -e "\n\n" | aptitude -y dist-upgrade
+# first safe-upgrade
+echo -e "\n\n" | aptitude -y safe-upgrade
+# then dist-upgrade
 echo -e "\n\n" | aptitude -y dist-upgrade
 echo -e "\n\n" | aptitude -y dist-upgrade
 echo -e "\n\n" | aptitude -y purge avahi-daemon
+# install tasks to be sure to have all necessary pkgs installed
 linuxmuster-task --unattended --install=common
 linuxmuster-task --unattended --install=server
 linuxmuster-task --unattended --install=imaging-$imaging
 aptitude -y install $SOPHOPKGS
+# handle slapd upgrade
+/etc/init.d/slapd stop
+rm -rf /etc/ldap/slapd.d
+mkdir -p /etc/ldap/slapd.d
+slaptest -f /etc/ldap/slapd.conf -F /etc/ldap/slapd.d
+chown -R openldap:openldap /etc/ldap/slapd.d
+/etc/init.d/slapd start
 
 ##########
 # horde3 #

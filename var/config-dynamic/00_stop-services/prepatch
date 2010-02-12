@@ -1,6 +1,6 @@
 # stop all relevant services
 
-services="linuxmuster-base atftpd rsync linbo-multicast nagios2 atd cron\
+services="linuxmuster-base atftpd rsync linbo-multicast nagios3 atd cron\
           tpmfos rbagent dbgw tpmfos-derby rembo quota apache2 cupsys \
           clamav-freshclam clamav-daemon cyrus2.2 postfix saslauthd amavis mysql openntpd \
           ssh samba slapd postgresql-8.3 postgresql-8.1 postgresql-7.4 nscd linuxmuster-ipcop uml-utilities \

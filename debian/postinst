@@ -244,8 +244,8 @@ case "$1" in
 				   for i in pam_ldap libnss-ldap; do
 				    rm -f /etc/$i.secret
 				    ln -s ldap.secret /etc/$i.secret
-				    chmod 700 /etc/*.secret
 				   done
+			    chmod 700 /etc/*.secret
 
 			   	# repairing openntpd
 				   if ! grep -q ^"listen on $serverip" /etc/openntpd/ntpd.conf; then
