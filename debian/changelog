@@ -2,7 +2,9 @@ linuxmuster-base (1.5.6-0) lenny; urgency=low
 
   * added "wide links = No" to smb.conf's global section.
   * more cleaning in postinst.
+  * more configuration file modifications according to lenny.
   * upgrade improvements.
+  * updated horde3 configuration.
   * replaced /etc/mindi/mindi.conf with the one shipped with the mindi package.
   * updated release information in dist.conf, removed online cd iso stuff.
   * changed repository to paedml41-updates.
@@ -10,8 +12,9 @@ linuxmuster-base (1.5.6-0) lenny; urgency=low
   * added lsb header to init scripts.
   * fixed and improved ldap account query functions in helperfunctions.sh.
   * setup modifications for integrated IPCop.
+  * updated moodle's (1.9.7+20091209) sql script for initial db creation.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 12 Feb 2010 13:20:04 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 27 Feb 2010 10:32:53 +0100
 
 linuxmuster-base (1.5.5-0) lenny; urgency=low
 

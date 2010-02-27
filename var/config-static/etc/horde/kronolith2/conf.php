@@ -1,6 +1,6 @@
 <?php
 /* CONFIG START. DO NOT CHANGE ANYTHING IN OR AFTER THIS LINE. */
-// $Horde: kronolith/config/conf.xml,v 1.18 2006/02/08 12:12:00 jan Exp $
+// $Horde: kronolith/config/conf.xml,v 1.14.10.5 2007/12/20 14:12:23 jan Exp $
 $conf['calendar']['params']['table'] = 'kronolith_events';
 $conf['calendar']['params']['driverconfig'] = 'horde';
 $conf['calendar']['driver'] = 'sql';
@@ -12,6 +12,7 @@ $conf['metadata']['keywords'] = false;
 $conf['reminder']['server_name'] = '';
 $conf['reminder']['from_addr'] = '';
 $conf['autoshare']['shareperms'] = 'none';
+$conf['holidays']['enable'] = true;
 $conf['menu']['print'] = true;
 $conf['menu']['import_export'] = true;
 $conf['menu']['apps'] = array();

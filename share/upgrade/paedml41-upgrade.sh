@@ -6,17 +6,18 @@
 # <schmitt@lmz-bw.de>
 # GPL V3
 #
-# 2010-02-03 11:31:40 
+# 2010-02-25
 #
 
 # environment variables
-. /usr/share/linuxmuster/config/dist.conf || exit 1
-. $HELPERFUNCTIONS || exit 1
 DHCPDYNTPLDIR=$DYNTPLDIR/03_dhcp3-server
 BINDDYNTPLDIR=$DYNTPLDIR/04_bind9
 LDAPDYNTPLDIR=$DYNTPLDIR/15_ldap
+QUOTDYNTPLDIR=$DYNTPLDIR/18_quota
+HORDDYNTPLDIR=$DYNTPLDIR/21_horde3
+NAGIDYNTPLDIR=$DYNTPLDIR/22_nagios
 SOPHOPKGS=`dpkg -l | grep sophomorix | grep ^i | awk '{ print $2 }'`
-PKGSTOREMOVE="linux-image-server mindi mondo $SOPHOPKGS="
+PKGSTOREMOVE="linux-image-server mindi mondo $SOPHOPKGS"
 PKGREPOS="ftp.de.debian.org/debian/ \
           ftp.de.debian.org/debian-volatile/ \
           security.debian.org \
@@ -52,26 +53,26 @@ echo
 
 echo "Pruefe Setup-Variablen:"
 for i in servername domainname internmask internsubrange imaging sambasid workgroup; do
-    RET=`echo get linuxmuster-base/$i | debconf-communicate`
-    RET=${RET#[0-9] }
-    esc_spec_chars "$RET"
-    if [ -z "$RET" ]; then
-	if [ "$i" = "imaging" ]; then
-		echo "set linuxmuster-base/imaging rembo" | debconf-communicate
-		RET=rembo
-		if grep -q ^imaging $NETWORKSETTINGS; then
-			sed -e 's/^imaging=.*/imaging=rembo/' -i $NETWORKSETTINGS
-		else
-			echo "imaging=rembo" >> $NETWORKSETTINGS
-		fi
-	else
-		echo "    Fatal! $i ist nicht gesetzt!"
-		exit 1
-	fi
-    fi
-    eval $i=$RET
-    echo "  * $i=$RET"
-    unset RET
+ RET=`echo get linuxmuster-base/$i | debconf-communicate`
+ RET=${RET#[0-9] }
+ esc_spec_chars "$RET"
+ if [ -z "$RET" ]; then
+	 if [ "$i" = "imaging" ]; then
+		 echo "set linuxmuster-base/imaging rembo" | debconf-communicate
+		 RET=rembo
+		 if grep -q ^imaging $NETWORKSETTINGS; then
+		 	sed -e 's/^imaging=.*/imaging=rembo/' -i $NETWORKSETTINGS
+		 else
+		 	echo "imaging=rembo" >> $NETWORKSETTINGS
+		 fi
+	 else
+	 	echo "    Fatal! $i ist nicht gesetzt!"
+	 	exit 1
+	 fi
+ fi
+ eval $i=$RET
+ echo "  * $i=$RET"
+ unset RET
 done
 internsub=`echo $internsubrange | cut -f1 -d"-"`
 internbc=`echo $internsubrange | cut -f2 -d"-"`
@@ -171,6 +172,13 @@ sed -e "s/@@message1@@/${message1}/
 	       s/@@ldappassword@@/${ldapadminpw}/g" $LDAPDYNTPLDIR/`basename $CONF` > $CONF
 chmod 600 ${CONF}*
 
+# postgresql
+echo " postgresql ..."
+CONF=/etc/postgresql/8.1/main/pg_hba.conf
+cp $CONF $CONF.lenny-upgrade
+CONFNEW="$(echo $CONF | sed 's|8.1|8.3|')"
+cp $STATICTPLDIR/$CONFNEW $CONF
+
 # apache2
 echo " apache2 ..."
 CONF=/etc/apache2/apache2.conf
@@ -209,15 +217,83 @@ for i in db.10 db.linuxmuster named.conf.linuxmuster; do
 done
 rm -f /etc/bind/*.jnl
 
-# php5.ini
+# horde 3
+echo " horde3 ..."
+CONF=/etc/horde/horde3/registry.php
+cp $CONF $CONF.lenny-upgrade
+cp $STATICTPLDIR/$CONF $CONF
+CONF=/etc/horde/horde3/conf.php
+cp $CONF $CONF.lenny-upgrade
+hordepw="$(grep "^\$conf\['sql'\]\['password'\]" $CONF | awk -F\' '{ print $6 }')"
+sed -e "s/\$conf\['auth'\]\['admins'\] =.*/\$conf\['auth'\]\['admins'\] = array\('$WWWADMIN'\);/
+        s/\$conf\['problems'\]\['email'\] =.*/\$conf\['problems'\]\['email'\] = '$WWWADMIN@$domainname';/
+        s/\$conf\['mailer'\]\['params'\]\['localhost'\] =.*/\$conf\['mailer'\]\['params'\]\['localhost'\] = '$servername.$domainname';/
+        s/\$conf\['problems'\]\['maildomain'\] =.*/\$conf\['problems'\]\['maildomain'\] = '$domainname';/
+        s/\$conf\['sql'\]\['password'\] =.*/\$conf\['sql'\]\['password'\] = '$hordepw';/" $STATICTPLDIR/$CONF > $CONF
+# imp
+CONF=/etc/horde/imp4/conf.php
+cp $CONF $CONF.lenny-upgrade
+cp $STATICTPLDIR/$CONF $CONF
+CONF=/etc/horde/imp4/servers.php
+cp $CONF $CONF.lenny-upgrade
+cyradmpw="$(cat /etc/imap.secret)"
+sed -e "s/'@@servername@@.@@domainname@@'/'$servername.$domainname'/g
+        s/'@@domainname@@'/'$domainname'/g
+        s/'@@cyradmpw@@'/'$cyradmpw'/" $HORDDYNTPLDIR/imp4.`basename $CONF` > $CONF
+# ingo
+CONF=/etc/horde/ingo1/conf.php
+cp $CONF $CONF.lenny-upgrade
+cp $STATICTPLDIR/$CONF $CONF
+# kronolith
+CONF=/etc/horde/kronolith2/conf.php
+cp $CONF $CONF.lenny-upgrade
+sed -e "s/\$conf\['storage'\]\['default_domain'\] =.*/\$conf\['storage'\]\['default_domain'\] = '$domainname';/
+        s/\$conf\['reminder'\]\['server_name'\] =.*/\$conf\['reminder'\]\['server_name'\] = '$servername.$domainname';/
+        s/\$conf\['reminder'\]\['from_addr'\] =.*/\$conf\['reminder'\]\['from_addr'\] = '$WWWADMIN@$domainname';/" $STATICTPLDIR/$CONF > $CONF
+# mnemo
+CONF=/etc/horde/mnemo2/conf.php
+cp $CONF $CONF.lenny-upgrade
+cp $STATICTPLDIR/$CONF $CONF
+# nag
+CONF=/etc/horde/nag2/conf.php
+cp $CONF $CONF.lenny-upgrade
+cp $STATICTPLDIR/$CONF $CONF
+# turba
+CONF=/etc/horde/turba2/conf.php
+cp $CONF $CONF.lenny-upgrade
+cp $STATICTPLDIR/$CONF $CONF
+# permissions
+chown root:www-data /etc/horde -R
+find /etc/horde -type f -exec chmod 440 '{}' \;
+
+# php5
 echo " php5 ..."
 CONF=/etc/php5/conf.d/paedml.ini
+cp $CONF $CONF.lenny-upgrade
+cp $STATICTPLDIR/$CONF $CONF
+CONF=/etc/php5/apache2/php.ini
+cp $CONF $CONF.lenny-upgrade
+cp $STATICTPLDIR/$CONF $CONF
+CONF=/etc/php5/cli/php.ini
 cp $CONF $CONF.lenny-upgrade
 cp $STATICTPLDIR/$CONF $CONF
 
 # mindi
 echo " mindi ..."
 CONF=/etc/mindi/mindi.conf
+cp $CONF $CONF.lenny-upgrade
+cp $STATICTPLDIR/$CONF $CONF
+
+# warnquota
+echo " warnquota ..."
+CONF=/etc/warnquota.conf
+cp $CONF $CONF.lenny-upgrade
+sed -e "s|@@administrator@@|$ADMINISTRATOR|g
+        s|@@domainname@@|$domainname|g" $QUOTDYNTPLDIR/$(basename $CONF) > $CONF
+
+# webmin
+echo " webmin ..."
+CONF=/etc/webmin/config
 cp $CONF $CONF.lenny-upgrade
 cp $STATICTPLDIR/$CONF $CONF
 
@@ -270,23 +346,56 @@ slaptest -f /etc/ldap/slapd.conf -F /etc/ldap/slapd.d
 chown -R openldap:openldap /etc/ldap/slapd.d
 /etc/init.d/slapd start
 
-##########
-# horde3 #
-##########
+###################
+# user db upgrade #
+###################
 
+# umlauts were not converted
+#echo
+#echo "Aktualisiere Benutzerdatenbank"
+#echo " Sicherung des aktuellen Zustands ..."
+#SOPHOBACKUPDIR=/var/backup/linuxmuster/sophomorix
+#mkdir -p /var/backup/linuxmuster/sophomorix
+#if pg_dump -U ldap ldap > $SOPHOBACKUPDIR/userdb_iso.dump; then
+# echo " Konvertiere nach utf-8 ..."
+# if sed -e 's|LATIN9|UTF8|g' $SOPHOBACKUPDIR/userdb_iso.dump | iconv -o $SOPHOBACKUPDIR/userdb_utf8.dump --from-code=iso8859-1 --to-code=utf-8; then
+# if sed -e 's|LATIN9|UTF8|g' $SOPHOBACKUPDIR/userdb_iso.dump > $SOPHOBACKUPDIR/userdb_utf8.dump; then
+#  echo " Lösche alte Datenbank ..."
+#  dropdb -U postgres ldap
+#  echo " Erstelle neue Datenbank ..."
+#  createdb -U postgres -E UTF8 -O ldap ldap
+#  echo " Lege Benutzerdaten wieder an ..."
+#  psql -U ldap ldap < $SOPHOBACKUPDIR/userdb_utf8.dump
+#  echo " Erstelle Datenbank-Sicherungsarchive unter $SOPHOBACKUPDIR ..."
+#  gzip -c9 $SOPHOBACKUPDIR/userdb_iso.dump > $SOPHOBACKUPDIR/userdb_iso.dump.gz
+#  gzip -c9 $SOPHOBACKUPDIR/userdb_utf8.dump > $SOPHOBACKUPDIR/userdb_utf8.dump.gz
+#  echo "Benutzerdatenbank wurde erfoglreich konvertiert."
+#  sophomorix-dump-pg2ldap
+# else
+#  echo " Fehler beim Konvertieren!"
+# fi
+#else
+# echo " Fehler! Kann Userdatenbank nicht sichern!"
+#fi
+#rm -f $SOPHOBACKUPDIR/userdb*.dump
+
+# horde3, db and pear upgrade
 $DATADIR/upgrade/horde3-upgrade.sh
 
-# webmin
-CONF=/etc/webmin/config
+# nagios3
+CONF=/etc/nagios3/apache2.conf
 cp $CONF $CONF.lenny-upgrade
-cp $STATICTPLDIR/$CONF $CONF
-/etc/init.d/webmin restart
+sed -e "s|@@basedn@@|$basedn|" $NAGIDYNTPLDIR/$(basename $CONF) > $CONF
+CONF=/etc/nagios3/cgi.cfg
+cp $CONF $CONF.lenny-upgrade
+sed -e 's|=nagiosadmin|=administrator|g' -i $CONF
 
-# remove stuff only needed for upgrade
+# remove apt.conf stuff only needed for upgrade
 rm -f /etc/apt/apt.conf.d/99upgrade
 
 # final stuff
 dpkg-reconfigure linuxmuster-base
+# temporarily deactivation of internal firewall
 . /etc/default/linuxmuster-base
 [ "$START_LINUXMUSTER" = "[Yy][Ee][Ss]" ] && sed -e 's|^START_LINUXMUSTER=.*|START_LINUXMUSTER=no|' -i /etc/default/linuxmuster-base
 import_workstations

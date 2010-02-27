@@ -5,15 +5,18 @@
 # Thomas Schmitt
 # <schmitt@lmz-bw.de>
 # GPL v3
-# 03.02.2010
+# 2010-02-25
 #
 
 echo
 echo "Upgrading Horde3 ..."
 HORDEUPGRADE=/usr/share/doc/horde3/examples/scripts/upgrades/3.1_to_3.2.mysql.sql
+KRONOUPGRADE=/usr/share/doc/kronolith2/examples/scripts/upgrades/2.1_to_2.2.sql
+MNEMOUPGRADE=/usr/share/doc/mnemo2/examples/scripts/upgrades/2.1_to_2.2.sql
+NAGUPGRADE=/usr/share/doc/nag2/examples/scripts/upgrades/2.1_to_2.2.sql
 TURBAUPGRADE=/usr/share/doc/turba2/examples/scripts/upgrades/2.1_to_2.2_add_sql_share_tables.sql
 
-for i in $HORDEUPGRADE $TURBAUPGRADE; do
+for i in $HORDEUPGRADE $KRONOUPGRADE $MNEMOUPGRADE $NAGUPGRADE $TURBAUPGRADE; do
  if [ ! -s "$i" ]; then
   echo "$i not found!"
   echo "Aborting Horde3 upgrade due to missing sql upgrade scripts!"
@@ -29,12 +32,11 @@ if ! ping -q -c2 pear.php.net; then
 fi
 
 # upgrade tables
-mysql horde < $HORDEUPGRADE
-mysql horde < $TURBAUPGRADE
+for i in $HORDEUPGRADE $KRONOUPGRADE $MNEMOUPGRADE $NAGUPGRADE $TURBAUPGRADE; do
+ mysql horde < $i
+done
 
 # upgrade pear and install necessary modules
 pear upgrade-all
 pear install DB MDB2 MDB2_Driver_mysql Auth_SASL Net_SMTP
-echo -e "\n\n" | aptitude -y install php5-tidy
-
 

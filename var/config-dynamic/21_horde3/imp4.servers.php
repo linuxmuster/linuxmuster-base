@@ -175,11 +175,9 @@ $servers['_prompt'] = array(
 $servers['cyrus'] = array(
     'name' => 'Cyrus IMAP Server',
     'server' => '@@servername@@.@@domainname@@',
-    'hordeauth' => false,
+    'hordeauth' => true,
     'protocol' => 'imap/notls',
     'port' => 143,
-    'folders' => '',
-    'namespace' => 'INBOX.',
     'maildomain' => '@@domainname@@',
     'smtphost' => '@@servername@@.@@domainname@@',
     'smtpport' => 25,
@@ -202,24 +200,10 @@ $servers['cyrus'] = array(
         )
     ),
     'quota' => array(
-        'driver' => 'cyrus',
-        'params' => array(
-            'login' => 'cyrus',
-            'password' => '@@cyradmpw@@',
-            // The 'userhierarchy' parameter defaults to 'user.'
-            // If you are using a nonstandard hierarchy for personal
-            // mailboxes, you will need to set it here.
-            'userhierarchy' => 'user.',
-            // Although these defaults are normally all that is required,
-            // you can modify the following parameters from their default
-            // values.
-            'protocol' => 'imap/notls',
-            'hostspec' => 'localhost',
-            'port' => 143
-        )
+        'driver' => 'imap',
+        'params' => array(),
     ),
     'acl' => array(
         'driver' => 'rfc2086',
     ),
-    'dotfiles' => false,
-    'hierarchies' => array());
+);

@@ -19,13 +19,7 @@ if dpkg -L horde3 &> /dev/null; then
 
   # secure horde configuration
   chown root:www-data /etc/horde -R
-  for i in /etc/horde/*; do
-    if [ -d "$i" ]; then
-      for j in $i/*; do
-        [ -f "$j" ] && chmod 440 $j
-      done
-    fi
-  done
+  find /etc/horde -type f -exec chmod 440 '{}' \;
 
   # change maildomain in horde db
   if [ "$1" != "--first" -a "$domainname_old" != "$domainname" ]; then

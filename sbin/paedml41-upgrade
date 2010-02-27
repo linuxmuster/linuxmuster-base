@@ -1,0 +1,36 @@
+#!/bin/bash
+#
+# upgrade paedML 4.0 to 4.1
+# online wrapper script
+#
+# cmdline parameter: path to paedML/openML iso file
+# downloads openML iso if no iso file is given on cmdline
+# invokes at least upgrade script on cdrom
+#
+# 2010-02-24
+# 
+# Thomas Schmitt
+# <schmitt@lmz-bw.de>
+# GPL V3
+#
+
+. /usr/share/linuxmuster/config/dist.conf
+. $HELPERFUNCTIONS
+
+if [ "$(cat /etc/debian_version)" != "4.0" ]; then
+	echo "Das Upgrade funktioniert nur mit Debian 3.1!"
+	exit 0
+fi
+
+if ! grep -q "paedML Linux 4.0.4" /etc/issue; then
+	echo "Das Upgrade funktioniert nur mit paedML Linux 4.0.4!"
+	exit 0
+fi
+
+if ! check_free_space /var 1000000; then
+ echo "Zuwenig Speicherplatz unter /var. Stellen Sie sicher, dass dort 1GB freier Platz zur Verfügung steht."
+ exit 1
+fi
+
+. $DATADIR/upgrade/paedml41-upgrade.sh 2>&1 | tee -a /var/log/linuxmuster/paedml41-upgrade.log
+
