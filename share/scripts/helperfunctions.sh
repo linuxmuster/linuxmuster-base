@@ -223,9 +223,10 @@ get_mac() {
 
 # extract hostname from file $WIMPORTDATA
 get_hostname() {
+  local pattern="${1//./\\.}"
   unset RET
   [ -f "$WIMPORTDATA" ] || return 1
-  RET=`grep -v ^# $WIMPORTDATA | grep -w -m1 $1 | awk -F\; '{ print $2 }' -` &> /dev/null
+  RET=`grep -v ^# $WIMPORTDATA | grep -w -m1 $pattern | awk -F\; '{ print $2 }' -` &> /dev/null
   return 0
 }
 

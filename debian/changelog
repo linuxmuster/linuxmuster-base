@@ -1,3 +1,9 @@
+linuxmuster-base (1.5.7-0) lenny; urgency=low
+
+  * fixed broken ip address search in get_hostname() in helperfunctions.sh (closes #202).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 2 Mar 2010 19:26:32 +0100
+
 linuxmuster-base (1.5.6-0) lenny; urgency=low
 
   * added "wide links = No" to smb.conf's global section.
