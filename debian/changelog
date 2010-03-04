@@ -1,8 +1,9 @@
 linuxmuster-base (1.5.7-0) lenny; urgency=low
 
   * fixed broken ip address search in get_hostname() in helperfunctions.sh (closes #202).
+  * removed smbstatus test on logout (closes #204, RFC-00367).
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 2 Mar 2010 19:26:32 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 04 Mar 2010 20:20:01 +0100
 
 linuxmuster-base (1.5.6-0) lenny; urgency=low
 
