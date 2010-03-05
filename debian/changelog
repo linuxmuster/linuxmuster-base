@@ -1,3 +1,11 @@
+linuxmuster-base (1.5.7-2) lenny; urgency=low
+
+  * samba-userlog: moved sourcing of custom scripts to the end.
+  * added "/etc/default/bootlogd" with "BOOTLOGD_ENABLE=Yes" (closes # 205, RFC-00352).
+  * enabling bootlogd on 4.1 upgrade.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 05 Mar 2010 17:04:58 +0100
+
 linuxmuster-base (1.5.7-1) lenny; urgency=low
 
   * helperfunctions.sh, hosts_ldap()/accounts_ldap(): changed search field for host

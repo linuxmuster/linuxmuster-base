@@ -36,6 +36,7 @@ usage() {
 #  fi
 #fi
 
+
 #  test if hostname is an ip address
 if validip $hostname; then
   get_hostname $hostname
@@ -151,11 +152,7 @@ if check_id $hostname; then
 fi
 
 
-# source custom login and logout scripts
-[ -e "$NETLOGONDIR/custom-log$log.sh" ] && . $NETLOGONDIR/custom-log$log.sh
-
-
-# log to userlog
+# log to userlogins
 get_ip $hostname
 ip=$RET
 get_realname $username
@@ -168,5 +165,9 @@ echo "$DATETIME: $realname ($username, $pgroup) logs $log $prep $hostname ($ip)"
 rm -f $locker
 
 echo "log$log of user $username $prep host $hostname successfully logged!"
+
+
+# source custom login and logout scripts
+[ -e "$NETLOGONDIR/custom-log$log.sh" ] && . $NETLOGONDIR/custom-log$log.sh
 
 exit 0

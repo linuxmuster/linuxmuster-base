@@ -135,6 +135,12 @@ CONF=/etc/default/uml-utilities
 cp $CONF $CONF.lenny-upgrade
 cp $STATICTPLDIR/$CONF $CONF
 
+# bootlogd
+echo " bootlogd ..."
+CONF=/etc/default/bootlogd
+cp $CONF $CONF.lenny-upgrade
+cp $STATICTPLDIR/$CONF $CONF
+
 # slapd
 echo " slapd ..."
 for i in /etc/ldap/slapd.conf /etc/default/slapd /var/lib/ldap/DB_CONFIG; do
