@@ -709,7 +709,7 @@ hosts_db() {
 # get all host accounts from ldap
 hosts_ldap() {
   local RET
-  RET=`ldapsearch -x -h localhost "(displayName=ExamAccount)" | grep ^uid\: | awk '{ print $2 }'`
+  RET=`ldapsearch -x -h localhost "(description=ExamAccount)" | grep ^uid\: | awk '{ print $2 }'`
   if [ -n "$RET" ]; then
 		echo "$RET"
     return 0
@@ -757,7 +757,7 @@ accounts_db() {
 # get all user accounts from ldap
 accounts_ldap() {
   local RET
-  RET=`ldapsearch -x -h localhost "(&(!(gidNumber=515))(!(displayName=ExamAccount)))" | grep ^uid\: | awk '{ print $2 }'`
+  RET=`ldapsearch -x -h localhost "(&(!(gidNumber=515))(!(description=ExamAccount)))" | grep ^uid\: | awk '{ print $2 }'`
   if [ -n "$RET" ]; then
 		echo "$RET"
     return 0
