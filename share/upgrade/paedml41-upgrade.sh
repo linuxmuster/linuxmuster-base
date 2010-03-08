@@ -191,6 +191,10 @@ CONF=/etc/apache2/apache2.conf
 cp $CONF $CONF.lenny-upgrade
 cp $STATICTPLDIR/$CONF $CONF
 
+# nagios2
+CONF=/etc/nagios2/resource.cfg
+[ -e "$CONF" ] || touch $CONF
+
 # saslauthd
 echo " saslauthd ..."
 CONF=/etc/default/saslauthd

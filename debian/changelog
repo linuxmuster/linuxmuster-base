@@ -2,6 +2,8 @@ linuxmuster-base (1.5.8-0) lenny; urgency=low
 
   * added bash script "update-logins.sh" to be able to update the cached logins in
     /var/cache/linuxmuster/logins.
+  * paedml41-upgrade.sh: touching /etc/nagios2/resource.cfg before upgrade if not
+    present.
 
  -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 08 Mar 2010 15:05:43 +0100
 
