@@ -320,6 +320,8 @@ sed -e 's|postgresql-8.1|postgresql-8.3|g
 
 echo
 echo "DIST-UPGRADE ..."
+# stuff to hold
+[ "$imaging" = "linbo" ] && aptitude hold linuxmuster-linbo
 # first remove stuff
 echo -e "\n\n" | aptitude -y remove $PKGSTOREMOVE
 echo -e "\n\n" | aptitude -y install apt-utils tasksel debian-archive-keyring dpkg locales
@@ -346,6 +348,8 @@ echo -e "\n\n" | aptitude -y purge avahi-daemon
 # install tasks to be sure to have all necessary pkgs installed
 linuxmuster-task --unattended --install=common
 linuxmuster-task --unattended --install=server
+# unhold linuxmuster-linbo
+[ "$imaging" = "linbo" ] && aptitude unhold linuxmuster-linbo
 linuxmuster-task --unattended --install=imaging-$imaging
 aptitude -y install $SOPHOPKGS
 # handle slapd upgrade
