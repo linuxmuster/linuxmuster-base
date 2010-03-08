@@ -102,9 +102,9 @@ echo "  * workgroup=$workgroup"
 #######
 
 cp /etc/apt/sources.list /etc/apt/sources.list.lenny-upgrade
-mv /etc/apt/apt.conf /etc/apt/apt.conf.lenny-upgrade
-cp $STATICTPLDIR/etc/apt/sources.list /etc/apt
-rm -f /etc/apt/sources.list.d/paedml40.list
+[ -e /etc/apt/apt.conf ] && mv /etc/apt/apt.conf /etc/apt/apt.conf.lenny-upgrade
+mv /etc/apt/sources.list.d /etc/apt/sources.list.d.lenny-upgrade
+cp -a $STATICTPLDIR/etc/apt/* /etc/apt
 
 # force apt to do an unattended upgrade
 export DEBIAN_FRONTEND=noninteractive
