@@ -4,9 +4,10 @@ linuxmuster-base (1.5.3-2) etch; urgency=low
     - hosts_ldap()/accounts_ldap(): changed search field for host accounts to description.
     - fixed broken ip address search in get_hostname() (closes #202).
   * samba-userlog:
+    - moved sourcing of custom scripts to the end.
     - removed smbstatus test on logout (closes #204, RFC-00367).
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 16 Mar 2010 16:10:04 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 16 Mar 2010 16:54:38 +0100
 
 linuxmuster-base (1.5.3-1) etch; urgency=low
 
