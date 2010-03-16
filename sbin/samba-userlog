@@ -28,12 +28,14 @@ usage() {
 [[ -z "$username" ]] && usage
 [[ -z "$homedir" ]] && usage
 
+# probably a bug
 # if shares are connected on logout do nothing
-if [ "$log" = "out" ]; then
-  if smbstatus -u $username | grep -w $hostname | grep -w ^$username &> /dev/null; then
-    exit 0
-  fi
-fi
+#if [ "$log" = "out" ]; then
+#  if smbstatus -u $username | grep -w $hostname | grep -w ^$username &> /dev/null; then
+#    exit 0
+#  fi
+#fi
+
 
 #  test if hostname is an ip address
 if validip $hostname; then
@@ -150,11 +152,7 @@ if check_id $hostname; then
 fi
 
 
-# source custom login and logout scripts
-[ -e "$NETLOGONDIR/custom-log$log.sh" ] && . $NETLOGONDIR/custom-log$log.sh
-
-
-# log to userlog
+# log to userlogins
 get_ip $hostname
 ip=$RET
 get_realname $username
@@ -167,5 +165,9 @@ echo "$DATETIME: $realname ($username, $pgroup) logs $log $prep $hostname ($ip)"
 rm -f $locker
 
 echo "log$log of user $username $prep host $hostname successfully logged!"
+
+
+# source custom login and logout scripts
+[ -e "$NETLOGONDIR/custom-log$log.sh" ] && . $NETLOGONDIR/custom-log$log.sh
 
 exit 0

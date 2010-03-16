@@ -1,4 +1,11 @@
 # linuxmuster shell helperfunctions
+#
+# Thomas Schmitt
+# <schmitt@lmz-bw.de>
+# GPL v3
+#
+# 22.01.2010
+#
 
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
@@ -128,6 +135,38 @@ check_free_space(){
 	fi
 }
 
+#######################
+# config file editing #
+#######################
+
+addto_file()
+{
+	# Parameter 1 original file
+	# Parameter 2 changes file
+	# Parameter 3 search pattern after that content of changes file will be inserted
+ local ofile="$1"
+ local cfile="$2"
+ local pattern="$3"
+ local tfile="/var/tmp/addto_file.$$"
+	sed ''/$pattern/' r '$cfile'' <$ofile > $tfile || return 1
+	cp $tfile $ofile
+	rm $tfile
+	return 0
+}
+
+removefrom_file()
+{
+	# Parameter 1 original file
+	# Parameter 2 search pattern e.g. /\;### linuxmuster - begin ###/,/\;### linuxmuster - end ###/
+ local ofile="$1"
+ local pattern="$2"
+ local tfile="/var/tmp/removefrom_file.$$"
+	sed "$pattern"d <$ofile > $tfile || return 1
+	cp $tfile $ofile
+	rm $tfile
+	return 0
+}
+
 ##########################
 # check parameter values #
 ##########################
@@ -184,9 +223,10 @@ get_mac() {
 
 # extract hostname from file $WIMPORTDATA
 get_hostname() {
+  local pattern="${1//./\\.}"
   unset RET
   [ -f "$WIMPORTDATA" ] || return 1
-  RET=`grep -v ^# $WIMPORTDATA | grep -w -m1 $1 | awk -F\; '{ print $2 }' -` &> /dev/null
+  RET=`grep -v ^# $WIMPORTDATA | grep -w -m1 $pattern | awk -F\; '{ print $2 }' -` &> /dev/null
   return 0
 }
 
@@ -289,7 +329,7 @@ discover_nics() {
 
 	n=0
 	# fetch all interfaces and their macs from /sys
-	for i in /sys/class/net/eth* /sys/class/net/wlan* /sys/class/net/intern /sys/class/net/extern /sys/class/net/dmz; do
+	for i in /sys/class/net/bond* /sys/class/net/eth* /sys/class/net/wlan* /sys/class/net/intern /sys/class/net/extern /sys/class/net/dmz; do
 
 		[ -e $i/address ] || continue
 		address[$n]=`head -1 $i/address` || continue
@@ -656,7 +696,7 @@ check_group() {
 
 # get all host accounts from db
 hosts_db() {
-  unset RET
+  local RET
   RET=`psql -U ldap -d ldap -t -c "select uid from posix_account where firstname = 'Exam';"`
   if [ -n "$RET" ]; then
 	 	echo "$RET" | awk '{ print $1 }'
@@ -668,8 +708,8 @@ hosts_db() {
 
 # get all host accounts from ldap
 hosts_ldap() {
-  unset RET
-  RET=`ldapsearch -x -ZZ -h localhost "(cn=ExamAccount)" | grep ^uid\: | awk '{ print $2 }'`
+  local RET
+  RET=`ldapsearch -x -h localhost "(description=ExamAccount)" | grep ^uid\: | awk '{ print $2 }'`
   if [ -n "$RET" ]; then
 		echo "$RET"
     return 0
@@ -680,7 +720,7 @@ hosts_ldap() {
 
 # get all host accounts
 machines_db() {
-  unset RET
+  local RET
   RET=`psql -U ldap -d ldap -t -c "select uid from posix_account where firstname = 'Computer';"`
   if [ -n "$RET" ]; then
 		 echo "$RET" | awk '{ print $1 }'
@@ -692,8 +732,8 @@ machines_db() {
 
 # get all host accounts from ldap
 machines_ldap() {
-  unset RET
-  RET=`ldapsearch -x -ZZ -h localhost "(cn=Computer)" | grep ^uid\: | awk '{ print $2 }'`
+  local RET
+  RET=`ldapsearch -x -h localhost "(gidNumber=515)" | grep ^uid\: | awk '{ print $2 }'`
   if [ -n "$RET" ]; then
 		echo "$RET"
     return 0
@@ -704,7 +744,7 @@ machines_ldap() {
 
 # get all user accounts
 accounts_db() {
-  unset RET
+  local RET
   RET=`psql -U ldap -d ldap -t -c "select uid from posix_account where firstname <> 'Computer' and firstname <> 'Exam';"`
   if [ -n "$RET" ]; then
 		 echo "$RET" | awk '{ print $1 }'
@@ -716,8 +756,8 @@ accounts_db() {
 
 # get all user accounts from ldap
 accounts_ldap() {
-  unset RET
-  RET=`ldapsearch -x -ZZ -h localhost "(&(!(cn=Computer))(!(cn=ExamAccount)))" | grep ^uid\: | awk '{ print $2 }'`
+  local RET
+  RET=`ldapsearch -x -h localhost "(&(!(gidNumber=515))(!(description=ExamAccount)))" | grep ^uid\: | awk '{ print $2 }'`
   if [ -n "$RET" ]; then
 		echo "$RET"
     return 0
