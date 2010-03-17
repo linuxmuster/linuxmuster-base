@@ -1,9 +1,15 @@
+linuxmuster-base (1.5.8-3) lenny; urgency=low
+
+  * changed codename to 'Glufamichel'.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 17 Mar 2010 15:21:55 +0100
+
 linuxmuster-base (1.5.8-2) lenny; urgency=low
 
   * paedml41-upgrade: hold linuxmuster-linbo during upgrade to upgrade it seperately
     later when samba and slapd are running again.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 08 Mar 2010 20:44:27 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 09 Mar 2010 08:18:55 +0100
 
 linuxmuster-base (1.5.8-1) lenny; urgency=low
 

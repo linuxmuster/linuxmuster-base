@@ -320,8 +320,6 @@ sed -e 's|postgresql-8.1|postgresql-8.3|g
 
 echo
 echo "DIST-UPGRADE ..."
-# stuff to hold
-[ "$imaging" = "linbo" ] && aptitude hold linuxmuster-linbo
 # first remove stuff
 echo -e "\n\n" | aptitude -y remove $PKGSTOREMOVE
 echo -e "\n\n" | aptitude -y install apt-utils tasksel debian-archive-keyring dpkg locales
@@ -339,6 +337,8 @@ pg_upgradecluster 8.1 main
 /etc/init.d/postgresql-8.1 stop
 update-rc.d -f postgresql-7.4 remove
 update-rc.d -f postgresql-8.1 remove
+# hold linuxmuster linbo during dist-upgrade
+[ "$imaging" = "linbo" ] && aptitude hold linuxmuster-linbo
 # first safe-upgrade
 echo -e "\n\n" | aptitude -y safe-upgrade
 # then dist-upgrade
