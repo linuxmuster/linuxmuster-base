@@ -360,49 +360,8 @@ slaptest -f /etc/ldap/slapd.conf -F /etc/ldap/slapd.d
 chown -R openldap:openldap /etc/ldap/slapd.d
 /etc/init.d/slapd start
 
-###################
-# user db upgrade #
-###################
-
-# umlauts were not converted
-#echo
-#echo "Aktualisiere Benutzerdatenbank"
-#echo " Sicherung des aktuellen Zustands ..."
-#SOPHOBACKUPDIR=/var/backup/linuxmuster/sophomorix
-#mkdir -p /var/backup/linuxmuster/sophomorix
-#if pg_dump -U ldap ldap > $SOPHOBACKUPDIR/userdb_iso.dump; then
-# echo " Konvertiere nach utf-8 ..."
-# if sed -e 's|LATIN9|UTF8|g' $SOPHOBACKUPDIR/userdb_iso.dump | iconv -o $SOPHOBACKUPDIR/userdb_utf8.dump --from-code=iso8859-1 --to-code=utf-8; then
-# if sed -e 's|LATIN9|UTF8|g' $SOPHOBACKUPDIR/userdb_iso.dump > $SOPHOBACKUPDIR/userdb_utf8.dump; then
-#  echo " Lösche alte Datenbank ..."
-#  dropdb -U postgres ldap
-#  echo " Erstelle neue Datenbank ..."
-#  createdb -U postgres -E UTF8 -O ldap ldap
-#  echo " Lege Benutzerdaten wieder an ..."
-#  psql -U ldap ldap < $SOPHOBACKUPDIR/userdb_utf8.dump
-#  echo " Erstelle Datenbank-Sicherungsarchive unter $SOPHOBACKUPDIR ..."
-#  gzip -c9 $SOPHOBACKUPDIR/userdb_iso.dump > $SOPHOBACKUPDIR/userdb_iso.dump.gz
-#  gzip -c9 $SOPHOBACKUPDIR/userdb_utf8.dump > $SOPHOBACKUPDIR/userdb_utf8.dump.gz
-#  echo "Benutzerdatenbank wurde erfoglreich konvertiert."
-#  sophomorix-dump-pg2ldap
-# else
-#  echo " Fehler beim Konvertieren!"
-# fi
-#else
-# echo " Fehler! Kann Userdatenbank nicht sichern!"
-#fi
-#rm -f $SOPHOBACKUPDIR/userdb*.dump
-
 # horde3, db and pear upgrade
 $DATADIR/upgrade/horde3-upgrade.sh
-
-# nagios3
-CONF=/etc/nagios3/apache2.conf
-cp $CONF $CONF.lenny-upgrade
-sed -e "s|@@basedn@@|$basedn|" $NAGIDYNTPLDIR/$(basename $CONF) > $CONF
-CONF=/etc/nagios3/cgi.cfg
-cp $CONF $CONF.lenny-upgrade
-sed -e 's|=nagiosadmin|=administrator|g' -i $CONF
 
 # remove apt.conf stuff only needed for upgrade
 rm -f /etc/apt/apt.conf.d/99upgrade

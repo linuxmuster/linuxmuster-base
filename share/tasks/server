@@ -35,6 +35,7 @@ libsasl2-modules
 linux-headers-2.6-686-bigmem
 linux-image-686-bigmem
 linuxmuster-ipcop
+linuxmuster-nagios-base
 linuxmuster-schulkonsole
 lzop
 mindi
@@ -43,7 +44,6 @@ mondo
 moodle
 mysql-server
 nag2
-nagios3
 nscd
 ntpdate
 openntpd
