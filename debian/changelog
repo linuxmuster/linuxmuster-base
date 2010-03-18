@@ -1,13 +1,15 @@
 linuxmuster-base (1.5.9-0) lenny; urgency=low
 
-  * paedml41-upgrade: removed nagios3 stuff.
+  * paedml41-upgrade:
+    - removed nagios3 stuff.
+    - recreating ldap at the end of upgrade.
   * added linuxmuster-nagios-base to server task.
   * updated slapd.conf and smbldap.conf.
   * updated php.ini.
   * linuxmuster-nic-setup: removing ipv6 support.
-  * removed ipv6 entries from /etc/hosts templates
+  * removed ipv6 entries from /etc/hosts templates.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 18 Mar 2010 20:50:14 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 19 Mar 2010 00:19:38 +0100
 
 linuxmuster-base (1.5.8-3) lenny; urgency=low
 

@@ -360,6 +360,9 @@ slaptest -f /etc/ldap/slapd.conf -F /etc/ldap/slapd.d
 chown -R openldap:openldap /etc/ldap/slapd.d
 /etc/init.d/slapd start
 
+# recreate ldap
+sophomorix-dump-pg2ldap
+
 # horde3, db and pear upgrade
 $DATADIR/upgrade/horde3-upgrade.sh
 
