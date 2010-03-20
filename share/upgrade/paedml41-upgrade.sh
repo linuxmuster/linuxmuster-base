@@ -6,7 +6,7 @@
 # <schmitt@lmz-bw.de>
 # GPL V3
 #
-# 2010-02-25
+# $Id$ 
 #
 
 # environment variables
@@ -352,6 +352,7 @@ linuxmuster-task --unattended --install=server
 [ "$imaging" = "linbo" ] && aptitude unhold linuxmuster-linbo
 linuxmuster-task --unattended --install=imaging-$imaging
 aptitude -y install $SOPHOPKGS
+
 # handle slapd upgrade
 /etc/init.d/slapd stop
 slapcat > /var/backup/linuxmuster/ldap.ldif
@@ -366,8 +367,8 @@ slaptest -f /etc/ldap/slapd.conf -F /etc/ldap/slapd.d
 chown -R openldap:openldap /etc/ldap/slapd.d
 /etc/init.d/slapd start
 
-# recreate ldap
-#sophomorix-dump-pg2ldap
+# linuxmuster-nagios
+linuxmuster-nagios-setup
 
 # horde3, db and pear upgrade
 $DATADIR/upgrade/horde3-upgrade.sh
