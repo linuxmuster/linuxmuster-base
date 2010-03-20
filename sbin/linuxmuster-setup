@@ -3,10 +3,12 @@
 #
 # Thomas Schmitt <schmitt@lmz-bw.de>
 # GPL-2
+#
+
 
 # check debian version
-if [ "$(cat /etc/debian_version)" != "4.0" ]; then
-	echo "This is not Debian 4.0 Etch. Please upgrade your system!"
+if ! grep -q 5\.0\.[1-9] /etc/debian_version; then
+	echo "This is not Debian 5.0.x Lenny. Please upgrade your system!"
 	exit 1
 fi
 

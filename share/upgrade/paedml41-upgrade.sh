@@ -354,14 +354,20 @@ linuxmuster-task --unattended --install=imaging-$imaging
 aptitude -y install $SOPHOPKGS
 # handle slapd upgrade
 /etc/init.d/slapd stop
+slapcat > /var/backup/linuxmuster/ldap.ldif
 rm -rf /etc/ldap/slapd.d
 mkdir -p /etc/ldap/slapd.d
+chattr +i /var/lib/ldap/DB_CONFIG
+rm /var/lib/ldap/* &> /dev/null
+chattr -i /var/lib/ldap/DB_CONFIG
+slapadd < /var/backup/linuxmuster/ldap.ldif
+chown openldap:openldap /var/lib/ldap -R
 slaptest -f /etc/ldap/slapd.conf -F /etc/ldap/slapd.d
 chown -R openldap:openldap /etc/ldap/slapd.d
 /etc/init.d/slapd start
 
 # recreate ldap
-sophomorix-dump-pg2ldap
+#sophomorix-dump-pg2ldap
 
 # horde3, db and pear upgrade
 $DATADIR/upgrade/horde3-upgrade.sh
