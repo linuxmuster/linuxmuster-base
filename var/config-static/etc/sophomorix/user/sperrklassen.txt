@@ -1,4 +1,4 @@
-# $Id: sperrklassen.txt,v 1.2 2006/04/22 14:14:12 jeffbeck Exp $
+# $Id$
 # sophomorix-Konfigurationsdatei
 # Klassen deren Sperrdatum nicht erreicht ist, werden gesperrt, 
 # ABER NUR WENN sie noch nicht im System(=angelegt) sind !!!
