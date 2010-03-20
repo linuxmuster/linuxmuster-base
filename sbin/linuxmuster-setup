@@ -4,7 +4,8 @@
 # Thomas Schmitt <schmitt@lmz-bw.de>
 # GPL-2
 #
-
+# Id Rev
+#
 
 # check debian version
 if ! grep -q 5\.0\.[1-9] /etc/debian_version; then
