@@ -1,4 +1,4 @@
-# $Id: mailquota.txt,v 1.2 2006/04/22 14:12:59 jeffbeck Exp $
+# $Id$
 ##############################################################################
 # This is a comment                                                          #
 # sophomorix configuration file mailquota.txt                                #
