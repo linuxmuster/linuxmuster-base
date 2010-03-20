@@ -6,7 +6,7 @@
 # boot into a new system. The real inittab is most likely
 # named /etc/inittab.real.
 #
-# $Id: inittab.install 14565 2004-05-01 18:31:25Z joshk $
+# $Id$
 
 id:2:initdefault:
 si::sysinit:/etc/init.d/rcS
