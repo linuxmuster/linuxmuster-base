@@ -43,8 +43,7 @@ for i in linuxmuster-base/intro linuxmuster-base/country linuxmuster-base/state 
          linuxmuster-base/ipcoppw_confirm linuxmuster-base/sambasid linuxmuster-base/internmask \
          linuxmuster-base/internmask_short linuxmuster-base/internsubrange linuxmuster-base/nicmenu \
          linuxmuster-base/ifmenu linuxmuster-base/mac_extern linuxmuster-base/mac_intern \
-         linuxmuster-base/mac_wlan linuxmuster-base/mac_dmz linuxmuster-base/imaging \
-         shared/present-sun-dlj-v1-1 shared/accepted-sun-dlj-v1-1; do
+         linuxmuster-base/mac_wlan linuxmuster-base/mac_dmz linuxmuster-base/imaging; do
 
 	if ! db_get linuxmuster-base/$i; then
 		db_set linuxmuster-base/$i "" || true

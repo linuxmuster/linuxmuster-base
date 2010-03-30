@@ -1,3 +1,23 @@
+linuxmuster-base (1.5.10-lenny0) lenny; urgency=low
+
+  * paedml41-upgrade: added freeradius config upgrade.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 30 Mar 2010 17:18:29 +0200
+
+linuxmuster-base (1.5.9-3) lenny; urgency=low
+
+  * postinst: removed check for sun java templates.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 20 Mar 2010 11:20:28 +0100
+
+linuxmuster-base (1.5.9-2) lenny; urgency=low
+
+  * paedml41-upgrade: added linuxmuster-nagios-setup.
+  * linuxmuster-setup: debian version check updated.
+  * added $Id$ to several script headers.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 20 Mar 2010 11:20:28 +0100
+
 linuxmuster-base (1.5.9-1) lenny; urgency=low
 
   * paedml41-upgrade: recreates ldap now with slapcat and slapadd.

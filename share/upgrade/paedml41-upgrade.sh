@@ -16,24 +16,27 @@ LDAPDYNTPLDIR=$DYNTPLDIR/15_ldap
 QUOTDYNTPLDIR=$DYNTPLDIR/18_quota
 HORDDYNTPLDIR=$DYNTPLDIR/21_horde3
 NAGIDYNTPLDIR=$DYNTPLDIR/22_nagios
+FREEDYNTPLDIR=$DYNTPLDIR/55_freeradius
 SOPHOPKGS=`dpkg -l | grep sophomorix | grep ^i | awk '{ print $2 }'`
+FREERADIUS=`dpkg -l | grep " linuxmuster-freeradius " | grep ^i`
 PKGSTOREMOVE="linux-image-server mindi mondo $SOPHOPKGS"
 PKGREPOS="ftp.de.debian.org/debian/ \
           ftp.de.debian.org/debian-volatile/ \
           security.debian.org \
           pkg.lml.support-netz.de/paedml41-updates/"
+NOW=`date`
 
 # messages for config file headers
 message1="##### Do not change this file! It will be overwritten!"
 message2="##### This configuration file was automatically created by paedml41-upgrade!"
-message3="##### Last Modification: `date`"
+message3="##### Last Modification: $NOW"
 
 echo
 echo "####################################################################"
 echo "# paedML/openML Linux Distributions-Upgrade auf Debian 5.0.3 Lenny #"
 echo "####################################################################"
 echo
-echo "Startzeit: `date`"
+echo "Startzeit: $NOW"
 echo
 
 echo "Teste Internetverbindung:"
@@ -366,6 +369,41 @@ chown openldap:openldap /var/lib/ldap -R
 slaptest -f /etc/ldap/slapd.conf -F /etc/ldap/slapd.d
 chown -R openldap:openldap /etc/ldap/slapd.d
 /etc/init.d/slapd start
+
+# linuxmuster-freeradius
+if [ -n "$FREERADIUS" ]; then
+ CONF=/etc/freeradius/clients.conf
+ if [ -s "$CONF" -a -d "$FREEDYNTPLDIR"]; then
+  echo "Aktualisiere freeradius ..."
+  # fetch radiussecret
+  found=false
+  while read line; do
+   if [ "$line" = "client $ipcopip {" ]; then
+    found=true
+    continue
+   fi
+   if [ "$found" = "true" -a "${line:0:6}" = "secret" ]; then
+    radiussecret="$(echo "$line" | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
+   fi
+   [ -n "$radiussecret" ] && break
+  done <$CONF
+  # patch configuration
+  for i in $FREEDYNTPLDIR/*.target; do
+   targetcfg=`cat $i`
+   sourcetpl=`basename $target`
+   [ -e "$targetcfg" ] && cp $targetcfg $targetcfg.lenny-upgrade
+   sed -e "s|@@package@@|linuxmuster-freeradius|
+           s|@@date@@|$NOW|
+           s|@@radiussecret@@|$radiussecret|
+           s|@@ipcopip@@|$ipcopip|
+           s|@@ldappassword@@|$ldapadminpw|
+           s|@@basedn@@|$basedn|" $FREEDYNTPLDIR/$sourcetpl > $targetcfg
+   chmod 640 $targetcfg
+   chown root:freerad $targetcfg
+  done # targets
+  aptitude -y install linuxmuster-freeradius
+ fi
+fi
 
 # linuxmuster-nagios
 linuxmuster-nagios-setup
