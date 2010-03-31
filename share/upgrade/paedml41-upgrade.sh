@@ -119,6 +119,11 @@ echo
 echo "Aktualisiere Paketlisten ..."
 aptitude update
 
+######################
+# first remove stuff #
+######################
+echo -e "\n\n" | aptitude -y remove $PKGSTOREMOVE
+
 #################
 # configuration #
 #################
@@ -322,8 +327,6 @@ sed -e 's|postgresql-8.1|postgresql-8.3|g
 
 echo
 echo "DIST-UPGRADE ..."
-# first remove stuff
-echo -e "\n\n" | aptitude -y remove $PKGSTOREMOVE
 echo -e "\n\n" | aptitude -y install apt-utils tasksel debian-archive-keyring dpkg locales
 aptitude update
 echo -e "\n\n" | aptitude -y install postgresql postgresql-8.3 postgresql-client-8.3

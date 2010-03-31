@@ -5,8 +5,9 @@ linuxmuster-base (1.5.10-lenny2) lenny; urgency=low
     - fixed nagios upgrade, linuxmuster-nagios-base will be first removed and
       later reinstalled.
     - fixed freeradius upgrade.
+    - moved package removal to earlier position in script.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 31 Mar 2010 21:01:22 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 31 Mar 2010 21:12:26 +0200
 
 linuxmuster-base (1.5.10-lenny1) lenny; urgency=low
 
