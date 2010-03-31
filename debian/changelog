@@ -1,3 +1,11 @@
+linuxmuster-base (1.5.10-lenny2) lenny; urgency=low
+
+  * postinst: removed more obsolete stuff.
+  * paedml41-upgrade: fixed nagios upgrade, linuxmuster-nagios-base will be
+    first removed and later reinstalled.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 31 Mar 2010 19:37:06 +0200
+
 linuxmuster-base (1.5.10-lenny1) lenny; urgency=low
 
   * linuxmuster-patch: added basedn_old variable.

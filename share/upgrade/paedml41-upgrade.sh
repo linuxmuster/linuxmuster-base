@@ -19,7 +19,7 @@ NAGIDYNTPLDIR=$DYNTPLDIR/22_nagios
 FREEDYNTPLDIR=$DYNTPLDIR/55_freeradius
 SOPHOPKGS=`dpkg -l | grep sophomorix | grep ^i | awk '{ print $2 }'`
 FREERADIUS=`dpkg -l | grep " linuxmuster-freeradius " | grep ^i`
-PKGSTOREMOVE="linux-image-server mindi mondo $SOPHOPKGS"
+PKGSTOREMOVE="linux-image-server linuxmuster-nagios-base mindi mondo $SOPHOPKGS"
 PKGREPOS="ftp.de.debian.org/debian/ \
           ftp.de.debian.org/debian-volatile/ \
           security.debian.org \
@@ -404,9 +404,6 @@ if [ -n "$FREERADIUS" ]; then
   aptitude -y install linuxmuster-freeradius
  fi
 fi
-
-# linuxmuster-nagios
-linuxmuster-nagios-setup
 
 # horde3, db and pear upgrade
 $DATADIR/upgrade/horde3-upgrade.sh
