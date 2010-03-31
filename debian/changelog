@@ -1,3 +1,9 @@
+linuxmuster-base (1.5.10-lenny1) lenny; urgency=low
+
+  * linuxmuster-patch: added basedn_old variable.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 30 Mar 2010 17:18:29 +0200
+
 linuxmuster-base (1.5.10-lenny0) lenny; urgency=low
 
   * paedml41-upgrade: added freeradius config upgrade.

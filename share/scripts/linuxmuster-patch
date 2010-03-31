@@ -107,6 +107,7 @@ fi
 
 # compute basedn from domainname
 basedn="dc=`echo $domainname|sed 's/\./,dc=/g'`"
+basedn_old="dc=`echo $domainname_old|sed 's/\./,dc=/g'`"
 
 # write network settings
 echo "# linuxmuster network settings" > $NETWORKSETTINGS
@@ -178,7 +179,7 @@ dsluser=${dsluser//\//\\\/}
 
 # messages for config file headers
 message1="##### Do not change this file! It will be overwritten!"
-message2="##### This configuration file was automatically created by linuxmuster-base!"
+message2="##### This configuration file was automatically created by linuxmuster-setup!"
 message3="##### Last Modification: `date`"
 
 # set a new random password for cyrus user
