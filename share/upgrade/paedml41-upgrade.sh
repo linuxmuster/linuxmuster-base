@@ -388,7 +388,7 @@ if [ -s "$CONF" -a -d "$FREEDYNTPLDIR"]; then
  # patch configuration
  for i in $FREEDYNTPLDIR/*.target; do
   targetcfg=`cat $i`
-  sourcetpl=`basename $target`
+  sourcetpl=`basename $targetcfg`
   [ -e "$targetcfg" ] && cp $targetcfg $targetcfg.lenny-upgrade
   sed -e "s|@@package@@|linuxmuster-freeradius|
           s|@@date@@|$NOW|
