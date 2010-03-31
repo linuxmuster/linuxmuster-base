@@ -6,7 +6,7 @@ linuxmuster-base (1.5.10-lenny2) lenny; urgency=low
       later reinstalled.
     - fixed freeradius upgrade.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 31 Mar 2010 20:45:10 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 31 Mar 2010 21:01:22 +0200
 
 linuxmuster-base (1.5.10-lenny1) lenny; urgency=low
 
