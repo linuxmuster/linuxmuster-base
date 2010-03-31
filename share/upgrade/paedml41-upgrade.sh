@@ -18,7 +18,6 @@ HORDDYNTPLDIR=$DYNTPLDIR/21_horde3
 NAGIDYNTPLDIR=$DYNTPLDIR/22_nagios
 FREEDYNTPLDIR=$DYNTPLDIR/55_freeradius
 SOPHOPKGS=`dpkg -l | grep sophomorix | grep ^i | awk '{ print $2 }'`
-FREERADIUS=`dpkg -l | grep " linuxmuster-freeradius " | grep ^i`
 PKGSTOREMOVE="linux-image-server linuxmuster-nagios-base mindi mondo $SOPHOPKGS"
 PKGREPOS="ftp.de.debian.org/debian/ \
           ftp.de.debian.org/debian-volatile/ \
@@ -371,38 +370,36 @@ chown -R openldap:openldap /etc/ldap/slapd.d
 /etc/init.d/slapd start
 
 # linuxmuster-freeradius
-if [ -n "$FREERADIUS" ]; then
- CONF=/etc/freeradius/clients.conf
- if [ -s "$CONF" -a -d "$FREEDYNTPLDIR"]; then
-  echo "Aktualisiere freeradius ..."
-  # fetch radiussecret
-  found=false
-  while read line; do
-   if [ "$line" = "client $ipcopip {" ]; then
-    found=true
-    continue
-   fi
-   if [ "$found" = "true" -a "${line:0:6}" = "secret" ]; then
-    radiussecret="$(echo "$line" | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
-   fi
-   [ -n "$radiussecret" ] && break
-  done <$CONF
-  # patch configuration
-  for i in $FREEDYNTPLDIR/*.target; do
-   targetcfg=`cat $i`
-   sourcetpl=`basename $target`
-   [ -e "$targetcfg" ] && cp $targetcfg $targetcfg.lenny-upgrade
-   sed -e "s|@@package@@|linuxmuster-freeradius|
-           s|@@date@@|$NOW|
-           s|@@radiussecret@@|$radiussecret|
-           s|@@ipcopip@@|$ipcopip|
-           s|@@ldappassword@@|$ldapadminpw|
-           s|@@basedn@@|$basedn|" $FREEDYNTPLDIR/$sourcetpl > $targetcfg
-   chmod 640 $targetcfg
-   chown root:freerad $targetcfg
-  done # targets
-  aptitude -y install linuxmuster-freeradius
- fi
+CONF=/etc/freeradius/clients.conf
+if [ -s "$CONF" -a -d "$FREEDYNTPLDIR"]; then
+ echo "Aktualisiere freeradius ..."
+ # fetch radiussecret
+ found=false
+ while read line; do
+  if [ "$line" = "client $ipcopip {" ]; then
+   found=true
+   continue
+  fi
+  if [ "$found" = "true" -a "${line:0:6}" = "secret" ]; then
+   radiussecret="$(echo "$line" | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
+  fi
+  [ -n "$radiussecret" ] && break
+ done <$CONF
+ # patch configuration
+ for i in $FREEDYNTPLDIR/*.target; do
+  targetcfg=`cat $i`
+  sourcetpl=`basename $target`
+  [ -e "$targetcfg" ] && cp $targetcfg $targetcfg.lenny-upgrade
+  sed -e "s|@@package@@|linuxmuster-freeradius|
+          s|@@date@@|$NOW|
+          s|@@radiussecret@@|$radiussecret|
+          s|@@ipcopip@@|$ipcopip|
+          s|@@ldappassword@@|$ldapadminpw|
+          s|@@basedn@@|$basedn|" $FREEDYNTPLDIR/$sourcetpl > $targetcfg
+  chmod 640 $targetcfg
+  chown root:freerad $targetcfg
+ done # targets
+ aptitude -y install linuxmuster-freeradius
 fi
 
 # horde3, db and pear upgrade
