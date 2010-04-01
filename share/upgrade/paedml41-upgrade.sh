@@ -17,6 +17,7 @@ QUOTDYNTPLDIR=$DYNTPLDIR/18_quota
 HORDDYNTPLDIR=$DYNTPLDIR/21_horde3
 NAGIDYNTPLDIR=$DYNTPLDIR/22_nagios
 FREEDYNTPLDIR=$DYNTPLDIR/55_freeradius
+FREERADIUS=`dpkg -l | grep linuxmuster-freeradius | grep ^i`
 SOPHOPKGS=`dpkg -l | grep sophomorix | grep ^i | awk '{ print $2 }'`
 PKGSTOREMOVE="linux-image-server nagios2 linuxmuster-nagios-base mindi mondo $SOPHOPKGS"
 PKGREPOS="ftp.de.debian.org/debian/ \
@@ -373,8 +374,9 @@ chown -R openldap:openldap /etc/ldap/slapd.d
 /etc/init.d/slapd start
 
 # linuxmuster-freeradius
+[ -n "$FREERADIUS" ] && aptitude -y install linuxmuster-freeradius
 CONF=/etc/freeradius/clients.conf
-if [ -s "$CONF" -a -d "$FREEDYNTPLDIR"]; then
+if [ -s "$CONF" -a -d "$FREEDYNTPLDIR" ]; then
  echo "Aktualisiere freeradius ..."
  # fetch radiussecret
  found=false
@@ -402,7 +404,6 @@ if [ -s "$CONF" -a -d "$FREEDYNTPLDIR"]; then
   chmod 640 $targetcfg
   chown root:freerad $targetcfg
  done # targets
- aptitude -y install linuxmuster-freeradius
 fi
 
 # horde3, db and pear upgrade

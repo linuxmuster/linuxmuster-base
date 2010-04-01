@@ -1,3 +1,9 @@
+linuxmuster-base (1.5.10-lenny3) lenny; urgency=low
+
+  * paedml41-upgrade: fixed syntax error in freeradius upgrade.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 01 Apr 2010 08:43:06 +0200
+
 linuxmuster-base (1.5.10-lenny2) lenny; urgency=low
 
   * postinst: removed more obsolete stuff.
