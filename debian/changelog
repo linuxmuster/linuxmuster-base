@@ -1,3 +1,16 @@
+linuxmuster-base (1.5.10-lenny5) lenny; urgency=low
+
+  * linuxmuster-setup: fixed smtprelay variable name in
+    /var/lib/linuxmuster/config-dynamic/16_mail/prepatch.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 16 Apr 2010 14:05:43 +0200
+
+linuxmuster-base (1.5.10-lenny4) lenny; urgency=low
+
+  * postfix master.cf template: added retry entry.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 01 Apr 2010 08:43:06 +0200
+
 linuxmuster-base (1.5.10-lenny3) lenny; urgency=low
 
   * paedml41-upgrade: fixed syntax error in freeradius upgrade.
