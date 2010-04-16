@@ -4,8 +4,9 @@ linuxmuster-base (1.5.3.2-0) etch; urgency=low
   * linuxmuster-setup: fixed smtprelay variable name in
     /var/lib/linuxmuster/config-dynamic/16_mail/prepatch (thanks to S. Schwarzl
     for reporting this bug).
+  * fixed wrong basedn in slapd.conf config template.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 16 Apr 2010 15:21:01 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 16 Apr 2010 15:28:58 +0200
 
 linuxmuster-base (1.5.3.1-0) etch; urgency=low
 
