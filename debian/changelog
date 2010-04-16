@@ -1,3 +1,22 @@
+linuxmuster-base (1.5.3.2-0) etch; urgency=low
+
+  * postinst: added check and repair for correct basedn.
+  * linuxmuster-setup: fixed smtprelay variable name in
+    /var/lib/linuxmuster/config-dynamic/16_mail/prepatch (thanks to S. Schwarzl
+    for reporting this bug).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 16 Apr 2010 15:21:01 +0200
+
+linuxmuster-base (1.5.3.1-0) etch; urgency=low
+
+  * slapd.conf acl fixes: no more unencrypted password queries.
+  * postinst:
+    - removed check for sun java templates.
+    - added slapd.conf update to avoid unencrypted authentification if it is not
+      initiated from localhost (#209).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 26 Mar 2010 10:28:06 +0100
+
 linuxmuster-base (1.5.3-2) etch; urgency=low
 
   * helperfunctions.sh:
