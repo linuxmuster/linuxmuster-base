@@ -1,3 +1,16 @@
+linuxmuster-base (1.5.10-lenny8) lenny; urgency=low
+
+  * import_workstations: creates /home/workstations if necessary.
+  * linuxmuster-setup:
+    - more fixes for initial ldap creation.
+    - fixed missing homedirs after first install.
+    - reconfigures linuxmuster-linbo at the end of setup session.
+    - fix permissions of setup.log.
+    - added defaultMaxPasswordAge="0" in smbldap.conf template.
+    - don't start linbo's torrent and multicast services on first install.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 21 Apr 2010 20:34:18 +0200
+
 linuxmuster-base (1.5.10-lenny7) lenny; urgency=low
 
   * paedml41-upgrade:

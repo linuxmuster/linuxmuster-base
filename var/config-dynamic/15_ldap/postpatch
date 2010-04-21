@@ -1,3 +1,7 @@
+# remove smb.conf template again
+[ -e smb.conf ] && rm smb.conf
+
+
 # set samba sid
 if [ -n "$sambasid" ]; then
  net setlocalsid $sambasid
@@ -83,10 +87,6 @@ if [ "$1" = "--first" ]; then
 	mkdir -p /etc/ldap/slapd.d
 	slaptest -u -f /etc/ldap/slapd.conf -F /etc/ldap/slapd.d
 	chown openldap:openldap /etc/ldap/slapd.d -R
-	sophomorix-dump-pg2ldap
-	mkdir -p "$ADMINSHOME"
-	chmod 771 "$ADMINSHOME"
-	sophomorix-repair --repairhome
 
 	# new random password for ldap db user
 	ldapdbpw=`pwgen -s 8 1`
@@ -131,17 +131,11 @@ else
 	  psql -U postgres -d ldap -qc "UPDATE samba_domain SET sambadomainname = '$workgroup' WHERE id = '1';"
 	 fi
 
-	 sophomorix-dump-pg2ldap
-
 	 rm $dumpfile
 
 	fi
 
 fi
-
-
-# remove template again
-[ -e smb.conf ] && rm smb.conf
 
 
 # repair permissions
@@ -162,6 +156,10 @@ rm /etc/pam_ldap.secret
 ln -sf ldap.secret /etc/pam_ldap.secret
 
 
+# recreate ldap tree
+sophomorix-dump-pg2ldap
+
+
 # start services again
 /etc/init.d/nscd stop
 /etc/init.d/samba stop
@@ -169,4 +167,11 @@ ln -sf ldap.secret /etc/pam_ldap.secret
 /etc/init.d/slapd start
 /etc/init.d/samba start
 /etc/init.d/nscd start
+
+
+# finally create homes on first install
+if [ "$1" = "--first" ]; then
+ sophomorix-repair --permissions
+ sophomorix-repair --repairhome
+fi
 

@@ -22,6 +22,7 @@ chmod 400 $locker
 # read linuxmuster environment
 . /usr/share/linuxmuster/config/dist.conf
 . $HELPERFUNCTIONS
+[ -d "$WSHOME" ] || mkdir -p $WSHOME
 LOGFILE="$LOGDIR/import_workstations.log"
 TMPLOG=/var/tmp/import_workstations.log
 [ -e "$TMPLOG" ] && rm -f $TMPLOG

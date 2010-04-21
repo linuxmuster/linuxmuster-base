@@ -67,17 +67,18 @@ fi
 
 # logfile
 logfile=$LOGDIR/setup.log
-echo >> $LOGDIR/setup.log
-echo "####################################################" >> $LOGDIR/setup.log
-echo "Setup session started at `date`" >> $LOGDIR/setup.log
-date >> $LOGDIR/setup.log
-echo "####################################################" >> $LOGDIR/setup.log
+echo >> $logfile
+chmod 600 $logfile
+echo "####################################################" >> $logfile
+echo "Setup session started at `date`" >> $logfile
+date >> $logfile
+echo "####################################################" >> $logfile
 
 echo "Logging output to $logfile ..."
 echo
 
 # reconfiguring package to have all templates
-dpkg-reconfigure linuxmuster-base | tee -a $LOGDIR/setup.log
+dpkg-reconfigure linuxmuster-base | tee -a $logfile
 
 # calling as base-config late command
 case $opt in
@@ -91,10 +92,10 @@ case $opt in
     fi
 
     # turn shadow passwords on
-    shadowconfig on | tee -a $LOGDIR/setup.log
+    shadowconfig on | tee -a $logfile
 
     # add cyrus user
-    id cyrus &> /dev/null || useradd -c "Cyrus Mailsystem User" -d /var/spool/cyrus -g mail -m -r -s /bin/sh cyrus | tee -a $LOGDIR/setup.log
+    id cyrus &> /dev/null || useradd -c "Cyrus Mailsystem User" -d /var/spool/cyrus -g mail -m -r -s /bin/sh cyrus | tee -a $logfile
 
     # load cdrom tray
     if grep -q ^"deb cdrom" /etc/apt/sources.list; then
@@ -121,18 +122,18 @@ case $opt in
     templatespaedml=`aptitude search linuxmuster-schulkonsole-templates-paedml`
 
     # tweaking buggy sophomorix, install postgresql first
-    DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql | tee -a $LOGDIR/setup.log
-    #DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql-8.1 | tee -a $LOGDIR/setup.log
+    DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql | tee -a $logfile
+    #DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql-8.1 | tee -a $logfile
 
     # installing depending task
     for i in common server; do
       task=`cat /usr/share/linuxmuster/tasks/$i`
-      DEBIAN_FRONTEND=noninteractive aptitude -y install $task | tee -a $LOGDIR/setup.log
+      DEBIAN_FRONTEND=noninteractive aptitude -y install $task | tee -a $logfile
     done
 
     # install indexpage if available
-    [ -n "$indexpage" ] && aptitude -y install linuxmuster-indexpage | tee -a $LOGDIR/setup.log
-    [ -n "$templatespaedml" ] && aptitude -y install linuxmuster-schulkonsole-templates-paedml | tee -a $LOGDIR/setup.log
+    [ -n "$indexpage" ] && aptitude -y install linuxmuster-indexpage | tee -a $logfile
+    [ -n "$templatespaedml" ] && aptitude -y install linuxmuster-schulkonsole-templates-paedml | tee -a $logfile
 
     # remove upgrade cheat
     rm /etc/apt/apt.conf.d/99upgrade
@@ -143,8 +144,8 @@ case $opt in
 
     # check for installed flag
     if [ ! -e "$INSTALLED" ]; then
-      echo "Linux-Musterloesung isn't installed yet!" | tee -a $LOGDIR/setup.log
-      echo "You have to use the command linuxmuster-setup --first!" | tee -a $LOGDIR/setup.log
+      echo "Linux-Musterloesung isn't installed yet!" | tee -a $logfile
+      echo "You have to use the command linuxmuster-setup --first!" | tee -a $logfile
       exit 1
     fi
 
@@ -152,7 +153,7 @@ case $opt in
 
 	# fetch external network configuration from ipcop
 	if ping -c 2 $ipcopip &> /dev/null; then
-		echo "Reading IPCop's external network configuration ..." | tee -a $LOGDIR/setup.log
+		echo "Reading IPCop's external network configuration ..." | tee -a $logfile
 		tmpdir=/var/tmp/ipcop.$$
 		mkdir -p $tmpdir
 		get_ipcop /var/ipcop/ethernet/settings $tmpdir/settings
@@ -186,13 +187,13 @@ case $opt in
 
 	else
 
-		echo "Cannot connect to IPCop!" | tee -a $LOGDIR/setup.log
+		echo "Cannot connect to IPCop!" | tee -a $logfile
 		exit 1
 
 	fi
 
     # reading current debconf values
-    echo "Reading current configuration values ..." | tee -a $LOGDIR/setup.log
+    echo "Reading current configuration values ..." | tee -a $logfile
     for i in country state location workgroup servername domainname schoolname dsluser dslpasswd smtprelay \
              internsubrange fwconfig externtype externip externmask gatewayip dnsforwarders imaging; do
       RET=`echo get linuxmuster-base/$i | debconf-communicate`
@@ -216,8 +217,8 @@ case $opt in
 esac
 
 # backup debconf db
-backup_file /var/cache/debconf/config.dat | tee -a $LOGDIR/setup.log
-backup_file /var/cache/debconf/passwords.dat | tee -a $LOGDIR/setup.log
+backup_file /var/cache/debconf/config.dat | tee -a $logfile
+backup_file /var/cache/debconf/passwords.dat | tee -a $logfile
 chmod 600 $BACKUPDIR/var/cache/debconf/passwords.dat-$DATETIME.gz
 
 # ask questions
@@ -238,4 +239,6 @@ fi
 
 # call configuration patch script
 $SCRIPTSDIR/linuxmuster-patch $opt
+
+chmod 600 $logfile
 
