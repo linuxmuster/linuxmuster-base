@@ -39,6 +39,8 @@ usage() {
 # look if we were on first boot
 if [ -e /etc/inittab.real ]; then
 
+  firstboot=yes
+
   # reread inittab
   mv /etc/inittab.real /etc/inittab
   telinit q
@@ -82,6 +84,12 @@ case $opt in
 
   --first)
 
+    # copy apt configs if not on first boot
+    if [ -z "$firstboot" ]; then
+     cp /etc/apt/sources.list /etc/apt/sources.list.orig
+     cp -a $STATICTPLDIR/etc/apt/* /etc/apt
+    fi
+
     # turn shadow passwords on
     shadowconfig on | tee -a $LOGDIR/setup.log
 
@@ -98,21 +106,19 @@ case $opt in
     [ -e /cdrom/paedml-release.asc ] && apt-key add /cdrom/paedml-release.asc
 
     # check tasks
-    for i in common server desktop imaging-linbo imaging-tivoli imaging-rembo; do
+    for i in common server desktop imaging-linbo imaging-rembo; do
       if [ ! -s "/usr/share/linuxmuster/tasks/$i" ]; then
         echo "Error: Taskfile $i not found!"
         exit 1
       fi
     done
 
-		# tweak system time due to debian bug #531569 (http://www.mail-archive.com/debian-bugs-dist@lists.debian.org/msg654573.html)
-		date 0101000009
-
     # force apt to do ugly things during upgrade
     echo 'DPkg::Options {"--force-confold";"--force-confdef";"--force-bad-verify";"--force-overwrite";};' > /etc/apt/apt.conf.d/99upgrade
 
-    # check if linuxmuster-indexpage is installable
+    # check for installable non-free packages
     indexpage=`aptitude search linuxmuster-indexpage`
+    templatespaedml=`aptitude search linuxmuster-schulkonsole-templates-paedml`
 
     # tweaking buggy sophomorix, install postgresql first
     DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql | tee -a $LOGDIR/setup.log
@@ -126,6 +132,7 @@ case $opt in
 
     # install indexpage if available
     [ -n "$indexpage" ] && aptitude -y install linuxmuster-indexpage | tee -a $LOGDIR/setup.log
+    [ -n "$templatespaedml" ] && aptitude -y install linuxmuster-schulkonsole-templates-paedml | tee -a $LOGDIR/setup.log
 
     # remove upgrade cheat
     rm /etc/apt/apt.conf.d/99upgrade

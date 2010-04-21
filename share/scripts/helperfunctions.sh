@@ -354,7 +354,7 @@ discover_nics() {
 
 			else
 
-				model[$n]="Unrecognized Ethernet Controller Device"
+				model[$n]="Unrecognized_Ethernet_Controller"
 
 			fi
 

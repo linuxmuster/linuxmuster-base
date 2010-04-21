@@ -1,5 +1,5 @@
 # start service
-/etc/init.d/cupsys start
+/etc/init.d/cups start
 
 # installing postscript pdf printer driver
 if ! grep -q PDF-Printer /etc/cups/printers.conf; then

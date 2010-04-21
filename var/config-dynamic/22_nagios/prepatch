@@ -1,11 +1,17 @@
 # configure linuxmuster-nagios
-
-if [ "$1" != "--first" ]; then
-
-  # prevent nagios2 apache2.conf from being patched
-  mv apache2.conf.target apache2.conf.target.nopatch
-
-  backup_file /etc/nagios2/apache2.conf
-  sed -s "s/AuthLDAPURL ldap:\/\/${serverip_old}.*/AuthLDAPURL ldap:\/\/$serverip\/$basedn\?uid/g" -i /etc/nagios2/apache2.conf
-
+if [ "$1" = "--first" ]; then
+  linuxmuster-nagios-setup --first --force
+else
+  linuxmuster-nagios-setup
 fi
+
+backup_file /etc/nagios3/apache2.conf
+sed -e "s|###basedn###|$basedn|" /var/lib/linuxmuster-nagios/templates/apache2.conf.tpl > /etc/nagios3/apache2.conf
+
+# provide a commands.cfg if necessary
+[ -e /etc/nagios3/commands.cfg ] || cp commands.cfg /etc/nagios3
+
+# starting nagios3 again
+/etc/init.d/nagios3 stop
+/etc/init.d/nagios3 start
+

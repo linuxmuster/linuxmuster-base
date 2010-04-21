@@ -3,7 +3,7 @@
 # Restarting all printer queues
 #
 # Thomas Schmitt <schmitt@lmz-bw.de>
-# 19.09.07
+# 19.04.2010
 
 LPSTAT=/usr/bin/lpstat
 AWK=/usr/bin/awk
@@ -13,7 +13,7 @@ CANCEL=/usr/bin/cancel
 REJECT=/usr/sbin/cupsreject
 ACCEPT=/usr/sbin/cupsaccept
 ENABLE=/usr/sbin/cupsenable
-INIT=/etc/init.d/cupsys
+INIT=/etc/init.d/cups
 
 $INIT stop
 $INIT start

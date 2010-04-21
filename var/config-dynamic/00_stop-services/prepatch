@@ -1,10 +1,11 @@
 # stop all relevant services
 
-services="linuxmuster-base atftpd rsync linbo-multicast nagios3 atd cron\
-          tpmfos rbagent dbgw tpmfos-derby rembo quota apache2 cupsys \
-          clamav-freshclam clamav-daemon cyrus2.2 postfix saslauthd amavis mysql openntpd \
-          ssh samba slapd postgresql-8.3 postgresql-8.1 postgresql-7.4 nscd linuxmuster-ipcop uml-utilities \
-          portmap openbsd-inetd bind9 dhcp3-server avahi-daemon webmin"
+services="linuxmuster-base atftpd bittorrent rsync linbo-bittorrent \
+          linbo-multicast nagios3 atd cron rembo quota apache2 cups \
+          clamav-freshclam clamav-daemon cyrus2.2 postfix saslauthd amavis \
+          mysql openntpd ssh samba slapd postgresql-8.3 postgresql-8.1 \
+          postgresql-7.4 nscd linuxmuster-ipcop uml-utilities portmap \
+          openbsd-inetd bind9 dhcp3-server avahi-daemon webmin"
 
 # make sure they are enabled to be able to shut them down
 [ -e /etc/default/atftpd ] && sed -e 's/^USE_INETD=.*/USE_INETD=false/' -i /etc/default/atftpd

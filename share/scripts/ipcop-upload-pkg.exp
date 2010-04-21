@@ -51,12 +51,12 @@ match_max 100000
 expect "*# "
 send -- "scp -P 222 -r $pkg $ipcopip:$destdir\r"
 expect {
-"The authenticity of host '$ipcopip ($ipcopip)' can't be established.\r
+"The authenticity of host *.\r
 RSA key fingerprint is *.\r
 Are you sure you want to continue connecting (yes/no)? " {
 send -- "yes\r" 
 expect "yes\r
-Warning: Permanently added '$ipcopip' (RSA) to the list of known hosts.\r\r"
+Warning: Permanently added *.\r\r"
 expect {
 
 "root@$ipcopip's password: " {

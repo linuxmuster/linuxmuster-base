@@ -117,6 +117,14 @@ case "$1" in
         exit 1
        fi
 
+       if ! id $ADMINISTRATOR &> /dev/null; then
+        echo "LDAP-Service is not running! Skipping package configuration."
+        echo "Please do this manually by invoking"
+        echo "# dpkg-reconfigure linuxmuster-base"
+        echo "after you have fixed this issue."
+        exit 0
+       fi
+
        # messages for config file headers
        message1="##### Do not change this file! It will be overwritten!"
        message2="##### This configuration file was automatically created by linuxmuster-base!"
@@ -168,19 +176,29 @@ case "$1" in
 	echo "You have to reload samba after package update!"
        fi
 
+       # repair false basedn in slapd.conf
+       if [ "$basedn" != "dc=paedml-linux,dc=lokal" ]; then
+        slapdconf=/etc/ldap/slapd.conf
+        if grep -q "dc=paedml-linux,dc=lokal" $slapdconf; then
+         echo "Repairing basedn in slapd.conf."
+         cp $slapdconf $slapdconf.dpkg-old
+         sed -e "s|dc=paedml-linux,dc=lokal|$basedn|g" -i $slapdconf
+         slapd_reload=yes
+        fi
+       fi
        # openldap permissions
        chown root:openldap /etc/ldap/slapd.conf*
        chmod 640 /etc/ldap/slapd.conf*
 
-       # fixing cupsys init start nr
-       if [ -e /etc/rc2.d/S20cupsys ]; then
-        echo "Fixing cupsys' init start nr ..."
-        update-rc.d -f cupsys remove
-        update-rc.d cupsys start 21 2 3 4 5 . stop 19 0 1 6 .
+       # fixing cups init start nr
+       if [ -e /etc/rc2.d/S20cups ]; then
+        echo "Fixing cups' init start nr ..."
+        update-rc.d -f cups remove
+        update-rc.d cups start 21 2 3 4 5 . stop 19 0 1 6 .
         cups_restart=yes
        fi
        if [ -n "$cups_restart" ]; then
-        /etc/init.d/cupsys force-reload || true
+        /etc/init.d/cups force-reload || true
        fi
 
        # extraschueler.txt, extrakurse.txt

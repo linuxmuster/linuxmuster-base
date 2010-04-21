@@ -9,10 +9,9 @@ chkrootkit
 clamav-daemon
 clamav-freshclam
 cups-pdf
-cupsys
-cupsys-client
-cupsys-driver-gimpprint
-cupsys-driver-gutenprint
+cups
+cups-client
+cups-driver-gutenprint
 cyrus-admin-2.2
 cyrus-imapd-2.2
 cyrus-pop3d-2.2
@@ -27,7 +26,6 @@ kronolith2
 ldap-utils
 lha
 libapache2-mod-php5
-libldap-2.3-0
 libnss-db
 libnss-ldap
 libpam-ldap

@@ -97,8 +97,73 @@ internalnet=10.$internsub.0.0
 echo "  * internalnet=$internalnet"
 basedn="dc=`echo $domainname|sed 's/\./,dc=/g'`"
 echo "  * basedn=$basedn"
-echo "  * sambasid=$sambasid"
-echo "  * workgroup=$workgroup"
+
+
+#############
+# DB-Backup #
+#############
+# first save the databases
+echo
+for i in ldap moodle ogo; do
+ # fetch db encodings
+ enc=""
+ enc="$(echo -e "\l\n\q\n" | psql -U postgres | grep $i | awk '{ print $5 }')"
+ [ -z "$enc" ] && continue
+ echo "Sichere $i-Datenbank nach $BACKUPDIR/$i/$i.lenny-upgrade.pgsql.gz ..."
+ case $i in
+  ldap) ldap_enc=$enc ;;
+  moodle) moodle_enc=$enc ;;
+  *) ;;
+ esac
+ RC=1
+ pg_dump -U postgres $i > /var/tmp/$i.lenny-upgrade.pgsql ; RC="$?"
+ if [ "$RC" != "0" ]; then
+  echo "Fehler bei der Sicherung der $i-Datenbank!"
+  exit 1
+ fi
+ mkdir -p "$BACKUPDIR/$i"
+ RC=1
+ gzip -c9 /var/tmp/$i.lenny-upgrade.pgsql > $BACKUPDIR/$i/$i.lenny-upgrade.pgsql.gz ; RC="$?"
+ if [ "$RC" != "0" ]; then
+  echo "Fehler bei der Komprimierung der $i-Datenbank!"
+  exit 1
+ fi
+done
+if [ -z "$moodle_enc" -o ! -s /var/tmp/moodle.lenny-upgrade.pgsql ]; then
+ echo "Fehler: Moodle-Datenbank nicht gefunden!"
+ exit 1
+fi
+if [ -z "$ldap_enc" -o ! -s /var/tmp/ldap.lenny-upgrade.pgsql ]; then
+ echo "Fehler: LDAP-Datenbank nicht gefunden!"
+ exit 1
+fi
+
+
+#############################
+# convert databases to utf8 #
+#############################
+echo
+for i in ldap moodle; do
+ case $i in
+  ldap) enc=$ldap_enc ;;
+  moodle) enc=$moodle_enc ;;
+  *) ;;
+ esac
+ if [ "$enc" = "UTF8" ]; then
+  mv /var/tmp/$i.lenny-upgrade.pgsql /var/tmp/$i.utf8.pgsql
+ else
+  src_enc=ISO_8859-1
+  [ "$enc" = "LATIN9" ] && src_enc=ISO_8859-15
+  RC=1
+  iconv -f "$src_enc" -t UTF8 -o /var/tmp/$i.utf8.pgsql /var/tmp/$i.lenny-upgrade.pgsql ; RC="$?"
+  if [ "$RC" != "0" ]; then
+   echo "Fehler bei der Konvertierung der $i-Datenbank!"
+   exit 1
+  fi
+  rm -f /var/tmp/$i.lenny-upgrade.pgsql
+ fi
+done
+
 
 #######
 # apt #
@@ -120,15 +185,16 @@ echo
 echo "Aktualisiere Paketlisten ..."
 aptitude update
 
+
 ######################
 # first remove stuff #
 ######################
 echo -e "\n\n" | aptitude -y remove $PKGSTOREMOVE
 
-#################
-# configuration #
-#################
 
+#######################
+# patch configuration #
+#######################
 echo
 echo "Aktualisiere Konfiguration ..."
 
@@ -185,13 +251,6 @@ sed -e "s/@@message1@@/${message1}/
 	       s/@@basedn@@/${basedn}/g
 	       s/@@ldappassword@@/${ldapadminpw}/g" $LDAPDYNTPLDIR/`basename $CONF` > $CONF
 chmod 600 ${CONF}*
-
-# postgresql
-echo " postgresql ..."
-CONF=/etc/postgresql/8.1/main/pg_hba.conf
-cp $CONF $CONF.lenny-upgrade
-CONFNEW="$(echo $CONF | sed 's|8.1|8.3|')"
-cp $STATICTPLDIR/$CONFNEW $CONF
 
 # apache2
 echo " apache2 ..."
@@ -328,21 +387,33 @@ sed -e 's|postgresql-8.1|postgresql-8.3|g
 
 echo
 echo "DIST-UPGRADE ..."
+
+# first upgrade apt-utils
 echo -e "\n\n" | aptitude -y install apt-utils tasksel debian-archive-keyring dpkg locales
 aptitude update
+
+# upgrade postgresql
 echo -e "\n\n" | aptitude -y install postgresql postgresql-8.3 postgresql-client-8.3
-# handle postgresql update
-if ps ax | grep -q postgresql/8.3; then
- /etc/init.d/postgresql-8.3 stop
- pg_dropcluster 8.3 main
-fi
-if ! ps ax | grep -q postgresql/8.1; then
- /etc/init.d/postgresql-8.1 start
-fi
-pg_upgradecluster 8.1 main
-/etc/init.d/postgresql-8.1 stop
+/etc/init.d/postgresql-8.3 stop
+cp $STATICTPLDIR/etc/postgresql/8.3/main/* /etc/postgresql/8.3/main
+/etc/init.d/postgresql-8.3 start
 update-rc.d -f postgresql-7.4 remove
 update-rc.d -f postgresql-8.1 remove
+# restore converted databases
+for i in ldap moodle; do
+ if [ -e "/var/tmp/$i.utf8.pgsql" ]; then
+  case $i in
+   ldap) dbpw="$(grep ^Password /etc/linuxmuster/schulkonsole/db.conf | awk -F\= '{ print $2 }')" ;;
+   moodle) dbpw="$(grep \$CFG\-\>dbpass /etc/moodle/config.php | awk -F\' '{ print $2 }')" ;;
+   *) ;;
+  esac
+  createuser -U postgres -S -D -R $i
+  createdb -U postgres -O $i $i
+  psql -U postgres $i < /var/tmp/$i.utf8.pgsql
+  psql -U postgres -d template1 -qc "ALTER USER $i WITH PASSWORD '"$dbpw"';"
+ fi
+done
+
 # hold linuxmuster linbo during dist-upgrade
 [ "$imaging" = "linbo" ] && aptitude hold linuxmuster-linbo
 # first safe-upgrade
@@ -361,16 +432,21 @@ aptitude -y install $SOPHOPKGS
 
 # handle slapd upgrade
 /etc/init.d/slapd stop
-slapcat > /var/backup/linuxmuster/ldap.ldif
-rm -rf /etc/ldap/slapd.d
-mkdir -p /etc/ldap/slapd.d
-chattr +i /var/lib/ldap/DB_CONFIG
-rm /var/lib/ldap/* &> /dev/null
-chattr -i /var/lib/ldap/DB_CONFIG
-slapadd < /var/backup/linuxmuster/ldap.ldif
-chown openldap:openldap /var/lib/ldap -R
-slaptest -f /etc/ldap/slapd.conf -F /etc/ldap/slapd.d
-chown -R openldap:openldap /etc/ldap/slapd.d
+RC=1
+slapcat > /var/tmp/ldap.ldif ; RC="$?"
+if [ "RC" = "0" ]; then
+ mkdir -p $BACKUPDIR/ldap
+ gzip -c9 /var/tmp/ldap.ldif > $BACKUPDIR/ldap/ldap.lenny-upgrade.ldif.gz
+ rm -rf /etc/ldap/slapd.d
+ mkdir -p /etc/ldap/slapd.d
+ chattr +i /var/lib/ldap/DB_CONFIG
+ rm /var/lib/ldap/* &> /dev/null
+ chattr -i /var/lib/ldap/DB_CONFIG
+ slapadd < /var/tmp/ldap.ldif
+ chown openldap:openldap /var/lib/ldap -R
+ slaptest -f /etc/ldap/slapd.conf -F /etc/ldap/slapd.d
+ chown -R openldap:openldap /etc/ldap/slapd.d
+fi
 /etc/init.d/slapd start
 
 # linuxmuster-freeradius

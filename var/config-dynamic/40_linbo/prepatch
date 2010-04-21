@@ -137,6 +137,9 @@ linbo: \"\|\/usr\/share\/linuxmuster-linbo\/mail2log.sh\"" -i /etc/aliases
 	# start necessary services
 	/etc/init.d/atftpd start
 	/etc/init.d/rsync start
+	/etc/init.d/bittorrent start
+	/etc/init.d/linbo-bittorrent start
+	/etc/init.d/linbo-multicast start
 
 else
 

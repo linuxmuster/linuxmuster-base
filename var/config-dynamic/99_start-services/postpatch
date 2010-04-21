@@ -2,12 +2,6 @@
 chown root:crontab /var/spool/cron/crontabs/root
 chmod 600 /var/spool/cron/crontabs/root
 
-# copy sources.list
-if [ "$1" = "--first" ]; then
-	cp /etc/apt/sources.list.lenny /etc/apt/sources.list
-	cp /etc/apt/apt.conf.lenny /etc/apt/apt.conf
-fi
-
 # waiting for ipcop to come up 
 c=0
 maxwait=300

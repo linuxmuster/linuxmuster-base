@@ -1,9 +1,51 @@
+linuxmuster-base (1.5.10-lenny7) lenny; urgency=low
+
+  * paedml41-upgrade:
+    - improved database handling.
+    - databases ldap and moodle were backed up and converted to utf8 before
+      upgrade.
+    - obsolete ogo database will be backed up an deleted.
+  * linuxmuster-setup:
+    - nagios3: providing a /etc/nagios3/commands.cfg if missing.
+    - reworked and improved ldap configuration.
+    - removed obsolete copying of sources.list and apt.conf in
+      99_start-services/postpatch.
+    - removed obsolete database drop for moodle on first install.
+    - removed obsolete sysutils and unzoo from common task.
+    - removed libldap-2.3-0 from server task.
+    - copies now paedml specific apt configs already on begin of setup session
+      if not on first boot.
+  * helperfunctions.sh, discover_nics(): changed spaces to "_" in model name for
+    unrecognized adapters.
+  * postinst: skipping package configuration if ldap is not running.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 21 Apr 2010 14:35:13 +0200
+
+linuxmuster-base (1.5.10-lenny6) lenny; urgency=low
+
+  * various fixes in linuxmuster-setup according to Lenny:
+    - removed linuxmuster-tivoli task and debian bug #531569 date workaround.
+    - fixed changed dialog in ipcop's expect scripts.
+    - fixed creating horde's turba tables in create-horde-db.sh.
+    - added postgresql ldap database template for use on first time
+      installation instead of sophomorix-setup-pgldap.
+    - various sophomorix fixes in config-dynamic/15_ldap/prepatch.
+    - fixed nagios3 configuration.
+    - updated start-stop services in 00_stop_services.
+    - added linbo multicast and bittorrent services.
+    - changed cupsys to cups.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 19 Apr 2010 21:08:18 +0200
+
 linuxmuster-base (1.5.10-lenny5) lenny; urgency=low
 
+  * postinst: added check and repair for correct basedn in slapd.conf.
+  * fixed wrong basedn in slapd.conf config template.
   * linuxmuster-setup: fixed smtprelay variable name in
-    /var/lib/linuxmuster/config-dynamic/16_mail/prepatch.
+    /var/lib/linuxmuster/config-dynamic/16_mail/prepatch (#214) (thanks to S.
+    Schwarzl for reporting this bug).
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 16 Apr 2010 14:05:43 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 16 Apr 2010 15:36:29 +0200
 
 linuxmuster-base (1.5.10-lenny4) lenny; urgency=low
 

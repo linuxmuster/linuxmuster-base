@@ -43,7 +43,7 @@ unset hordepw
 
 # create turba tables
 echo "Creating turba tables ..."
-mysql horde < /usr/share/doc/turba2/examples/scripts/sql/turba_objects.mysql.sql
+mysql horde < /usr/share/doc/turba2/examples/scripts/sql/turba.sql
 
 
 # create kronolith tables

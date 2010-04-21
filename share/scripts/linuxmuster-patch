@@ -186,21 +186,26 @@ message3="##### Last Modification: `date`"
 $SCRIPTSDIR/cyradmpw.sh
 cyradmpw=`cat /etc/imap.secret`
 
-
 if [ "$1" = "--first" ]; then
-	# copying default configuration an remove installed flag for first time installation
-	echo "Copying default static configuration files ..." | tee -a $LOGDIR/setup.log
-	cp -a $STATICTPLDIR/* /
-	# delete installed flag
-	if [ -e "$INSTALLED" ]; then
-		echo "Removing installed flag $INSTALLED ..." | tee -a $LOGDIR/setup.log
-		rm -f $INSTALLED
-	fi
-        # remove backup files
-	if ! check_empty_dir $BACKUPDIR; then
-		echo "Cleaning up $BACKUPDIR ..." | tee -a $LOGDIR/setup.log
-		rm -rf $BACKUPDIR/*
-	fi
+ # copying default configuration an remove installed flag for first time installation
+ echo "Copying default static configuration files ..." | tee -a $LOGDIR/setup.log
+ cp -a $STATICTPLDIR/* /
+ # delete installed flag
+ if [ -e "$INSTALLED" ]; then
+  echo "Removing installed flag $INSTALLED ..." | tee -a $LOGDIR/setup.log
+  rm -f $INSTALLED
+ fi
+ # remove backup files
+ if ! check_empty_dir $BACKUPDIR; then
+  echo "Cleaning up $BACKUPDIR ..." | tee -a $LOGDIR/setup.log
+  rm -rf $BACKUPDIR/*
+ fi
+ # set a ldap admin password
+ ldapadminpw=`pwgen -s 8 1`
+ echo -n $ldapadminpw > /etc/ldap.secret
+ chmod 600 /etc/ldap.secret
+else
+ ldapadminpw="$(cat /etc/ldap.secret)"
 fi
 
 

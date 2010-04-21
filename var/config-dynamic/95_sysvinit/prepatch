@@ -1,10 +1,10 @@
 # remove uml-utilities
 update-rc.d -f uml-utilities remove
-# move samba & cupsys start to nr 21 and stop to 19
+# move samba & cups start to nr 21 and stop to 19
 update-rc.d -f samba remove
 update-rc.d samba start 21 2 3 4 5 . stop 19 0 1 6 .
-update-rc.d -f cupsys remove
-update-rc.d cupsys start 21 2 3 4 5 . stop 19 0 1 6 .
+update-rc.d -f cups remove
+update-rc.d cups start 21 2 3 4 5 . stop 19 0 1 6 .
 update-rc.d -f postgresql-7.4 remove
 update-rc.d clamav-freshclam defaults
 
