@@ -1,3 +1,10 @@
+linuxmuster-base (1.5.10-lenny9) lenny; urgency=low
+
+  * helperfunctions.sh: several improvements in the workstation related
+    functions get_ip(), get_mac(), get_room() and get_hostname().
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 29 Apr 2010 10:35:57 +0200
+
 linuxmuster-base (1.5.10-lenny8) lenny; urgency=low
 
   * import_workstations: creates /home/workstations if necessary.
@@ -17,7 +24,7 @@ linuxmuster-base (1.5.10-lenny7) lenny; urgency=low
     - improved database handling.
     - databases ldap and moodle were backed up and converted to utf8 before
       upgrade.
-    - obsolete ogo database will be backed up an deleted.
+    - obsolete ogo database will be backed up and deleted.
   * linuxmuster-setup:
     - nagios3: providing a /etc/nagios3/commands.cfg if missing.
     - reworked and improved ldap configuration.
