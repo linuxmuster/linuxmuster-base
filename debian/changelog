@@ -3,7 +3,7 @@ linuxmuster-base (1.5.10-lenny9) lenny; urgency=low
   * helperfunctions.sh: several improvements in the workstation related
     functions get_ip(), get_mac(), get_room() and get_hostname().
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 29 Apr 2010 10:35:57 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 29 Apr 2010 10:48:24 +0200
 
 linuxmuster-base (1.5.10-lenny8) lenny; urgency=low
 
