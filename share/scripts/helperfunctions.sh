@@ -209,7 +209,11 @@ validmac() {
 get_ip() {
   unset RET
   [ -f "$WIMPORTDATA" ] || return 1
-  RET=`grep -v ^# $WIMPORTDATA | grep -w -m1 $1 | awk -F\; '{ print $5 }' -` &> /dev/null
+  if validmac "$1"; then
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $2 " " $5 }' | grep ^"$1 " | awk '{ print $2 }'` &> /dev/null
+  else # assume hostname
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $4 " " $5 }' | grep ^"$1 " | awk '{ print $2 }'` &> /dev/null
+  fi
   return 0
 }
 
@@ -217,24 +221,40 @@ get_ip() {
 get_mac() {
   unset RET
   [ -f "$WIMPORTDATA" ] || return 1
-  RET=`grep -v ^# $WIMPORTDATA | grep -w -m1 $1 | awk -F\; '{ print $4 }' -` &> /dev/null
+  if validip "$1"; then
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $5 " " $4 }' | grep ^"$1 " | awk '{ print $2 }'` &> /dev/null
+  else # assume hostname
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $2 " " $4 }' | grep ^"$1 " | awk '{ print $2 }'` &> /dev/null
+  fi
+  toupper "$RET"
   return 0
 }
 
 # extract hostname from file $WIMPORTDATA
 get_hostname() {
-  local pattern="${1//./\\.}"
   unset RET
   [ -f "$WIMPORTDATA" ] || return 1
-  RET=`grep -v ^# $WIMPORTDATA | grep -w -m1 $pattern | awk -F\; '{ print $2 }' -` &> /dev/null
+  if validip "$1"; then
+   local pattern="${1//./\\.}"
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $5 " " $2 }' | grep ^"$pattern " | awk '{ print $2 }'` &> /dev/null
+  elif validmac "$1"; then
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $4 " " $2 }' | grep -i ^"$1 " | awk '{ print $2 }'` &> /dev/null
+  fi
   return 0
 }
 
-# extract hostname from file $WIMPORTDATA
+# extract room from file $WIMPORTDATA
 get_room() {
   unset RET
   [ -f "$WIMPORTDATA" ] || return 1
-  RET=`grep -v ^# $WIMPORTDATA | grep -m1 $1 | awk -F\; '{ print $1 }' -` &> /dev/null
+  if validip "$1"; then
+   local pattern="${1//./\\.}"
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $5 " " $1 }' | grep ^"$pattern " | awk '{ print $2 }'` &> /dev/null
+  elif validmac "$1"; then
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $4 " " $1 }' | grep -i ^"$1 " | awk '{ print $2 }'` &> /dev/null
+  else # assume hostname
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $2 " " $1 }' | grep -i ^"$1 " | awk '{ print $2 }'` &> /dev/null
+  fi
   return 0
 }
 
