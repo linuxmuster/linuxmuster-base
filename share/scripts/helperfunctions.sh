@@ -210,9 +210,9 @@ get_ip() {
   unset RET
   [ -f "$WIMPORTDATA" ] || return 1
   if validmac "$1"; then
-   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $2 " " $5 }' | grep ^"$1 " | awk '{ print $2 }'` &> /dev/null
-  else # assume hostname
    RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $4 " " $5 }' | grep ^"$1 " | awk '{ print $2 }'` &> /dev/null
+  else # assume hostname
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $2 " " $5 }' | grep ^"$1 " | awk '{ print $2 }'` &> /dev/null
   fi
   return 0
 }

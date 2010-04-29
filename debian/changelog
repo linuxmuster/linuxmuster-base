@@ -3,7 +3,7 @@ linuxmuster-base (1.5.3.2-2) etch; urgency=low
   * helperfunctions.sh: several improvements in the workstation related
     functions get_ip(), get_mac(), get_room() and get_hostname().
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 29 Apr 2010 10:38:08 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 29 Apr 2010 10:49:53 +0200
 
 linuxmuster-base (1.5.3.2-1) etch; urgency=low
 
