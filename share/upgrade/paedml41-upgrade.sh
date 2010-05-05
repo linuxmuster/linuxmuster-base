@@ -17,9 +17,10 @@ QUOTDYNTPLDIR=$DYNTPLDIR/18_quota
 HORDDYNTPLDIR=$DYNTPLDIR/21_horde3
 NAGIDYNTPLDIR=$DYNTPLDIR/22_nagios
 FREEDYNTPLDIR=$DYNTPLDIR/55_freeradius
+PYKOTA=`dpkg -l | grep "linuxmuster-pk " | grep ^i`
 FREERADIUS=`dpkg -l | grep linuxmuster-freeradius | grep ^i`
 SOPHOPKGS=`dpkg -l | grep sophomorix | grep ^i | awk '{ print $2 }'`
-PKGSTOREMOVE="linux-image-server nagios2 linuxmuster-nagios-base mindi mondo $SOPHOPKGS"
+PKGSTOREMOVE="linux-image-server nagios2 linuxmuster-pk linuxmuster-nagios-base mindi mondo $SOPHOPKGS"
 PKGREPOS="ftp.de.debian.org/debian/ \
           ftp.de.debian.org/debian-volatile/ \
           security.debian.org \
@@ -463,6 +464,9 @@ if [ -s "$CONF" -a -d "$FREEDYNTPLDIR" ]; then
   chown root:freerad $targetcfg
  done # targets
 fi
+
+# reinstall linuxmuster-pk
+[ -n "$PYKOTA" ] && aptitude -y install linuxmuster-pk
 
 # horde3, db and pear upgrade
 $DATADIR/upgrade/horde3-upgrade.sh

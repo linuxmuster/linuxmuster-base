@@ -1,3 +1,10 @@
+linuxmuster-base (1.5.10-lenny11) lenny; urgency=low
+
+  * paedml41-upgrade:
+    - added handling for linuxmuster-pk packages.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 05 May 2010 16:25:25 +0200
+
 linuxmuster-base (1.5.10-lenny10) lenny; urgency=low
 
   * added "duplicatesuppression: 0" to imapd.conf template.
