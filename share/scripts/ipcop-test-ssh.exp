@@ -53,6 +53,6 @@ RSA key fingerprint is *.\r
 Are you sure you want to continue connecting (yes/no)? " {
 send -- "yes\r" 
 expect "yes\r
-Warning: Permanently added *.r\r"
+Warning: Permanently added *.\r\r"
 }
 }

@@ -28,13 +28,9 @@ if [[ "$1" = "--first" || "$update_fw" = "yes" ]]; then
 		MEM=64M
 		[[ $memtotal -gt 1048576 ]] && MEM=128M
 
-		# set SKAS_KERNEL=no always
-		skas=no
-
 		# patch ipcop default file with mem and start variables
 		sed -e "s/^START_IPCOP=.*/START_IPCOP=yes/
-			s/^MEM=.*/MEM=${MEM}/
-			s/^SKAS_KERNEL=.*/SKAS_KERNEL=$skas/" -i /etc/default/linuxmuster-ipcop
+			s/^MEM=.*/MEM=${MEM}/" -i /etc/default/linuxmuster-ipcop
 
 	else
 

@@ -99,24 +99,18 @@ basedn="dc=`echo $domainname|sed 's/\./,dc=/g'`"
 echo "  * basedn=$basedn"
 
 
-#############
-# DB-Backup #
-#############
+################################
+# DB-Backup with UTF8-Encoding #
+################################
 # first save the databases
 echo
-for i in ldap moodle ogo; do
+for i in ldap moodle mrbs ogo pykota; do
  # fetch db encodings
  enc=""
- enc="$(echo -e "\l\n\q\n" | psql -U postgres | grep $i | awk '{ print $5 }')"
- [ -z "$enc" ] && continue
+ echo -e "\l\n\q\n" | psql -U postgres | grep $i || continue
  echo "Sichere $i-Datenbank nach $BACKUPDIR/$i/$i.lenny-upgrade.pgsql.gz ..."
- case $i in
-  ldap) ldap_enc=$enc ;;
-  moodle) moodle_enc=$enc ;;
-  *) ;;
- esac
  RC=1
- pg_dump -U postgres $i > /var/tmp/$i.lenny-upgrade.pgsql ; RC="$?"
+ pg_dump --encoding=UTF8 -U postgres $i > /var/tmp/$i.lenny-upgrade.pgsql ; RC="$?"
  if [ "$RC" != "0" ]; then
   echo "Fehler bei der Sicherung der $i-Datenbank!"
   exit 1
@@ -127,40 +121,6 @@ for i in ldap moodle ogo; do
  if [ "$RC" != "0" ]; then
   echo "Fehler bei der Komprimierung der $i-Datenbank!"
   exit 1
- fi
-done
-if [ -z "$moodle_enc" -o ! -s /var/tmp/moodle.lenny-upgrade.pgsql ]; then
- echo "Fehler: Moodle-Datenbank nicht gefunden!"
- exit 1
-fi
-if [ -z "$ldap_enc" -o ! -s /var/tmp/ldap.lenny-upgrade.pgsql ]; then
- echo "Fehler: LDAP-Datenbank nicht gefunden!"
- exit 1
-fi
-
-
-#############################
-# convert databases to utf8 #
-#############################
-echo
-for i in ldap moodle; do
- case $i in
-  ldap) enc=$ldap_enc ;;
-  moodle) enc=$moodle_enc ;;
-  *) ;;
- esac
- if [ "$enc" = "UTF8" ]; then
-  mv /var/tmp/$i.lenny-upgrade.pgsql /var/tmp/$i.utf8.pgsql
- else
-  src_enc=ISO_8859-1
-  [ "$enc" = "LATIN9" ] && src_enc=ISO_8859-15
-  RC=1
-  iconv -f "$src_enc" -t UTF8 -o /var/tmp/$i.utf8.pgsql /var/tmp/$i.lenny-upgrade.pgsql ; RC="$?"
-  if [ "$RC" != "0" ]; then
-   echo "Fehler bei der Konvertierung der $i-Datenbank!"
-   exit 1
-  fi
-  rm -f /var/tmp/$i.lenny-upgrade.pgsql
  fi
 done
 
@@ -197,11 +157,6 @@ echo -e "\n\n" | aptitude -y remove $PKGSTOREMOVE
 #######################
 echo
 echo "Aktualisiere Konfiguration ..."
-
-# ipcop: no more skas kernel
-CONF=/etc/default/linuxmuster-ipcop
-cp $CONF $CONF.lenny-upgrade
-sed -e 's|^SKAS_KERNEL=.*|SKAS_KERNEL=no|' -i $CONF
 
 # uml utilities
 echo " uml-utilities ..."
@@ -400,17 +355,44 @@ cp $STATICTPLDIR/etc/postgresql/8.3/main/* /etc/postgresql/8.3/main
 update-rc.d -f postgresql-7.4 remove
 update-rc.d -f postgresql-8.1 remove
 # restore converted databases
-for i in ldap moodle; do
- if [ -e "/var/tmp/$i.utf8.pgsql" ]; then
+for i in ldap moodle mrbs pykota; do
+ if [ -e "/var/tmp/$i.lenny-upgrade.pgsql" ]; then
+  dbuser=$i
   case $i in
    ldap) dbpw="$(grep ^Password /etc/linuxmuster/schulkonsole/db.conf | awk -F\= '{ print $2 }')" ;;
    moodle) dbpw="$(grep \$CFG\-\>dbpass /etc/moodle/config.php | awk -F\' '{ print $2 }')" ;;
+   mrbs) dbuser=""
+         for p in /var/www/apache2-default /etc/www; do
+          if [ -e "$p/$i/config.inc.php" ]; then
+           dbuser="$(grep ^\$db_login $p/$i/config.inc.php | awk -F\" '{ print $2 }')"
+           [ -z "$dbuser" ] && dbuser="$(grep ^\$db_login $p/$i/config.inc.php | awk -F\' '{ print $2 }')"
+           dbpw="$(grep ^\$db_password $p/$i/config.inc.php | awk -F\" '{ print $2 }')"
+           [ -z "$dbpw" ] && dbpw="$(grep ^\$db_password $p/$i/config.inc.php | awk -F\' '{ print $2 }')"
+          fi
+         done ;;
+   pykota) dbuser=pykotaadmin
+           dbpw="$(grep -w ^storageadminpw /etc/pykota/pykotadmin.conf | awk -F\: '{ print $2 }' | awk '{ print $1 }')"
+           pkuser=pykotauser
+           pkpw="$(grep -w ^storageuserpw /etc/pykota/pykota.conf | awk -F\: '{ print $2 }' | awk '{ print $1 }')" ;;
    *) ;;
   esac
-  createuser -U postgres -S -D -R $i
-  createdb -U postgres -O $i $i
-  psql -U postgres $i < /var/tmp/$i.utf8.pgsql
-  psql -U postgres -d template1 -qc "ALTER USER $i WITH PASSWORD '"$dbpw"';"
+  if [ -z "$dbuser" ]; then
+   echo "FEHLER: Konnte Benutzer für Datenbank $i nicht bestimmen!"
+   echo "Überspringe das Wiederanlegen von $i. Bitte legen Sie die Datenbank nach dem Upgrade von Hand selbst an."
+   sleep 5
+   continue
+  fi
+  echo "Spiele Datenbank $i wieder ein ..."
+  createuser -U postgres -S -D -R $dbuser
+  psql -U postgres -d template1 -qc "ALTER USER $dbuser WITH PASSWORD '"$dbpw"';"
+  if [ "$i" = "pykota" ]; then
+   createuser -U postgres -S -D -R $pkuser
+   psql -U postgres -d template1 -qc "ALTER USER $pkuser WITH PASSWORD '"$pkpw"';"
+   createdb -U postgres -O postgres $i
+  else
+   createdb -U postgres -O $dbuser $i
+  fi
+  psql -U postgres $i < /var/tmp/$i.lenny-upgrade.pgsql
  fi
 done
 
