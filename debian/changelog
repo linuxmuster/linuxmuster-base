@@ -8,7 +8,7 @@ linuxmuster-base (1.5.10-lenny10) lenny; urgency=low
     - removed IPCop config upgrade (now in linuxmuster-ipcop's postinst).
   * bugfix in ipcop-test-ssh.exp script.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 05 May 2010 15:58:45 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 05 May 2010 16:05:24 +0200
 
 linuxmuster-base (1.5.10-lenny9) lenny; urgency=low
 
