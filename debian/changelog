@@ -1,3 +1,10 @@
+linuxmuster-base (1.5.10-lenny12) lenny; urgency=low
+
+  * paedml41-upgrade:
+    - fixed cluster handling for postgresql-8.3.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 10 May 2010 19:22:57 +0200
+
 linuxmuster-base (1.5.10-lenny11) lenny; urgency=low
 
   * paedml41-upgrade:

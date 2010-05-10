@@ -351,6 +351,8 @@ aptitude update
 # upgrade postgresql
 echo -e "\n\n" | aptitude -y install postgresql postgresql-8.3 postgresql-client-8.3
 /etc/init.d/postgresql-8.3 stop
+pg_dropcluster 8.3 main &> /dev/null
+pg_createcluster 8.3 main
 cp $STATICTPLDIR/etc/postgresql/8.3/main/* /etc/postgresql/8.3/main
 /etc/init.d/postgresql-8.3 start
 update-rc.d -f postgresql-7.4 remove
