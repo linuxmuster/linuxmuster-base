@@ -20,7 +20,7 @@ FREEDYNTPLDIR=$DYNTPLDIR/55_freeradius
 PYKOTA=`dpkg -l | grep "linuxmuster-pk " | grep ^i`
 FREERADIUS=`dpkg -l | grep linuxmuster-freeradius | grep ^i`
 SOPHOPKGS=`dpkg -l | grep sophomorix | grep ^i | awk '{ print $2 }'`
-PKGSTOREMOVE="linux-image-server nagios2 linuxmuster-pk linuxmuster-nagios-base mindi mondo $SOPHOPKGS"
+PKGSTOREMOVE="linux-image-server nagios2 linuxmuster-pk linuxmuster-nagios-base mindi mondo postgresql-7.4 postgresql-8.1 $SOPHOPKGS"
 PKGREPOS="ftp.de.debian.org/debian/ \
           ftp.de.debian.org/debian-volatile/ \
           security.debian.org \
@@ -105,10 +105,10 @@ echo "  * basedn=$basedn"
 ################################
 # first save the databases
 echo
-for i in ldap moodle mrbs ogo pykota; do
- # fetch db encodings
- enc=""
- echo -e "\l\n\q\n" | psql -U postgres | grep $i || continue
+for i in `psql -t -l -U postgres | awk '{ print $1 }'`; do
+ case $i in
+  postgres|template0|template1) continue ;;
+ esac
  echo "Sichere $i-Datenbank nach $BACKUPDIR/$i/$i.lenny-upgrade.pgsql.gz ..."
  RC=1
  pg_dump --encoding=UTF8 -U postgres $i > /var/tmp/$i.lenny-upgrade.pgsql ; RC="$?"
@@ -377,10 +377,10 @@ for i in ldap moodle mrbs pykota; do
            dbpw="$(grep -w ^storageadminpw /etc/pykota/pykotadmin.conf | awk -F\: '{ print $2 }' | awk '{ print $1 }')"
            pkuser=pykotauser
            pkpw="$(grep -w ^storageuserpw /etc/pykota/pykota.conf | awk -F\: '{ print $2 }' | awk '{ print $1 }')" ;;
-   *) ;;
+   *) dbuser="" ;;
   esac
   if [ -z "$dbuser" ]; then
-   echo "FEHLER: Konnte Benutzer für Datenbank $i nicht bestimmen!"
+   echo "WARNUNG: Konnte Benutzer für Datenbank $i nicht bestimmen!"
    echo "Überspringe das Wiederanlegen von $i. Bitte legen Sie die Datenbank nach dem Upgrade von Hand selbst an."
    sleep 5
    continue
