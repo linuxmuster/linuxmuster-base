@@ -22,8 +22,8 @@ if [ "$(cat /etc/debian_version)" != "4.0" ]; then
 	exit 0
 fi
 
-if ! grep -q "paedML Linux 4.0.4" /etc/issue; then
-	echo "Das Upgrade funktioniert nur mit paedML Linux 4.0.4!"
+if ! grep -q "[paedML|openML] Linux 4.0.4" /etc/issue; then
+	echo "Das Upgrade funktioniert nur mit paedML/openML Linux 4.0.4!"
 	exit 0
 fi
 
