@@ -1,3 +1,10 @@
+linuxmuster-base (1.5.10-lenny13) lenny; urgency=low
+
+  * changed release version from 4.1.0 to 5.0.0, renamed an reworked upgrade
+    scripts accordingly.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 20 May 2010 18:33:09 +0200
+
 linuxmuster-base (1.5.10-lenny12) lenny; urgency=low
 
   * paedml41-upgrade:

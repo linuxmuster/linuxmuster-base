@@ -1,13 +1,13 @@
 #!/bin/bash
 #
-# upgrade paedML 4.0 to 4.1
+# upgrade paedML 4.0.x to 5.0.x
 # online wrapper script
 #
 # cmdline parameter: path to paedML/openML iso file
 # downloads openML iso if no iso file is given on cmdline
 # invokes at least upgrade script on cdrom
 #
-# 2010-02-24
+# 2010-05-20
 # 
 # Thomas Schmitt
 # <schmitt@lmz-bw.de>
@@ -22,8 +22,8 @@ if [ "$(cat /etc/debian_version)" != "4.0" ]; then
 	exit 0
 fi
 
-if ! grep -q "[paedML|openML] Linux 4.0.4" /etc/issue; then
-	echo "Das Upgrade funktioniert nur mit paedML/openML Linux 4.0.4!"
+if ! grep -q "[op][pa][e][nd]ML Linux 4\.0\.[4-5]" /etc/issue; then
+	echo "Das Upgrade funktioniert nur mit openML/paedML Linux 4.0.4/4.0.5!"
 	exit 0
 fi
 
@@ -32,5 +32,5 @@ if ! check_free_space /var 1000000; then
  exit 1
 fi
 
-. $DATADIR/upgrade/paedml41-upgrade.sh 2>&1 | tee -a /var/log/linuxmuster/paedml41-upgrade.log
+. $DATADIR/upgrade/paedml50-upgrade.sh 2>&1 | tee -a /var/log/linuxmuster/paedml50-upgrade.log
 

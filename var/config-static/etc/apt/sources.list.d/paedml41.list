@@ -1,4 +1,0 @@
-# paedML Linux package sources
-deb http://pkg.lml.support-netz.de/paedml41-updates ./
-deb-src http://pkg.lml.support-netz.de/paedml41-updates ./
-

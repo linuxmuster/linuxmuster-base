@@ -1,5 +1,5 @@
 #
-# paedML upgrade from 4.0 to 4.1
+# paedML upgrade from 4.0.x to 5.0.x
 # main script
 # 
 # Thomas Schmitt
@@ -24,12 +24,12 @@ PKGSTOREMOVE="linux-image-server nagios2 linuxmuster-pk linuxmuster-nagios-base 
 PKGREPOS="ftp.de.debian.org/debian/ \
           ftp.de.debian.org/debian-volatile/ \
           security.debian.org \
-          pkg.lml.support-netz.de/paedml41-updates/"
+          pkg.lml.support-netz.de/paedml50-updates/"
 NOW=`date`
 
 # messages for config file headers
 message1="##### Do not change this file! It will be overwritten!"
-message2="##### This configuration file was automatically created by paedml41-upgrade!"
+message2="##### This configuration file was automatically created by paedml50-upgrade!"
 message3="##### Last Modification: $NOW"
 
 echo
@@ -43,15 +43,15 @@ echo
 echo "Teste Internetverbindung:"
 cd /tmp
 for i in $PKGREPOS; do
-	echo -n "  * $i ... "
-	wget -q http://$i ; RC="$?"
-	rm index.html &> /dev/null
-	if [ "$RC" = "0" ]; then
-		echo "Ok!"
-	else
-		echo "keine Verbindung!"
-		exit 1
-	fi
+ echo -n "  * $i ... "
+ wget -q http://$i ; RC="$?"
+ rm index.html &> /dev/null
+ if [ "$RC" = "0" ]; then
+  echo "Ok!"
+ else
+  echo "keine Verbindung!"
+  exit 1
+ fi
 done
 echo
 
@@ -61,18 +61,18 @@ for i in servername domainname internmask internsubrange imaging sambasid workgr
  RET=${RET#[0-9] }
  esc_spec_chars "$RET"
  if [ -z "$RET" ]; then
-	 if [ "$i" = "imaging" ]; then
-		 echo "set linuxmuster-base/imaging rembo" | debconf-communicate
-		 RET=rembo
-		 if grep -q ^imaging $NETWORKSETTINGS; then
-		 	sed -e 's/^imaging=.*/imaging=rembo/' -i $NETWORKSETTINGS
-		 else
-		 	echo "imaging=rembo" >> $NETWORKSETTINGS
-		 fi
-	 else
-	 	echo "    Fatal! $i ist nicht gesetzt!"
-	 	exit 1
-	 fi
+  if [ "$i" = "imaging" ]; then
+   echo "set linuxmuster-base/imaging rembo" | debconf-communicate
+   RET=rembo
+   if grep -q ^imaging $NETWORKSETTINGS; then
+    sed -e 's/^imaging=.*/imaging=rembo/' -i $NETWORKSETTINGS
+   else
+    echo "imaging=rembo" >> $NETWORKSETTINGS
+   fi
+  else
+   echo "    Fatal! $i ist nicht gesetzt!"
+   exit 1
+  fi
  fi
  eval $i=$RET
  echo "  * $i=$RET"
@@ -83,14 +83,14 @@ internbc=`echo $internsubrange | cut -f2 -d"-"`
 serverip=10.$internsub.1.1
 echo "  * serverip=$serverip"
 if ! validip "$serverip"; then
-	echo "    Fatal! serverip ist ungueltig!"
-	exit 1
+ echo "    Fatal! serverip ist ungueltig!"
+ exit 1
 fi
 ipcopip=10.$internsub.1.254
 echo "  * ipcopip=$ipcopip"
 if ! validip "$ipcopip"; then
-	echo "    Fatal! ipcopip ist ungueltig!"
-	exit 1
+ echo "    Fatal! ipcopip ist ungueltig!"
+ exit 1
 fi
 broadcast=10.$internbc.255.255
 echo "  * broadcast=$broadcast"
