@@ -1,7 +1,7 @@
 exit(-1) if File.basename($0) == File.basename(__FILE__)
 
 # use postgres lib
-require "postgres"
+require "pg"
 
 #def message(text)
 #  text = Time.now.strftime("%Y-%m-%d %H:%M:%S ") + text
