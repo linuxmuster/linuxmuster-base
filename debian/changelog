@@ -1,3 +1,9 @@
+linuxmuster-base (1.5.3.2-4) etch; urgency=low
+
+  * fixed samba-common package dependency.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 01 Jun 2010 10:08:12 +0200
+
 linuxmuster-base (1.5.3.2-3) etch; urgency=low
 
   * changed release version to 4.0.5.
