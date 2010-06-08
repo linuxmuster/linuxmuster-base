@@ -88,7 +88,23 @@ case $opt in
     # load cdrom tray
     if grep -q ^"deb cdrom" /etc/apt/sources.list; then
 	eject -t
-	mount /cdrom
+	if ! mount /cdrom; then
+	 for i in 0 1; do
+	  if mount /dev/scd$i /cdrom; then
+	   rm -f /dev/cdrom /dev/sr$i
+	   ln -s /dev/scd$i /dev/cdrom
+	   ln -s /dev/scd$i /dev/sr$i
+	   CDROM=found
+	   break
+	  fi
+	 done
+	else
+	 CDROM=found
+	fi
+	if [ "$CDROM" != "found" ]; then
+	 echo "Fatal: Cannot mount install cd!"
+	 exit 1
+	fi
     fi
 
     # install paedml release key
