@@ -363,7 +363,7 @@ case "$1" in
    . /etc/default/linuxmuster-base
    if [ "$START_LINUXMUSTER" = "yes" ]; then
     if ! iptables -L | grep -q "$FIREWALLTEST"; then
-     etc/init.d/linuxmuster-base start
+     /etc/init.d/linuxmuster-base start
     fi
    fi
 
@@ -551,17 +551,20 @@ case "$1" in
     chgrp openldap $slapdconf
     slapd_reload=yes
    fi
-   # repair false basedn in slapd.conf
-   if grep -q "dc=paedml-linux,dc=lokal" $slapdconf; then
-    echo "Repairing basedn in slapd.conf."
-    cp $slapdconf $slapdconf.dpkg-old
-    sed -e "s|dc=paedml-linux,dc=lokal|$basedn|g" -i $slapdconf
-    slapd_reload=yes
-   fi
    if ! grep -q "$searchstr" $sophtpl; then
     echo "Updating sophomorix slapd.conf template."
     cp $sophtpl $sophtpl.orig
     cp $basetpl $sophtpl
+   fi
+   # repair hard coded basedn in slapd.conf
+   searchstr="dc=paedml-linux,dc=lokal"
+   if [ "$basedn" != "$searchstr" ]; then
+    if grep -q "$searchstr" $slapdconf; then
+     echo "Repairing basedn in slapd.conf."
+     cp $slapdconf $slapdconf.dpkg-old
+     sed -e "s|$searchstr|$basedn|g" -i $slapdconf
+     slapd_reload=yes
+    fi
    fi
    if ! grep ^SLAPD_SERVICES /etc/default/slapd | grep -q ldaps; then
     echo "Updating /etc/default/slapd to use also ldaps."

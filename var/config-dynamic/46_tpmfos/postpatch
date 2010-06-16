@@ -1,7 +1,0 @@
-if [ "$imaging" = "tivoli" ]; then
-
-	for i in tpmfos-derby dbgw rbagent tpmfos; do
-		/etc/init.d/$i start
-	done
-
-fi

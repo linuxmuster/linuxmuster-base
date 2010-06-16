@@ -74,6 +74,19 @@ echo
 # reconfiguring package to have all templates
 dpkg-reconfigure linuxmuster-base | tee -a $LOGDIR/setup.log
 
+# mount installation cdrom
+mount_cdrom() {
+ local device=$1
+ [ -n "$device" ] && device="/dev/$device"
+ mount $device /cdrom &> /dev/null
+ if grep -q "[op][pa][e][nd]ML Linux" /cdrom/.disk/info &> /dev/null; then
+  return 0
+ else
+  umount /cdrom &> /dev/null
+  return 1
+ fi
+}
+
 # calling as base-config late command
 case $opt in
 
@@ -85,23 +98,24 @@ case $opt in
     # add cyrus user
     id cyrus &> /dev/null || useradd -c "Cyrus Mailsystem User" -d /var/spool/cyrus -g mail -m -r -s /bin/sh cyrus | tee -a $LOGDIR/setup.log
 
-    # load cdrom tray
+    # mount cdrom
     if grep -q ^"deb cdrom" /etc/apt/sources.list; then
-	eject -t
-	if ! mount /cdrom; then
-	 for i in 0 1; do
-	  if mount /dev/scd$i /cdrom; then
-	   rm -f /dev/cdrom /dev/sr$i
-	   ln -s /dev/scd$i /dev/cdrom
-	   ln -s /dev/scd$i /dev/sr$i
-	   CDROM=found
-	   break
+	eject -t &> /dev/null
+	for i in "" scd0 scd1 scd2; do
+	 if mount_cdrom "$i"; then
+	  if stringinstring scd "$i"; then
+	   rm -f /dev/cdrom /dev/dvd
+	   ln -s /dev/$i /dev/cdrom
+	   ln -s /dev/$i /dev/dvd
+	   cp /etc/fstab /etc/fstab.linuxmuster-setup.first
+	   grep -v cdrom /etc/fstab.linuxmuster-setup.first > /etc/fstab
+	   echo "/dev/$i /media/cdrom0 udf,iso9660 user,noauto 0 0" >> /etc/fstab
 	  fi
-	 done
-	else
-	 CDROM=found
-	fi
-	if [ "$CDROM" != "found" ]; then
+	  cdrom_mounted=yes
+	  break
+	 fi
+	done
+	if [ -z "$cdrom_mounted" ]; then
 	 echo "Fatal: Cannot mount install cd!"
 	 exit 1
 	fi
@@ -111,7 +125,7 @@ case $opt in
     [ -e /cdrom/paedml-release.asc ] && apt-key add /cdrom/paedml-release.asc
 
     # check tasks
-    for i in common server desktop imaging-linbo imaging-tivoli imaging-rembo; do
+    for i in common server desktop imaging-linbo imaging-rembo; do
       if [ ! -s "/usr/share/linuxmuster/tasks/$i" ]; then
         echo "Error: Taskfile $i not found!"
         exit 1
@@ -124,9 +138,8 @@ case $opt in
     # check if linuxmuster-indexpage is installable
     indexpage=`aptitude search linuxmuster-indexpage`
 
-    # tweaking buggy sophomorix, install postgresql first
-    DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql | tee -a $LOGDIR/setup.log
-    #DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql-8.1 | tee -a $LOGDIR/setup.log
+    # tweaking sophomorix and linuxmuster-nagios-base, install postgresql & nagios2-common first
+    DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql nagios2-common | tee -a $LOGDIR/setup.log
 
     # installing depending task
     for i in common server; do
