@@ -36,7 +36,7 @@ while read printer roomlist hostlist; do
   echo "  Allow From 127.0.0.1" >> $ACCESSCONF.new || cancel "Cannot write $ACCESSCONF.new!"
   for i in $roomlist; do
     if [ "$i" != "-" ]; then
-      get_ip $i
+      get_room_ip $i
       if validip $RET; then
         OIFS="$IFS"
         IFS="."

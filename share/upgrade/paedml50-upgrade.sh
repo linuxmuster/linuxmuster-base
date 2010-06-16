@@ -473,6 +473,10 @@ fi
 # horde3, db and pear upgrade
 $DATADIR/upgrade/horde3-upgrade.sh
 
+# remove obsolete nagios stuff
+CONF=/etc/apache2/conf.d/nagios2.conf
+[ -e "$CONF" ] || rm $CONF
+
 # remove apt.conf stuff only needed for upgrade
 rm -f /etc/apt/apt.conf.d/99upgrade
 

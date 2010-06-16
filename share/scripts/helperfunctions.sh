@@ -200,6 +200,17 @@ validmac() {
   fi
 }
 
+# test for valid hostname
+validhostname() {
+ [ -z "$1" ] && return 1
+ tolower "$1"
+ if (expr match "$RET" '\([abcdefghijklmnopqrstuvwxyz0-9\-]\+$\)') &> /dev/null; then
+  return 0
+ else
+  return 1
+ fi
+}
+
 
 #######################
 # workstation related #
@@ -214,6 +225,14 @@ get_ip() {
   else # assume hostname
    RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $2 " " $5 }' | grep ^"$1 " | awk '{ print $2 }'` &> /dev/null
   fi
+  return 0
+}
+
+# extract room ip address from file $WIMPORTDATA
+get_room_ip() {
+  unset RET
+  [ -f "$WIMPORTDATA" ] || return 1
+  RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $1 " " $5 }' | tail -1 | grep ^"$1 " | awk '{ print $2 }'` &> /dev/null
   return 0
 }
 

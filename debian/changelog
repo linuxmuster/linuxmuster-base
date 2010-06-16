@@ -1,3 +1,21 @@
+linuxmuster-base (1.5.10-lenny14) lenny; urgency=low
+
+  * linuxmuster-setup:
+    - improved cdrom mount on first install.
+    - removed obsolete tivoli configuration templates.
+  * added eject to package dependencies.
+  * helperfunctions.sh:
+    - added function get_room_ip() to return an ip address for the room.
+    - added function validhostname() to check if hostnames comply with RFC 952.
+  * wimport.sh:
+    - hostname check uses now validhostname() (closes #245).
+    - sets machine password now on every invokation, not only for new hosts.
+  * import_printers: uses now get_room_ip() to compute room's subnet
+    (closes #244).
+  * paedml50-upgrade: removing obsolete /etc/apache2/conf.d/nagios2.conf.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 16 Jun 2010 11:04:20 +0200
+
 linuxmuster-base (1.5.10-lenny13) lenny; urgency=low
 
   * changed release version from 4.1.0 to 5.0.0, renamed an reworked upgrade

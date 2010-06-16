@@ -5,9 +5,9 @@
 #
 # cmdline parameter: path to paedML/openML iso file
 # downloads openML iso if no iso file is given on cmdline
-# invokes at least upgrade script on cdrom
+# invokes at least upgrade script
 #
-# 2010-05-20
+# 2010-06-08
 # 
 # Thomas Schmitt
 # <schmitt@lmz-bw.de>

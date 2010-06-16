@@ -7,7 +7,7 @@ Standards-Version: 3.6.0
 
 Package: linuxmuster-base
 Architecture: all
-Depends: ${misc:Depends}, dialog, dpkg, dpkg-dev, expect, gcc, pciutils, pwgen, hostname, perl, procmail, ruby, libsysadm-install-perl, libenv-bash-perl, libimap-admin-perl, libpgsql-ruby1.8, libterm-readkey-perl, sed, iptables
+Depends: ${misc:Depends}, dialog, dpkg, dpkg-dev, eject, expect, gcc, pciutils, pwgen, hostname, perl, procmail, ruby, libsysadm-install-perl, libenv-bash-perl, libimap-admin-perl, libpgsql-ruby1.8, libterm-readkey-perl, sed, iptables
 Description: paedML Linux configuration scripts
  This package provides configuration scripts for paedML Linux
 
