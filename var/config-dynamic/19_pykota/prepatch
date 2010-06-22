@@ -1,0 +1,6 @@
+if [ "$1" = "--first" ]; then
+ if dpkg -l | grep linuxmuster-pk | grep -q ^i; then
+  dpkg-reconfigure linuxmuster-pk
+ fi
+fi
+

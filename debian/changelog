@@ -1,3 +1,12 @@
+linuxmuster-base (1.5.10-lenny15) lenny; urgency=low
+
+  * linuxmuster-setup:
+    - added recreation of pkyota db on first installation.
+  * paedml50-upgrade:
+    - modified pykota handling.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 22 Jun 2010 13:45:53 +0200
+
 linuxmuster-base (1.5.10-lenny14) lenny; urgency=low
 
   * linuxmuster-setup:
