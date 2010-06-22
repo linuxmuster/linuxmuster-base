@@ -4,6 +4,7 @@ linuxmuster-base (1.5.10-lenny15) lenny; urgency=low
     - added recreation of pkyota db on first installation.
   * paedml50-upgrade:
     - modified pykota handling.
+  * helperfunctions.sh: suppressed query output from linuxmuster-schulkonsole-templates-paedml.
 
  -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 22 Jun 2010 13:45:53 +0200
 

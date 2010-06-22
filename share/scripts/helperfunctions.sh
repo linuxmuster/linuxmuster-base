@@ -111,7 +111,7 @@ backup_file() {
 
 # get legal distro name
 getdistname() {
-	if dpkg -s linuxmuster-schulkonsole-templates-paedml | grep -q ^Installed-Size; then
+	if dpkg -s linuxmuster-schulkonsole-templates-paedml | grep -q ^Installed-Size &> /dev/null; then
 		echo "$NONFREEDISTNAME"
 	else
 		echo "$FREEDISTNAME"
