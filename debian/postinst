@@ -637,6 +637,13 @@ case "$1" in
     echo "TLS_REQCERT never" >> $conffile
    fi
 
+   # updating sources.list
+   if ! grep -q archive\.debian\.org /etc/apt/sources.list; then
+    echo "Updating sources.list. Saving old sources.list to sources.list.dpkg-old
+    cp /etc/apt/sources.list /etc/apt/sources.list.dpkg-old
+    cp /etc/apt/sources.list.etch /etc/apt/sources.list
+   fi
+
    # updating release information
    echo "$(getdistname) $DISTFULLVERSION / Codename $CODENAME" > /etc/issue
    cp /etc/issue /etc/issue.net
