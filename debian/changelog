@@ -1,3 +1,11 @@
+linuxmuster-base (1.5.10-lenny16) lenny; urgency=low
+
+  * paedml50-upgrade:
+    - several fixes due to linuxmuster-freeradius, linuxmuster-linbo, pykota,
+      nagios2 and sophomorix upgrade.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 25 Jun 2010 12:46:47 +0200
+
 linuxmuster-base (1.5.10-lenny15) lenny; urgency=low
 
   * linuxmuster-setup:

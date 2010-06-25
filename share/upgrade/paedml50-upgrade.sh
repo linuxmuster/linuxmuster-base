@@ -218,6 +218,11 @@ cp $STATICTPLDIR/$CONF $CONF
 # nagios2
 CONF=/etc/nagios2/resource.cfg
 [ -e "$CONF" ] || touch $CONF
+CONF=/etc/apache2/conf.d/nagios2.conf
+if [ -e "$CONF" ]; then
+ backup_file $CONF
+ rm -f $CONF
+fi
 
 # saslauthd
 echo " saslauthd ..."
@@ -408,13 +413,15 @@ echo -e "\n\n" | aptitude -y safe-upgrade
 echo -e "\n\n" | aptitude -y dist-upgrade
 echo -e "\n\n" | aptitude -y dist-upgrade
 echo -e "\n\n" | aptitude -y purge avahi-daemon
+
+# tweaking sophomorix
+rm $INSTALLED
+aptitude -y install $SOPHOPKGS || true
+touch $INSTALLED
+
 # install tasks to be sure to have all necessary pkgs installed
 linuxmuster-task --unattended --install=common
 linuxmuster-task --unattended --install=server
-# unhold linuxmuster-linbo
-[ "$imaging" = "linbo" ] && aptitude unhold linuxmuster-linbo
-linuxmuster-task --unattended --install=imaging-$imaging
-aptitude -y install $SOPHOPKGS
 
 # handle slapd upgrade
 /etc/init.d/slapd stop
@@ -435,48 +442,54 @@ if [ "RC" = "0" ]; then
 fi
 /etc/init.d/slapd start
 
+# unhold and upgrade linuxmuster-linbo
+[ "$imaging" = "linbo" ] && aptitude unhold linuxmuster-linbo
+linuxmuster-task --unattended --install=imaging-$imaging
+
 # linuxmuster-freeradius
-[ -n "$FREERADIUS" ] && aptitude -y install linuxmuster-freeradius
-CONF=/etc/freeradius/clients.conf
-if [ -s "$CONF" -a -d "$FREEDYNTPLDIR" ]; then
- echo "Aktualisiere freeradius ..."
- # fetch radiussecret
- found=false
- while read line; do
-  if [ "$line" = "client $ipcopip {" ]; then
-   found=true
-   continue
-  fi
-  if [ "$found" = "true" -a "${line:0:6}" = "secret" ]; then
-   radiussecret="$(echo "$line" | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
-  fi
-  [ -n "$radiussecret" ] && break
- done <$CONF
- # patch configuration
- for i in $FREEDYNTPLDIR/*.target; do
-  targetcfg=`cat $i`
-  sourcetpl=`basename $targetcfg`
-  [ -e "$targetcfg" ] && cp $targetcfg $targetcfg.lenny-upgrade
-  sed -e "s|@@package@@|linuxmuster-freeradius|
-          s|@@date@@|$NOW|
-          s|@@radiussecret@@|$radiussecret|
-          s|@@ipcopip@@|$ipcopip|
-          s|@@ldappassword@@|$ldapadminpw|
-          s|@@basedn@@|$basedn|" $FREEDYNTPLDIR/$sourcetpl > $targetcfg
-  chmod 640 $targetcfg
-  chown root:freerad $targetcfg
- done # targets
+if [ -n "$FREERADIUS" ]; then
+ aptitude -y install freeradius freeradius-ldap
+ aptitude -y install linuxmuster-freeradius
+ CONF=/etc/freeradius/clients.conf
+ if [ -s "$CONF" -a -d "$FREEDYNTPLDIR" ]; then
+  echo "Aktualisiere freeradius ..."
+  # fetch radiussecret
+  found=false
+  while read line; do
+   if [ "$line" = "client $ipcopip {" ]; then
+    found=true
+    continue
+   fi
+   if [ "$found" = "true" -a "${line:0:6}" = "secret" ]; then
+    radiussecret="$(echo "$line" | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
+   fi
+   [ -n "$radiussecret" ] && break
+  done <$CONF
+  # patch configuration
+  for i in $FREEDYNTPLDIR/*.target; do
+   targetcfg=`cat $i`
+   sourcetpl=`basename $targetcfg`
+   [ -e "$targetcfg" ] && cp $targetcfg $targetcfg.lenny-upgrade
+   sed -e "s|@@package@@|linuxmuster-freeradius|
+           s|@@date@@|$NOW|
+           s|@@radiussecret@@|$radiussecret|
+           s|@@ipcopip@@|$ipcopip|
+           s|@@ldappassword@@|$ldapadminpw|
+           s|@@basedn@@|$basedn|" $FREEDYNTPLDIR/$sourcetpl > $targetcfg
+   chmod 640 $targetcfg
+   chown root:freerad $targetcfg
+  done # targets
+ fi
 fi
 
 # reinstall linuxmuster-pk
-[ -n "$PYKOTA" ] && aptitude -y install linuxmuster-pk
+if [ -n "$PYKOTA" ]; then
+ aptitude -y install pykota
+ aptitude -y install linuxmuster-pk
+fi
 
 # horde3, db and pear upgrade
 $DATADIR/upgrade/horde3-upgrade.sh
-
-# remove obsolete nagios stuff
-CONF=/etc/apache2/conf.d/nagios2.conf
-[ -e "$CONF" ] || rm $CONF
 
 # remove apt.conf stuff only needed for upgrade
 rm -f /etc/apt/apt.conf.d/99upgrade
