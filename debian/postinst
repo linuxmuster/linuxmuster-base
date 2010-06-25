@@ -639,7 +639,7 @@ case "$1" in
 
    # updating sources.list
    if ! grep -q archive\.debian\.org /etc/apt/sources.list; then
-    echo "Updating sources.list. Saving old sources.list to sources.list.dpkg-old
+    echo "Updating sources.list. Saving old sources.list to sources.list.dpkg-old."
     cp /etc/apt/sources.list /etc/apt/sources.list.dpkg-old
     cp /etc/apt/sources.list.etch /etc/apt/sources.list
    fi
