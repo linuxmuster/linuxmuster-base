@@ -405,8 +405,12 @@ for i in ldap moodle mrbs pykota; do
  fi
 done
 
-# hold linuxmuster linbo during dist-upgrade
+# hold linuxmuster-linbo during dist-upgrade
 [ "$imaging" = "linbo" ] && aptitude hold linuxmuster-linbo
+
+# hold linuxmuster-freeradius during dist-upgrade
+[ -n "$FREERADIUS" ] && aptitude hold linuxmuster-freeradius
+
 # first safe-upgrade
 echo -e "\n\n" | aptitude -y safe-upgrade
 # then dist-upgrade
@@ -446,9 +450,10 @@ fi
 [ "$imaging" = "linbo" ] && aptitude unhold linuxmuster-linbo
 linuxmuster-task --unattended --install=imaging-$imaging
 
-# linuxmuster-freeradius
+# unhold and upgrade linuxmuster-freeradius
 if [ -n "$FREERADIUS" ]; then
  aptitude -y install freeradius freeradius-ldap
+ aptitude unhold linuxmuster-freeradius
  aptitude -y install linuxmuster-freeradius
  CONF=/etc/freeradius/clients.conf
  if [ -s "$CONF" -a -d "$FREEDYNTPLDIR" ]; then
