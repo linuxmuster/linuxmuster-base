@@ -1,3 +1,12 @@
+linuxmuster-base (1.5.10-lenny17) lenny; urgency=low
+
+  * paedml50-upgrade:
+    - added check for correct installation of postgresql-8.3.
+  * postinst:
+    - added alternative link repair for /usr/bin/net.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 30 Jun 2010 10:19:01 +0200
+
 linuxmuster-base (1.5.10-lenny16) lenny; urgency=low
 
   * paedml50-upgrade:

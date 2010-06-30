@@ -355,7 +355,11 @@ echo -e "\n\n" | aptitude -y install apt-utils tasksel debian-archive-keyring dp
 aptitude update
 
 # upgrade postgresql
-echo -e "\n\n" | aptitude -y install postgresql postgresql-8.3 postgresql-client-8.3
+for i in postgresql postgresql-8.3 postgresql-client-8.3; do
+ echo -e "\n\n" | aptitude -y install $i
+ # check installed ok
+ dpkg -s $i | grep -q ^"Status: install ok installed" || echo -e "\n\n" | aptitude -y reinstall $i
+done
 /etc/init.d/postgresql-8.3 stop
 pg_dropcluster 8.3 main &> /dev/null
 pg_createcluster 8.3 main

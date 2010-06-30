@@ -311,6 +311,10 @@ case "$1" in
         chmod 400 /etc/linuxmuster/schulkonsole/db.conf*
        fi
 
+       # check for net and repair link
+       [ -e /etc/alternatives/net ] || update-alternatives --set net /usr/bin/net.samba3
+       [ -e /usr/bin/net ] || update-alternatives --install /usr/bin/net net /usr/bin/net.samba3 10
+
        # updating release information
        echo "$(getdistname) $DISTFULLVERSION / Codename $CODENAME" > /etc/issue
        cp /etc/issue /etc/issue.net
