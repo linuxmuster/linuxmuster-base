@@ -37,6 +37,7 @@ while [ $c -lt $maxwait ]; do
 
 		# restart ipcop's proxy
 		echo "Restarting ipcop's squid ..."
+		exec_ipcop /usr/bin/find "/var/ipcop/urlfilter -name \*.db -exec chmod 666 '{}' \;"
 		exec_ipcop /usr/local/bin/restartsquid
 
 		success=yes
