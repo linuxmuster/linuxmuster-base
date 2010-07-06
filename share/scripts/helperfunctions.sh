@@ -4,7 +4,7 @@
 # <schmitt@lmz-bw.de>
 # GPL v3
 #
-# 22.01.2010
+# 06.07.2010 
 #
 
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
