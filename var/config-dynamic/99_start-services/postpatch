@@ -1,3 +1,4 @@
+# $Id$
 # repair permissions for root's scheduled cron jobs
 chown root:crontab /var/spool/cron/crontabs/root
 chmod 600 /var/spool/cron/crontabs/root
@@ -31,6 +32,7 @@ while [ $c -lt $maxwait ]; do
 
 		# restart ipcop's proxy
 		echo "Restarting ipcop's squid ..."
+		exec_ipcop /usr/bin/find "/var/ipcop/urlfilter -name \*.db -exec chmod 666 '{}' \;"
 		exec_ipcop /usr/local/bin/restartsquid
 
 		success=yes

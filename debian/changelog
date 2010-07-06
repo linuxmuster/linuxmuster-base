@@ -5,10 +5,10 @@ linuxmuster-base (1.5.10-lenny18) lenny; urgency=low
     - suppress more debconf questions.
   * helperfunctions.sh:
     - fixed get_room_ip() (closes #244 finally).
-  * linuxmuster-setup: restarting ipcop's squid at the end of setup instead of
-    reloading.
+  * linuxmuster-setup: repairs ipcop's urlfilter db files permissions at the end
+    of setup.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 06 Jul 2010 15:36:50 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 06 Jul 2010 18:36:12 +0200
 
 linuxmuster-base (1.5.10-lenny17) lenny; urgency=low
 
