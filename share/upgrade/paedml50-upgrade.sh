@@ -425,7 +425,7 @@ echo -e "\n\n" | aptitude -y purge avahi-daemon
 
 # tweaking sophomorix
 rm $INSTALLED
-aptitude -y install $SOPHOPKGS || true
+echo -e "\n\n" | aptitude -y install $SOPHOPKGS || true
 touch $INSTALLED
 
 # install tasks to be sure to have all necessary pkgs installed
@@ -457,9 +457,9 @@ linuxmuster-task --unattended --install=imaging-$imaging
 
 # unhold and upgrade linuxmuster-freeradius
 if [ -n "$FREERADIUS" ]; then
- aptitude -y install freeradius freeradius-ldap
+ echo -e "\n\n" | aptitude -y install freeradius freeradius-ldap
  aptitude unhold linuxmuster-freeradius
- aptitude -y install linuxmuster-freeradius
+ echo -e "\n\n" | aptitude -y install linuxmuster-freeradius
  CONF=/etc/freeradius/clients.conf
  if [ -s "$CONF" -a -d "$FREEDYNTPLDIR" ]; then
   echo "Aktualisiere freeradius ..."
@@ -494,8 +494,8 @@ fi
 
 # reinstall linuxmuster-pk
 if [ -n "$PYKOTA" ]; then
- aptitude -y install pykota
- aptitude -y install linuxmuster-pk
+ echo -e "\n\n" | aptitude -y install pykota
+ echo -e "\n\n" | aptitude -y install linuxmuster-pk
 fi
 
 # horde3, db and pear upgrade
