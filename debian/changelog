@@ -4,8 +4,10 @@ linuxmuster-base (1.5.10-lenny18) lenny; urgency=low
     - added backup for custom nagios2 configs.
   * helperfunctions.sh:
     - fixed get_room_ip() (closes #244 finally).
+  * linuxmuster-setup: restarting ipcop's squid at the end of setup instead of
+    reloading.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 6 Jul 2010 13:18:36 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 06 Jul 2010 15:23:23 +0200
 
 linuxmuster-base (1.5.10-lenny17) lenny; urgency=low
 
