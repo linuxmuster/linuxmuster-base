@@ -1,3 +1,4 @@
+# $Id$
 # repair permissions for root's scheduled cron jobs
 chown root:crontab /var/spool/cron/crontabs/root
 chmod 600 /var/spool/cron/crontabs/root

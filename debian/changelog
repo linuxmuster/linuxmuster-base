@@ -2,9 +2,9 @@ linuxmuster-base (1.5.3.3-etch4) etch; urgency=low
 
   * helperfunctions.sh: fixed get_room_ip() (closes #244 finally).
   * linuxmuster-setup: repairs ipcop's urlfilter db files permissions at the end
-    of setup.
+    of setup (closes #257).
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 06 Jul 2010 18:37:03 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 06 Jul 2010 20:05:01 +0200
 
 linuxmuster-base (1.5.3.3-etch3) etch; urgency=low
 
