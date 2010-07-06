@@ -223,6 +223,7 @@ if [ -e "$CONF" ]; then
  backup_file $CONF
  rm -f $CONF
 fi
+[ -d /etc/nagios2/conf.d ] && cp -a /etc/nagios2/conf.d /etc/nagios2/conf.d.lenny-upgrade
 
 # saslauthd
 echo " saslauthd ..."

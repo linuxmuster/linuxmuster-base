@@ -313,9 +313,9 @@ case "$1" in
 
        # check for net and repair link
        if [ -e /usr/bin/net.samba3 ]; then
-        echo "Hallo"
         [ -e /etc/alternatives/net ] || update-alternatives --set net /usr/bin/net.samba3
-        update-alternatives --install /usr/bin/net net /usr/bin/net.samba3 10
+        [ -e /usr/bin/net ] && rm /usr/bin/net
+        ln -sf /etc/alternatives/net /usr/bin/net
        else
         echo "Fatal: /usr/bin/net.samba3 not found! Please install samba-common-bin!"
        fi

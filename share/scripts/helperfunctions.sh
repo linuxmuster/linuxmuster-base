@@ -4,7 +4,7 @@
 # <schmitt@lmz-bw.de>
 # GPL v3
 #
-# 22.01.2010
+# $Id$
 #
 
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
@@ -232,7 +232,7 @@ get_ip() {
 get_room_ip() {
   unset RET
   [ -f "$WIMPORTDATA" ] || return 1
-  RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $1 " " $5 }' | tail -1 | grep ^"$1 " | awk '{ print $2 }'` &> /dev/null
+  RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $1 " " $5 }' | grep ^"$1 " | tail -1 | awk '{ print $2 }'` &> /dev/null
   return 0
 }
 
