@@ -36,10 +36,8 @@ while [ $c -lt $maxwait ]; do
 		fi
 
 		# restart ipcop's proxy
-		if [ "$1" = "--first" ]; then
-			echo "Reloading ipcop's squid ..."
-			exec_ipcop /usr/sbin/squid -k reconfigure
-		fi
+		echo "Restarting ipcop's squid ..."
+		exec_ipcop /usr/local/bin/restartsquid
 
 		success=yes
 		break
