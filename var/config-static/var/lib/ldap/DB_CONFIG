@@ -1,7 +1,7 @@
 ##### @@message1@@
 ##### @@message2@@
 ##### @@message3@@
-# $Id: slapd-standalone.DB_CONFIG,v 1.2 2007-06-11 16:01:22 jeffbeck Exp $
+# $Id$
 # Example DB_CONFIG file for use with slapd(8) BDB/HDB databases.
 #
 # See Sleepycat Berkeley DB documentation

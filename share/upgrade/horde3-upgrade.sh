@@ -5,7 +5,8 @@
 # Thomas Schmitt
 # <schmitt@lmz-bw.de>
 # GPL v3
-# 2010-02-25
+#
+# $Id$
 #
 
 echo
@@ -39,4 +40,5 @@ done
 # upgrade pear and install necessary modules
 pear upgrade-all
 pear install DB MDB2 MDB2_Driver_mysql Auth_SASL Net_SMTP
+aptitude reinstall php-net-sieve
 

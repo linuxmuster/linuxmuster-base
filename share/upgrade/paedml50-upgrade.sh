@@ -214,6 +214,7 @@ echo " apache2 ..."
 CONF=/etc/apache2/apache2.conf
 cp $CONF $CONF.lenny-upgrade
 cp $STATICTPLDIR/$CONF $CONF
+rm -f /etc/apache2/mods-enabled/mime_magic.*
 
 # nagios2
 CONF=/etc/nagios2/resource.cfg

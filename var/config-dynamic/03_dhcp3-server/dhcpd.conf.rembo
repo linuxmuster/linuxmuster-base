@@ -1,7 +1,7 @@
 #
 # Sample configuration file for ISC dhcpd for Debian
 #
-# $Id: dhcpd.conf,v 1.1.1.1 2002/05/21 00:07:44 peloy Exp $
+# $Id$
 #
 
 # The ddns-updates-style parameter controls whether or not the server will

@@ -2,7 +2,7 @@
 #
 # postinst script for paedML/openML
 #
-# 06.03.2009
+# $Id$
 # 
 # Thomas Schmitt
 # <schmitt@lmz-bw.de>
@@ -319,6 +319,9 @@ case "$1" in
        else
         echo "Fatal: /usr/bin/net.samba3 not found! Please install samba-common-bin!"
        fi
+
+       # removing obsolete apache modules
+       rm -f /etc/apache2/mods-enabled/mime_magic.*
 
        # updating release information
        echo "$(getdistname) $DISTFULLVERSION / Codename $CODENAME" > /etc/issue

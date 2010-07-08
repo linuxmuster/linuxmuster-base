@@ -1,3 +1,12 @@
+linuxmuster-base (1.5.10-lenny19) lenny; urgency=low
+
+  * paedml50-upgrade & postinst:
+    - removes obsolete apache2 config files /etc/apache2/mods-enabled/mime_magic.*.
+  * horde-upgrade.sh:
+    - reinstalls php-net-sieve (closes #259).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 08 Jul 2010 20:05:31 +0200
+
 linuxmuster-base (1.5.10-lenny18) lenny; urgency=low
 
   * paedml50-upgrade:
