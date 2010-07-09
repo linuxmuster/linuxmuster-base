@@ -17,11 +17,12 @@ QUOTDYNTPLDIR=$DYNTPLDIR/18_quota
 HORDDYNTPLDIR=$DYNTPLDIR/21_horde3
 NAGIDYNTPLDIR=$DYNTPLDIR/22_nagios
 FREEDYNTPLDIR=$DYNTPLDIR/55_freeradius
+dpkg -s samba | grep ^Version | grep -q 3.0.24 || SAMBAPKG=samba
 PYKOTA=`dpkg -l | grep "linuxmuster-pk " | grep ^i`
 [ -n "$PYKOTA" ] && PYKOTAPKGS="linuxmuster-pykota linuxmuster-pkpgcounter python-egenix-mxtools python-egenix-mxdatetime"
 FREERADIUS=`dpkg -l | grep linuxmuster-freeradius | grep ^i`
 SOPHOPKGS=`dpkg -l | grep sophomorix | grep ^i | awk '{ print $2 }'`
-PKGSTOREMOVE="linux-image-server nagios2 linuxmuster-nagios-base mindi mondo postgresql-7.4 postgresql-8.1 $SOPHOPKGS $PYKOTAPKGS"
+PKGSTOREMOVE="linuxmuster-linbo linux-image-server nagios2 linuxmuster-nagios-base mindi mondo postgresql-7.4 postgresql-8.1 $SOPHOPKGS $PYKOTAPKGS $SAMBAPKG"
 PKGREPOS="ftp.de.debian.org/debian/ \
           ftp.de.debian.org/debian-volatile/ \
           security.debian.org \
@@ -411,9 +412,6 @@ for i in ldap moodle mrbs pykota; do
  fi
 done
 
-# hold linuxmuster-linbo during dist-upgrade
-[ "$imaging" = "linbo" ] && aptitude hold linuxmuster-linbo
-
 # hold linuxmuster-freeradius during dist-upgrade
 [ -n "$FREERADIUS" ] && aptitude hold linuxmuster-freeradius
 
@@ -453,7 +451,6 @@ fi
 /etc/init.d/slapd start
 
 # unhold and upgrade linuxmuster-linbo
-[ "$imaging" = "linbo" ] && aptitude unhold linuxmuster-linbo
 linuxmuster-task --unattended --install=imaging-$imaging
 
 # unhold and upgrade linuxmuster-freeradius
