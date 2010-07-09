@@ -492,7 +492,10 @@ fi
 
 # reinstall linuxmuster-pk
 if [ -n "$PYKOTA" ]; then
+ tar czf /var/tmp/pykota.tar.gz /etc/pykota
+ rm -rf /etc/pykota/*
  echo -e "N\nN\nN\nN\n" | aptitude -y install pykota
+ tar xf /var/tmp/pykota.tar.gz -C /
  echo -e "N\nN\nN\nN\n" | aptitude -y install linuxmuster-pk
 fi
 
