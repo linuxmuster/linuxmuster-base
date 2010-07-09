@@ -492,11 +492,13 @@ fi
 
 # reinstall linuxmuster-pk
 if [ -n "$PYKOTA" ]; then
+ echo "Sichere Pykota-Konfiguration nach /var/tmp/pykota.tar.gz ..."
  tar czf /var/tmp/pykota.tar.gz /etc/pykota
  rm -rf /etc/pykota/*
- echo -e "N\nN\nN\nN\n" | aptitude -y install pykota
+ aptitude -y install pykota
+ echo "Stelle Pykota-Konfiguration wieder her ..."
  tar xf /var/tmp/pykota.tar.gz -C /
- echo -e "N\nN\nN\nN\n" | aptitude -y install linuxmuster-pk
+ aptitude -y install linuxmuster-pk
 fi
 
 # horde3, db and pear upgrade

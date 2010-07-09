@@ -4,7 +4,7 @@ linuxmuster-base (1.5.10-lenny20) lenny; urgency=low
   * added several horde recommended php-pear modules to server task.
   * postinst: 
     - removed alternative link repair for /usr/bin/net.
-    - added check for clamav-freshclam startlinks.
+    - added check for clamav-freshclam startlinks (closes #262).
   * horde-upgrade.sh:
     - removed pear upgrade and direct pear modules installation.
   * paedml50-upgrade.sh:
@@ -13,7 +13,7 @@ linuxmuster-base (1.5.10-lenny20) lenny; urgency=low
     - check for samba version, any version different to etch's version will be
       removed and reinstalled later.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 09 Jul 2010 18:27:24 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 09 Jul 2010 18:48:19 +0200
 
 linuxmuster-base (1.5.10-lenny19) lenny; urgency=low
 
