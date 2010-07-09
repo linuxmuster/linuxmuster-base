@@ -314,6 +314,9 @@ case "$1" in
        # removing obsolete apache modules
        rm -f /etc/apache2/mods-enabled/mime_magic.*
 
+       # add clamav-freshclam startlinks
+       [[ ! -e /etc/rc2.d/S20clamav-freshclam && -e /etc/init.d/clamav-freshclam ]] && update-rc.d clamav-freshclam defaults
+
        # updating release information
        echo "$(getdistname) $DISTFULLVERSION / Codename $CODENAME" > /etc/issue
        cp /etc/issue /etc/issue.net
