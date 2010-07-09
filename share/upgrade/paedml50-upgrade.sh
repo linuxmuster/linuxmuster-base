@@ -22,7 +22,7 @@ PYKOTA=`dpkg -l | grep "linuxmuster-pk " | grep ^i`
 [ -n "$PYKOTA" ] && PYKOTAPKGS="linuxmuster-pykota linuxmuster-pkpgcounter python-egenix-mxtools python-egenix-mxdatetime"
 FREERADIUS=`dpkg -l | grep linuxmuster-freeradius | grep ^i`
 SOPHOPKGS=`dpkg -l | grep sophomorix | grep ^i | awk '{ print $2 }'`
-PKGSTOREMOVE="linuxmuster-linbo linux-image-server nagios2 linuxmuster-nagios-base mindi mondo postgresql-7.4 postgresql-8.1 $SOPHOPKGS $PYKOTAPKGS $SAMBAPKG"
+PKGSTOREMOVE="linuxmuster-linbo linuxmuster-freeradius linux-image-server nagios2 linuxmuster-nagios-base mindi mondo postgresql-7.4 postgresql-8.1 $SOPHOPKGS $PYKOTAPKGS $SAMBAPKG"
 PKGREPOS="ftp.de.debian.org/debian/ \
           ftp.de.debian.org/debian-volatile/ \
           security.debian.org \
@@ -412,9 +412,6 @@ for i in ldap moodle mrbs pykota; do
  fi
 done
 
-# hold linuxmuster-freeradius during dist-upgrade
-[ -n "$FREERADIUS" ] && aptitude hold linuxmuster-freeradius
-
 # first safe-upgrade
 echo -e "\n\n" | aptitude -y safe-upgrade
 # then dist-upgrade
@@ -456,7 +453,6 @@ linuxmuster-task --unattended --install=imaging-$imaging
 # unhold and upgrade linuxmuster-freeradius
 if [ -n "$FREERADIUS" ]; then
  echo -e "\n\n" | aptitude -y install freeradius freeradius-ldap
- aptitude unhold linuxmuster-freeradius
  echo -e "\n\n" | aptitude -y install linuxmuster-freeradius
  CONF=/etc/freeradius/clients.conf
  if [ -s "$CONF" -a -d "$FREEDYNTPLDIR" ]; then
