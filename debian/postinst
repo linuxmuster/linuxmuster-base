@@ -311,15 +311,6 @@ case "$1" in
         chmod 400 /etc/linuxmuster/schulkonsole/db.conf*
        fi
 
-       # check for net and repair link
-       if [ -e /usr/bin/net.samba3 ]; then
-        [ -e /etc/alternatives/net ] || update-alternatives --set net /usr/bin/net.samba3
-        [ -e /usr/bin/net ] && rm /usr/bin/net
-        ln -sf /etc/alternatives/net /usr/bin/net
-       else
-        echo "Fatal: /usr/bin/net.samba3 not found! Please install samba-common-bin!"
-       fi
-
        # removing obsolete apache modules
        rm -f /etc/apache2/mods-enabled/mime_magic.*
 

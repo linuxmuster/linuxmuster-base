@@ -495,8 +495,8 @@ fi
 
 # reinstall linuxmuster-pk
 if [ -n "$PYKOTA" ]; then
- echo -e "\n\n" | aptitude -y install pykota
- echo -e "\n\n" | aptitude -y install linuxmuster-pk
+ echo -e "N\nN\nN\nN\n" | aptitude -y install pykota
+ echo -e "N\nN\nN\nN\n" | aptitude -y install linuxmuster-pk
 fi
 
 # horde3, db and pear upgrade

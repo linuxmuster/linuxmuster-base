@@ -26,19 +26,8 @@ for i in $HORDEUPGRADE $KRONOUPGRADE $MNEMOUPGRADE $NAGUPGRADE $TURBAUPGRADE; do
  fi
 done
 
-# check for network
-if ! ping -q -c2 pear.php.net; then
- echo "pear.php.net is not reachable! Try it again later!"
- exit 1
-fi
-
 # upgrade tables
 for i in $HORDEUPGRADE $KRONOUPGRADE $MNEMOUPGRADE $NAGUPGRADE $TURBAUPGRADE; do
  mysql horde < $i
 done
-
-# upgrade pear and install necessary modules
-pear upgrade-all
-pear install DB MDB2 MDB2_Driver_mysql Auth_SASL Net_SMTP
-aptitude reinstall php-net-sieve
 

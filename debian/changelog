@@ -1,3 +1,16 @@
+linuxmuster-base (1.5.10-lenny20) lenny; urgency=low
+
+  * removed samba-common-bin from server task
+  * added several horde recommended php-pear modules to server task.
+  * postinst: 
+    - removed alternative link repair for /usr/bin/net.
+  * horde-upgrade.sh:
+    - removed pear upgrade and direct pear modules installation.
+  * paedml50-upgrade.sh:
+    - improved reinstallation of pykota.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 09 Jul 2010 15:43:10 +0200
+
 linuxmuster-base (1.5.10-lenny19) lenny; urgency=low
 
   * paedml50-upgrade & postinst:

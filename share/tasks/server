@@ -56,11 +56,16 @@ php5-mysql
 php5-pgsql
 php5-ps
 php5-tidy
+php-db
 php-cache
+php-date
 php-file
 php-mail-mime
 php-net-ftp
+php-net-imap
+php-net-ldap
 php-net-sieve
+php-net-smtp
 php-pear
 php-services-weather
 php-soap
@@ -74,7 +79,6 @@ postgresql-client-8.3
 rar
 razor
 samba
-samba-common-bin
 sasl2-bin
 slapd
 sophomorix2
