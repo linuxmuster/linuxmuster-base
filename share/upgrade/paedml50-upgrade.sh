@@ -447,7 +447,7 @@ if [ "RC" = "0" ]; then
 fi
 /etc/init.d/slapd start
 
-# unhold and upgrade linuxmuster-linbo
+# upgrade imaging task
 linuxmuster-task --unattended --install=imaging-$imaging
 
 # unhold and upgrade linuxmuster-freeradius
@@ -487,15 +487,7 @@ if [ -n "$FREERADIUS" ]; then
 fi
 
 # reinstall linuxmuster-pk
-if [ -n "$PYKOTA" ]; then
- echo "Sichere Pykota-Konfiguration nach /var/tmp/pykota.tar.gz ..."
- tar czf /var/tmp/pykota.tar.gz /etc/pykota
- rm -rf /etc/pykota/*
- aptitude -y install pykota
- echo "Stelle Pykota-Konfiguration wieder her ..."
- tar xf /var/tmp/pykota.tar.gz -C /
- aptitude -y install linuxmuster-pk
-fi
+[ -n "$PYKOTA" ] && aptitude -y install linuxmuster-pk
 
 # horde3, db and pear upgrade
 $DATADIR/upgrade/horde3-upgrade.sh
