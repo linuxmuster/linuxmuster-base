@@ -13,7 +13,7 @@ linuxmuster-base (1.5.10-lenny20) lenny; urgency=low
     - check for samba version, any version different to etch's version will be
       removed and reinstalled later.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 09 Jul 2010 20:28:57 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 09 Jul 2010 20:35:12 +0200
 
 linuxmuster-base (1.5.10-lenny19) lenny; urgency=low
 

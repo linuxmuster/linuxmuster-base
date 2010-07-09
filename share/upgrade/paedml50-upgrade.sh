@@ -17,12 +17,12 @@ QUOTDYNTPLDIR=$DYNTPLDIR/18_quota
 HORDDYNTPLDIR=$DYNTPLDIR/21_horde3
 NAGIDYNTPLDIR=$DYNTPLDIR/22_nagios
 FREEDYNTPLDIR=$DYNTPLDIR/55_freeradius
-dpkg -s samba | grep ^Version | grep -q 3.0.24 || SAMBAPKG=samba
+dpkg -s samba | grep ^Version | grep -q 3.0.24 || SAMBAPKGs="samba samba-common"
 PYKOTA=`dpkg -l | grep "linuxmuster-pk " | grep ^i`
-[ -n "$PYKOTA" ] && PYKOTAPKGS="linuxmuster-pykota linuxmuster-pkpgcounter python-egenix-mxtools python-egenix-mxdatetime"
+[ -n "$PYKOTA" ] && PYKOTAPKGS="linuxmuster-pykota linuxmuster-pk linuxmuster-pkpgcounter python-egenix-mxtools python-egenix-mxdatetime"
 FREERADIUS=`dpkg -l | grep linuxmuster-freeradius | grep ^i`
 SOPHOPKGS=`dpkg -l | grep sophomorix | grep ^i | awk '{ print $2 }'`
-PKGSTOREMOVE="linuxmuster-linbo linuxmuster-freeradius linux-image-server nagios2 linuxmuster-nagios-base mindi mondo postgresql-7.4 postgresql-8.1 $SOPHOPKGS $PYKOTAPKGS $SAMBAPKG"
+PKGSTOREMOVE="linuxmuster-linbo linuxmuster-freeradius linux-image-server nagios2 linuxmuster-nagios-base mindi mondo postgresql-7.4 postgresql-8.1 $SOPHOPKGS $PYKOTAPKGS $SAMBAPKGS"
 PKGREPOS="ftp.de.debian.org/debian/ \
           ftp.de.debian.org/debian-volatile/ \
           security.debian.org \
