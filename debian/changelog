@@ -4,7 +4,7 @@ linuxmuster-base (1.5.11-lenny0) lenny; urgency=low
     - finally minor improvements concerning to console output.
     - integrated horde upgrade script and removed it.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 10 Jul 17:25:39 CEST 2010
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 10 Jul 2010 17:32:08 +0200
 
 linuxmuster-base (1.5.10-lenny20) lenny; urgency=low
 
