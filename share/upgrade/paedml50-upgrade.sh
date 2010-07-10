@@ -35,15 +35,18 @@ message1="##### Do not change this file! It will be overwritten!"
 message2="##### This configuration file was automatically created by paedml50-upgrade!"
 message3="##### Last Modification: $NOW"
 
+
 echo
 echo "####################################################################"
 echo "# paedML/openML Linux Distributions-Upgrade auf Debian 5.0.3 Lenny #"
+echo "# Startzeit: $NOW                         #"
 echo "####################################################################"
 echo
-echo "Startzeit: $NOW"
-echo
 
-echo "Teste Internetverbindung:"
+
+echo "######################"
+echo "# Internetverbindung #"
+echo "######################"
 cd /tmp
 for i in $PKGREPOS; do
  echo -n "  * $i ... "
@@ -58,7 +61,10 @@ for i in $PKGREPOS; do
 done
 echo
 
-echo "Pruefe Setup-Variablen:"
+
+echo "#######################"
+echo "# Umgebungs-Variablen #"
+echo "#######################"
 for i in servername domainname internmask internsubrange imaging sambasid workgroup; do
  RET=`echo get linuxmuster-base/$i | debconf-communicate`
  RET=${RET#[0-9] }
@@ -101,13 +107,12 @@ internalnet=10.$internsub.0.0
 echo "  * internalnet=$internalnet"
 basedn="dc=`echo $domainname|sed 's/\./,dc=/g'`"
 echo "  * basedn=$basedn"
-
-
-################################
-# DB-Backup with UTF8-Encoding #
-################################
-# first save the databases
 echo
+
+
+echo "######################"
+echo "# Postgres-DB-Backup #"
+echo "######################"
 for i in `psql -t -l -U postgres | awk '{ print $1 }'`; do
  case $i in
   postgres|template0|template1) continue ;;
@@ -127,12 +132,12 @@ for i in `psql -t -l -U postgres | awk '{ print $1 }'`; do
   exit 1
  fi
 done
+echo
 
 
-#######
-# apt #
-#######
-
+echo "#####################"
+echo "# apt-Konfiguration #"
+echo "#####################"
 cp /etc/apt/sources.list /etc/apt/sources.list.lenny-upgrade
 [ -e /etc/apt/apt.conf ] && mv /etc/apt/apt.conf /etc/apt/apt.conf.lenny-upgrade
 mv /etc/apt/sources.list.d /etc/apt/sources.list.d.lenny-upgrade
@@ -145,23 +150,26 @@ export DEBCONF_TERSE=yes
 export DEBCONF_NOWARNINGS=yes
 echo 'DPkg::Options {"--force-confold";"--force-confdef";"--force-bad-verify";"--force-overwrite";};' > /etc/apt/apt.conf.d/99upgrade
 echo 'APT::Get::AllowUnauthenticated "true";' >> /etc/apt/apt.conf.d/99upgrade
-echo
 echo "Aktualisiere Paketlisten ..."
-aptitude update
+if aptitude update; then
+ echo "Ok."
+ echo
+else
+ echo "Kann Paketlisten nicht aktualisieren."
+ exit 1
+fi
 
 
-######################
-# first remove stuff #
-######################
+echo "#########################"
+echo "# Pakete deinstallieren #"
+echo "#########################"
 echo -e "\n\n" | aptitude -y remove $PKGSTOREMOVE
-
-
-#######################
-# patch configuration #
-#######################
 echo
-echo "Aktualisiere Konfiguration ..."
 
+
+echo "###############################"
+echo "# Konfiguration aktualisieren #"
+echo "###############################"
 # uml utilities
 echo " uml-utilities ..."
 CONF=/etc/default/uml-utilities
@@ -347,18 +355,24 @@ cp $CONF $CONF.lenny-upgrade
 sed -e 's|postgresql-8.1|postgresql-8.3|g
         s|nagios2|nagios3|g' -i $CONF
 
-################
-# dist-upgrade #
-################
-
 echo
-echo "DIST-UPGRADE ..."
 
-# first upgrade apt-utils
+
+echo "#########################"
+echo "# Distributions-Upgrade #"
+echo "#########################"
+echo
+
+echo "#############"
+echo "# apt-utils #"
+echo "#############"
 echo -e "\n\n" | aptitude -y install apt-utils tasksel debian-archive-keyring dpkg locales
 aptitude update
+echo
 
-# upgrade postgresql
+echo "##############"
+echo "# postgresql #"
+echo "##############"
 for i in postgresql postgresql-8.3 postgresql-client-8.3; do
  echo -e "\n\n" | aptitude -y install $i
  # check installed ok
@@ -371,7 +385,9 @@ cp $STATICTPLDIR/etc/postgresql/8.3/main/* /etc/postgresql/8.3/main
 /etc/init.d/postgresql-8.3 start
 update-rc.d -f postgresql-7.4 remove
 update-rc.d -f postgresql-8.1 remove
-# restore converted databases
+echo
+
+# restore databases
 for i in ldap moodle mrbs pykota; do
  if [ -e "/var/tmp/$i.lenny-upgrade.pgsql" ]; then
   dbuser=$i
@@ -399,7 +415,11 @@ for i in ldap moodle mrbs pykota; do
    sleep 5
    continue
   fi
-  echo "Spiele Datenbank $i wieder ein ..."
+  dbname=$i
+  [ "$i" = "mrbs" ] && dbname="mrbs  "
+  echo "################################"
+  echo "# Restauriere Datenbank $dbname #"
+  echo "################################"
   createuser -U postgres -S -D -R $dbuser
   psql -U postgres -d template1 -qc "ALTER USER $dbuser WITH PASSWORD '"$dbpw"';"
   if [ "$i" = "pykota" ]; then
@@ -411,25 +431,41 @@ for i in ldap moodle mrbs pykota; do
   fi
   psql -U postgres $i < /var/tmp/$i.lenny-upgrade.pgsql
  fi
+ echo
 done
 
-# first safe-upgrade
+echo "################"
+echo "# dist-upgrade #"
+echo "################"
 echo -e "\n\n" | aptitude -y safe-upgrade
-# then dist-upgrade
 echo -e "\n\n" | aptitude -y dist-upgrade
 echo -e "\n\n" | aptitude -y dist-upgrade
 echo -e "\n\n" | aptitude -y purge avahi-daemon
+echo
 
-# tweaking sophomorix
+echo "##############"
+echo "# sophomorix #"
+echo "##############"
 rm $INSTALLED
 echo -e "\n\n" | aptitude -y install $SOPHOPKGS || true
 touch $INSTALLED
+echo
 
-# install tasks to be sure to have all necessary pkgs installed
+echo "###############"
+echo "# common task #"
+echo "###############"
 linuxmuster-task --unattended --install=common
-linuxmuster-task --unattended --install=server
+echo
 
-# handle slapd upgrade
+echo "###############"
+echo "# server task #"
+echo "###############"
+linuxmuster-task --unattended --install=server
+echo
+
+echo "############"
+echo "# openldap #"
+echo "############"
 /etc/init.d/slapd stop
 RC=1
 slapcat > /var/tmp/ldap.ldif ; RC="$?"
@@ -447,14 +483,20 @@ if [ "RC" = "0" ]; then
  chown -R openldap:openldap /etc/ldap/slapd.d
 fi
 /etc/init.d/slapd start
+echo
 
-# upgrade imaging task
+echo "################"
+echo "# imaging task #"
+echo "################"
 linuxmuster-task --unattended --install=imaging-$imaging
+echo
 
-# unhold and upgrade linuxmuster-freeradius
 if [ -n "$FREERADIUS" ]; then
- echo -e "\n\n" | aptitude -y install freeradius freeradius-ldap
- echo -e "\n\n" | aptitude -y install linuxmuster-freeradius
+ echo "##########################"
+ echo "# linuxmuster-freeradius #"
+ echo "##########################"
+ aptitude -y install freeradius freeradius-ldap
+ aptitude -y install linuxmuster-freeradius
  CONF=/etc/freeradius/clients.conf
  if [ -s "$CONF" -a -d "$FREEDYNTPLDIR" ]; then
   echo "Aktualisiere freeradius ..."
@@ -485,29 +527,68 @@ if [ -n "$FREERADIUS" ]; then
    chown root:freerad $targetcfg
   done # targets
  fi
+ echo
 fi
 
-# reinstall copspot
-[ -n "$COPSPOT" ] && aptitude -y install linuxmuster-ipcop-addon-copspot
+if [ -n "$COPSPOT" ]; then
+ echo "###########"
+ echo "# copspot #"
+ echo "###########"
+ aptitude -y install linuxmuster-ipcop-addon-copspot
+ echo
+fi
 
-# reinstall linuxmuster-pk
-[ -n "$PYKOTA" ] && aptitude -y install linuxmuster-pk
+if [ -n "$PYKOTA" ]; then
+ echo "##################"
+ echo "# linuxmuster-pk #"
+ echo "##################"
+ aptitude -y install linuxmuster-pk
+ echo
+fi
 
 # horde3, db and pear upgrade
-$DATADIR/upgrade/horde3-upgrade.sh
+echo "##########"
+echo "# horde3 #"
+echo "##########"
+HORDEUPGRADE=/usr/share/doc/horde3/examples/scripts/upgrades/3.1_to_3.2.mysql.sql
+KRONOUPGRADE=/usr/share/doc/kronolith2/examples/scripts/upgrades/2.1_to_2.2.sql
+MNEMOUPGRADE=/usr/share/doc/mnemo2/examples/scripts/upgrades/2.1_to_2.2.sql
+NAGUPGRADE=/usr/share/doc/nag2/examples/scripts/upgrades/2.1_to_2.2.sql
+TURBAUPGRADE=/usr/share/doc/turba2/examples/scripts/upgrades/2.1_to_2.2_add_sql_share_tables.sql
+for i in $HORDEUPGRADE $KRONOUPGRADE $MNEMOUPGRADE $NAGUPGRADE $TURBAUPGRADE; do
+ t="$(echo $i | awk -F\/ '{ print $5 }')"
+ if [ ! -s "$i" ]; then
+  echo " Fatal: $i not found! Cannot upgrade $t!"
+  continue
+ else
+  echo " Upgrading $t ..."
+ fi
+ mysql horde < $i
+done
+echo
 
+echo "#############"
+echo "# Aufräumen #"
+echo "#############"
 # remove apt.conf stuff only needed for upgrade
 rm -f /etc/apt/apt.conf.d/99upgrade
-
 # final stuff
 dpkg-reconfigure linuxmuster-base
+echo
+
+echo "######################"
+echo "# Workstationsimport #"
+echo "######################"
 # temporarily deactivation of internal firewall
 . /etc/default/linuxmuster-base
 [ "$START_LINUXMUSTER" = "[Yy][Ee][Ss]" ] && sed -e 's|^START_LINUXMUSTER=.*|START_LINUXMUSTER=no|' -i /etc/default/linuxmuster-base
 import_workstations
 [ "$START_LINUXMUSTER" = "[Yy][Ee][Ss]" ] && sed -e 's|^START_LINUXMUSTER=.*|START_LINUXMUSTER=yes|' -i /etc/default/linuxmuster-base
-
 echo
-echo "Beendet um `date`!"
-echo "Starten Sie den Server neu!"
+
+echo "#############################################"
+echo "# Beendet um `date`. #"
+echo "# Starten Sie den Server neu!               #"
+echo "#############################################"
+echo
 
