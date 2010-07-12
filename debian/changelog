@@ -1,3 +1,10 @@
+linuxmuster-base (1.5.3.3-etch5) etch; urgency=low
+
+  * linuxmuster-setup: fixed moodle login issue, renewed moodle database dump,
+    added random siteidentifier (closes #263).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon,  8 Jul 2010 08:59:08 +0200
+
 linuxmuster-base (1.5.3.3-etch4) etch; urgency=low
 
   * helperfunctions.sh: fixed get_room_ip() (closes #244 finally).

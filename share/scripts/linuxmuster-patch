@@ -3,6 +3,9 @@
 #
 # Thomas Schmitt <schmitt@lmz-bw.de>
 # GPL-2
+#
+# $Id$
+#
 
 # read dist.conf
 . /usr/share/linuxmuster/config/dist.conf
@@ -188,7 +191,7 @@ cyradmpw=`cat /etc/imap.secret`
 
 
 if [ "$1" = "--first" ]; then
- # copying default configuration an remove installed flag for first time installation
+ # copying default configuration and remove installed flag for first time installation
  echo "Copying default static configuration files ..." | tee -a $LOGDIR/setup.log
  cp -a $STATICTPLDIR/* /
  # delete installed flag
@@ -205,6 +208,8 @@ if [ "$1" = "--first" ]; then
  ldapadminpw=`pwgen -s 8 1`
  echo -n $ldapadminpw > /etc/ldap.secret
  chmod 600 /etc/ldap.secret
+ # moodle's siteidentifier
+ siteidentifier=`pwgen 32 1`
 else
  ldapadminpw="$(cat /etc/ldap.secret)"
 fi
@@ -255,6 +260,7 @@ for i in $DYNTPLDIR/*; do
               s/@@smtprelay@@/${smtprelay}/g
               s/@@workgroup@@/${workgroup}/g
               s/@@basedn@@/${basedn}/g
+              s/@@siteidentifier@@/${siteidentifier}/g
               s/@@ldappassword@@/${ldapadminpw}/g
               s/@@adminpw@@/${adminpw}/g
               s/@@adminpw_md5@@/${adminpw_md5}/g

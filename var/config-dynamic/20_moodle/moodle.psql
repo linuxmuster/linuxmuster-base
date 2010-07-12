@@ -155,7 +155,7 @@ COMMENT ON TABLE mdl_backup_config IS 'To store backup configuration variables';
 -- Name: mdl_backup_config_id_seq; Type: SEQUENCE SET; Schema: public; Owner: moodle
 --
 
-SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('mdl_backup_config', 'id'), 1, false);
+SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('mdl_backup_config', 'id'), 15, true);
 
 
 --
@@ -927,7 +927,7 @@ COMMENT ON TABLE mdl_cache_flags IS 'Cache of time-sensitive flags';
 -- Name: mdl_cache_flags_id_seq; Type: SEQUENCE SET; Schema: public; Owner: moodle
 --
 
-SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('mdl_cache_flags', 'id'), 7, true);
+SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('mdl_cache_flags', 'id'), 1, true);
 
 
 --
@@ -955,7 +955,7 @@ COMMENT ON TABLE mdl_cache_text IS 'For storing temporary copies of processed te
 -- Name: mdl_cache_text_id_seq; Type: SEQUENCE SET; Schema: public; Owner: moodle
 --
 
-SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('mdl_cache_text', 'id'), 11, true);
+SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('mdl_cache_text', 'id'), 1, true);
 
 
 --
@@ -1208,7 +1208,7 @@ COMMENT ON TABLE mdl_config IS 'Moodle configuration variables';
 -- Name: mdl_config_id_seq; Type: SEQUENCE SET; Schema: public; Owner: moodle
 --
 
-SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('mdl_config', 'id'), 266, true);
+SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('mdl_config', 'id'), 382, true);
 
 
 --
@@ -1265,7 +1265,7 @@ COMMENT ON TABLE mdl_context IS 'one of these must be set';
 -- Name: mdl_context_id_seq; Type: SEQUENCE SET; Schema: public; Owner: moodle
 --
 
-SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('mdl_context', 'id'), 14, true);
+SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('mdl_context', 'id'), 10, true);
 
 
 --
@@ -2551,7 +2551,7 @@ CREATE TABLE mdl_forum_discussions (
     name character varying(255) DEFAULT ''::character varying NOT NULL,
     firstpost bigint DEFAULT 0 NOT NULL,
     userid bigint DEFAULT 0 NOT NULL,
-    groupid bigint DEFAULT -1 NOT NULL,
+    groupid bigint DEFAULT (-1) NOT NULL,
     assessed smallint DEFAULT 1 NOT NULL,
     timemodified bigint DEFAULT 0 NOT NULL,
     usermodified bigint DEFAULT 0 NOT NULL,
@@ -4367,7 +4367,7 @@ SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('mdl_log_display', 'i
 -- Name: mdl_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: moodle
 --
 
-SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('mdl_log', 'id'), 78, true);
+SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('mdl_log', 'id'), 11, true);
 
 
 --
@@ -6176,7 +6176,7 @@ COMMENT ON TABLE mdl_role_allow_assign IS 'this defines what role can assign wha
 -- Name: mdl_role_allow_assign_id_seq; Type: SEQUENCE SET; Schema: public; Owner: moodle
 --
 
-SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('mdl_role_allow_assign', 'id'), 14, true);
+SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('mdl_role_allow_assign', 'id'), 13, true);
 
 
 --
@@ -6269,7 +6269,7 @@ COMMENT ON TABLE mdl_role_capabilities IS 'permission has to be signed, overridi
 -- Name: mdl_role_capabilities_id_seq; Type: SEQUENCE SET; Schema: public; Owner: moodle
 --
 
-SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('mdl_role_capabilities', 'id'), 638, true);
+SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('mdl_role_capabilities', 'id'), 636, true);
 
 
 --
@@ -7260,7 +7260,7 @@ COMMENT ON TABLE mdl_user IS 'One record for each person';
 -- Name: mdl_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: moodle
 --
 
-SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('mdl_user', 'id'), 8, true);
+SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('mdl_user', 'id'), 2, true);
 
 
 --
@@ -7287,7 +7287,7 @@ COMMENT ON TABLE mdl_user_info_category IS 'Customisable fields categories';
 -- Name: mdl_user_info_category_id_seq; Type: SEQUENCE SET; Schema: public; Owner: moodle
 --
 
-SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('mdl_user_info_category', 'id'), 1, true);
+SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('mdl_user_info_category', 'id'), 1, false);
 
 
 --
@@ -7413,7 +7413,7 @@ COMMENT ON TABLE mdl_user_preferences IS 'Allows modules to store arbitrary user
 -- Name: mdl_user_preferences_id_seq; Type: SEQUENCE SET; Schema: public; Owner: moodle
 --
 
-SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('mdl_user_preferences', 'id'), 4, true);
+SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('mdl_user_preferences', 'id'), 1, false);
 
 
 --
@@ -8224,6 +8224,21 @@ COPY mdl_assignment_submissions (id, "assignment", userid, timecreated, timemodi
 --
 
 COPY mdl_backup_config (id, name, value) FROM stdin;
+1	backup_sche_modules	0
+2	backup_sche_withuserdata	0
+3	backup_sche_metacourse	0
+4	backup_sche_users	0
+5	backup_sche_logs	0
+6	backup_sche_userfiles	0
+7	backup_sche_coursefiles	0
+8	backup_sche_sitefiles	0
+9	backup_sche_messages	0
+10	backup_sche_keep	1
+11	backup_sche_active	0
+12	backup_sche_weekdays	0000000
+13	backup_sche_hour	0
+14	backup_sche_minute	0
+15	backup_sche_destination	
 \.
 
 
@@ -8310,7 +8325,7 @@ COPY mdl_block (id, name, version, cron, lastcron, visible, multiple) FROM stdin
 45	wiki_synonymous	2004081200	0	0	1	0
 46	wiki_updated	2004081200	0	0	1	0
 47	wiki_wanted	2004081200	0	0	1	0
-26	rss_client	2007101509	300	1211023802	1	1
+26	rss_client	2007101509	300	1278850502	1	1
 \.
 
 
@@ -8477,13 +8492,7 @@ COPY mdl_cache_filters (id, filter, version, md5key, rawtext, timemodified) FROM
 --
 
 COPY mdl_cache_flags (id, flagtype, name, timemodified, value, expiry) FROM stdin;
-2	accesslib/dirtycontexts	/1/9	1211021813	1	1211029013
-3	accesslib/dirtycontexts	/1/10	1211022117	1	1211029317
-4	accesslib/dirtycontexts	/1/11	1211022524	1	1211029724
-5	accesslib/dirtycontexts	/1/2	1211023520	1	1211030720
-6	accesslib/dirtycontexts	/1/12	1211023633	1	1211030833
-1	accesslib/dirtycontexts	/1	1211023767	1	1211030967
-7	accesslib/dirtycontexts	/1/13	1211023918	1	1211031118
+1	accesslib/dirtycontexts	/1	1278849851	1	1278857051
 \.
 
 
@@ -8492,16 +8501,6 @@ COPY mdl_cache_flags (id, flagtype, name, timemodified, value, expiry) FROM stdi
 --
 
 COPY mdl_cache_text (id, md5key, formattedtext, timemodified) FROM stdin;
-3	04d666f63264bb6e37c17db9338dc437	Administrators can usually do anything on the site, in all courses.	1211023720
-4	5c5e425656d7b365d0dd196f1f53e15d	Course creators can create new courses and teach in them.	1211023720
-5	4f854319ce7fbee50ed76e5d9a1ac946	Teachers can do anything within a course, including changing the activities and grading students.	1211023720
-6	b6de8b4f4e982487bab2ba9c51f4c683	Non-editing teachers can teach in courses and grade students, but may not alter activities.	1211023720
-7	7f39c119996444a738ff519824241b6c	Students generally have fewer privileges within a course.	1211023720
-8	e365cf37f29fa1328055f35285f2b783	Guests have minimal privileges and usually can not enter text anywhere.	1211023720
-9	35a54e9de07500035d85b91ff7d5a79f	All logged in users.	1211023720
-10	9f59a5bc82b5d23e9851931c391f63f6	<p>Lehrer Zell</p>	1211023835
-11	8cd2916faa0306949c7aa05e41556ecf	<p>Moodle-Administrator</p>	1211023994
-2	5cf86ff021e2bf839633718b1b2f8165		1211024028
 \.
 
 
@@ -8746,8 +8745,6 @@ COPY mdl_capabilities (id, name, captype, contextlevel, component, riskbitmask) 
 234	block/rss_client:createsharedfeeds	write	10	block/rss_client	16
 235	block/rss_client:manageownfeeds	write	10	block/rss_client	0
 236	block/rss_client:manageanyfeeds	write	10	block/rss_client	16
-237	enrol/authorize:managepayments	write	10	enrol/authorize	8
-238	enrol/authorize:uploadcsv	write	30	enrol/authorize	4
 239	gradeexport/ods:view	read	50	gradeexport/ods	8
 240	gradeexport/ods:publish	read	50	gradeexport/ods	8
 241	gradeexport/txt:view	read	50	gradeexport/txt	8
@@ -8756,13 +8753,15 @@ COPY mdl_capabilities (id, name, captype, contextlevel, component, riskbitmask) 
 244	gradeexport/xls:publish	read	50	gradeexport/xls	8
 245	gradeexport/xml:view	read	50	gradeexport/xml	8
 246	gradeexport/xml:publish	read	50	gradeexport/xml	8
-247	gradeimport/csv:view	write	50	gradeimport/csv	0
-248	gradeimport/xml:view	write	50	gradeimport/xml	0
-249	gradeimport/xml:publish	write	50	gradeimport/xml	0
 250	gradereport/grader:view	read	50	gradereport/grader	8
 251	gradereport/outcomes:view	read	50	gradereport/outcomes	8
 252	gradereport/overview:view	read	50	gradereport/overview	8
 253	gradereport/user:view	read	50	gradereport/user	8
+237	enrol/authorize:managepayments	write	10	enrol/authorize	8
+238	enrol/authorize:uploadcsv	write	30	enrol/authorize	4
+247	gradeimport/csv:view	write	50	gradeimport/csv	0
+248	gradeimport/xml:view	write	50	gradeimport/xml	0
+249	gradeimport/xml:publish	write	50	gradeimport/xml	0
 \.
 
 
@@ -8820,7 +8819,7 @@ COPY mdl_choice_options (id, choiceid, text, maxanswers, timemodified) FROM stdi
 
 COPY mdl_config (id, name, value) FROM stdin;
 1	unicodedb	1
-2	statsrolesupgraded	1211018118
+2	statsrolesupgraded	1278849803
 4	auth_pop3mailbox	INBOX
 5	enrol	manual
 6	enrol_plugins_enabled	manual
@@ -8828,18 +8827,15 @@ COPY mdl_config (id, name, value) FROM stdin;
 11	template	default
 12	theme	standardwhite
 13	filter_multilang_converted	1
+21	nodefaultuserrolelists	0
+22	autologinguests	0
+8	hiddenuserfields	
 23	enablecourserequests	0
 24	timezone	99
 25	forcetimezone	99
 26	country	0
 27	geoipfile	/var/lib/moodle/geoip/GeoLiteCity.dat
 28	googlemapkey	
-29	autolang	1
-31	langmenu	1
-32	langlist	
-33	langcache	1
-34	locale	
-35	latinexcelexport	0
 36	cachetext	60
 37	filteruploadedfiles	0
 38	filtermatchoneperpage	0
@@ -8946,7 +8942,7 @@ COPY mdl_config (id, name, value) FROM stdin;
 139	sessioncookiepath	/
 140	enablerssfeeds	0
 141	debug	0
-142	debugdisplay	1
+142	debugdisplay	0
 143	xmlstrictheaders	0
 144	debugsmtp	0
 145	perfdebug	7
@@ -9053,20 +9049,141 @@ COPY mdl_config (id, name, value) FROM stdin;
 246	gradereport_overview_version	2007100801
 247	gradereport_user_version	2007092500
 248	adminblocks_initialised	1
-249	siteidentifier	qkIuqx1YQhJ6E7wv8f2sp79nLOsYvIIh@@servername@@.@@domainname@@
+249	siteidentifier	@@siteidentifier@@
 250	rolesactive	1
-251	digestmailtimelast	0
-252	forum_lastreadclean	1211018402
-253	scorm_maxattempts	6
-254	scorm_frameheight	500
-255	scorm_framewidth	100%
-256	scorm_updatetime	2
-257	scorm_advancedsettings	0
-258	scorm_windowsettings	0
-259	scorm_updatetimelast	1211018402
-260	lastexpirynotify	20080517
+251	guestroleid	6
+252	creatornewroleid	3
+253	digestmailtimelast	0
+254	forum_lastreadclean	1278849902
+255	scorm_maxattempts	6
+258	scorm_updatetime	2
+259	scorm_advancedsettings	0
+260	scorm_windowsettings	0
+261	scorm_updatetimelast	1278849902
+262	lastexpirynotify	20100711
+263	notloggedinroleid	6
+264	defaultuserroleid	7
+265	defaultcourseroleid	5
+266	nonmetacoursesyncroleids	
+267	defaultrequestcategory	1
+268	gradebookroles	1
+269	enableoutcomes	0
+270	grade_profilereport	user
+271	grade_aggregationposition	1
+272	grade_includescalesinaggregation	1
+273	grade_hiddenasdate	0
+274	gradepublishing	0
+275	grade_export_displaytype	1
+276	grade_export_decimalpoints	2
+277	gradeexport	
+278	grade_hideforcedsettings	1
+279	grade_aggregation	11
+280	grade_aggregation_flag	0
+281	grade_aggregateonlygraded	1
+282	grade_aggregateonlygraded_flag	2
+283	grade_aggregateoutcomes	0
+284	grade_aggregateoutcomes_flag	2
+285	grade_aggregatesubcats	0
+286	grade_aggregatesubcats_flag	2
+287	grade_keephigh	0
+288	grade_keephigh_flag	3
+289	grade_droplow	0
+290	grade_droplow_flag	2
+291	grade_displaytype	1
+292	grade_decimalpoints	2
+293	grade_item_advanced	iteminfo,idnumber,gradepass,plusfactor,multfactor,display,decimals,hiddenuntil,locktime
+294	grade_report_studentsperpage	100
+295	grade_report_quickgrading	1
+296	grade_report_showquickfeedback	0
+297	grade_report_aggregationview	0
+298	grade_report_meanselection	1
+299	grade_report_showcalculations	0
+300	grade_report_showeyecons	0
+301	grade_report_showaverages	1
+302	grade_report_showgroups	0
+303	grade_report_showlocks	0
+304	grade_report_showranges	0
+305	grade_report_showuserimage	1
+306	grade_report_showuseridnumber	0
+307	grade_report_showactivityicons	1
+308	grade_report_shownumberofgrades	0
+309	grade_report_averagesdisplaytype	inherit
+310	grade_report_rangesdisplaytype	inherit
+311	grade_report_averagesdecimalpoints	inherit
+312	grade_report_rangesdecimalpoints	inherit
+313	grade_report_overview_showrank	0
+314	grade_report_user_showrank	0
+315	grade_report_user_showhiddenitems	1
+316	resource_framesize	130
+317	resource_websearch	http://google.com/
+318	resource_defaulturl	http://
+319	resource_secretphrase	zmQIXVtEPIJ1HIA6uQgN
+320	resource_allowlocalfiles	0
+321	resource_popup	
+322	resource_popupresizable	checked
+323	resource_popupscrollbars	checked
+324	resource_popupdirectories	checked
+325	resource_popuplocation	checked
+326	resource_popupmenubar	checked
+327	resource_popuptoolbar	checked
+328	resource_popupstatus	checked
+329	resource_popupwidth	620
+330	resource_popupheight	450
+331	resource_autofilerename	1
+332	resource_blockdeletingfile	1
+333	assignment_maxbytes	1048576
+334	assignment_itemstocount	1
+335	assignment_showrecentsubmissions	1
+336	chat_method	header_js
+337	chat_refresh_userlist	10
+338	chat_old_ping	35
+339	chat_refresh_room	5
+340	chat_normal_updatemode	jsupdate
+341	chat_serverhost	@@serverip@@
+342	chat_serverip	127.0.0.1
+343	chat_serverport	9111
+344	chat_servermax	100
+345	data_enablerssfeeds	0
+346	forum_displaymode	3
+347	forum_replytouser	1
+348	forum_shortpost	300
+349	forum_longpost	600
+350	forum_manydiscussions	100
+351	forum_maxbytes	512000
+352	forum_trackreadposts	1
+353	forum_oldpostdays	14
+354	forum_usermarksread	0
+355	forum_cleanreadtime	2
+356	forum_enablerssfeeds	0
+357	forum_enabletimedposts	0
+358	forum_logblocked	1
+359	glossary_entbypage	10
+360	glossary_dupentries	0
+361	glossary_allowcomments	0
+362	glossary_linkbydefault	1
+363	glossary_defaultapproval	1
+364	glossary_enablerssfeeds	0
+365	glossary_linkentries	0
+366	glossary_casesensitive	0
+367	glossary_fullmatch	0
+368	lams_serverurl	
+369	lams_serverid	
+370	lams_serverkey	
+257	scorm_framewidth	100%
+256	scorm_frameheight	500
+371	block_course_list_adminview	all
+372	block_course_list_hideallcourseslink	0
+373	block_online_users_timetosee	5
+374	defaultallowedmodules	
+375	coursemanager	1
+376	frontpage	1
+377	frontpageloggedin	1
+378	coursesperpage	20
+379	allowvisiblecoursesinhiddencategories	0
+380	defaultfrontpageroleid	0
+381	supportname	Admin Nutzer
+382	supportemail	wwwadmin@@@servername@@.@@domainname@@
 3	auth	ldap
-30	lang	de_utf8
 14	registerauth	
 7	guestloginbutton	0
 15	alternateloginurl	
@@ -9076,15 +9193,13 @@ COPY mdl_config (id, name, value) FROM stdin;
 9	denyemailaddresses	
 19	recaptchapublickey	
 20	recaptchaprivatekey	
-263	notloggedinroleid	6
-261	guestroleid	6
-264	defaultuserroleid	5
-21	nodefaultuserrolelists	0
-265	defaultcourseroleid	5
-262	creatornewroleid	3
-22	autologinguests	0
-266	nonmetacoursesyncroleids	
-8	hiddenuserfields	
+29	autolang	1
+30	lang	de_utf8
+31	langmenu	1
+32	langlist	
+33	langcache	1
+34	locale	de_DE.UTF-8
+35	latinexcelexport	0
 \.
 
 
@@ -9094,11 +9209,11 @@ COPY mdl_config (id, name, value) FROM stdin;
 
 COPY mdl_config_plugins (id, plugin, name, value) FROM stdin;
 2	auth/ldap	ldapencoding	utf-8
-1	auth/ldap	host_url	ldap://@@serverip@@
+1	auth/ldap	host_url	ldap://localhost/
 3	auth/ldap	contexts	ou=accounts,@@basedn@@
-4	auth/ldap	user_type	rfc2307
+4	auth/ldap	user_type	default
 5	auth/ldap	user_attribute	uid
-6	auth/ldap	search_sub	1
+6	auth/ldap	search_sub	0
 7	auth/ldap	opt_deref	0
 8	auth/ldap	preventpassindb	1
 9	auth/ldap	bind_dn	
@@ -9120,13 +9235,13 @@ COPY mdl_config_plugins (id, plugin, name, value) FROM stdin;
 25	auth/ldap	passtype	plaintext
 26	auth/ldap	changepasswordurl	
 27	auth/ldap	removeuser	0
-28	auth/ldap	ntlmsso_enabled	1
+28	auth/ldap	ntlmsso_enabled	0
 29	auth/ldap	ntlmsso_subnet	
 30	auth/ldap	field_map_firstname	
 31	auth/ldap	field_updatelocal_firstname	oncreate
 32	auth/ldap	field_updateremote_firstname	0
 33	auth/ldap	field_lock_firstname	unlocked
-34	auth/ldap	field_map_lastname	displayName
+34	auth/ldap	field_map_lastname	
 35	auth/ldap	field_updatelocal_lastname	oncreate
 36	auth/ldap	field_updateremote_lastname	0
 37	auth/ldap	field_lock_lastname	unlocked
@@ -9189,8 +9304,9 @@ COPY mdl_context (id, contextlevel, instanceid, path, depth) FROM stdin;
 5	80	2	/1/2/5	3
 6	80	3	/1/2/6	3
 7	80	4	/1/2/7	3
-8	30	3	/1/8	2
-14	30	2	/1/14	2
+8	80	5	/1/8	2
+9	80	6	/1/9	2
+10	30	2	/1/10	2
 \.
 
 
@@ -9207,7 +9323,7 @@ COPY mdl_context_temp (id, path, depth) FROM stdin;
 --
 
 COPY mdl_course (id, category, sortorder, "password", fullname, shortname, idnumber, summary, format, showgrades, modinfo, newsitems, teacher, teachers, student, students, guest, startdate, enrolperiod, numsections, marker, maxbytes, showreports, visible, hiddensections, groupmode, groupmodeforce, defaultgroupingid, lang, theme, cost, currency, timecreated, timemodified, metacourse, requested, restrictmodules, expirynotify, expirythreshold, notifystudents, enrollable, enrolstartdate, enrolenddate, enrol, defaultrole) FROM stdin;
-1	0	0					\N	site	1	a:0:{}	3	Trainer/in	Trainer/innen	Teilnehmer/in	Teilnehmer/innen	0	0	0	0	0	0	0	1	0	0	0	0				USD	0	1211018166	0	0	0	0	0	0	1	0	0		0
+1	0	0		Moodle	Moodle			site	1	a:0:{}	3	Trainer/in	Trainer/innen	Teilnehmer/in	Teilnehmer/innen	0	0	0	0	0	0	0	1	0	0	0	0				USD	0	1278849938	0	0	0	0	0	0	1	0	0		0
 \.
 
 
@@ -10113,7 +10229,7 @@ COPY mdl_mnet_enrol_course (id, hostid, remoteid, cat_id, cat_name, cat_descript
 --
 
 COPY mdl_mnet_host (id, deleted, wwwroot, ip_address, name, public_key, public_key_expires, transport, portno, last_connect_time, last_log_id, force_theme, theme, applicationid) FROM stdin;
-1	0	http://@@servername@@.@@domainname@@/moodle	@@serverip@@			0	0	0	0	0	0	\N	1
+1	0	/moodle	@@serverip@@			0	0	0	0	0	0	\N	1
 2	0			All Hosts		0	0	0	0	0	0	\N	1
 \.
 
@@ -10145,10 +10261,10 @@ COPY mdl_mnet_rpc (id, function_name, xmlrpc_path, parent_type, parent, enabled,
 4	refresh_log	auth/mnet/auth.php/refresh_log	auth	mnet	0	Receives an array of log entries from an SP and adds them to the mnet_log \\n table	a:2:{i:0;a:2:{s:4:"type";s:6:"string";s:11:"description";s:30:""All ok" or an error message";}i:1;a:2:{s:4:"type";s:5:"array";s:11:"description";s:29:"array - An array of usernames";}}
 5	fetch_user_image	auth/mnet/auth.php/fetch_user_image	auth	mnet	0	Returns the user's image as a base64 encoded string.	a:2:{i:0;a:2:{s:4:"type";s:6:"string";s:11:"description";s:17:"The encoded image";}i:1;a:2:{s:4:"type";s:6:"string";s:11:"description";s:29:"username - The id of the user";}}
 6	fetch_theme_info	auth/mnet/auth.php/fetch_theme_info	auth	mnet	0	Returns the theme information and logo url as strings.	a:1:{i:0;a:2:{s:4:"type";s:6:"string";s:11:"description";s:14:"The theme info";}}
+10	available_courses	enrol/mnet/enrol.php/available_courses	enrol	mnet	0	Does Foo	a:1:{i:0;a:2:{s:4:"type";s:7:"boolean";s:11:"description";s:47:"Whether the user can login from the remote host";}}
 7	update_enrolments	auth/mnet/auth.php/update_enrolments	auth	mnet	0	Invoke this function _on_ the IDP to update it with enrolment info local to \\n the SP right after calling user_authorise() \\n \\n Normally called by the SP after calling	a:3:{i:0;a:2:{s:4:"type";s:7:"boolean";s:11:"description";N;}i:1;a:2:{s:4:"type";s:6:"string";s:11:"description";s:23:"username - The username";}i:2;a:2:{s:4:"type";s:6:"string";s:11:"description";s:77:"courses - Assoc array of courses following the structure of mnet_enrol_course";}}
 8	keepalive_client	auth/mnet/auth.php/keepalive_client	auth	mnet	0	Poll the IdP server to let it know that a user it has authenticated is still \\n online	a:1:{i:0;a:2:{s:4:"type";s:6:"string";s:11:"description";N;}}
 9	kill_child	auth/mnet/auth.php/kill_child	auth	mnet	0	TODO:Untested When the IdP requests that child sessions are terminated, \\n this function will be called on each of the child hosts. The machine that \\n calls the function (over xmlrpc) provides us with the mnethostid we need.	a:3:{i:0;a:2:{s:4:"type";s:7:"boolean";s:11:"description";s:15:"True on success";}i:1;a:2:{s:4:"type";s:6:"string";s:11:"description";s:39:"username - Username for session to kill";}i:2;a:2:{s:4:"type";s:6:"string";s:11:"description";s:47:"useragent - SHA1 hash of user agent to look for";}}
-10	available_courses	enrol/mnet/enrol.php/available_courses	enrol	mnet	0	Does Foo	a:1:{i:0;a:2:{s:4:"type";s:7:"boolean";s:11:"description";s:47:"Whether the user can login from the remote host";}}
 11	user_enrolments	enrol/mnet/enrol.php/user_enrolments	enrol	mnet	0	No description given.	a:2:{i:0;a:2:{s:4:"type";s:4:"void";s:11:"description";s:0:"";}i:1;s:6:"userid";}
 12	enrol_user	enrol/mnet/enrol.php/enrol_user	enrol	mnet	0	Enrols user to course with the default role	a:3:{i:0;a:2:{s:4:"type";s:7:"boolean";s:11:"description";s:41:"Whether the enrolment has been successful";}i:1;a:2:{s:4:"type";s:6:"string";s:11:"description";s:37:"user - The username of the remote use";}i:2;a:2:{s:4:"type";s:3:"int";s:11:"description";s:37:"courseid - The id of the local course";}}
 13	unenrol_user	enrol/mnet/enrol.php/unenrol_user	enrol	mnet	0	Unenrol a user from a course	a:3:{i:0;a:2:{s:4:"type";s:7:"boolean";s:11:"description";s:47:"Whether the user can login from the remote host";}i:1;a:2:{s:4:"type";s:6:"string";s:11:"description";s:19:"user - The username";}i:2;a:2:{s:4:"type";s:3:"int";s:11:"description";s:37:"courseid - The id of the local course";}}
@@ -10227,11 +10343,11 @@ COPY mdl_modules (id, name, version, cron, lastcron, search, visible) FROM stdin
 20	webquest	2007081222	0	0		1
 21	wiki	2008040101	0	0		1
 22	workshop	2007101509	60	0		0
-15	questionnaire	2008031905	43200	1211018402		1
-3	chat	2007101509	300	1211023802		1
-18	scorm	2007110500	300	1211023802		1
-1	assignment	2007101511	60	1211024102		1
-8	forum	2007101512	60	1211024102		1
+15	questionnaire	2008031905	43200	1278849902		1
+3	chat	2007101509	300	1278850502		1
+18	scorm	2007110500	300	1278850502		1
+1	assignment	2007101511	60	1278850502		1
+8	forum	2007101512	60	1278850502		1
 \.
 
 
@@ -10579,13 +10695,13 @@ COPY mdl_resource (id, course, name, "type", reference, summary, alltext, popup,
 --
 
 COPY mdl_role (id, name, shortname, description, sortorder) FROM stdin;
-1	Administrator	admin	Administrators can usually do anything on the site, in all courses.	0
-2	Course creator	coursecreator	Course creators can create new courses and teach in them.	1
-3	Teacher	editingteacher	Teachers can do anything within a course, including changing the activities and grading students.	2
-4	Non-editing teacher	teacher	Non-editing teachers can teach in courses and grade students, but may not alter activities.	3
-6	Guest	guest	Guests have minimal privileges and usually can not enter text anywhere.	5
-7	Authenticated user	user	All logged in users.	6
-5	Student	student	Students generally have fewer privileges within a course.	4
+1	Administrator/in	admin	Administrator/innen haben normalerweise alle Rechte auf der Website und in allen Kursen.	0
+2	Kursverwalter/in	coursecreator	Kursverwalter/innen dürfen neue Kurse anlegen und in ihnen unterrichten.	1
+3	Trainer/in	editingteacher	Trainer/innen dürfen in einem Kurs alles tun, incl. der Veränderung von Aktivitäten und der Beurteilung von Teilnehmer/innen.	2
+4	Trainer/in ohne Bearbeitungsrecht	teacher	Trainer/innen ohne Bearbeitungsrecht dürfen in Kursen unterrichten und Teilnehmer/innen bewerten, aber sie können nichts verändern.	3
+5	Teilnehmer/in	student	Teilnehmer/innen haben in einem Kurs grundsätzlich weniger Rechte.	4
+6	Gast	guest	Gäste haben minimale Rechte und können normalerweise nirgends Texte eingeben.	5
+7	Authentifizierte/r Nutzer/in	user	Alle eingeloggten Nutzer/innen	6
 \.
 
 
@@ -10630,7 +10746,7 @@ COPY mdl_role_allow_override (id, roleid, allowoverride) FROM stdin;
 --
 
 COPY mdl_role_assignments (id, roleid, contextid, userid, hidden, timestart, timeend, timemodified, modifierid, enrol, sortorder) FROM stdin;
-1	1	1	2	0	0	0	1211018168	0	manual	0
+1	1	1	2	0	0	0	1278849851	0	manual	0
 \.
 
 
@@ -10639,644 +10755,642 @@ COPY mdl_role_assignments (id, roleid, contextid, userid, hidden, timestart, tim
 --
 
 COPY mdl_role_capabilities (id, contextid, roleid, capability, permission, timemodified, modifierid) FROM stdin;
-1	1	1	moodle/legacy:admin	1	1211018117	0
-2	1	2	moodle/legacy:coursecreator	1	1211018117	0
-3	1	3	moodle/legacy:editingteacher	1	1211018117	0
-4	1	4	moodle/legacy:teacher	1	1211018117	0
-5	1	5	moodle/legacy:student	1	1211018117	0
-6	1	6	moodle/legacy:guest	1	1211018117	0
-7	1	7	moodle/legacy:user	1	1211018117	0
-8	1	1	moodle/site:doanything	1	1211018117	0
-9	1	1	moodle/site:config	1	1211018117	0
-10	1	1	moodle/site:readallmessages	1	1211018117	0
-11	1	3	moodle/site:readallmessages	1	1211018117	0
-12	1	1	moodle/site:sendmessage	1	1211018117	0
-13	1	7	moodle/site:sendmessage	1	1211018117	0
-14	1	1	moodle/site:approvecourse	1	1211018117	0
-15	1	3	moodle/site:import	1	1211018117	0
-16	1	1	moodle/site:import	1	1211018117	0
-17	1	3	moodle/site:backup	1	1211018117	0
-18	1	1	moodle/site:backup	1	1211018117	0
-19	1	3	moodle/site:restore	1	1211018117	0
-20	1	1	moodle/site:restore	1	1211018117	0
-21	1	3	moodle/site:manageblocks	1	1211018117	0
-22	1	1	moodle/site:manageblocks	1	1211018117	0
-23	1	4	moodle/site:accessallgroups	1	1211018117	0
-24	1	3	moodle/site:accessallgroups	1	1211018117	0
-25	1	1	moodle/site:accessallgroups	1	1211018117	0
-26	1	4	moodle/site:viewfullnames	1	1211018117	0
-27	1	3	moodle/site:viewfullnames	1	1211018117	0
-28	1	1	moodle/site:viewfullnames	1	1211018117	0
-29	1	4	moodle/site:viewreports	-1	1211018117	0
-30	1	3	moodle/site:viewreports	-1	1211018117	0
-31	1	1	moodle/site:viewreports	1	1211018117	0
-32	1	3	moodle/site:trustcontent	1	1211018117	0
-33	1	1	moodle/site:trustcontent	1	1211018117	0
-34	1	1	moodle/site:uploadusers	1	1211018117	0
-35	1	1	moodle/site:langeditmaster	-1	1211018117	0
-36	1	1	moodle/site:langeditlocal	1	1211018117	0
-37	1	1	moodle/user:create	1	1211018117	0
-38	1	1	moodle/user:delete	1	1211018117	0
-39	1	1	moodle/user:update	1	1211018117	0
-40	1	6	moodle/user:viewdetails	1	1211018117	0
-42	1	4	moodle/user:viewdetails	1	1211018117	0
-43	1	3	moodle/user:viewdetails	1	1211018117	0
-44	1	1	moodle/user:viewdetails	1	1211018117	0
-45	1	6	moodle/user:viewhiddendetails	-1	1211018117	0
-47	1	4	moodle/user:viewhiddendetails	-1	1211018117	0
-48	1	3	moodle/user:viewhiddendetails	-1	1211018117	0
-49	1	1	moodle/user:viewhiddendetails	1	1211018117	0
-50	1	1	moodle/user:loginas	1	1211018117	0
-51	1	3	moodle/role:assign	1	1211018117	0
-52	1	1	moodle/role:assign	1	1211018117	0
-53	1	1	moodle/role:override	1	1211018117	0
-54	1	1	moodle/role:manage	1	1211018117	0
-55	1	4	moodle/role:unassignself	1	1211018117	0
-56	1	3	moodle/role:unassignself	1	1211018117	0
-57	1	2	moodle/role:unassignself	1	1211018117	0
-58	1	1	moodle/role:unassignself	1	1211018117	0
-59	1	4	moodle/role:viewhiddenassigns	1	1211018117	0
-60	1	3	moodle/role:viewhiddenassigns	1	1211018117	0
-61	1	1	moodle/role:viewhiddenassigns	1	1211018117	0
-62	1	3	moodle/role:switchroles	1	1211018117	0
-63	1	1	moodle/role:switchroles	1	1211018117	0
-64	1	1	moodle/category:create	1	1211018117	0
-65	1	1	moodle/category:delete	1	1211018117	0
-66	1	1	moodle/category:update	1	1211018117	0
-67	1	1	moodle/category:visibility	1	1211018117	0
-68	1	2	moodle/course:create	1	1211018117	0
-69	1	1	moodle/course:create	1	1211018117	0
-70	1	1	moodle/course:delete	1	1211018117	0
-71	1	3	moodle/course:update	1	1211018117	0
-72	1	1	moodle/course:update	1	1211018117	0
-73	1	6	moodle/course:view	1	1211018117	0
-75	1	4	moodle/course:view	1	1211018117	0
-76	1	3	moodle/course:view	1	1211018117	0
-77	1	4	moodle/course:bulkmessaging	1	1211018117	0
-78	1	3	moodle/course:bulkmessaging	1	1211018117	0
-79	1	1	moodle/course:bulkmessaging	1	1211018117	0
-80	1	4	moodle/course:viewhiddenuserfields	-1	1211018117	0
-81	1	3	moodle/course:viewhiddenuserfields	-1	1211018117	0
-82	1	1	moodle/course:viewhiddenuserfields	1	1211018117	0
-83	1	2	moodle/course:viewhiddencourses	1	1211018117	0
-84	1	4	moodle/course:viewhiddencourses	1	1211018117	0
-85	1	3	moodle/course:viewhiddencourses	1	1211018117	0
-86	1	1	moodle/course:viewhiddencourses	1	1211018117	0
-87	1	1	moodle/course:visibility	1	1211018117	0
-88	1	3	moodle/course:managefiles	1	1211018117	0
-89	1	1	moodle/course:managefiles	1	1211018117	0
-90	1	3	moodle/course:manageactivities	1	1211018117	0
-91	1	1	moodle/course:manageactivities	1	1211018117	0
-92	1	3	moodle/course:managemetacourse	1	1211018117	0
-93	1	1	moodle/course:managemetacourse	1	1211018117	0
-94	1	3	moodle/course:activityvisibility	1	1211018117	0
-95	1	1	moodle/course:activityvisibility	1	1211018117	0
-96	1	4	moodle/course:viewhiddenactivities	1	1211018117	0
-97	1	3	moodle/course:viewhiddenactivities	1	1211018117	0
-98	1	1	moodle/course:viewhiddenactivities	1	1211018117	0
-100	1	4	moodle/course:viewparticipants	1	1211018117	0
-101	1	3	moodle/course:viewparticipants	1	1211018117	0
-102	1	1	moodle/course:viewparticipants	1	1211018117	0
-103	1	1	moodle/site:viewparticipants	1	1211018117	0
-105	1	4	moodle/course:viewscales	1	1211018117	0
-106	1	3	moodle/course:viewscales	1	1211018117	0
-107	1	1	moodle/course:viewscales	1	1211018117	0
-108	1	3	moodle/course:managescales	1	1211018117	0
-109	1	1	moodle/course:managescales	1	1211018117	0
-110	1	3	moodle/course:managegroups	1	1211018117	0
-111	1	1	moodle/course:managegroups	1	1211018117	0
-112	1	3	moodle/course:reset	1	1211018117	0
-113	1	1	moodle/course:reset	1	1211018117	0
-114	1	6	moodle/blog:view	1	1211018117	0
-115	1	7	moodle/blog:view	1	1211018117	0
-117	1	4	moodle/blog:view	1	1211018117	0
-118	1	3	moodle/blog:view	1	1211018117	0
-119	1	1	moodle/blog:view	1	1211018117	0
-120	1	7	moodle/blog:create	1	1211018117	0
-121	1	1	moodle/blog:create	1	1211018117	0
-122	1	4	moodle/blog:manageentries	1	1211018117	0
-123	1	3	moodle/blog:manageentries	1	1211018117	0
-124	1	1	moodle/blog:manageentries	1	1211018117	0
-125	1	7	moodle/calendar:manageownentries	1	1211018117	0
-126	1	1	moodle/calendar:manageownentries	1	1211018117	0
-127	1	4	moodle/calendar:managegroupentries	1	1211018117	0
-128	1	3	moodle/calendar:managegroupentries	1	1211018117	0
-129	1	1	moodle/calendar:managegroupentries	1	1211018117	0
-130	1	4	moodle/calendar:manageentries	1	1211018117	0
-131	1	3	moodle/calendar:manageentries	1	1211018117	0
-132	1	1	moodle/calendar:manageentries	1	1211018117	0
-133	1	1	moodle/user:editprofile	1	1211018117	0
-134	1	6	moodle/user:editownprofile	-1000	1211018117	0
-135	1	7	moodle/user:editownprofile	1	1211018117	0
-136	1	1	moodle/user:editownprofile	1	1211018118	0
-137	1	6	moodle/user:changeownpassword	-1000	1211018118	0
-138	1	7	moodle/user:changeownpassword	1	1211018118	0
-139	1	1	moodle/user:changeownpassword	1	1211018118	0
-141	1	4	moodle/user:readuserposts	1	1211018118	0
-142	1	3	moodle/user:readuserposts	1	1211018118	0
-143	1	1	moodle/user:readuserposts	1	1211018118	0
-145	1	4	moodle/user:readuserblogs	1	1211018118	0
-146	1	3	moodle/user:readuserblogs	1	1211018118	0
-147	1	1	moodle/user:readuserblogs	1	1211018118	0
-148	1	4	moodle/user:viewuseractivitiesreport	-1	1211018118	0
-149	1	3	moodle/user:viewuseractivitiesreport	-1	1211018118	0
-150	1	1	moodle/user:viewuseractivitiesreport	1	1211018118	0
-151	1	3	moodle/question:managecategory	1	1211018118	0
-152	1	1	moodle/question:managecategory	1	1211018118	0
-153	1	3	moodle/question:add	1	1211018118	0
-154	1	1	moodle/question:add	1	1211018118	0
-155	1	3	moodle/question:editmine	1	1211018118	0
-156	1	1	moodle/question:editmine	1	1211018118	0
-157	1	3	moodle/question:editall	1	1211018118	0
-158	1	1	moodle/question:editall	1	1211018118	0
-159	1	3	moodle/question:viewmine	1	1211018118	0
-160	1	1	moodle/question:viewmine	1	1211018118	0
-161	1	3	moodle/question:viewall	1	1211018118	0
-162	1	1	moodle/question:viewall	1	1211018118	0
-163	1	3	moodle/question:usemine	1	1211018118	0
-164	1	1	moodle/question:usemine	1	1211018118	0
-165	1	3	moodle/question:useall	1	1211018118	0
-166	1	1	moodle/question:useall	1	1211018118	0
-167	1	3	moodle/question:movemine	1	1211018118	0
-168	1	1	moodle/question:movemine	1	1211018118	0
-169	1	3	moodle/question:moveall	1	1211018118	0
-170	1	1	moodle/question:moveall	1	1211018118	0
-171	1	1	moodle/question:config	1	1211018118	0
-172	1	4	moodle/site:doclinks	1	1211018118	0
-173	1	3	moodle/site:doclinks	1	1211018118	0
-174	1	1	moodle/site:doclinks	1	1211018118	0
-175	1	3	moodle/course:sectionvisibility	1	1211018118	0
-176	1	1	moodle/course:sectionvisibility	1	1211018118	0
-177	1	3	moodle/course:useremail	1	1211018118	0
-178	1	1	moodle/course:useremail	1	1211018118	0
-179	1	3	moodle/course:viewhiddensections	1	1211018118	0
-180	1	1	moodle/course:viewhiddensections	1	1211018118	0
-181	1	3	moodle/course:setcurrentsection	1	1211018118	0
-182	1	1	moodle/course:setcurrentsection	1	1211018118	0
-183	1	1	moodle/site:mnetlogintoremote	1	1211018118	0
-184	1	4	moodle/grade:viewall	1	1211018118	0
-185	1	3	moodle/grade:viewall	1	1211018118	0
-186	1	1	moodle/grade:viewall	1	1211018118	0
-188	1	4	moodle/grade:viewhidden	1	1211018118	0
-189	1	3	moodle/grade:viewhidden	1	1211018118	0
-190	1	1	moodle/grade:viewhidden	1	1211018118	0
-191	1	3	moodle/grade:import	1	1211018118	0
-192	1	1	moodle/grade:import	1	1211018118	0
-193	1	4	moodle/grade:export	1	1211018118	0
-194	1	3	moodle/grade:export	1	1211018118	0
-195	1	1	moodle/grade:export	1	1211018118	0
-196	1	3	moodle/grade:manage	1	1211018118	0
-197	1	1	moodle/grade:manage	1	1211018118	0
-198	1	3	moodle/grade:edit	1	1211018118	0
-199	1	1	moodle/grade:edit	1	1211018118	0
-200	1	3	moodle/grade:manageoutcomes	1	1211018118	0
-201	1	1	moodle/grade:manageoutcomes	1	1211018118	0
-202	1	3	moodle/grade:manageletters	1	1211018118	0
-203	1	1	moodle/grade:manageletters	1	1211018118	0
-204	1	3	moodle/grade:hide	1	1211018118	0
-205	1	1	moodle/grade:hide	1	1211018118	0
-206	1	3	moodle/grade:lock	1	1211018118	0
-207	1	1	moodle/grade:lock	1	1211018118	0
-208	1	3	moodle/grade:unlock	1	1211018118	0
-209	1	1	moodle/grade:unlock	1	1211018118	0
-210	1	7	moodle/my:manageblocks	1	1211018118	0
-211	1	4	moodle/notes:view	1	1211018118	0
-212	1	3	moodle/notes:view	1	1211018118	0
-213	1	1	moodle/notes:view	1	1211018118	0
-214	1	4	moodle/notes:manage	1	1211018118	0
-215	1	3	moodle/notes:manage	1	1211018118	0
-216	1	1	moodle/notes:manage	1	1211018118	0
-217	1	4	moodle/tag:manage	1	1211018118	0
-218	1	3	moodle/tag:manage	1	1211018118	0
-219	1	1	moodle/tag:manage	1	1211018118	0
-220	1	1	moodle/tag:create	1	1211018118	0
-221	1	7	moodle/tag:create	1	1211018118	0
-222	1	1	moodle/tag:edit	1	1211018118	0
-223	1	7	moodle/tag:edit	1	1211018118	0
-224	1	4	moodle/tag:editblocks	1	1211018118	0
-225	1	3	moodle/tag:editblocks	1	1211018118	0
-226	1	1	moodle/tag:editblocks	1	1211018118	0
-227	1	6	moodle/block:view	1	1211018118	0
-228	1	7	moodle/block:view	1	1211018118	0
-230	1	4	moodle/block:view	1	1211018118	0
-231	1	3	moodle/block:view	1	1211018118	0
-232	1	2	moodle/block:view	1	1211018118	0
-233	1	6	mod/assignment:view	1	1211018129	0
-235	1	4	mod/assignment:view	1	1211018129	0
-236	1	3	mod/assignment:view	1	1211018129	0
-237	1	1	mod/assignment:view	1	1211018129	0
-239	1	4	mod/assignment:grade	1	1211018129	0
-240	1	3	mod/assignment:grade	1	1211018129	0
-241	1	1	mod/assignment:grade	1	1211018129	0
-243	1	4	mod/chat:chat	1	1211018130	0
-244	1	3	mod/chat:chat	1	1211018130	0
-245	1	1	mod/chat:chat	1	1211018130	0
-247	1	4	mod/chat:readlog	1	1211018130	0
-248	1	3	mod/chat:readlog	1	1211018130	0
-249	1	1	mod/chat:readlog	1	1211018130	0
-250	1	4	mod/chat:deletelog	1	1211018130	0
-251	1	3	mod/chat:deletelog	1	1211018130	0
-252	1	1	mod/chat:deletelog	1	1211018130	0
-254	1	4	mod/choice:choose	1	1211018130	0
-255	1	3	mod/choice:choose	1	1211018130	0
-256	1	1	mod/choice:choose	1	1211018130	0
-257	1	4	mod/choice:readresponses	1	1211018130	0
-258	1	3	mod/choice:readresponses	1	1211018130	0
-259	1	1	mod/choice:readresponses	1	1211018130	0
-260	1	4	mod/choice:deleteresponses	1	1211018130	0
-261	1	3	mod/choice:deleteresponses	1	1211018130	0
-262	1	1	mod/choice:deleteresponses	1	1211018130	0
-263	1	4	mod/choice:downloadresponses	1	1211018130	0
-264	1	3	mod/choice:downloadresponses	1	1211018130	0
-265	1	1	mod/choice:downloadresponses	1	1211018130	0
-266	1	6	mod/data:viewentry	1	1211018131	0
-268	1	4	mod/data:viewentry	1	1211018131	0
-269	1	3	mod/data:viewentry	1	1211018131	0
-270	1	1	mod/data:viewentry	1	1211018131	0
-272	1	4	mod/data:writeentry	1	1211018131	0
-273	1	3	mod/data:writeentry	1	1211018131	0
-274	1	1	mod/data:writeentry	1	1211018131	0
-276	1	4	mod/data:comment	1	1211018131	0
-277	1	3	mod/data:comment	1	1211018131	0
-278	1	1	mod/data:comment	1	1211018131	0
-279	1	4	mod/data:viewrating	1	1211018131	0
-280	1	3	mod/data:viewrating	1	1211018131	0
-281	1	1	mod/data:viewrating	1	1211018131	0
-282	1	4	mod/data:rate	1	1211018131	0
-283	1	3	mod/data:rate	1	1211018131	0
-284	1	1	mod/data:rate	1	1211018131	0
-285	1	4	mod/data:approve	1	1211018131	0
-286	1	3	mod/data:approve	1	1211018131	0
-287	1	1	mod/data:approve	1	1211018131	0
-288	1	4	mod/data:manageentries	1	1211018131	0
-289	1	3	mod/data:manageentries	1	1211018131	0
-290	1	1	mod/data:manageentries	1	1211018131	0
-291	1	4	mod/data:managecomments	1	1211018131	0
-292	1	3	mod/data:managecomments	1	1211018131	0
-293	1	1	mod/data:managecomments	1	1211018131	0
-294	1	3	mod/data:managetemplates	1	1211018131	0
-295	1	1	mod/data:managetemplates	1	1211018131	0
-296	1	4	mod/data:viewalluserpresets	1	1211018131	0
-297	1	3	mod/data:viewalluserpresets	1	1211018131	0
-298	1	1	mod/data:viewalluserpresets	1	1211018131	0
-299	1	1	mod/data:manageuserpresets	1	1211018131	0
-242	1	5	mod/chat:chat	1	1211023766	2
-300	1	4	mod/exercise:assess	1	1211018131	0
-301	1	3	mod/exercise:assess	1	1211018131	0
-302	1	1	mod/exercise:assess	1	1211018131	0
-303	1	6	mod/feedback:view	1	1211018132	0
-304	1	7	mod/feedback:view	1	1211018132	0
-306	1	4	mod/feedback:view	1	1211018132	0
-307	1	3	mod/feedback:view	1	1211018132	0
-308	1	1	mod/feedback:view	1	1211018132	0
-309	1	7	mod/feedback:complete	1	1211018132	0
-311	1	3	mod/feedback:complete	-1	1211018132	0
-312	1	1	mod/feedback:complete	-1	1211018132	0
-313	1	3	mod/feedback:deletecompleteds	1	1211018132	0
-314	1	1	mod/feedback:deletecompleteds	1	1211018132	0
-315	1	1	mod/feedback:mapcourse	1	1211018132	0
-316	1	3	mod/feedback:edititems	1	1211018132	0
-317	1	1	mod/feedback:edititems	1	1211018132	0
-318	1	3	mod/feedback:createprivatetemplate	1	1211018132	0
-319	1	1	mod/feedback:createprivatetemplate	1	1211018132	0
-320	1	3	mod/feedback:createpublictemplate	1	1211018132	0
-321	1	1	mod/feedback:createpublictemplate	1	1211018132	0
-322	1	3	mod/feedback:deletetemplate	1	1211018132	0
-323	1	1	mod/feedback:deletetemplate	1	1211018132	0
-324	1	4	mod/feedback:viewreports	1	1211018132	0
-325	1	3	mod/feedback:viewreports	1	1211018132	0
-326	1	1	mod/feedback:viewreports	1	1211018132	0
-327	1	6	mod/forum:viewdiscussion	1	1211018133	0
-329	1	4	mod/forum:viewdiscussion	1	1211018133	0
-330	1	3	mod/forum:viewdiscussion	1	1211018133	0
-331	1	1	mod/forum:viewdiscussion	1	1211018133	0
-332	1	4	mod/forum:viewhiddentimedposts	1	1211018133	0
-333	1	3	mod/forum:viewhiddentimedposts	1	1211018133	0
-334	1	1	mod/forum:viewhiddentimedposts	1	1211018133	0
-336	1	4	mod/forum:startdiscussion	1	1211018133	0
-337	1	3	mod/forum:startdiscussion	1	1211018133	0
-338	1	1	mod/forum:startdiscussion	1	1211018133	0
-340	1	4	mod/forum:replypost	1	1211018133	0
-341	1	3	mod/forum:replypost	1	1211018133	0
-342	1	1	mod/forum:replypost	1	1211018133	0
-343	1	4	mod/forum:addnews	1	1211018133	0
-344	1	3	mod/forum:addnews	1	1211018133	0
-345	1	1	mod/forum:addnews	1	1211018133	0
-346	1	4	mod/forum:replynews	1	1211018133	0
-347	1	3	mod/forum:replynews	1	1211018133	0
-348	1	1	mod/forum:replynews	1	1211018133	0
-350	1	4	mod/forum:viewrating	1	1211018133	0
-351	1	3	mod/forum:viewrating	1	1211018133	0
-352	1	1	mod/forum:viewrating	1	1211018133	0
-353	1	4	mod/forum:viewanyrating	1	1211018133	0
-354	1	3	mod/forum:viewanyrating	1	1211018133	0
-355	1	1	mod/forum:viewanyrating	1	1211018133	0
-356	1	4	mod/forum:rate	1	1211018133	0
-357	1	3	mod/forum:rate	1	1211018133	0
-358	1	1	mod/forum:rate	1	1211018133	0
-360	1	4	mod/forum:createattachment	1	1211018133	0
-361	1	3	mod/forum:createattachment	1	1211018133	0
-362	1	1	mod/forum:createattachment	1	1211018133	0
-364	1	4	mod/forum:deleteownpost	1	1211018133	0
-365	1	3	mod/forum:deleteownpost	1	1211018133	0
-366	1	1	mod/forum:deleteownpost	1	1211018133	0
-367	1	4	mod/forum:deleteanypost	1	1211018133	0
-368	1	3	mod/forum:deleteanypost	1	1211018133	0
-369	1	1	mod/forum:deleteanypost	1	1211018133	0
-370	1	4	mod/forum:splitdiscussions	1	1211018133	0
-371	1	3	mod/forum:splitdiscussions	1	1211018133	0
-372	1	1	mod/forum:splitdiscussions	1	1211018133	0
-373	1	4	mod/forum:movediscussions	1	1211018133	0
-374	1	3	mod/forum:movediscussions	1	1211018133	0
-375	1	1	mod/forum:movediscussions	1	1211018133	0
-376	1	4	mod/forum:editanypost	1	1211018133	0
-377	1	3	mod/forum:editanypost	1	1211018133	0
-378	1	1	mod/forum:editanypost	1	1211018133	0
-379	1	4	mod/forum:viewqandawithoutposting	1	1211018133	0
-380	1	3	mod/forum:viewqandawithoutposting	1	1211018133	0
-381	1	1	mod/forum:viewqandawithoutposting	1	1211018133	0
-382	1	4	mod/forum:viewsubscribers	1	1211018133	0
-383	1	3	mod/forum:viewsubscribers	1	1211018133	0
-384	1	1	mod/forum:viewsubscribers	1	1211018133	0
-385	1	4	mod/forum:managesubscriptions	1	1211018133	0
-386	1	3	mod/forum:managesubscriptions	1	1211018133	0
-387	1	1	mod/forum:managesubscriptions	1	1211018133	0
-388	1	4	mod/forum:initialsubscriptions	1	1211018133	0
-389	1	3	mod/forum:initialsubscriptions	1	1211018133	0
-392	1	4	mod/glossary:write	1	1211018133	0
-393	1	3	mod/glossary:write	1	1211018133	0
-394	1	1	mod/glossary:write	1	1211018133	0
-395	1	4	mod/glossary:manageentries	1	1211018133	0
-396	1	3	mod/glossary:manageentries	1	1211018133	0
-397	1	1	mod/glossary:manageentries	1	1211018133	0
-398	1	4	mod/glossary:managecategories	1	1211018133	0
-399	1	3	mod/glossary:managecategories	1	1211018133	0
-400	1	1	mod/glossary:managecategories	1	1211018133	0
-402	1	4	mod/glossary:comment	1	1211018133	0
-403	1	3	mod/glossary:comment	1	1211018134	0
-404	1	1	mod/glossary:comment	1	1211018134	0
-405	1	4	mod/glossary:managecomments	1	1211018134	0
-406	1	3	mod/glossary:managecomments	1	1211018134	0
-407	1	1	mod/glossary:managecomments	1	1211018134	0
-408	1	4	mod/glossary:import	1	1211018134	0
-409	1	3	mod/glossary:import	1	1211018134	0
-410	1	1	mod/glossary:import	1	1211018134	0
-411	1	4	mod/glossary:export	1	1211018134	0
-412	1	3	mod/glossary:export	1	1211018134	0
-413	1	1	mod/glossary:export	1	1211018134	0
-414	1	4	mod/glossary:approve	1	1211018134	0
-415	1	3	mod/glossary:approve	1	1211018134	0
-416	1	1	mod/glossary:approve	1	1211018134	0
-417	1	4	mod/glossary:rate	1	1211018134	0
-418	1	3	mod/glossary:rate	1	1211018134	0
-419	1	1	mod/glossary:rate	1	1211018134	0
-420	1	4	mod/glossary:viewrating	1	1211018134	0
-421	1	3	mod/glossary:viewrating	1	1211018134	0
-422	1	1	mod/glossary:viewrating	1	1211018134	0
-424	1	4	mod/hotpot:attempt	1	1211018134	0
-425	1	3	mod/hotpot:attempt	1	1211018134	0
-426	1	1	mod/hotpot:attempt	1	1211018134	0
-427	1	4	mod/hotpot:viewreport	1	1211018134	0
-428	1	3	mod/hotpot:viewreport	1	1211018134	0
-429	1	1	mod/hotpot:viewreport	1	1211018134	0
-430	1	4	mod/hotpot:grade	1	1211018134	0
-431	1	3	mod/hotpot:grade	1	1211018134	0
-432	1	1	mod/hotpot:grade	1	1211018134	0
-433	1	3	mod/hotpot:deleteattempt	1	1211018134	0
-434	1	1	mod/hotpot:deleteattempt	1	1211018134	0
-436	1	4	mod/lams:manage	1	1211018134	0
-437	1	3	mod/lams:manage	1	1211018134	0
-438	1	1	mod/lams:manage	1	1211018134	0
-439	1	3	mod/lesson:edit	1	1211018135	0
-440	1	1	mod/lesson:edit	1	1211018135	0
-441	1	4	mod/lesson:manage	1	1211018135	0
-442	1	3	mod/lesson:manage	1	1211018135	0
-443	1	1	mod/lesson:manage	1	1211018135	0
-445	1	4	mod/questionnaire:view	1	1211018136	0
-446	1	3	mod/questionnaire:view	1	1211018136	0
-447	1	2	mod/questionnaire:view	1	1211018136	0
-448	1	1	mod/questionnaire:view	1	1211018136	0
-450	1	1	mod/questionnaire:submit	1	1211018136	0
-451	1	4	mod/questionnaire:viewsingleresponse	1	1211018136	0
-452	1	3	mod/questionnaire:viewsingleresponse	1	1211018136	0
-453	1	1	mod/questionnaire:viewsingleresponse	1	1211018136	0
-454	1	4	mod/questionnaire:downloadresponses	1	1211018136	0
-455	1	3	mod/questionnaire:downloadresponses	1	1211018136	0
-456	1	1	mod/questionnaire:downloadresponses	1	1211018136	0
-457	1	3	mod/questionnaire:deleteresponses	1	1211018136	0
-458	1	1	mod/questionnaire:deleteresponses	1	1211018136	0
-459	1	3	mod/questionnaire:manage	1	1211018136	0
-460	1	2	mod/questionnaire:manage	1	1211018136	0
-461	1	1	mod/questionnaire:manage	1	1211018136	0
-462	1	3	mod/questionnaire:editquestions	1	1211018136	0
-463	1	2	mod/questionnaire:editquestions	1	1211018136	0
-464	1	1	mod/questionnaire:editquestions	1	1211018136	0
-465	1	2	mod/questionnaire:createtemplates	1	1211018136	0
-466	1	1	mod/questionnaire:createtemplates	1	1211018136	0
-467	1	2	mod/questionnaire:createpublic	1	1211018136	0
-468	1	1	mod/questionnaire:createpublic	1	1211018136	0
-469	1	3	mod/questionnaire:copysurveys	1	1211018136	0
-470	1	2	mod/questionnaire:copysurveys	1	1211018136	0
-471	1	1	mod/questionnaire:copysurveys	1	1211018136	0
-472	1	1	mod/questionnaire:readownresponses	1	1211018136	0
-474	1	1	mod/questionnaire:readallresponses	1	1211018136	0
-475	1	4	mod/questionnaire:readallresponses	1	1211018136	0
-476	1	3	mod/questionnaire:readallresponses	1	1211018136	0
-477	1	1	mod/questionnaire:readallresponseanytime	1	1211018136	0
-478	1	4	mod/questionnaire:readallresponseanytime	1	1211018136	0
-479	1	3	mod/questionnaire:readallresponseanytime	1	1211018136	0
-480	1	6	mod/quiz:view	1	1211018137	0
-482	1	4	mod/quiz:view	1	1211018137	0
-483	1	3	mod/quiz:view	1	1211018137	0
-484	1	1	mod/quiz:view	1	1211018137	0
-486	1	3	mod/quiz:manage	1	1211018137	0
-487	1	1	mod/quiz:manage	1	1211018137	0
-488	1	4	mod/quiz:preview	1	1211018137	0
-489	1	3	mod/quiz:preview	1	1211018137	0
-490	1	1	mod/quiz:preview	1	1211018137	0
-491	1	4	mod/quiz:grade	1	1211018137	0
-492	1	3	mod/quiz:grade	1	1211018137	0
-493	1	1	mod/quiz:grade	1	1211018137	0
-494	1	4	mod/quiz:viewreports	1	1211018137	0
-495	1	3	mod/quiz:viewreports	1	1211018137	0
-496	1	1	mod/quiz:viewreports	1	1211018137	0
-497	1	3	mod/quiz:deleteattempts	1	1211018137	0
-498	1	1	mod/quiz:deleteattempts	1	1211018137	0
-499	1	4	mod/scorm:viewreport	1	1211018138	0
-500	1	3	mod/scorm:viewreport	1	1211018138	0
-501	1	1	mod/scorm:viewreport	1	1211018138	0
-504	1	4	mod/scorm:savetrack	1	1211018138	0
-505	1	3	mod/scorm:savetrack	1	1211018138	0
-506	1	1	mod/scorm:savetrack	1	1211018138	0
-508	1	4	mod/scorm:viewscores	1	1211018138	0
-509	1	3	mod/scorm:viewscores	1	1211018138	0
-510	1	1	mod/scorm:viewscores	1	1211018138	0
-512	1	4	mod/survey:participate	1	1211018139	0
-513	1	3	mod/survey:participate	1	1211018139	0
-514	1	1	mod/survey:participate	1	1211018139	0
-515	1	4	mod/survey:readresponses	1	1211018139	0
-516	1	3	mod/survey:readresponses	1	1211018139	0
-517	1	1	mod/survey:readresponses	1	1211018139	0
-518	1	4	mod/survey:download	1	1211018139	0
-519	1	3	mod/survey:download	1	1211018139	0
-520	1	1	mod/survey:download	1	1211018139	0
-521	1	3	mod/wiki:editanywiki	1	1211018141	0
-522	1	2	mod/wiki:editanywiki	1	1211018141	0
-523	1	1	mod/wiki:editanywiki	1	1211018141	0
-524	1	4	mod/wiki:editawiki	1	1211018141	0
-525	1	3	mod/wiki:editawiki	1	1211018141	0
-526	1	2	mod/wiki:editawiki	1	1211018141	0
-527	1	1	mod/wiki:editawiki	1	1211018141	0
-529	1	4	mod/wiki:caneditawiki	1	1211018141	0
-530	1	3	mod/wiki:caneditawiki	1	1211018141	0
-531	1	2	mod/wiki:caneditawiki	1	1211018141	0
-532	1	1	mod/wiki:caneditawiki	1	1211018141	0
-533	1	4	mod/wiki:canexporttopdf	1	1211018141	0
-534	1	3	mod/wiki:canexporttopdf	1	1211018141	0
-535	1	2	mod/wiki:canexporttopdf	1	1211018141	0
-536	1	1	mod/wiki:canexporttopdf	1	1211018141	0
-538	1	4	mod/wiki:viewevaluationswiki	1	1211018141	0
-539	1	3	mod/wiki:viewevaluationswiki	1	1211018141	0
-540	1	2	mod/wiki:viewevaluationswiki	1	1211018141	0
-541	1	1	mod/wiki:viewevaluationswiki	1	1211018141	0
-542	1	3	mod/wiki:evaluateanywiki	1	1211018141	0
-543	1	2	mod/wiki:evaluateanywiki	1	1211018141	0
-544	1	1	mod/wiki:evaluateanywiki	1	1211018141	0
-545	1	4	mod/wiki:evaluateawiki	1	1211018141	0
-546	1	3	mod/wiki:evaluateawiki	1	1211018141	0
-547	1	2	mod/wiki:evaluateawiki	1	1211018141	0
-548	1	1	mod/wiki:evaluateawiki	1	1211018141	0
-549	1	4	mod/wiki:adminactions	1	1211018141	0
-550	1	3	mod/wiki:adminactions	1	1211018141	0
-551	1	2	mod/wiki:adminactions	1	1211018141	0
-552	1	1	mod/wiki:adminactions	1	1211018141	0
-553	1	4	mod/wiki:overridelock	1	1211018141	0
-554	1	3	mod/wiki:overridelock	1	1211018141	0
-555	1	1	mod/wiki:overridelock	1	1211018141	0
-557	1	4	mod/wiki:uploadfiles	1	1211018141	0
-558	1	3	mod/wiki:uploadfiles	1	1211018141	0
-559	1	1	mod/wiki:uploadfiles	1	1211018141	0
-560	1	4	mod/wiki:deletefiles	1	1211018141	0
-561	1	3	mod/wiki:deletefiles	1	1211018141	0
-562	1	1	mod/wiki:deletefiles	1	1211018141	0
-563	1	4	mod/wiki:peerreview	1	1211018141	0
-564	1	3	mod/wiki:peerreview	1	1211018141	0
-566	1	4	mod/wiki:authorreview	1	1211018141	0
-567	1	3	mod/wiki:authorreview	1	1211018141	0
-568	1	4	mod/wiki:mainreview	1	1211018141	0
-569	1	3	mod/wiki:mainreview	1	1211018141	0
-570	1	1	mod/wiki:mainreview	1	1211018141	0
-572	1	4	mod/workshop:manage	1	1211018142	0
-573	1	3	mod/workshop:manage	1	1211018142	0
-574	1	1	mod/workshop:manage	1	1211018142	0
-575	1	7	block/exabis_eportfolio:use	1	1211018155	0
-576	1	7	block/exabis_eportfolio:export	1	1211018155	0
-577	1	7	block/exabis_eportfolio:importfrommoodle	1	1211018155	0
-578	1	7	block/exabis_eportfolio:shareintern	1	1211018155	0
-579	1	7	block/exabis_eportfolio:shareextern	1	1211018155	0
-580	1	7	block/exabis_eportfolio:allowposts	1	1211018155	0
-582	1	4	block/mrbs:viewmrbs	1	1211018155	0
-583	1	3	block/mrbs:viewmrbs	1	1211018155	0
-584	1	2	block/mrbs:viewmrbs	1	1211018155	0
-585	1	1	block/mrbs:viewmrbs	1	1211018155	0
-586	1	4	block/mrbs:editmrbs	1	1211018155	0
-587	1	3	block/mrbs:editmrbs	1	1211018155	0
-588	1	2	block/mrbs:editmrbs	1	1211018155	0
-589	1	1	block/mrbs:editmrbs	1	1211018155	0
-590	1	1	block/mrbs:administermrbs	1	1211018155	0
-591	1	4	block/rss_client:createprivatefeeds	1	1211018155	0
-592	1	3	block/rss_client:createprivatefeeds	1	1211018155	0
-593	1	1	block/rss_client:createprivatefeeds	1	1211018155	0
-594	1	3	block/rss_client:createsharedfeeds	1	1211018155	0
-595	1	1	block/rss_client:createsharedfeeds	1	1211018155	0
-596	1	4	block/rss_client:manageownfeeds	1	1211018155	0
-597	1	3	block/rss_client:manageownfeeds	1	1211018155	0
-598	1	1	block/rss_client:manageownfeeds	1	1211018155	0
-599	1	1	block/rss_client:manageanyfeeds	1	1211018155	0
-600	1	1	enrol/authorize:managepayments	1	1211018157	0
-601	1	1	enrol/authorize:uploadcsv	1	1211018157	0
-602	1	4	gradeexport/ods:view	1	1211018159	0
-603	1	3	gradeexport/ods:view	1	1211018159	0
-604	1	1	gradeexport/ods:view	1	1211018159	0
-605	1	1	gradeexport/ods:publish	1	1211018159	0
-606	1	4	gradeexport/txt:view	1	1211018159	0
-607	1	3	gradeexport/txt:view	1	1211018159	0
-608	1	1	gradeexport/txt:view	1	1211018159	0
-609	1	1	gradeexport/txt:publish	1	1211018159	0
-610	1	4	gradeexport/xls:view	1	1211018159	0
-611	1	3	gradeexport/xls:view	1	1211018159	0
-612	1	1	gradeexport/xls:view	1	1211018159	0
-613	1	1	gradeexport/xls:publish	1	1211018159	0
-614	1	4	gradeexport/xml:view	1	1211018159	0
-615	1	3	gradeexport/xml:view	1	1211018159	0
-616	1	1	gradeexport/xml:view	1	1211018159	0
-617	1	1	gradeexport/xml:publish	1	1211018159	0
-618	1	3	gradeimport/csv:view	1	1211018161	0
-619	1	1	gradeimport/csv:view	1	1211018161	0
-620	1	3	gradeimport/xml:view	1	1211018161	0
-621	1	1	gradeimport/xml:view	1	1211018161	0
-622	1	1	gradeimport/xml:publish	1	1211018161	0
-623	1	4	gradereport/grader:view	1	1211018164	0
-624	1	3	gradereport/grader:view	1	1211018164	0
-625	1	1	gradereport/grader:view	1	1211018164	0
-626	1	4	gradereport/outcomes:view	1	1211018164	0
-627	1	3	gradereport/outcomes:view	1	1211018164	0
-628	1	1	gradereport/outcomes:view	1	1211018164	0
-629	1	4	gradereport/overview:view	1	1211018164	0
-630	1	3	gradereport/overview:view	1	1211018164	0
-632	1	1	gradereport/overview:view	1	1211018164	0
-634	1	4	gradereport/user:view	1	1211018164	0
-635	1	3	gradereport/user:view	1	1211018164	0
-636	1	1	gradereport/user:view	1	1211018164	0
-637	2	7	moodle/user:editownprofile	1	1211023520	2
-41	1	5	moodle/user:viewdetails	1	1211023766	2
-46	1	5	moodle/user:viewhiddendetails	-1	1211023766	2
-116	1	5	moodle/blog:view	1	1211023766	2
-638	1	5	moodle/user:editownprofile	1	1211023766	2
-581	1	5	block/mrbs:viewmrbs	1	1211023766	2
-140	1	5	moodle/user:readuserposts	1	1211023766	2
-144	1	5	moodle/user:readuserblogs	1	1211023766	2
-631	1	5	gradereport/overview:view	1	1211023766	2
-633	1	5	gradereport/user:view	1	1211023766	2
-74	1	5	moodle/course:view	1	1211023766	2
-99	1	5	moodle/course:viewparticipants	1	1211023766	2
-104	1	5	moodle/course:viewscales	1	1211023766	2
-187	1	5	moodle/grade:view	1	1211023766	2
-234	1	5	mod/assignment:view	1	1211023766	2
-238	1	5	mod/assignment:submit	1	1211023766	2
-246	1	5	mod/chat:readlog	1	1211023766	2
-253	1	5	mod/choice:choose	1	1211023766	2
-267	1	5	mod/data:viewentry	1	1211023766	2
-271	1	5	mod/data:writeentry	1	1211023766	2
-275	1	5	mod/data:comment	1	1211023766	2
-305	1	5	mod/feedback:view	1	1211023766	2
-310	1	5	mod/feedback:complete	1	1211023766	2
-328	1	5	mod/forum:viewdiscussion	1	1211023766	2
-335	1	5	mod/forum:startdiscussion	1	1211023766	2
-339	1	5	mod/forum:replypost	1	1211023766	2
-349	1	5	mod/forum:viewrating	1	1211023766	2
-359	1	5	mod/forum:createattachment	1	1211023766	2
-363	1	5	mod/forum:deleteownpost	1	1211023766	2
-390	1	5	mod/forum:initialsubscriptions	1	1211023766	2
-391	1	5	mod/glossary:write	1	1211023766	2
-401	1	5	mod/glossary:comment	1	1211023766	2
-423	1	5	mod/hotpot:attempt	1	1211023767	2
-435	1	5	mod/lams:participate	1	1211023767	2
-444	1	5	mod/questionnaire:view	1	1211023767	2
-449	1	5	mod/questionnaire:submit	1	1211023767	2
-473	1	5	mod/questionnaire:readownresponses	1	1211023767	2
-481	1	5	mod/quiz:view	1	1211023767	2
-485	1	5	mod/quiz:attempt	1	1211023767	2
-502	1	5	mod/scorm:skipview	1	1211023767	2
-503	1	5	mod/scorm:savetrack	1	1211023767	2
-507	1	5	mod/scorm:viewscores	1	1211023767	2
-511	1	5	mod/survey:participate	1	1211023767	2
-528	1	5	mod/wiki:caneditawiki	1	1211023767	2
-537	1	5	mod/wiki:viewevaluationswiki	1	1211023767	2
-556	1	5	mod/wiki:uploadfiles	1	1211023767	2
-565	1	5	mod/wiki:peerreview	1	1211023767	2
-571	1	5	mod/workshop:participate	1	1211023767	2
-229	1	5	moodle/block:view	1	1211023767	2
+1	1	1	moodle/legacy:admin	1	1278849800	0
+2	1	2	moodle/legacy:coursecreator	1	1278849800	0
+3	1	3	moodle/legacy:editingteacher	1	1278849800	0
+4	1	4	moodle/legacy:teacher	1	1278849800	0
+5	1	5	moodle/legacy:student	1	1278849800	0
+6	1	6	moodle/legacy:guest	1	1278849800	0
+7	1	7	moodle/legacy:user	1	1278849800	0
+8	1	1	moodle/site:doanything	1	1278849800	0
+9	1	1	moodle/site:config	1	1278849800	0
+10	1	1	moodle/site:readallmessages	1	1278849800	0
+11	1	3	moodle/site:readallmessages	1	1278849800	0
+12	1	1	moodle/site:sendmessage	1	1278849800	0
+13	1	7	moodle/site:sendmessage	1	1278849800	0
+14	1	1	moodle/site:approvecourse	1	1278849800	0
+15	1	3	moodle/site:import	1	1278849800	0
+16	1	1	moodle/site:import	1	1278849800	0
+17	1	3	moodle/site:backup	1	1278849800	0
+18	1	1	moodle/site:backup	1	1278849800	0
+19	1	3	moodle/site:restore	1	1278849800	0
+20	1	1	moodle/site:restore	1	1278849801	0
+21	1	3	moodle/site:manageblocks	1	1278849801	0
+22	1	1	moodle/site:manageblocks	1	1278849801	0
+23	1	4	moodle/site:accessallgroups	1	1278849801	0
+24	1	3	moodle/site:accessallgroups	1	1278849801	0
+25	1	1	moodle/site:accessallgroups	1	1278849801	0
+26	1	4	moodle/site:viewfullnames	1	1278849801	0
+27	1	3	moodle/site:viewfullnames	1	1278849801	0
+28	1	1	moodle/site:viewfullnames	1	1278849801	0
+29	1	4	moodle/site:viewreports	-1	1278849801	0
+30	1	3	moodle/site:viewreports	-1	1278849801	0
+31	1	1	moodle/site:viewreports	1	1278849801	0
+32	1	3	moodle/site:trustcontent	1	1278849801	0
+33	1	1	moodle/site:trustcontent	1	1278849801	0
+34	1	1	moodle/site:uploadusers	1	1278849801	0
+35	1	1	moodle/site:langeditmaster	-1	1278849801	0
+36	1	1	moodle/site:langeditlocal	1	1278849801	0
+37	1	1	moodle/user:create	1	1278849801	0
+38	1	1	moodle/user:delete	1	1278849801	0
+39	1	1	moodle/user:update	1	1278849801	0
+40	1	6	moodle/user:viewdetails	1	1278849801	0
+41	1	5	moodle/user:viewdetails	1	1278849801	0
+42	1	4	moodle/user:viewdetails	1	1278849801	0
+43	1	3	moodle/user:viewdetails	1	1278849801	0
+44	1	1	moodle/user:viewdetails	1	1278849801	0
+45	1	6	moodle/user:viewhiddendetails	-1	1278849801	0
+46	1	5	moodle/user:viewhiddendetails	-1	1278849801	0
+47	1	4	moodle/user:viewhiddendetails	-1	1278849801	0
+48	1	3	moodle/user:viewhiddendetails	-1	1278849801	0
+49	1	1	moodle/user:viewhiddendetails	1	1278849801	0
+50	1	1	moodle/user:loginas	1	1278849801	0
+51	1	3	moodle/role:assign	1	1278849801	0
+52	1	1	moodle/role:assign	1	1278849801	0
+53	1	1	moodle/role:override	1	1278849801	0
+54	1	1	moodle/role:manage	1	1278849801	0
+55	1	4	moodle/role:unassignself	1	1278849801	0
+56	1	3	moodle/role:unassignself	1	1278849801	0
+57	1	2	moodle/role:unassignself	1	1278849801	0
+58	1	1	moodle/role:unassignself	1	1278849801	0
+59	1	4	moodle/role:viewhiddenassigns	1	1278849801	0
+60	1	3	moodle/role:viewhiddenassigns	1	1278849801	0
+61	1	1	moodle/role:viewhiddenassigns	1	1278849801	0
+62	1	3	moodle/role:switchroles	1	1278849801	0
+63	1	1	moodle/role:switchroles	1	1278849801	0
+64	1	1	moodle/category:create	1	1278849801	0
+65	1	1	moodle/category:delete	1	1278849801	0
+66	1	1	moodle/category:update	1	1278849801	0
+67	1	1	moodle/category:visibility	1	1278849801	0
+68	1	2	moodle/course:create	1	1278849801	0
+69	1	1	moodle/course:create	1	1278849801	0
+70	1	1	moodle/course:delete	1	1278849801	0
+71	1	3	moodle/course:update	1	1278849801	0
+72	1	1	moodle/course:update	1	1278849801	0
+73	1	6	moodle/course:view	1	1278849801	0
+74	1	5	moodle/course:view	1	1278849801	0
+75	1	4	moodle/course:view	1	1278849801	0
+76	1	3	moodle/course:view	1	1278849801	0
+77	1	4	moodle/course:bulkmessaging	1	1278849801	0
+78	1	3	moodle/course:bulkmessaging	1	1278849801	0
+79	1	1	moodle/course:bulkmessaging	1	1278849801	0
+80	1	4	moodle/course:viewhiddenuserfields	-1	1278849801	0
+81	1	3	moodle/course:viewhiddenuserfields	-1	1278849801	0
+82	1	1	moodle/course:viewhiddenuserfields	1	1278849801	0
+83	1	2	moodle/course:viewhiddencourses	1	1278849801	0
+84	1	4	moodle/course:viewhiddencourses	1	1278849801	0
+85	1	3	moodle/course:viewhiddencourses	1	1278849801	0
+86	1	1	moodle/course:viewhiddencourses	1	1278849801	0
+87	1	1	moodle/course:visibility	1	1278849801	0
+88	1	3	moodle/course:managefiles	1	1278849801	0
+89	1	1	moodle/course:managefiles	1	1278849801	0
+90	1	3	moodle/course:manageactivities	1	1278849801	0
+91	1	1	moodle/course:manageactivities	1	1278849801	0
+92	1	3	moodle/course:managemetacourse	1	1278849801	0
+93	1	1	moodle/course:managemetacourse	1	1278849801	0
+94	1	3	moodle/course:activityvisibility	1	1278849801	0
+95	1	1	moodle/course:activityvisibility	1	1278849801	0
+96	1	4	moodle/course:viewhiddenactivities	1	1278849801	0
+97	1	3	moodle/course:viewhiddenactivities	1	1278849801	0
+98	1	1	moodle/course:viewhiddenactivities	1	1278849801	0
+99	1	5	moodle/course:viewparticipants	1	1278849801	0
+100	1	4	moodle/course:viewparticipants	1	1278849801	0
+101	1	3	moodle/course:viewparticipants	1	1278849801	0
+102	1	1	moodle/course:viewparticipants	1	1278849801	0
+103	1	1	moodle/site:viewparticipants	1	1278849801	0
+104	1	5	moodle/course:viewscales	1	1278849801	0
+105	1	4	moodle/course:viewscales	1	1278849801	0
+106	1	3	moodle/course:viewscales	1	1278849801	0
+107	1	1	moodle/course:viewscales	1	1278849801	0
+108	1	3	moodle/course:managescales	1	1278849801	0
+109	1	1	moodle/course:managescales	1	1278849801	0
+110	1	3	moodle/course:managegroups	1	1278849802	0
+111	1	1	moodle/course:managegroups	1	1278849802	0
+112	1	3	moodle/course:reset	1	1278849802	0
+113	1	1	moodle/course:reset	1	1278849802	0
+114	1	6	moodle/blog:view	1	1278849802	0
+115	1	7	moodle/blog:view	1	1278849802	0
+116	1	5	moodle/blog:view	1	1278849802	0
+117	1	4	moodle/blog:view	1	1278849802	0
+118	1	3	moodle/blog:view	1	1278849802	0
+119	1	1	moodle/blog:view	1	1278849802	0
+120	1	7	moodle/blog:create	1	1278849802	0
+121	1	1	moodle/blog:create	1	1278849802	0
+122	1	4	moodle/blog:manageentries	1	1278849802	0
+123	1	3	moodle/blog:manageentries	1	1278849802	0
+124	1	1	moodle/blog:manageentries	1	1278849802	0
+125	1	7	moodle/calendar:manageownentries	1	1278849802	0
+126	1	1	moodle/calendar:manageownentries	1	1278849802	0
+127	1	4	moodle/calendar:managegroupentries	1	1278849802	0
+128	1	3	moodle/calendar:managegroupentries	1	1278849802	0
+129	1	1	moodle/calendar:managegroupentries	1	1278849802	0
+130	1	4	moodle/calendar:manageentries	1	1278849802	0
+131	1	3	moodle/calendar:manageentries	1	1278849802	0
+132	1	1	moodle/calendar:manageentries	1	1278849802	0
+133	1	1	moodle/user:editprofile	1	1278849802	0
+134	1	6	moodle/user:editownprofile	-1000	1278849802	0
+135	1	7	moodle/user:editownprofile	1	1278849802	0
+136	1	1	moodle/user:editownprofile	1	1278849802	0
+137	1	6	moodle/user:changeownpassword	-1000	1278849802	0
+138	1	7	moodle/user:changeownpassword	1	1278849802	0
+139	1	1	moodle/user:changeownpassword	1	1278849802	0
+140	1	5	moodle/user:readuserposts	1	1278849802	0
+141	1	4	moodle/user:readuserposts	1	1278849802	0
+142	1	3	moodle/user:readuserposts	1	1278849802	0
+143	1	1	moodle/user:readuserposts	1	1278849802	0
+144	1	5	moodle/user:readuserblogs	1	1278849802	0
+145	1	4	moodle/user:readuserblogs	1	1278849802	0
+146	1	3	moodle/user:readuserblogs	1	1278849802	0
+147	1	1	moodle/user:readuserblogs	1	1278849802	0
+148	1	4	moodle/user:viewuseractivitiesreport	-1	1278849802	0
+149	1	3	moodle/user:viewuseractivitiesreport	-1	1278849802	0
+150	1	1	moodle/user:viewuseractivitiesreport	1	1278849802	0
+151	1	3	moodle/question:managecategory	1	1278849802	0
+152	1	1	moodle/question:managecategory	1	1278849802	0
+153	1	3	moodle/question:add	1	1278849802	0
+154	1	1	moodle/question:add	1	1278849802	0
+155	1	3	moodle/question:editmine	1	1278849802	0
+156	1	1	moodle/question:editmine	1	1278849802	0
+157	1	3	moodle/question:editall	1	1278849802	0
+158	1	1	moodle/question:editall	1	1278849802	0
+159	1	3	moodle/question:viewmine	1	1278849802	0
+160	1	1	moodle/question:viewmine	1	1278849802	0
+161	1	3	moodle/question:viewall	1	1278849802	0
+162	1	1	moodle/question:viewall	1	1278849802	0
+163	1	3	moodle/question:usemine	1	1278849802	0
+164	1	1	moodle/question:usemine	1	1278849802	0
+165	1	3	moodle/question:useall	1	1278849802	0
+166	1	1	moodle/question:useall	1	1278849802	0
+167	1	3	moodle/question:movemine	1	1278849802	0
+168	1	1	moodle/question:movemine	1	1278849802	0
+169	1	3	moodle/question:moveall	1	1278849802	0
+170	1	1	moodle/question:moveall	1	1278849802	0
+171	1	1	moodle/question:config	1	1278849802	0
+172	1	4	moodle/site:doclinks	1	1278849802	0
+173	1	3	moodle/site:doclinks	1	1278849802	0
+174	1	1	moodle/site:doclinks	1	1278849802	0
+175	1	3	moodle/course:sectionvisibility	1	1278849802	0
+176	1	1	moodle/course:sectionvisibility	1	1278849802	0
+177	1	3	moodle/course:useremail	1	1278849802	0
+178	1	1	moodle/course:useremail	1	1278849802	0
+179	1	3	moodle/course:viewhiddensections	1	1278849802	0
+180	1	1	moodle/course:viewhiddensections	1	1278849802	0
+181	1	3	moodle/course:setcurrentsection	1	1278849802	0
+182	1	1	moodle/course:setcurrentsection	1	1278849802	0
+183	1	1	moodle/site:mnetlogintoremote	1	1278849802	0
+184	1	4	moodle/grade:viewall	1	1278849802	0
+185	1	3	moodle/grade:viewall	1	1278849802	0
+186	1	1	moodle/grade:viewall	1	1278849802	0
+187	1	5	moodle/grade:view	1	1278849802	0
+188	1	4	moodle/grade:viewhidden	1	1278849802	0
+189	1	3	moodle/grade:viewhidden	1	1278849802	0
+190	1	1	moodle/grade:viewhidden	1	1278849802	0
+191	1	3	moodle/grade:import	1	1278849802	0
+192	1	1	moodle/grade:import	1	1278849802	0
+193	1	4	moodle/grade:export	1	1278849802	0
+194	1	3	moodle/grade:export	1	1278849802	0
+195	1	1	moodle/grade:export	1	1278849802	0
+196	1	3	moodle/grade:manage	1	1278849802	0
+197	1	1	moodle/grade:manage	1	1278849802	0
+198	1	3	moodle/grade:edit	1	1278849802	0
+199	1	1	moodle/grade:edit	1	1278849802	0
+200	1	3	moodle/grade:manageoutcomes	1	1278849802	0
+201	1	1	moodle/grade:manageoutcomes	1	1278849802	0
+202	1	3	moodle/grade:manageletters	1	1278849802	0
+203	1	1	moodle/grade:manageletters	1	1278849803	0
+204	1	3	moodle/grade:hide	1	1278849803	0
+205	1	1	moodle/grade:hide	1	1278849803	0
+206	1	3	moodle/grade:lock	1	1278849803	0
+207	1	1	moodle/grade:lock	1	1278849803	0
+208	1	3	moodle/grade:unlock	1	1278849803	0
+209	1	1	moodle/grade:unlock	1	1278849803	0
+210	1	7	moodle/my:manageblocks	1	1278849803	0
+211	1	4	moodle/notes:view	1	1278849803	0
+212	1	3	moodle/notes:view	1	1278849803	0
+213	1	1	moodle/notes:view	1	1278849803	0
+214	1	4	moodle/notes:manage	1	1278849803	0
+215	1	3	moodle/notes:manage	1	1278849803	0
+216	1	1	moodle/notes:manage	1	1278849803	0
+217	1	4	moodle/tag:manage	1	1278849803	0
+218	1	3	moodle/tag:manage	1	1278849803	0
+219	1	1	moodle/tag:manage	1	1278849803	0
+220	1	1	moodle/tag:create	1	1278849803	0
+221	1	7	moodle/tag:create	1	1278849803	0
+222	1	1	moodle/tag:edit	1	1278849803	0
+223	1	7	moodle/tag:edit	1	1278849803	0
+224	1	4	moodle/tag:editblocks	1	1278849803	0
+225	1	3	moodle/tag:editblocks	1	1278849803	0
+226	1	1	moodle/tag:editblocks	1	1278849803	0
+227	1	6	moodle/block:view	1	1278849803	0
+228	1	7	moodle/block:view	1	1278849803	0
+229	1	5	moodle/block:view	1	1278849803	0
+230	1	4	moodle/block:view	1	1278849803	0
+231	1	3	moodle/block:view	1	1278849803	0
+232	1	2	moodle/block:view	1	1278849803	0
+233	1	6	mod/assignment:view	1	1278849809	0
+234	1	5	mod/assignment:view	1	1278849809	0
+235	1	4	mod/assignment:view	1	1278849809	0
+236	1	3	mod/assignment:view	1	1278849809	0
+237	1	1	mod/assignment:view	1	1278849809	0
+238	1	5	mod/assignment:submit	1	1278849809	0
+239	1	4	mod/assignment:grade	1	1278849809	0
+240	1	3	mod/assignment:grade	1	1278849809	0
+241	1	1	mod/assignment:grade	1	1278849809	0
+242	1	5	mod/chat:chat	1	1278849810	0
+243	1	4	mod/chat:chat	1	1278849810	0
+244	1	3	mod/chat:chat	1	1278849810	0
+245	1	1	mod/chat:chat	1	1278849810	0
+246	1	5	mod/chat:readlog	1	1278849810	0
+247	1	4	mod/chat:readlog	1	1278849810	0
+248	1	3	mod/chat:readlog	1	1278849810	0
+249	1	1	mod/chat:readlog	1	1278849810	0
+250	1	4	mod/chat:deletelog	1	1278849810	0
+251	1	3	mod/chat:deletelog	1	1278849810	0
+252	1	1	mod/chat:deletelog	1	1278849810	0
+253	1	5	mod/choice:choose	1	1278849810	0
+254	1	4	mod/choice:choose	1	1278849810	0
+255	1	3	mod/choice:choose	1	1278849810	0
+256	1	1	mod/choice:choose	1	1278849810	0
+257	1	4	mod/choice:readresponses	1	1278849810	0
+258	1	3	mod/choice:readresponses	1	1278849810	0
+259	1	1	mod/choice:readresponses	1	1278849810	0
+260	1	4	mod/choice:deleteresponses	1	1278849810	0
+261	1	3	mod/choice:deleteresponses	1	1278849810	0
+262	1	1	mod/choice:deleteresponses	1	1278849810	0
+263	1	4	mod/choice:downloadresponses	1	1278849810	0
+264	1	3	mod/choice:downloadresponses	1	1278849810	0
+265	1	1	mod/choice:downloadresponses	1	1278849810	0
+266	1	6	mod/data:viewentry	1	1278849811	0
+267	1	5	mod/data:viewentry	1	1278849811	0
+268	1	4	mod/data:viewentry	1	1278849811	0
+269	1	3	mod/data:viewentry	1	1278849811	0
+270	1	1	mod/data:viewentry	1	1278849811	0
+271	1	5	mod/data:writeentry	1	1278849811	0
+272	1	4	mod/data:writeentry	1	1278849811	0
+273	1	3	mod/data:writeentry	1	1278849811	0
+274	1	1	mod/data:writeentry	1	1278849811	0
+275	1	5	mod/data:comment	1	1278849811	0
+276	1	4	mod/data:comment	1	1278849811	0
+277	1	3	mod/data:comment	1	1278849811	0
+278	1	1	mod/data:comment	1	1278849811	0
+279	1	4	mod/data:viewrating	1	1278849811	0
+280	1	3	mod/data:viewrating	1	1278849811	0
+281	1	1	mod/data:viewrating	1	1278849811	0
+282	1	4	mod/data:rate	1	1278849811	0
+283	1	3	mod/data:rate	1	1278849811	0
+284	1	1	mod/data:rate	1	1278849811	0
+285	1	4	mod/data:approve	1	1278849811	0
+286	1	3	mod/data:approve	1	1278849811	0
+287	1	1	mod/data:approve	1	1278849811	0
+288	1	4	mod/data:manageentries	1	1278849811	0
+289	1	3	mod/data:manageentries	1	1278849811	0
+290	1	1	mod/data:manageentries	1	1278849811	0
+291	1	4	mod/data:managecomments	1	1278849811	0
+292	1	3	mod/data:managecomments	1	1278849811	0
+293	1	1	mod/data:managecomments	1	1278849811	0
+294	1	3	mod/data:managetemplates	1	1278849811	0
+295	1	1	mod/data:managetemplates	1	1278849811	0
+296	1	4	mod/data:viewalluserpresets	1	1278849811	0
+297	1	3	mod/data:viewalluserpresets	1	1278849811	0
+298	1	1	mod/data:viewalluserpresets	1	1278849811	0
+299	1	1	mod/data:manageuserpresets	1	1278849811	0
+300	1	4	mod/exercise:assess	1	1278849812	0
+301	1	3	mod/exercise:assess	1	1278849812	0
+302	1	1	mod/exercise:assess	1	1278849812	0
+303	1	6	mod/feedback:view	1	1278849812	0
+304	1	7	mod/feedback:view	1	1278849812	0
+305	1	5	mod/feedback:view	1	1278849812	0
+306	1	4	mod/feedback:view	1	1278849812	0
+307	1	3	mod/feedback:view	1	1278849812	0
+308	1	1	mod/feedback:view	1	1278849812	0
+309	1	7	mod/feedback:complete	1	1278849812	0
+310	1	5	mod/feedback:complete	1	1278849812	0
+311	1	3	mod/feedback:complete	-1	1278849812	0
+312	1	1	mod/feedback:complete	-1	1278849812	0
+313	1	3	mod/feedback:deletecompleteds	1	1278849812	0
+314	1	1	mod/feedback:deletecompleteds	1	1278849812	0
+315	1	1	mod/feedback:mapcourse	1	1278849812	0
+316	1	3	mod/feedback:edititems	1	1278849812	0
+317	1	1	mod/feedback:edititems	1	1278849812	0
+318	1	3	mod/feedback:createprivatetemplate	1	1278849812	0
+319	1	1	mod/feedback:createprivatetemplate	1	1278849812	0
+320	1	3	mod/feedback:createpublictemplate	1	1278849812	0
+321	1	1	mod/feedback:createpublictemplate	1	1278849812	0
+322	1	3	mod/feedback:deletetemplate	1	1278849812	0
+323	1	1	mod/feedback:deletetemplate	1	1278849813	0
+324	1	4	mod/feedback:viewreports	1	1278849813	0
+325	1	3	mod/feedback:viewreports	1	1278849813	0
+326	1	1	mod/feedback:viewreports	1	1278849813	0
+327	1	6	mod/forum:viewdiscussion	1	1278849813	0
+328	1	5	mod/forum:viewdiscussion	1	1278849813	0
+329	1	4	mod/forum:viewdiscussion	1	1278849813	0
+330	1	3	mod/forum:viewdiscussion	1	1278849813	0
+331	1	1	mod/forum:viewdiscussion	1	1278849813	0
+332	1	4	mod/forum:viewhiddentimedposts	1	1278849813	0
+333	1	3	mod/forum:viewhiddentimedposts	1	1278849813	0
+334	1	1	mod/forum:viewhiddentimedposts	1	1278849813	0
+335	1	5	mod/forum:startdiscussion	1	1278849813	0
+336	1	4	mod/forum:startdiscussion	1	1278849813	0
+337	1	3	mod/forum:startdiscussion	1	1278849813	0
+338	1	1	mod/forum:startdiscussion	1	1278849813	0
+339	1	5	mod/forum:replypost	1	1278849813	0
+340	1	4	mod/forum:replypost	1	1278849813	0
+341	1	3	mod/forum:replypost	1	1278849813	0
+342	1	1	mod/forum:replypost	1	1278849813	0
+343	1	4	mod/forum:addnews	1	1278849813	0
+344	1	3	mod/forum:addnews	1	1278849813	0
+345	1	1	mod/forum:addnews	1	1278849814	0
+346	1	4	mod/forum:replynews	1	1278849814	0
+347	1	3	mod/forum:replynews	1	1278849814	0
+348	1	1	mod/forum:replynews	1	1278849814	0
+349	1	5	mod/forum:viewrating	1	1278849814	0
+350	1	4	mod/forum:viewrating	1	1278849814	0
+351	1	3	mod/forum:viewrating	1	1278849814	0
+352	1	1	mod/forum:viewrating	1	1278849814	0
+353	1	4	mod/forum:viewanyrating	1	1278849814	0
+354	1	3	mod/forum:viewanyrating	1	1278849814	0
+355	1	1	mod/forum:viewanyrating	1	1278849814	0
+356	1	4	mod/forum:rate	1	1278849814	0
+357	1	3	mod/forum:rate	1	1278849814	0
+358	1	1	mod/forum:rate	1	1278849814	0
+359	1	5	mod/forum:createattachment	1	1278849814	0
+360	1	4	mod/forum:createattachment	1	1278849814	0
+361	1	3	mod/forum:createattachment	1	1278849814	0
+362	1	1	mod/forum:createattachment	1	1278849814	0
+363	1	5	mod/forum:deleteownpost	1	1278849814	0
+364	1	4	mod/forum:deleteownpost	1	1278849814	0
+365	1	3	mod/forum:deleteownpost	1	1278849814	0
+366	1	1	mod/forum:deleteownpost	1	1278849814	0
+367	1	4	mod/forum:deleteanypost	1	1278849814	0
+368	1	3	mod/forum:deleteanypost	1	1278849814	0
+369	1	1	mod/forum:deleteanypost	1	1278849814	0
+370	1	4	mod/forum:splitdiscussions	1	1278849814	0
+371	1	3	mod/forum:splitdiscussions	1	1278849814	0
+372	1	1	mod/forum:splitdiscussions	1	1278849814	0
+373	1	4	mod/forum:movediscussions	1	1278849814	0
+374	1	3	mod/forum:movediscussions	1	1278849814	0
+375	1	1	mod/forum:movediscussions	1	1278849814	0
+376	1	4	mod/forum:editanypost	1	1278849814	0
+377	1	3	mod/forum:editanypost	1	1278849814	0
+378	1	1	mod/forum:editanypost	1	1278849814	0
+379	1	4	mod/forum:viewqandawithoutposting	1	1278849814	0
+380	1	3	mod/forum:viewqandawithoutposting	1	1278849814	0
+381	1	1	mod/forum:viewqandawithoutposting	1	1278849814	0
+382	1	4	mod/forum:viewsubscribers	1	1278849814	0
+383	1	3	mod/forum:viewsubscribers	1	1278849814	0
+384	1	1	mod/forum:viewsubscribers	1	1278849814	0
+385	1	4	mod/forum:managesubscriptions	1	1278849814	0
+386	1	3	mod/forum:managesubscriptions	1	1278849814	0
+387	1	1	mod/forum:managesubscriptions	1	1278849814	0
+388	1	4	mod/forum:initialsubscriptions	1	1278849814	0
+389	1	3	mod/forum:initialsubscriptions	1	1278849814	0
+390	1	5	mod/forum:initialsubscriptions	1	1278849814	0
+391	1	5	mod/glossary:write	1	1278849815	0
+392	1	4	mod/glossary:write	1	1278849815	0
+393	1	3	mod/glossary:write	1	1278849815	0
+394	1	1	mod/glossary:write	1	1278849815	0
+395	1	4	mod/glossary:manageentries	1	1278849815	0
+396	1	3	mod/glossary:manageentries	1	1278849815	0
+397	1	1	mod/glossary:manageentries	1	1278849815	0
+398	1	4	mod/glossary:managecategories	1	1278849815	0
+399	1	3	mod/glossary:managecategories	1	1278849815	0
+400	1	1	mod/glossary:managecategories	1	1278849815	0
+401	1	5	mod/glossary:comment	1	1278849815	0
+402	1	4	mod/glossary:comment	1	1278849815	0
+403	1	3	mod/glossary:comment	1	1278849815	0
+404	1	1	mod/glossary:comment	1	1278849815	0
+405	1	4	mod/glossary:managecomments	1	1278849815	0
+406	1	3	mod/glossary:managecomments	1	1278849815	0
+407	1	1	mod/glossary:managecomments	1	1278849815	0
+408	1	4	mod/glossary:import	1	1278849815	0
+409	1	3	mod/glossary:import	1	1278849815	0
+410	1	1	mod/glossary:import	1	1278849815	0
+411	1	4	mod/glossary:export	1	1278849815	0
+412	1	3	mod/glossary:export	1	1278849815	0
+413	1	1	mod/glossary:export	1	1278849815	0
+414	1	4	mod/glossary:approve	1	1278849815	0
+415	1	3	mod/glossary:approve	1	1278849815	0
+416	1	1	mod/glossary:approve	1	1278849815	0
+417	1	4	mod/glossary:rate	1	1278849815	0
+418	1	3	mod/glossary:rate	1	1278849815	0
+419	1	1	mod/glossary:rate	1	1278849815	0
+420	1	4	mod/glossary:viewrating	1	1278849815	0
+421	1	3	mod/glossary:viewrating	1	1278849815	0
+422	1	1	mod/glossary:viewrating	1	1278849815	0
+423	1	5	mod/hotpot:attempt	1	1278849815	0
+424	1	4	mod/hotpot:attempt	1	1278849815	0
+425	1	3	mod/hotpot:attempt	1	1278849815	0
+426	1	1	mod/hotpot:attempt	1	1278849815	0
+427	1	4	mod/hotpot:viewreport	1	1278849815	0
+428	1	3	mod/hotpot:viewreport	1	1278849815	0
+429	1	1	mod/hotpot:viewreport	1	1278849815	0
+430	1	4	mod/hotpot:grade	1	1278849815	0
+431	1	3	mod/hotpot:grade	1	1278849815	0
+432	1	1	mod/hotpot:grade	1	1278849815	0
+433	1	3	mod/hotpot:deleteattempt	1	1278849815	0
+434	1	1	mod/hotpot:deleteattempt	1	1278849815	0
+435	1	5	mod/lams:participate	1	1278849816	0
+436	1	4	mod/lams:manage	1	1278849816	0
+437	1	3	mod/lams:manage	1	1278849816	0
+438	1	1	mod/lams:manage	1	1278849816	0
+439	1	3	mod/lesson:edit	1	1278849817	0
+440	1	1	mod/lesson:edit	1	1278849817	0
+441	1	4	mod/lesson:manage	1	1278849817	0
+442	1	3	mod/lesson:manage	1	1278849817	0
+443	1	1	mod/lesson:manage	1	1278849817	0
+444	1	5	mod/questionnaire:view	1	1278849818	0
+445	1	4	mod/questionnaire:view	1	1278849818	0
+446	1	3	mod/questionnaire:view	1	1278849818	0
+447	1	2	mod/questionnaire:view	1	1278849818	0
+448	1	1	mod/questionnaire:view	1	1278849818	0
+449	1	5	mod/questionnaire:submit	1	1278849818	0
+450	1	1	mod/questionnaire:submit	1	1278849818	0
+451	1	4	mod/questionnaire:viewsingleresponse	1	1278849818	0
+452	1	3	mod/questionnaire:viewsingleresponse	1	1278849818	0
+453	1	1	mod/questionnaire:viewsingleresponse	1	1278849818	0
+454	1	4	mod/questionnaire:downloadresponses	1	1278849818	0
+455	1	3	mod/questionnaire:downloadresponses	1	1278849818	0
+456	1	1	mod/questionnaire:downloadresponses	1	1278849818	0
+457	1	3	mod/questionnaire:deleteresponses	1	1278849818	0
+458	1	1	mod/questionnaire:deleteresponses	1	1278849818	0
+459	1	3	mod/questionnaire:manage	1	1278849818	0
+460	1	2	mod/questionnaire:manage	1	1278849818	0
+461	1	1	mod/questionnaire:manage	1	1278849818	0
+462	1	3	mod/questionnaire:editquestions	1	1278849818	0
+463	1	2	mod/questionnaire:editquestions	1	1278849818	0
+464	1	1	mod/questionnaire:editquestions	1	1278849818	0
+465	1	2	mod/questionnaire:createtemplates	1	1278849818	0
+466	1	1	mod/questionnaire:createtemplates	1	1278849818	0
+467	1	2	mod/questionnaire:createpublic	1	1278849818	0
+468	1	1	mod/questionnaire:createpublic	1	1278849818	0
+469	1	3	mod/questionnaire:copysurveys	1	1278849818	0
+470	1	2	mod/questionnaire:copysurveys	1	1278849818	0
+471	1	1	mod/questionnaire:copysurveys	1	1278849818	0
+472	1	1	mod/questionnaire:readownresponses	1	1278849818	0
+473	1	5	mod/questionnaire:readownresponses	1	1278849818	0
+474	1	1	mod/questionnaire:readallresponses	1	1278849818	0
+475	1	4	mod/questionnaire:readallresponses	1	1278849818	0
+476	1	3	mod/questionnaire:readallresponses	1	1278849818	0
+477	1	1	mod/questionnaire:readallresponseanytime	1	1278849818	0
+478	1	4	mod/questionnaire:readallresponseanytime	1	1278849818	0
+479	1	3	mod/questionnaire:readallresponseanytime	1	1278849818	0
+480	1	6	mod/quiz:view	1	1278849820	0
+481	1	5	mod/quiz:view	1	1278849820	0
+482	1	4	mod/quiz:view	1	1278849820	0
+483	1	3	mod/quiz:view	1	1278849820	0
+484	1	1	mod/quiz:view	1	1278849820	0
+485	1	5	mod/quiz:attempt	1	1278849820	0
+486	1	3	mod/quiz:manage	1	1278849820	0
+487	1	1	mod/quiz:manage	1	1278849820	0
+488	1	4	mod/quiz:preview	1	1278849820	0
+489	1	3	mod/quiz:preview	1	1278849820	0
+490	1	1	mod/quiz:preview	1	1278849820	0
+491	1	4	mod/quiz:grade	1	1278849820	0
+492	1	3	mod/quiz:grade	1	1278849820	0
+493	1	1	mod/quiz:grade	1	1278849820	0
+494	1	4	mod/quiz:viewreports	1	1278849820	0
+495	1	3	mod/quiz:viewreports	1	1278849820	0
+496	1	1	mod/quiz:viewreports	1	1278849820	0
+497	1	3	mod/quiz:deleteattempts	1	1278849820	0
+498	1	1	mod/quiz:deleteattempts	1	1278849820	0
+499	1	4	mod/scorm:viewreport	1	1278849822	0
+500	1	3	mod/scorm:viewreport	1	1278849822	0
+501	1	1	mod/scorm:viewreport	1	1278849822	0
+502	1	5	mod/scorm:skipview	1	1278849822	0
+503	1	5	mod/scorm:savetrack	1	1278849822	0
+504	1	4	mod/scorm:savetrack	1	1278849822	0
+505	1	3	mod/scorm:savetrack	1	1278849822	0
+506	1	1	mod/scorm:savetrack	1	1278849822	0
+507	1	5	mod/scorm:viewscores	1	1278849822	0
+508	1	4	mod/scorm:viewscores	1	1278849822	0
+509	1	3	mod/scorm:viewscores	1	1278849822	0
+510	1	1	mod/scorm:viewscores	1	1278849822	0
+511	1	5	mod/survey:participate	1	1278849823	0
+512	1	4	mod/survey:participate	1	1278849823	0
+513	1	3	mod/survey:participate	1	1278849823	0
+514	1	1	mod/survey:participate	1	1278849823	0
+515	1	4	mod/survey:readresponses	1	1278849823	0
+516	1	3	mod/survey:readresponses	1	1278849823	0
+517	1	1	mod/survey:readresponses	1	1278849823	0
+518	1	4	mod/survey:download	1	1278849823	0
+519	1	3	mod/survey:download	1	1278849823	0
+520	1	1	mod/survey:download	1	1278849823	0
+521	1	3	mod/wiki:editanywiki	1	1278849824	0
+522	1	2	mod/wiki:editanywiki	1	1278849824	0
+523	1	1	mod/wiki:editanywiki	1	1278849824	0
+524	1	4	mod/wiki:editawiki	1	1278849824	0
+525	1	3	mod/wiki:editawiki	1	1278849824	0
+526	1	2	mod/wiki:editawiki	1	1278849824	0
+527	1	1	mod/wiki:editawiki	1	1278849824	0
+528	1	5	mod/wiki:caneditawiki	1	1278849824	0
+529	1	4	mod/wiki:caneditawiki	1	1278849824	0
+530	1	3	mod/wiki:caneditawiki	1	1278849824	0
+531	1	2	mod/wiki:caneditawiki	1	1278849824	0
+532	1	1	mod/wiki:caneditawiki	1	1278849824	0
+533	1	4	mod/wiki:canexporttopdf	1	1278849824	0
+534	1	3	mod/wiki:canexporttopdf	1	1278849824	0
+535	1	2	mod/wiki:canexporttopdf	1	1278849824	0
+536	1	1	mod/wiki:canexporttopdf	1	1278849824	0
+537	1	5	mod/wiki:viewevaluationswiki	1	1278849824	0
+538	1	4	mod/wiki:viewevaluationswiki	1	1278849824	0
+539	1	3	mod/wiki:viewevaluationswiki	1	1278849824	0
+540	1	2	mod/wiki:viewevaluationswiki	1	1278849824	0
+541	1	1	mod/wiki:viewevaluationswiki	1	1278849824	0
+542	1	3	mod/wiki:evaluateanywiki	1	1278849824	0
+543	1	2	mod/wiki:evaluateanywiki	1	1278849824	0
+544	1	1	mod/wiki:evaluateanywiki	1	1278849824	0
+545	1	4	mod/wiki:evaluateawiki	1	1278849824	0
+546	1	3	mod/wiki:evaluateawiki	1	1278849824	0
+547	1	2	mod/wiki:evaluateawiki	1	1278849824	0
+548	1	1	mod/wiki:evaluateawiki	1	1278849824	0
+549	1	4	mod/wiki:adminactions	1	1278849824	0
+550	1	3	mod/wiki:adminactions	1	1278849824	0
+551	1	2	mod/wiki:adminactions	1	1278849824	0
+552	1	1	mod/wiki:adminactions	1	1278849824	0
+553	1	4	mod/wiki:overridelock	1	1278849824	0
+554	1	3	mod/wiki:overridelock	1	1278849824	0
+555	1	1	mod/wiki:overridelock	1	1278849824	0
+556	1	5	mod/wiki:uploadfiles	1	1278849824	0
+557	1	4	mod/wiki:uploadfiles	1	1278849824	0
+558	1	3	mod/wiki:uploadfiles	1	1278849824	0
+559	1	1	mod/wiki:uploadfiles	1	1278849824	0
+560	1	4	mod/wiki:deletefiles	1	1278849825	0
+561	1	3	mod/wiki:deletefiles	1	1278849825	0
+562	1	1	mod/wiki:deletefiles	1	1278849825	0
+563	1	4	mod/wiki:peerreview	1	1278849825	0
+564	1	3	mod/wiki:peerreview	1	1278849825	0
+565	1	5	mod/wiki:peerreview	1	1278849825	0
+566	1	4	mod/wiki:authorreview	1	1278849825	0
+567	1	3	mod/wiki:authorreview	1	1278849825	0
+568	1	4	mod/wiki:mainreview	1	1278849825	0
+569	1	3	mod/wiki:mainreview	1	1278849825	0
+570	1	1	mod/wiki:mainreview	1	1278849825	0
+571	1	5	mod/workshop:participate	1	1278849825	0
+572	1	4	mod/workshop:manage	1	1278849825	0
+573	1	3	mod/workshop:manage	1	1278849825	0
+574	1	1	mod/workshop:manage	1	1278849825	0
+575	1	7	block/exabis_eportfolio:use	1	1278849835	0
+576	1	7	block/exabis_eportfolio:export	1	1278849835	0
+577	1	7	block/exabis_eportfolio:importfrommoodle	1	1278849835	0
+578	1	7	block/exabis_eportfolio:shareintern	1	1278849835	0
+579	1	7	block/exabis_eportfolio:shareextern	1	1278849835	0
+580	1	7	block/exabis_eportfolio:allowposts	1	1278849835	0
+581	1	5	block/mrbs:viewmrbs	1	1278849835	0
+582	1	4	block/mrbs:viewmrbs	1	1278849835	0
+583	1	3	block/mrbs:viewmrbs	1	1278849835	0
+584	1	2	block/mrbs:viewmrbs	1	1278849835	0
+585	1	1	block/mrbs:viewmrbs	1	1278849835	0
+586	1	4	block/mrbs:editmrbs	1	1278849835	0
+587	1	3	block/mrbs:editmrbs	1	1278849835	0
+588	1	2	block/mrbs:editmrbs	1	1278849835	0
+589	1	1	block/mrbs:editmrbs	1	1278849835	0
+590	1	1	block/mrbs:administermrbs	1	1278849836	0
+591	1	4	block/rss_client:createprivatefeeds	1	1278849836	0
+592	1	3	block/rss_client:createprivatefeeds	1	1278849836	0
+593	1	1	block/rss_client:createprivatefeeds	1	1278849836	0
+594	1	3	block/rss_client:createsharedfeeds	1	1278849836	0
+595	1	1	block/rss_client:createsharedfeeds	1	1278849836	0
+596	1	4	block/rss_client:manageownfeeds	1	1278849836	0
+597	1	3	block/rss_client:manageownfeeds	1	1278849836	0
+598	1	1	block/rss_client:manageownfeeds	1	1278849836	0
+599	1	1	block/rss_client:manageanyfeeds	1	1278849836	0
+602	1	4	gradeexport/ods:view	1	1278849841	0
+603	1	3	gradeexport/ods:view	1	1278849841	0
+604	1	1	gradeexport/ods:view	1	1278849841	0
+605	1	1	gradeexport/ods:publish	1	1278849841	0
+606	1	4	gradeexport/txt:view	1	1278849841	0
+607	1	3	gradeexport/txt:view	1	1278849841	0
+608	1	1	gradeexport/txt:view	1	1278849841	0
+609	1	1	gradeexport/txt:publish	1	1278849841	0
+610	1	4	gradeexport/xls:view	1	1278849841	0
+611	1	3	gradeexport/xls:view	1	1278849841	0
+612	1	1	gradeexport/xls:view	1	1278849841	0
+613	1	1	gradeexport/xls:publish	1	1278849841	0
+614	1	4	gradeexport/xml:view	1	1278849841	0
+615	1	3	gradeexport/xml:view	1	1278849841	0
+616	1	1	gradeexport/xml:view	1	1278849841	0
+617	1	1	gradeexport/xml:publish	1	1278849841	0
+623	1	4	gradereport/grader:view	1	1278849846	0
+624	1	3	gradereport/grader:view	1	1278849846	0
+625	1	1	gradereport/grader:view	1	1278849846	0
+626	1	4	gradereport/outcomes:view	1	1278849846	0
+627	1	3	gradereport/outcomes:view	1	1278849846	0
+628	1	1	gradereport/outcomes:view	1	1278849846	0
+629	1	4	gradereport/overview:view	1	1278849846	0
+630	1	3	gradereport/overview:view	1	1278849846	0
+631	1	5	gradereport/overview:view	1	1278849846	0
+632	1	1	gradereport/overview:view	1	1278849846	0
+633	1	5	gradereport/user:view	1	1278849846	0
+634	1	4	gradereport/user:view	1	1278849846	0
+635	1	3	gradereport/user:view	1	1278849846	0
+636	1	1	gradereport/user:view	1	1278849846	0
+600	1	1	enrol/authorize:managepayments	1	1278849838	0
+601	1	1	enrol/authorize:uploadcsv	1	1278849838	0
+618	1	3	gradeimport/csv:view	1	1278849843	0
+619	1	1	gradeimport/csv:view	1	1278849843	0
+620	1	3	gradeimport/xml:view	1	1278849843	0
+621	1	1	gradeimport/xml:view	1	1278849843	0
+622	1	1	gradeimport/xml:publish	1	1278849843	0
 \.
 
 
@@ -11595,8 +11709,8 @@ COPY mdl_timezone (id, name, "year", tzrule, gmtoff, dstoff, dst_month, dst_star
 --
 
 COPY mdl_user (id, auth, confirmed, policyagreed, deleted, mnethostid, username, "password", idnumber, firstname, lastname, email, emailstop, icq, skype, yahoo, aim, msn, phone1, phone2, institution, department, address, city, country, lang, theme, timezone, firstaccess, lastaccess, lastlogin, currentlogin, lastip, secret, picture, url, description, mailformat, maildigest, maildisplay, htmleditor, ajax, autosubscribe, trackforums, timemodified, trustbitmask, imagealt, screenreader) FROM stdin;
-1	manual	1	0	0	1	guest	084e0343a0486ff05530df6c705c8bb4		Gast	 	root@localhost	0													en_utf8		99	0	0	0	0			0		Dieser Nutzer hat nur Lesezugriff auf Kurse, die Gäste zulassen.	1	0	2	1	1	1	0	1211018168	0	\N	0
-2	ldap	1	0	0	1	wwwadmin	not cached		Admin	Nutzer	wwwadmin@@@domainname@@	0											@@location@@	DE	de_utf8		99	0	0	0	0			0		Moodle-Administrator	1	0	1	1	1	1	0	0	0		0
+1	manual	1	0	0	1	guest	084e0343a0486ff05530df6c705c8bb4		Gast	 	wwwadmin@@@domainname@@	0													de_utf8		99	0	0	0	0			0		Dieser Nutzer hat nur Lesezugriff auf Kurse, die Gäste zulassen.	1	0	2	1	1	1	0	1278849851	0	\N	0
+2	ldap	1	0	0	1	wwwadmin	not cached		Admin	Nutzer	wwwadmin@@@domainname@@	0													de_utf8		99	0	1278850663	0	1278850662	@@serverip@@		0		\N	1	0	1	1	1	1	0	1278849851	0	\N	0
 \.
 
 
@@ -11605,7 +11719,6 @@ COPY mdl_user (id, auth, confirmed, policyagreed, deleted, mnethostid, username,
 --
 
 COPY mdl_user_info_category (id, name, sortorder) FROM stdin;
-1	Weitere Profileinstellungen	1
 \.
 
 
