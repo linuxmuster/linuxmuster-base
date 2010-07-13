@@ -29,7 +29,7 @@ PKGSTOREMOVE="linuxmuster-freeradius linux-image-server phpmyadmin phppgadmin \
               linuxmuster-nagios-base postgresql-7.4 postgresql-8.1 samba \
               linuxmuster-pkpgcounter python-egenix-mxtools python-egenix-mxdatetime \
               linuxmuster-pykota linuxmuster-pk samba-common samba-common-bin \
-              sophomorix2 sophomorix-base sophomorix-pgldap"
+              linuxmuster-linbo sophomorix2 sophomorix-base sophomorix-pgldap"
 PKGREPOS="ftp.de.debian.org/debian/ \
           ftp.de.debian.org/debian-volatile/ \
           security.debian.org \
