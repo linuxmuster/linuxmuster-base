@@ -7,7 +7,7 @@
 # downloads openML iso if no iso file is given on cmdline
 # invokes at least upgrade script
 #
-# 2010-06-08
+# $Id$
 # 
 # Thomas Schmitt
 # <schmitt@lmz-bw.de>
@@ -17,15 +17,24 @@
 . /usr/share/linuxmuster/config/dist.conf
 . $HELPERFUNCTIONS
 
-if [ "$(cat /etc/debian_version)" != "4.0" ]; then
-	echo "Das Upgrade funktioniert nur mit Debian 3.1!"
-	exit 0
-fi
+if [ "$1" = "--force" ]; then
 
-if ! grep -q "[op][pa][e][nd]ML Linux 4\.0\.[4-5]" /etc/issue; then
-	echo "Das Upgrade funktioniert nur mit openML/paedML Linux 4.0.4/4.0.5!"
-	exit 0
-fi
+ echo "--force angegeben: überspringe Versionsprüfung!"
+ echo
+
+else
+
+ if [ "$(cat /etc/debian_version)" != "4.0" ]; then
+  echo "Das Upgrade funktioniert nur mit Debian 3.1!"
+  exit 0
+ fi
+
+ if ! grep -q "[op][pa][e][nd]ML Linux 4\.0\.[4-5]" /etc/issue; then
+  echo "Das Upgrade funktioniert nur mit openML/paedML Linux 4.0.4/4.0.5!"
+  exit 0
+ fi
+
+fi # force
 
 if ! check_free_space /var 1000000; then
  echo "Zuwenig Speicherplatz unter /var. Stellen Sie sicher, dass dort 1GB freier Platz zur Verfügung steht."
