@@ -179,6 +179,9 @@ echo "#########################"
 echo "# Pakete deinstallieren #"
 echo "#########################"
 aptitude -y remove $PKGSTOREMOVE
+if [ -z "$BITTORRENT" ]; then
+ dpkg -s bittorrent &> /dev/null && aptitude -y purge bittorrent
+fi
 echo
 
 
