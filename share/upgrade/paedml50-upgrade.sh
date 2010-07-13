@@ -179,9 +179,6 @@ echo "#########################"
 echo "# Pakete deinstallieren #"
 echo "#########################"
 aptitude -y remove $PKGSTOREMOVE
-if [ -z "$BITTORRENT" ]; then
- dpkg -s bittorrent &> /dev/null && aptitude -y purge bittorrent
-fi
 echo
 
 
@@ -469,19 +466,24 @@ echo "# base-passwd #"
 echo "###############"
 tweak_apt
 aptitude -y install passwd
+# check for bittorrent user
+id bittorrent &> /dev/null && BTUSER=yes
 aptitude -y install base-passwd
-echo
-
-if [ -n "$BITTORRENT" ]; then
- echo "##############"
- echo "# bittorrent #"
- echo "##############"
+# recreate bittorrent user removed by update-passwd
+if [ -n "$BTUSER" ]; then
  if ! grep -q ^bittorrent: /etc/group; then
   groupadd -r bittorrent
  fi
  if ! grep -q ^bittorrent: /etc/passwd; then
   useradd -r -d /home/bittorrent -c "bittorrent user" -g bittorrent -s /bin/bash bittorrent
  fi 
+fi
+echo
+
+if [ -n "$BITTORRENT" ]; then
+ echo "##############"
+ echo "# bittorrent #"
+ echo "##############"
  aptitude -y install bittorrent
  chown bittorrent /var/log/bittorrent -R
  chown bittorrent /var/lib/bittorrent -R
