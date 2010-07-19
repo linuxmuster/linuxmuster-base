@@ -1,3 +1,15 @@
+linuxmuster-base (1.5.3.3-etch7) etch; urgency=low
+
+  * added bash script "update-logins.sh" to be able to update the cached logins
+    in /var/cache/linuxmuster/logins (#202).
+  * wimport.sh:
+    - remove_account(): added check for computer account so that user accounts
+      identical to the hostname were not removed (finally closes #137).
+    - improved workstations data checks (closes #269).
+  * helperfunctions.sh, check_string(): fixed unescaped underscore.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon,  19 Jul 2010 18:31:17 +0200
+
 linuxmuster-base (1.5.3.3-etch6) etch; urgency=low
 
   * smb.conf:

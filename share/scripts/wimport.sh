@@ -1,9 +1,9 @@
 # workstation import for paedML Linux
 #
 # Thomas Schmitt <schmitt@lmz-bw.de>
-# 19.11.2008
+# $Id$
 #
-# GPL v2
+# GPL v3
 #
 
 WDATATMP=/var/tmp/workstations.$$
@@ -67,22 +67,22 @@ check_account() {
 create_account() {
  # check if hostname exists already as a user account
  if echo "$ACCOUNTS_LDAP" | grep -qw "$hostname"; then
-  echo "  * ERROR: $hostname is already a ldap user account! Skipping!"
+  echo "  > ERROR: $hostname is already a ldap user account! Skipping!"
   echo
   return 1
  fi
  if echo "$ACCOUNTS_DB" | grep -qw "$hostname"; then
-  echo "  * ERROR: $hostname is already a postgresql user account! Skipping!"
+  echo "  > ERROR: $hostname is already a postgresql user account! Skipping!"
   echo
   return 1
  fi
  if grep -q ^"${hostname}"\: /etc/passwd; then
-  echo "  * ERROR: $hostname is already a system account! Skipping!"
+  echo "  > ERROR: $hostname is already a system account! Skipping!"
   echo
   return 1
  fi
  if [ -e "$SOPHOMORIXLOCK" ]; then
-  echo "Fatal! Sophomorix lockfile $SOPHOMORIXLOCK detected!"
+  echo "  > Fatal! Sophomorix lockfile $SOPHOMORIXLOCK detected!"
   return 1
  fi
  echo -n "  * Creating exam account $hostname ... "
@@ -93,7 +93,7 @@ create_account() {
  return 1
  fi
  if ! sophomorix-passwd -u $hostname --pass $HOST_PASSWORD 2>> $TMPLOG 1>> $TMPLOG; then
-  echo "  * Error: Cannot set password for $hostname!"
+  echo "  > Error: Cannot set password for $hostname!"
   return 1
  fi
  [ -d "$WSHOME/$room/$hostname" ] || mkdir -p $WSHOME/$room/$hostname
@@ -119,8 +119,12 @@ create_account() {
 
 # remove workstation and machine accounts
 remove_account() {
+ if ! check_account $hostname; then
+  echo "  > Fatal! $hostname is no computer account! Not removing!"
+  return 1
+ fi
  if [ -e "$SOPHOMORIXLOCK" ]; then
-  echo "Fatal! Sophomorix lockfile $SOPHOMORIXLOCK detected!"
+  echo "  > Fatal! Sophomorix lockfile $SOPHOMORIXLOCK detected!"
   return 1
  fi
  echo -n "  * Removing exam account $hostname ... "
@@ -208,73 +212,110 @@ if [ "$imaging" = "linbo" ]; then
 fi
 
 
-# Check if workstation data file is empty
+# filter out bad workstation data
+touch $WDATATMP
 if [ -s "$WIMPORTDATA" ]; then
 
  # create a clean workstation data file
+ RC_LINE=0
  echo "Checking workstation data:"
  while read line; do
 
+  # skip comment lines
   [ "${line:0:1}" = "#" ] && continue
 
-  # strip spaces from $line
+  # strip spaces and skip empty lines
   line=${line// /}
+  [ -z "$line" ] && continue
 
   room=`echo $line | awk -F\; '{ print $1 }'`
-  [ -z "$room" ] && continue
+  if ! validname "$room"; then
+   [ -z "$room" ] && room="<empty>"
+   echo "  > $room is no valid room name! Skipping."
+   RC_LINE=1
+   continue
+  fi
 
   hostname=`echo $line | awk -F\; '{ print $2 }'`
   tolower $hostname
   hostname=$RET
-  [ -z "$hostname" ] && continue
+  if ! validhostname "$hostname"; then
+   [ -z "$hostname" ] && hostname="<empty>"
+   echo "  > $hostname is no valid hostname! Skipping."
+   RC_LINE=1
+   continue
+  fi
 
   hostgroup=`echo $line | awk -F\; '{ print $3 }'`
-  [ -z "$hostgroup" ] && continue
+  if ! validname "$hostgroup"; then
+   [ -z "$hostgroup" ] && hostgroup="<empty>"
+   echo "  > $hostgroup is no valid group name! Skipping $hostname."
+   RC_LINE=1
+   continue
+  fi
 
   mac=`echo $line | awk -F\; '{ print $4 }'`
   toupper $mac
   mac=$RET
-  [ -z "$mac" ] && continue
+  if ! validmac "$mac"; then
+   [ -z "$mac" ] && mac="<empty>"
+   echo "  > $mac is no valid mac address! Skipping $hostname."
+   RC_LINE=1
+   continue
+  fi
 
   ip=`echo $line | awk -F\; '{ print $5 }'`
-  [ -z "$ip" ] && continue
+  if ! validip "$ip"; then
+   [ -z "$ip" ] && ip="<empty>"
+   echo "  > $ip is no valid ip address! Skipping $hostname."
+   RC_LINE=1
+   continue
+  fi
 
   pxe=`echo $line | awk -F\; '{ print $11 }'`
-  [ -z "$pxe" ] && continue
+  if [ -z "$pxe" ]; then
+   echo "  > PXE-Flag is not set! Skipping $hostname."
+   RC_LINE=1
+   continue
+  fi
 
   echo "$room;$hostname;$hostgroup;$mac;$ip;$internmask;1;1;1;1;$pxe" >> $WDATATMP
 
  done <$WIMPORTDATA
 
+fi
+
+# check for repeated hostnames, macs and ips
+if [ -s "$WDATATMP" ]; then
+
  # check hostnames
  hostnames=`awk -F\; '{ print $2 }' $WDATATMP`
  for i in $hostnames; do
-  validhostname "$i" || exitmsg "Hostname $i does not comply with RFC 952!"
   check_unique "$i" "$hostnames" || exitmsg "Hostname $i is not unique!"
  done
 
  # check macs
  macs=`awk -F\; '{ print $4 }' $WDATATMP`
  for i in $macs; do
-  validmac $i || exitmsg "Invalid MAC address: $i!"
   check_unique "$i" "$macs" || exitmsg "MAC address $i is not unique!"
  done
 
  # check ips
  ips=`awk -F\; '{ print $5 }' $WDATATMP`
  for i in $ips; do
-  validip $i || exitmsg "Invalid IP address: $i!"
   check_unique "$i" "$ips" || exitmsg "IP address $i is not unique!"
  done
 
- echo "  * Workstation data are Ok! :-)"
-
-else
-
- touch $WDATATMP
- echo "  * No workstation data found! Skipping workstation import!"
-
 fi
+
+# evaluate workstation data checks
+[ "$RC_LINE" = "0" -a -s "$WDATATMP" ] && echo "  * Workstation data are Ok! :-)"
+if [ "$RC_LINE" != "0" ]; then
+ RC=1
+ echo "  > Workstation data with errors! :-("
+fi
+[ -s "$WDATATMP" ] || echo "  * No valid workstation data found! Skipping workstation import!"
+
 echo
 
 # check dhcp stuff
@@ -290,7 +331,7 @@ rooms=`ls $WSHOME/`
 
 
 # Check if workstation data file is empty
-if [ -s "$WIMPORTDATA" ]; then
+if [ -s "$WDATATMP" ]; then
 
  # write configuration files and create host accounts
  while read line; do
@@ -330,7 +371,7 @@ if [ -s "$WIMPORTDATA" ]; then
    continue
   else
    if ! sophomorix-passwd --force -u ${hostname}$ --pass $MACHINE_PASSWORD 2>> $TMPLOG 1>> $TMPLOG; then
-    echo "  * Error: Cannot set machine password for ${hostname}$!"
+    echo "  > Error: Cannot set machine password for ${hostname}$!"
     RC=1
     continue
    fi
@@ -447,16 +488,10 @@ if ls $WSHOME/*/* &> /dev/null; then
  for i in $WSHOME/*/*; do
 
   hostname=${i##*/}
-  if ! grep -qw $hostname $WDATATMP; then
+  if ! awk -F\; '{ print "X"$2"X" }' $WDATATMP | grep -q X${hostname}X; then
    FOUND=1
    remove_account ; RC_LINE="$?"
    [ $RC_LINE -eq 0 ] || RC=1
-   if [ -z "$HOSTS_REMOVED" ]; then
-    HOSTS_REMOVED=$hostname
-   else
-    HOSTS_REMOVED="$HOSTS_REMOVED $hostname"
-   fi
-
    if grep -v ^# $PRINTERS | grep -qw $hostname; then
     remove_printeraccess $hostname ; RC_LINE="$?"
     [ $RC_LINE -eq 0 ] || RC=1
@@ -479,7 +514,7 @@ echo
 echo "Checking for obsolete rooms:"
 for room in $rooms; do
 
- if ! grep -qw $room $WDATATMP; then
+ if ! awk -F\; '{ print "X"$1"X" }' $WDATATMP | grep -q X${room}X; then
   FOUND=1
   echo -n "  * Removing room: $room ... "
   if sophomorix-groupdel --room $room 2>> $TMPLOG 1>> $TMPLOG; then

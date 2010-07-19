@@ -4,7 +4,7 @@
 # <schmitt@lmz-bw.de>
 # GPL v3
 #
-# 06.07.2010 
+# $Id$
 #
 
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
@@ -873,7 +873,7 @@ check_empty_dir() {
 
 # check valid string without special characters
 check_string() {
-  if (expr match "$1" '\([a-zA-Z0-9_\-]\+$\)') &> /dev/null; then
+  if (expr match "$1" '\([a-zA-Z0-9\_\-]\+$\)') &> /dev/null; then
     return 0
   else
     return 1
