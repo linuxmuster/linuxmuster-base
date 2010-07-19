@@ -1,3 +1,23 @@
+linuxmuster-base (1.5.3.3-etch6) etch; urgency=low
+
+  * smb.conf:
+    - fixed access to new share folders of projects and classes (closes #56 & #64):
+      [global]
+      winbind enum users = yes
+      winbind enum groups = yes
+      unix password sync = no
+    - added admin share to enable administrator to do some housekeeping in the
+      share folders (closes #151):
+      [admin]
+      comment = Tauschverzeichnisse leeren
+      path = /home/share
+      admin users = administrator
+      valid users = administrator
+      browseable = no
+      writable = yes
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon,  19 Jul 2010 11:24:36 +0200
+
 linuxmuster-base (1.5.3.3-etch5) etch; urgency=low
 
   * linuxmuster-setup: fixed moodle login issue, renewed moodle database dump,
