@@ -229,7 +229,7 @@ if [ -s "$WIMPORTDATA" ]; then
   [ -z "$line" ] && continue
 
   room=`echo $line | awk -F\; '{ print $1 }'`
-  if ! validname "$room"; then
+  if ! check_string "$room"; then
    [ -z "$room" ] && room="<empty>"
    echo "  > $room is no valid room name! Skipping."
    RC_LINE=1
@@ -247,7 +247,7 @@ if [ -s "$WIMPORTDATA" ]; then
   fi
 
   hostgroup=`echo $line | awk -F\; '{ print $3 }'`
-  if ! validname "$hostgroup"; then
+  if ! check_string "$hostgroup"; then
    [ -z "$hostgroup" ] && hostgroup="<empty>"
    echo "  > $hostgroup is no valid group name! Skipping $hostname."
    RC_LINE=1
