@@ -270,9 +270,9 @@ case "$1" in
            sophomorix-passwd --user linbo --pass $linbopasswd &> /dev/null || true
            smbldap-usermod -H '[UX         ]' linbo || true
           fi
-         else
-          echo "slapd and/or postgresql not running! Skipping linbo user check!"
          fi
+        else
+         echo "slapd and/or postgresql not running! Skipping linbo user check!"
         fi
        fi # linbo
 
