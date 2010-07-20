@@ -874,7 +874,7 @@ check_empty_dir() {
 
 # check valid string without special characters
 check_string() {
-  if (expr match "$1" '\([a-zA-Z0-9_\-]\+$\)') &> /dev/null; then
+  if (expr match "$1" '\([a-zA-Z0-9\_\-]\+$\)') &> /dev/null; then
     return 0
   else
     return 1

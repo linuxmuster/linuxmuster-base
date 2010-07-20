@@ -177,18 +177,34 @@ case "$1" in
        fi
 
        # repair false basedn in slapd.conf
+       conf=/etc/ldap/slapd.conf ; backup=false
        if [ "$basedn" != "dc=paedml-linux,dc=lokal" ]; then
-        slapdconf=/etc/ldap/slapd.conf
-        if grep -q "dc=paedml-linux,dc=lokal" $slapdconf; then
-         echo "Repairing basedn in slapd.conf."
-         cp $slapdconf $slapdconf.dpkg-old
+        if grep -q "dc=paedml-linux,dc=lokal" $conf; then
+         echo "Repairing basedn in $conf."
+         cp $conf $conf.dpkg-old
+         backup=true
          sed -e "s|dc=paedml-linux,dc=lokal|$basedn|g" -i $slapdconf
          slapd_reload=yes
         fi
        fi
+       # repair password-hash in slapd.conf
+       if ! grep ^password-hash $conf | grep -q SSHA; then
+        echo "Fixing password-hash in $conf."
+        [ "$backup" = "false" ] && cp $conf $conf.dpkg-old
+        sed -e 's|^password-hash.*|password-hash \{SSHA\}|' -i $conf
+        slapd_reload=yes
+       fi
        # openldap permissions
-       chown root:openldap /etc/ldap/slapd.conf*
-       chmod 640 /etc/ldap/slapd.conf*
+       chown root:openldap ${conf}*
+       chmod 640 ${conf}*
+       # repair ldaps
+       conf=/etc/default/slapd
+       if ! grep ^SLAPD_SERVICES $conf | grep -q ldaps; then
+        echo "Fixing ldaps in $conf."
+        cp $conf $conf.dpkg-old
+        cp $STATICTPLDIR/$conf $conf
+        slapd_reload=yes
+       fi
 
        # fixing cups init start nr
        if [ -e /etc/rc2.d/S20cups ]; then
@@ -245,13 +261,17 @@ case "$1" in
        # linbo related update stuff
        if [ "$imaging" = "linbo" ]; then
         # linbo administrative user
-        if ! check_id linbo; then
-         linbopasswd=`grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }'`
-         if [ -n "$linbopasswd" ]; then
-          echo "Creating linbo user ..."
-          sophomorix-useradd --administrator linbo --unix-group $ADMINGROUP --shell /bin/false --gecos "LINBO Administrator" &> /dev/null || true
-          sophomorix-passwd --user linbo --pass $linbopasswd &> /dev/null || true
-          smbldap-usermod -H '[UX         ]' linbo || true
+        if ps ax | grep -v grep | grep -q slapd && ps ax | grep -v grep | grep -q postgresql; then
+         if ! check_id linbo &>/dev/null; then
+          linbopasswd=`grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }'`
+          if [ -n "$linbopasswd" ]; then
+           echo "Creating linbo user ..."
+           sophomorix-useradd --administrator linbo --unix-group $ADMINGROUP --shell /bin/false --gecos "LINBO Administrator" &> /dev/null || true
+           sophomorix-passwd --user linbo --pass $linbopasswd &> /dev/null || true
+           smbldap-usermod -H '[UX         ]' linbo || true
+          fi
+         else
+          echo "slapd and/or postgresql not running! Skipping linbo user check!"
          fi
         fi
        fi # linbo

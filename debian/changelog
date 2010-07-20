@@ -1,3 +1,33 @@
+linuxmuster-base (1.5.13-lenny0) lenny; urgency=low
+
+  * smb.conf:
+    - fixed access to new share folders of projects and classes (closes #56 & #64):
+      [global]
+      winbind enum users = yes
+      winbind enum groups = yes
+      unix password sync = no
+    - added admin share to enable administrator to do some housekeeping in the
+      share folders (closes #151):
+      [admin]
+      comment = Tauschverzeichnisse leeren
+      path = /home/share
+      admin users = administrator
+      valid users = administrator
+      browseable = no
+      writable = yes
+  * wimport.sh:
+    - remove_account(): added check for computer account so that user accounts
+      identical to the hostname were not removed (finally closes #137).
+    - improved workstations data checks (closes #269).
+  * helperfunctions.sh, check_string(): fixed unescaped underscore.
+  * slapd.conf: changed password-hash to {SSHA}.
+  * postinst:
+    - fixes password-hash in slapd.conf if necessary.
+    - linbo user check only if slapd and postgresql are running.
+    - fixes ldaps in /etc/default/slapd.conf.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 20 Jul 2010 12:25:44 +0200
+
 linuxmuster-base (1.5.12-lenny0) lenny; urgency=low
 
   * paedml50-upgrade:

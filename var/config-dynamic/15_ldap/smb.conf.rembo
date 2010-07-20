@@ -2,6 +2,7 @@
 ##### @@message2@@
 ##### @@message3@@
 #
+# $Id$
 ############################################################
 #  Include your own stuff in the following files:
 #  global stuff:      /etc/samba/smb.conf.global
@@ -167,6 +168,11 @@
    case sensitive = auto
    mangled names = no
 
+   # fix for #56 & #64
+   winbind enum users = yes
+   winbind enum groups = yes
+   unix password sync = no
+
    ldap passwd sync = No
    add user script = /usr/sbin/smbldap-useradd -m "%u"
    ldap delete dn = Yes
@@ -295,6 +301,16 @@
    write list = @@@domadmins@@
    writable = no
    guest ok = Yes
+
+# admin share for housekeeping
+[admin]
+   comment = Housekeeping
+   path = /home/share
+   admin users = administrator
+   valid users = administrator
+   browseable = No
+   writable = yes
+   guest ok = No
 
 # following shares are only used by linux clients
 [students]
