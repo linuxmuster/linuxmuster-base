@@ -215,7 +215,7 @@ case "$1" in
         cp $STATICTPLDIR/$conf $conf
         slapd_reload=yes
        fi
-       if ! grep ^"SLAPD_OPTIONS=\"\-4\"" $conf; then
+       if ! grep -q ^"SLAPD_OPTIONS=\"\-4\"" $conf; then
         echo "Disabling IPv6 support in $conf."
         [ "$backup" = "false" ] && cp $conf $conf.dpkg-old
         cp $STATICTPLDIR/$conf $conf
