@@ -190,18 +190,34 @@ case "$1" in
        # repair password-hash in slapd.conf
        if ! grep ^password-hash $conf | grep -q SSHA; then
         echo "Fixing password-hash in $conf."
-        [ "$backup" = "false" ] && cp $conf $conf.dpkg-old
+        if [ "$backup" = "false" ]; then
+         cp $conf $conf.dpkg-old
+         backup=true
+        fi
         sed -e 's|^password-hash.*|password-hash \{SSHA\}|' -i $conf
+        slapd_reload=yes
+       fi
+       # repair userPassword in slapd.conf
+       if grep -q "sambaAcctFlags,userpassword" $conf; then
+        echo "Fixing userpassword syntax error in $conf."
+        [ "$backup" = "false" ] && cp $conf $conf.dpkg-old
+        sed -e 's|sambaAcctFlags,userpassword|sambaAcctFlags,userPassword|g' -i $conf
         slapd_reload=yes
        fi
        # openldap permissions
        chown root:openldap ${conf}*
        chmod 640 ${conf}*
        # repair ldaps
-       conf=/etc/default/slapd
+       conf=/etc/default/slapd ; backup=false
        if ! grep ^SLAPD_SERVICES $conf | grep -q ldaps; then
         echo "Fixing ldaps in $conf."
         cp $conf $conf.dpkg-old
+        cp $STATICTPLDIR/$conf $conf
+        slapd_reload=yes
+       fi
+       if ! grep ^"SLAPD_OPTIONS=\"\-4\"" $conf; then
+        echo "Disabling IPv6 support in $conf."
+        [ "$backup" = "false" ] && cp $conf $conf.dpkg-old
         cp $STATICTPLDIR/$conf $conf
         slapd_reload=yes
        fi

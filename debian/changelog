@@ -1,8 +1,13 @@
 linuxmuster-base (1.5.13-lenny1) lenny; urgency=low
 
-  * slapd.conf: removed unnecessary admin acls.
+  * slapd configuration:
+    - removed unnecessary admin acls from slapd.conf template.
+    - added SLAPD_OPTIONS="-4" to slapd default template.
+  * postinst:
+    - reparing userPassword in slapd.conf.
+    - adding SLAPD_OPTIONS="-4" to /etc/default/slapd if necessary.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 21 Jul 2010 12:31:57 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 21 Jul 2010 15:13:30 +0200
 
 linuxmuster-base (1.5.13-lenny0) lenny; urgency=low
 
