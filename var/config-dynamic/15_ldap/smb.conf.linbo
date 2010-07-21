@@ -105,7 +105,7 @@
 # This boolean parameter controls whether Samba attempts to sync the Unix
 # password with the SMB password when the encrypted SMB password in the
 # passdb is changed.
-   unix password sync = yes
+;   unix password sync = yes
 
 # For Unix password sync to work on a Debian GNU/Linux system, the following
 # parameters must be set (thanks to Augustin Luton <aluton@hybrigenics.fr> for

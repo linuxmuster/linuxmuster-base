@@ -1,3 +1,9 @@
+linuxmuster-base (1.5.3.3-etch8) etch; urgency=low
+
+  * smb.conf template: removed duplicate "unix password sync" entry.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 21 Jul 2010 16:27:22 +0200
+
 linuxmuster-base (1.5.3.3-etch7) etch; urgency=low
 
   * added bash script "update-logins.sh" to be able to update the cached logins
