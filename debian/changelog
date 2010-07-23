@@ -1,3 +1,10 @@
+linuxmuster-base (1.5.13-lenny2) lenny; urgency=low
+
+  * added samba-common-bin to server task.
+  * added samba-common-bin | samba-common to package control file.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 23 Jul 2010 10:30:59 +0200
+
 linuxmuster-base (1.5.13-lenny1) lenny; urgency=low
 
   * slapd configuration:
