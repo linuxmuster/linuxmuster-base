@@ -166,7 +166,7 @@ case "$1" in
         if ps ax | grep smbd | grep -v grep &> /dev/null; then
 	 /etc/init.d/samba reload
 	 # restore samba ldap admin password
-         smbpasswd -w `cat /etc/ldap.secret`
+         which smbpasswd &> /dev/null && smbpasswd -w `cat /etc/ldap.secret`
 	else
 	 echo "Samba is not running! Skipping samba reload!"
 	 echo "You have to restart samba after package update!"
