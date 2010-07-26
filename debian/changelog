@@ -1,3 +1,9 @@
+linuxmuster-base (1.5.14-lenny1) lenny; urgency=low
+
+  * paedml50-upgrade: fixed wrong debian version message.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 26 Jul 2010 17:06:43 +0200
+
 linuxmuster-base (1.5.14-lenny0) lenny; urgency=low
 
   * import_workstations, wimport.sh:
