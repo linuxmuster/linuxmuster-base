@@ -2,9 +2,9 @@
 #
 # wrapper for workstation import scripts
 #
-# Thomas Schmitt
-# <schmitt@lmz-bw.de>
-# 19.11.2008
+# Thomas Schmitt <schmitt@lmz-bw.de>
+# $Id$
+# GPL v3
 #
 
 # check for import_workstations lockfile
@@ -64,7 +64,7 @@ RC=0
 
 case "$imaging" in
 
-	linbo|tivoli)
+	linbo)
 		# backing up workstation data file
 		echo -n "Backing up $WIMPORTDATA ... " | tee -a $TMPLOG
 		if backup_file $WIMPORTDATA &> /dev/null; then

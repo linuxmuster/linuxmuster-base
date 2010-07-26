@@ -1,3 +1,13 @@
+linuxmuster-base (1.5.14-lenny0) lenny; urgency=low
+
+  * import_workstations, wimport.sh:
+    - removed obsolete tivoli imaging type.
+    - improved error handling: workstation data check will now cancel at any
+      type of wrong workstation data.
+    - removing now orphaned workstation homes without error message.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 26 Jul 2010 12:37:56 +0200
+
 linuxmuster-base (1.5.13-lenny3) lenny; urgency=low
 
   * postinst: invokes smbpasswd only if installed.

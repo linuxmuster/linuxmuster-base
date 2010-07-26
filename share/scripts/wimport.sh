@@ -49,15 +49,19 @@ check_unique() {
 
 # cancel with message
 exitmsg() {
- echo "$1"
+ echo "  > $1"
+ echo
+ echo "An error ocurred and import_workstations will be cancelled!"
+ echo "No modifications have been made to your system!"
  rm $WDATATMP
  rm -f $locker
  RC=1
+ echo
  exit $RC
 }
 
-# checking for valid host/machine account
-check_account() {
+# checking for valid host/machine account, returns 0 if no account exists
+check_host_account() {
  echo "$HOSTS_LDAP" | grep -qw "$hostname" || return 1
  echo "$MACHINES_LDAP" | grep -qw "${hostname}\\$" || return 1
  echo "$HOSTS_DB" | grep -qw "$hostname" || return 1
@@ -65,26 +69,28 @@ check_account() {
  return 0
 }
 
-# create workstation and machine accounts
-create_account() {
- # check if hostname exists already as a user account
+# checking for valid user account, returns 0 if no account exists
+check_user_account() {
  if echo "$ACCOUNTS_LDAP" | grep -qw "$hostname"; then
-  echo "  > ERROR: $hostname is already a ldap user account! Skipping!"
-  echo
+  RET=ldap
   return 1
  fi
  if echo "$ACCOUNTS_DB" | grep -qw "$hostname"; then
-  echo "  > ERROR: $hostname is already a postgresql user account! Skipping!"
-  echo
+  RET=postgresql
   return 1
  fi
  if grep -q ^"${hostname}"\: /etc/passwd; then
-  echo "  > ERROR: $hostname is already a system account! Skipping!"
-  echo
+  RET=system
   return 1
  fi
+ RET=""
+ return 0
+}
+
+# create workstation and machine accounts
+create_account() {
  if [ -e "$SOPHOMORIXLOCK" ]; then
-  echo "  > Fatal! Sophomorix lockfile $SOPHOMORIXLOCK detected!"
+  echo "  > Error: Sophomorix lockfile $SOPHOMORIXLOCK detected!"
   return 1
  fi
  echo -n "  * Creating exam account $hostname ... "
@@ -121,12 +127,17 @@ create_account() {
 
 # remove workstation and machine accounts
 remove_account() {
- if ! check_account $hostname; then
-  echo "  > Fatal! $hostname is no computer account! Not removing!"
+ if ! check_host_account $hostname; then
+  if check_user_account; then
+   echo "  * Removing orphaned computer account home directory: $hostdir."
+   rm -rf $hostdir
+   return 0
+  fi
+  echo "  > Error: $hostname is an existing $RET user account! Not removing!"
   return 1
  fi
  if [ -e "$SOPHOMORIXLOCK" ]; then
-  echo "  > Fatal! Sophomorix lockfile $SOPHOMORIXLOCK detected!"
+  echo "  > Error: Sophomorix lockfile $SOPHOMORIXLOCK detected!"
   return 1
  fi
  echo -n "  * Removing exam account $hostname ... "
@@ -202,19 +213,22 @@ remove_defaults() {
 
 if [ "$imaging" = "linbo" ]; then
  # adding new host entries from LINBO's registration
- if ls $LINBODIR/*.new 2>> $TMPLOG 1>> $TMPLOG; then
+ if ls $LINBODIR/*.new &> /dev/null; then
   for i in $LINBODIR/*.new; do
-   echo "Adding new host data:"
-   cat $i
-   echo
-   cat $i >> $WIMPORTDATA
-   rm $i
+   if [ -s "$i" ]; then
+    hostname="$(basename "$i" | sed 's|.new||')"
+    echo "Adding new data for $hostname:"
+    cat $i
+    echo
+    cat $i >> $WIMPORTDATA
+   fi
+   rm -f $i
   done
  fi
 fi
 
 
-# filter out bad workstation data
+# check for bad workstation data and cancel processing if necessary
 touch $WDATATMP
 if [ -s "$WIMPORTDATA" ]; then
 
@@ -233,9 +247,7 @@ if [ -s "$WIMPORTDATA" ]; then
   room=`echo $line | awk -F\; '{ print $1 }'`
   if ! check_string "$room"; then
    [ -z "$room" ] && room="<empty>"
-   echo "  > $room is no valid room name! Skipping."
-   RC_LINE=1
-   continue
+   exitmsg "$room is no valid room name!"
   fi
 
   hostname=`echo $line | awk -F\; '{ print $2 }'`
@@ -243,17 +255,17 @@ if [ -s "$WIMPORTDATA" ]; then
   hostname=$RET
   if ! validhostname "$hostname"; then
    [ -z "$hostname" ] && hostname="<empty>"
-   echo "  > $hostname is no valid hostname! Skipping."
-   RC_LINE=1
-   continue
+   exitmsg "$hostname is no valid hostname!"
+  fi
+  # check if hostname exists already as a user account
+  if ! check_user_account; then
+   exitmsg "Hostname $hostname exists already as a $RET user account!"
   fi
 
   hostgroup=`echo $line | awk -F\; '{ print $3 }'`
   if ! check_string "$hostgroup"; then
    [ -z "$hostgroup" ] && hostgroup="<empty>"
-   echo "  > $hostgroup is no valid group name! Skipping $hostname."
-   RC_LINE=1
-   continue
+   exitmsg "Host $hostname: $hostgroup is no valid group name!"
   fi
 
   mac=`echo $line | awk -F\; '{ print $4 }'`
@@ -261,24 +273,18 @@ if [ -s "$WIMPORTDATA" ]; then
   mac=$RET
   if ! validmac "$mac"; then
    [ -z "$mac" ] && mac="<empty>"
-   echo "  > $mac is no valid mac address! Skipping $hostname."
-   RC_LINE=1
-   continue
+   exitmsg "Host $hostname: $mac is no valid mac address!"
   fi
 
   ip=`echo $line | awk -F\; '{ print $5 }'`
   if ! validip "$ip"; then
    [ -z "$ip" ] && ip="<empty>"
-   echo "  > $ip is no valid ip address! Skipping $hostname."
-   RC_LINE=1
-   continue
+   exitmsg "Host $hostname: $ip is no valid ip address!"
   fi
 
   pxe=`echo $line | awk -F\; '{ print $11 }'`
   if [ -z "$pxe" ]; then
-   echo "  > PXE-Flag is not set! Skipping $hostname."
-   RC_LINE=1
-   continue
+   exitmsg "Host $hostname: PXE-Flag is not set!"
   fi
 
   echo "$room;$hostname;$hostgroup;$mac;$ip;$internmask;1;1;1;1;$pxe" >> $WDATATMP
@@ -360,7 +366,7 @@ if [ -s "$WDATATMP" ]; then
   echo "Processing host $hostname:"
 
   # create workstation and machine accounts
-  if check_account; then
+  if check_host_account; then
    get_pgroup $hostname
    strip_spaces $RET
    pgroup=$RET
@@ -510,6 +516,7 @@ if ls $WSHOME/*/* &> /dev/null; then
 
  for i in $WSHOME/*/*; do
 
+  hostdir=$i
   hostname=${i##*/}
   if ! awk -F\; '{ print "X"$2"X" }' $WDATATMP | grep -q X${hostname}X; then
    FOUND=1
