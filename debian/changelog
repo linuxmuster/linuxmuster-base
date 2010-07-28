@@ -1,11 +1,11 @@
 linuxmuster-base (1.5.15-lenny0) lenny; urgency=low
 
   * remoteadmin.sh:
-    - fixed nagios2 stuff,
+    - fixed nagios2 stuff (closes #278),
     - removed remoteadmin access to nagios and webmin web interfaces, so
       remoteadmin is a console user only.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 28 Jul 2010 19:08:09 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 28 Jul 2010 19:58:09 +0200
 
 linuxmuster-base (1.5.14-lenny1) lenny; urgency=low
 
