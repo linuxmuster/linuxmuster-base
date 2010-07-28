@@ -1,3 +1,12 @@
+linuxmuster-base (1.5.15-lenny0) lenny; urgency=low
+
+  * remoteadmin.sh:
+    - fixed nagios2 stuff,
+    - removed remoteadmin access to nagios and webmin web interfaces, so
+      remoteadmin is a console user only.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 28 Jul 2010 19:08:09 +0200
+
 linuxmuster-base (1.5.14-lenny1) lenny; urgency=low
 
   * paedml50-upgrade: fixed wrong debian version message.
