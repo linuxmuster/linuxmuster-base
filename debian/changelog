@@ -1,3 +1,15 @@
+linuxmuster-base (1.5.15-lenny2) lenny; urgency=low
+
+  * postinst: fixed wrong variable for slapd.conf.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 30 Jul 2010 08:24:36 +0200
+
+linuxmuster-base (1.5.15-lenny1) lenny; urgency=low
+
+  * paedml50-upgrade.sh: removed samba from PKGSTOREMOVE.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 29 Jul 2010 12:35:31 +0200
+
 linuxmuster-base (1.5.15-lenny0) lenny; urgency=low
 
   * remoteadmin.sh:

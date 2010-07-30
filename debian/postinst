@@ -183,7 +183,7 @@ case "$1" in
          echo "Repairing basedn in $conf."
          cp $conf $conf.dpkg-old
          backup=true
-         sed -e "s|dc=paedml-linux,dc=lokal|$basedn|g" -i $slapdconf
+         sed -e "s|dc=paedml-linux,dc=lokal|$basedn|g" -i $conf
          slapd_reload=yes
         fi
        fi
