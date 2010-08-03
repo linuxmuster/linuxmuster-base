@@ -1,3 +1,12 @@
+linuxmuster-base (1.5.16-lenny0) lenny; urgency=low
+
+  * smb.conf: removed [admin] share, added "admin users = administrator" to 
+    [home], [students], [shares] and [tasks].
+  * wimport.sh: sets machine account password only on account creation to speed
+    things up.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue,  3 Aug 2010 11:38:57 +0200
+
 linuxmuster-base (1.5.15-lenny2) lenny; urgency=low
 
   * postinst: fixed wrong variable for slapd.conf.

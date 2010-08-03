@@ -101,7 +101,9 @@ create_account() {
   return 1
  fi
  if ! sophomorix-passwd -u $hostname --pass $HOST_PASSWORD 2>> $TMPLOG 1>> $TMPLOG; then
-  echo "  > Error: Cannot set password for $hostname!"
+  echo "Ok!"
+ else
+  echo "sophomorix error!"
   return 1
  fi
  [ -d "$WSHOME/$room/$hostname" ] || mkdir -p $WSHOME/$room/$hostname
@@ -123,6 +125,15 @@ create_account() {
   echo "sophomorix error!"
   return 1
  fi
+ echo -n "  * Setting machine account password for ${hostname}$ ... "
+ if ! sophomorix-passwd --force -u ${hostname}$ --pass $MACHINE_PASSWORD 2>> $TMPLOG 1>> $TMPLOG; then
+  echo "Ok!"
+ else
+  echo "sophomorix error!"
+  return 1
+ fi
+ # disable password change
+ smbldap-usermod -A0 -B0 ${hostname}$ 2>> $TMPLOG 1>> $TMPLOG
 }
 
 # remove workstation and machine accounts
@@ -384,14 +395,6 @@ if [ -s "$WDATATMP" ]; then
   if [ $RC_LINE -ne 0 ]; then
    RC=$RC_LINE
    continue
-  else
-   if ! sophomorix-passwd --force -u ${hostname}$ --pass $MACHINE_PASSWORD 2>> $TMPLOG 1>> $TMPLOG; then
-    echo "  > Error: Cannot set machine password for ${hostname}$!"
-    RC=1
-    continue
-   fi
-   # disable password change
-   smbldap-usermod -A0 -B0 ${hostname}$
   fi
 
   # linbo stuff, only if pxe host

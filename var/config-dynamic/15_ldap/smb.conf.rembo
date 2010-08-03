@@ -105,7 +105,7 @@
 # This boolean parameter controls whether Samba attempts to sync the Unix
 # password with the SMB password when the encrypted SMB password in the
 # passdb is changed.
-   unix password sync = yes
+;   unix password sync = yes
 
 # For Unix password sync to work on a Debian GNU/Linux system, the following
 # parameters must be set (thanks to Augustin Luton <aluton@hybrigenics.fr> for
@@ -224,6 +224,9 @@
    comment = Home Directories
    browseable = no
 
+   # administrator is able to do housekeeping
+   admin users = @@administrator@@
+
 # By default, the home directories are exported read-only. Change next
 # parameter to 'yes' if you want to be able to write to them.
    writable = yes
@@ -302,16 +305,6 @@
    writable = no
    guest ok = Yes
 
-# admin share for housekeeping
-[admin]
-   comment = Housekeeping
-   path = /home/share
-   admin users = administrator
-   valid users = administrator
-   browseable = No
-   writable = yes
-   guest ok = No
-
 # following shares are only used by linux clients
 [students]
    comment = Students Homes
@@ -319,11 +312,13 @@
    writeable = no
    write list = @@administrator@@,@@@teachersgroup@@
    valid users = @@administrator@@,@@@teachersgroup@@
+   admin users = @@administrator@@
    browseable = No
    guest ok = No
 
 [shares]
    comment = Shares
+   admin users = @@administrator@@
    path = /home/share
    writeable = yes
    create mode = 2664
@@ -336,6 +331,7 @@
    path = /var/cache/sophomorix/tasks
    writeable = no
    write list = @@administrator@@,@@@teachersgroup@@
+   admin users = @@administrator@@
    browseable = No
    guest ok = No
 
