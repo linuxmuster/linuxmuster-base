@@ -1,3 +1,9 @@
+linuxmuster-base (1.5.16-lenny1) lenny; urgency=low
+
+  * wimport.sh, create_account(): fixed password settings.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed,  4 Aug 2010 18:38:24 +0200
+
 linuxmuster-base (1.5.16-lenny0) lenny; urgency=low
 
   * smb.conf: removed [admin] share, added "admin users = administrator" to 

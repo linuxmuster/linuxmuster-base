@@ -100,15 +100,19 @@ create_account() {
   echo "sophomorix error!"
   return 1
  fi
- if ! sophomorix-passwd -u $hostname --pass $HOST_PASSWORD 2>> $TMPLOG 1>> $TMPLOG; then
+ echo -n "  * Setting exam account password for ${hostname} ... "
+ if sophomorix-passwd -u $hostname --pass $HOST_PASSWORD 2>> $TMPLOG 1>> $TMPLOG; then
   echo "Ok!"
  else
   echo "sophomorix error!"
   return 1
  fi
- [ -d "$WSHOME/$room/$hostname" ] || mkdir -p $WSHOME/$room/$hostname
- chown $hostname:$TEACHERSGROUP $WSHOME/$room/$hostname
- chmod 775 $WSHOME/$room/$hostname
+ local homedir="$WSHOME/$room/$hostname"
+ if [ ! -d "$homedir" ]; then
+  mkdir -p "$homedir"
+  chown ${hostname}:${TEACHERSGROUP} "$homedir"
+  chmod 775 "$homedir"
+ fi
  if [ "$QUOTA" = "yes" ]; then
   echo -n "  * Setting quota for $hostname ... "
   if sophomorix-quota -u $hostname 2>> $TMPLOG 1>> $TMPLOG; then
@@ -126,7 +130,7 @@ create_account() {
   return 1
  fi
  echo -n "  * Setting machine account password for ${hostname}$ ... "
- if ! sophomorix-passwd --force -u ${hostname}$ --pass $MACHINE_PASSWORD 2>> $TMPLOG 1>> $TMPLOG; then
+ if sophomorix-passwd --force -u ${hostname}$ --pass $MACHINE_PASSWORD 2>> $TMPLOG 1>> $TMPLOG; then
   echo "Ok!"
  else
   echo "sophomorix error!"
@@ -393,6 +397,7 @@ if [ -s "$WDATATMP" ]; then
   fi
 
   if [ $RC_LINE -ne 0 ]; then
+   echo
    RC=$RC_LINE
    continue
   fi
