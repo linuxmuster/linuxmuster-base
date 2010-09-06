@@ -4,7 +4,7 @@
 # GPL v3
 # Thomas Schmitt <schmitt@lmz-bw.de>
 #
-# 2010-03-08
+# $Id$
 #
 
 # print help message
@@ -47,7 +47,7 @@ for room in $rooms; do
   rm -f $hosts
   msg=false
   # read smbstatus file and grep logins from it
-  grep ^[1-9] $status | while read line; do
+  grep "!^\s*![1-9]" $status | while read line; do
    machine="$(echo $line | awk '{ print $4 }')"
    echo $hosts | grep -qw $machine || continue
    if [ "$msg" = "false" ]; then

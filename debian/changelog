@@ -1,3 +1,11 @@
+linuxmuster-base (1.5.17-lenny0) lenny; urgency=low
+
+  * update-logins.sh: fixed logins with id < 10000 (#204).
+  * postinst: fixing moodle's ldap host url (#284).
+  * import_printers: fixed invokation of cups' init script (#287).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon,  6 Sep 2010 17:47:21 +0200
+
 linuxmuster-base (1.5.16-lenny1) lenny; urgency=low
 
   * wimport.sh, create_account(): fixed password settings.
