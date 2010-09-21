@@ -1,3 +1,9 @@
+linuxmuster-base (1.5.3.3-etch10) etch; urgency=low
+
+  * update-logins.sh: fixed logins with id < 10000 now finally (#204).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 21 Sep 2010 15:10:12 +0200
+
 linuxmuster-base (1.5.3.3-etch9) etch; urgency=low
 
   * update-logins.sh: fixed logins with id < 10000 (#204).
