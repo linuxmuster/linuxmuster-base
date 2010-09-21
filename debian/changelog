@@ -1,3 +1,9 @@
+linuxmuster-base (1.5.17-lenny1) lenny; urgency=low
+
+  * update-logins.sh: fixed logins with id < 10000 finally (#204).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 21 Sep 2010 15:20:13 +0200
+
 linuxmuster-base (1.5.17-lenny0) lenny; urgency=low
 
   * update-logins.sh: fixed logins with id < 10000 (#204).
