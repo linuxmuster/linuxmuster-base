@@ -184,7 +184,10 @@ case "$1" in
     ldappassword="$(cat /etc/ldap.secret)"
     echo "Updating $(basename $conf)! Original file will be backed up to $(basename $confbak)."
     cp $conf $confbak
-    sed -e "s|@@basedn@@|$basedn|g
+    sed -e "s|@@message1@@|${message1}|
+            s|@@message2@@|${message2}|
+            s|@@message3@@|${message3}|
+            s|@@basedn@@|$basedn|g
             s|@@ldappassword@@|$ldappassword|
             s|@@ipcopip@@|$ipcopip|" $template > $conf
     slapd_reload=yes
