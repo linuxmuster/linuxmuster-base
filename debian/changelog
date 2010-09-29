@@ -1,8 +1,9 @@
-linuxmuster-base (1.5.17-lenny1) lenny; urgency=low
+linuxmuster-base (1.5.18-lenny0) lenny; urgency=low
 
   * update-logins.sh: fixed logins with id < 10000 finally (#204).
+  * slapd.conf: added acl for ipcop (#303).
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 21 Sep 2010 15:20:13 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 29 Sep 2010 10:18:34 +0200
 
 linuxmuster-base (1.5.17-lenny0) lenny; urgency=low
 
