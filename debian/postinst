@@ -177,12 +177,12 @@ case "$1" in
    # update slapd.conf
    conf=/etc/ldap/slapd.conf
    rev=850
-   id="# \$Id$conf` $rev"
+   id="$(basename $conf) $rev"
    if ! grep -q "$id" $conf; then
     confbak=${conf}.dpkg-old
-    template=$DYNTPLDIR/15_ldap/`basename $conf`
+    template=$DYNTPLDIR/15_ldap/$(basename $conf)
     ldappassword="$(cat /etc/ldap.secret)"
-    echo "Updating `basename $conf`! Original file will be backed up to `basename $confbak`."
+    echo "Updating $(basename $conf)! Original file will be backed up to $(basename $confbak)."
     cp $conf $confbak
     sed -e "s|@@basedn@@|$basedn|g
             s|@@ldappassword@@|$ldappassword|
