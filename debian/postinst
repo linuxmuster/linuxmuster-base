@@ -124,9 +124,9 @@ case "$1" in
    fi
 
    # messages for config file headers
-   message1="##### Do not change this file! It will be overwritten!"
-   message2="##### This configuration file was automatically created by linuxmuster-base!"
-   message3="##### Last Modification: `date`"
+   message1="Do not change this file! It will be overwritten!"
+   message2="This configuration file was automatically created by linuxmuster-base!"
+   message3="Last Modification: `date`"
 
    # some variables we need for patching
    # added imaging (1.2-6)

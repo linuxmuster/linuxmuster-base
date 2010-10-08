@@ -3,7 +3,7 @@
 # blocking web access on ipcop
 #
 # Thomas Schmitt <schmitt@lmz-bw.de>
-# 12.11.2009
+# $Id$
 # GPL v3
 #
 
@@ -224,8 +224,12 @@ put_ipcop $CACHEDIR/fwrules.config.new /var/ipcop/fwrules/config &> /dev/null ||
 exec_ipcop /usr/sbin/squid -k reconfigure &> /dev/null || cancel "Restarting of ipcop proxy failed!"
 
 
+# test restart bot ohne copspot rules
 # restarting firewall rules
-exec_ipcop /etc/rc.d/rc.firewall.local reload &> /dev/null || cancel "Restarting of ipcop firewall failed!"
+#exec_ipcop /etc/rc.d/rc.firewall.local reload &> /dev/null || cancel "Restarting of ipcop firewall failed!"
+exec_ipcop /sbin/iptables -F BOT_INPUT || cancel "Flushing of BOT_INPUT failed!"
+exec_ipcop /sbin/iptables -F BOT_FORWARD || cancel "Flushing of BOT_FORWARD failed!"
+exec_ipcop /usr/local/bin/setfwrules || cancel "setfwrules failed!"
 
 
 # renew list of internet blocked hosts

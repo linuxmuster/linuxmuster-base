@@ -1,3 +1,9 @@
+linuxmuster-base (1.5.19-lenny0) lenny; urgency=low
+
+  * internet_on_off.sh: reloading only BOT rules not the whole rc.firewall.local (#293).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri,  8 Sep 2010 12:38:43 +0200
+
 linuxmuster-base (1.5.18-lenny0) lenny; urgency=low
 
   * update-logins.sh: fixed logins with id < 10000 finally (#204).
