@@ -1,8 +1,10 @@
 linuxmuster-base (1.5.19-lenny0) lenny; urgency=low
 
   * internet_on_off.sh: reloading only BOT rules not the whole rc.firewall.local (#293).
+  * paedml50-upgrade.sh: checking for nfs-common/nfs-kernel-server and reinstall it
+    if necessary at the end of upgrade process.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri,  8 Sep 2010 12:38:43 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 11 Oct 2010 11:30:43 +0200
 
 linuxmuster-base (1.5.18-lenny0) lenny; urgency=low
 

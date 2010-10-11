@@ -24,6 +24,8 @@ FREERADIUS=`dpkg -l | grep linuxmuster-freeradius | grep ^i`
 PHPMYADMIN=`dpkg -l | grep phpmyadmin | grep ^i`
 PHPPGADMIN=`dpkg -l | grep phppgadmin | grep ^i`
 COPSPOT=`dpkg -l | grep linuxmuster-ipcop-addon-copspot | grep ^i`
+NFSCOMMON=`dpkg -l | grep nfs-common | grep ^i | awk '{ print $2 }'`
+NFSSERVER=`dpkg -l | grep nfs-kernel-server | grep ^i | awk '{ print $2 }'`
 PKGSTOREMOVE="linuxmuster-freeradius linux-image-server phpmyadmin phppgadmin \
               linuxmuster-schulkonsole-templates-openlml mindi mondo nagios2 \
               linuxmuster-nagios-base postgresql-7.4 postgresql-8.1 samba \
@@ -662,6 +664,21 @@ for i in $HORDEUPGRADE $KRONOUPGRADE $MNEMOUPGRADE $NAGUPGRADE $TURBAUPGRADE; do
  mysql horde < $i && touch $CACHEDIR/.${t}.upgrade50.done
 done
 echo
+
+# check for nfs
+if [ -n "$NFSSERVER" ]; then
+ echo "##############"
+ echo "# nfs-server #"
+ echo "##############"
+ aptitude -y install $NFSSERVER
+else
+ if [ -n "$NFSCOMMON" ]; then
+  echo "##############"
+  echo "# nfs-common #"
+  echo "##############"
+  aptitude -y install $NFSCOMMON
+ fi
+fi
 
 echo "#############"
 echo "# Aufräumen #"
