@@ -34,6 +34,19 @@ usage() {
   exit 1
 }
 
+# mount installation cdrom
+mount_cdrom() {
+ local device=$1
+ [ -n "$device" ] && device="/dev/$device"
+ mount $device /cdrom &> /dev/null
+ if grep -q "[op][pa][e][nd]ML Linux" /cdrom/.disk/info &> /dev/null; then
+  return 0
+ else
+  umount /cdrom &> /dev/null
+  return 1
+ fi
+}
+
 [[ "$opt" = "--first" || "$opt" = "--modify" ]] || usage
 
 # look if we were on first boot

@@ -1,3 +1,12 @@
+linuxmuster-base (1.5.20-lenny0) lenny; urgency=low
+
+  * internet_on_off.sh: invoking now script /var/linuxmuster/reloadbot.sh on ipcop to reload bot rules.
+  * linuxmuster-setup:
+    - added /etc/hesiod.conf configuration template.
+    - fixed cdrom mount on first installation.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 22 Oct 2010 11:10:11 +0200
+
 linuxmuster-base (1.5.19-lenny0) lenny; urgency=low
 
   * internet_on_off.sh: reloading only BOT rules not the whole rc.firewall.local (#293).
