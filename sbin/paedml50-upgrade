@@ -41,5 +41,29 @@ if ! check_free_space /var 1000000; then
  exit 1
 fi
 
-. $DATADIR/upgrade/paedml50-upgrade.sh 2>&1 | tee -a /var/log/linuxmuster/paedml50-upgrade.log
+# downloading openML/paedML iso
+DLDIR=$ADMINSHOME/$ADMINISTRATOR/iso
+mkdir -p $DLDIR
+if [ ! -s "$DLDIR/$FREECDNAME" -a ! -s "$DLDIR/${FREECDNAME}.md5" ]; then
+ echo "Lade $FREECDNAME herunter ..."
+ rm -f $DLDIR/${FREECDNAME}*
+ wget $ISOURL/$FREECDNAME -0 $DLDIR/$FREECDNAME
+ wget $ISOURL/${FREECDNAME}.md5 -0 $DLDIR/${FREECDNAME}.md5
+ chown $ADMINISTRATOR $DLDIR -R
+fi
+cd $DLDIR
+echo "Überpruefe IS0-Datei ..."
+md5sum -c ${FREECDNAME}.md5 || exit 1
+
+# copy packages from iso to cache
+mount -o loop $FREECDNAME /mnt || exit 1
+cd /mnt/pool || exit 1
+echo "Kopiere Pakete ..."
+for i in `find . -name \*.deb`; do
+ cp -v "$i" /var/cache/apt/archives
+done
+cd ~
+umount /mnt
+
+. $DATADIR/upgrade/paedml50-upgrade.sh 2>&1 | tee -a $LOGDIR/paedml50-upgrade.log
 

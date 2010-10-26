@@ -4,8 +4,9 @@ linuxmuster-base (1.5.20-lenny0) lenny; urgency=low
   * linuxmuster-setup:
     - added /etc/hesiod.conf configuration template.
     - fixed cdrom mount on first installation.
+  * paedml50-upgrade: added openML iso download.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 22 Oct 2010 11:10:11 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 26 Oct 2010 18:04:11 +0200
 
 linuxmuster-base (1.5.19-lenny0) lenny; urgency=low
 
