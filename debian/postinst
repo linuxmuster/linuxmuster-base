@@ -541,7 +541,7 @@ case "$1" in
    fi
 
    # updating slapd.conf
-   searchstr="by anonymous ssf=56 auth"
+   searchstr="by anonymous peername.ip=$serverip auth"
    slapdconf=/etc/ldap/slapd.conf
    basetpl=$DYNTPLDIR/15_ldap/slapd.conf
    sophtpl=/usr/share/sophomorix/config-templates/ldap/slapd-standalone.conf.template
@@ -552,6 +552,8 @@ case "$1" in
     sed -e "s/@@message1@@/${message1}/
             s/@@message2@@/${message2}/
             s/@@message3@@/${message3}/
+            s/@@serverip@@/${serverip}/
+            s/@@ipcopip@@/${ipcopip}/
             s/@@basedn@@/${basedn}/g
             s/@@ldappassword@@/${rootpw}/g" $basetpl > $slapdconf
     addgroup openldap ssl-cert

@@ -286,7 +286,7 @@ get_maclist() {
     IFS=","
     for i in $maclist; do
       if validmac $i; then
-        mac[$n]=$i
+        mac[$n]="$(echo $i | tr a-z A-Z)"
       else
         continue
       fi

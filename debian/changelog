@@ -1,3 +1,13 @@
+linuxmuster-base (1.5.3.3-etch11) etch; urgency=low
+
+  * helperfunctions.sh, get_maclist(): convert macs to upper case (#291).
+  * slapd.conf:
+    - added access rules for server and ipcop ip.
+    - removed obsolete admin access rules.
+  * postinst: updated slapd.conf patch code.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 29 Oct 2010 11:59:56 +0200
+
 linuxmuster-base (1.5.3.3-etch10) etch; urgency=low
 
   * update-logins.sh: fixed logins with id < 10000 now finally (#204).
