@@ -5,6 +5,7 @@ linuxmuster-base (1.5.3.3-etch11) etch; urgency=low
     - added access rules for server and ipcop ip.
     - removed obsolete admin access rules.
   * postinst: updated slapd.conf patch code.
+  * increased version to 4.0.6.
 
  -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 29 Oct 2010 11:59:56 +0200
 
