@@ -1,3 +1,13 @@
+linuxmuster-base (1.5.21-lenny0) lenny; urgency=low
+
+  * helperfunctions.sh, get_maclist(): convert macs to upper case (#291).
+  * slapd.conf:
+    - added access rules for server and ipcop ip.
+    - removed obsolete admin access rules.
+  * postinst: updated slapd.conf patch code.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 29 Oct 2010 13:06:34 +0200
+
 linuxmuster-base (1.5.20-lenny0) lenny; urgency=low
 
   * internet_on_off.sh: invoking now script /var/linuxmuster/reloadbot.sh on ipcop to reload bot rules.

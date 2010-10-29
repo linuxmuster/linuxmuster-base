@@ -176,7 +176,7 @@ case "$1" in
 
    # update slapd.conf
    conf=/etc/ldap/slapd.conf
-   rev=850
+   rev=873
    id="$(basename $conf) $rev"
    if ! grep -q "$id" $conf; then
     confbak=${conf}.dpkg-old
@@ -189,6 +189,7 @@ case "$1" in
             s|@@message3@@|${message3}|
             s|@@basedn@@|$basedn|g
             s|@@ldappassword@@|$ldappassword|
+            s|@@ipcopip@@|$serverip|
             s|@@ipcopip@@|$ipcopip|" $template > $conf
     slapd_reload=yes
    fi
