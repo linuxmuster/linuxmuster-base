@@ -66,8 +66,8 @@ usage() {
 [[ -n "$host" && -n "$kill" ]] && usage
 
 
-# check if $ROOMDEFAULTS_TEMP exists
-if [ ! -e "$ROOMDEFAULTS_TEMP" ]; then
+# check if $ROOMDEFAULTS exists
+if [ ! -e "$ROOMDEFAULTS" ]; then
 	echo "Fatal: File $ROOMDEFAULTS_TEMP not found!"
 	exit_script
 fi

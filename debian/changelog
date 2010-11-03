@@ -2,7 +2,7 @@ linuxmuster-base (1.5.21-lenny0) lenny; urgency=low
 
   * helperfunctions.sh, get_maclist(): convert macs to upper case (#291).
   * wimport.sh, helperfunctions.sh, linuxmuster-reset: improved case handling
-    for macs, hostnames and room names. 
+    for macs, hostnames and room names (#386). 
     and hostnames to lowercase in workstations data file.
   * slapd.conf:
     - added access rules for server and ipcop ip.
@@ -12,7 +12,7 @@ linuxmuster-base (1.5.21-lenny0) lenny; urgency=low
     - changed upgradedable versions up to 4.0.9.
     - patching correct distribution name into /etc/nagios3/conf.d/linuxmuster_main.cfg.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed,  3 Nov 2010 09:35:43 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed,  3 Nov 2010 11:47:43 +0100
 
 linuxmuster-base (1.5.20-lenny0) lenny; urgency=low
 
