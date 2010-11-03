@@ -1,4 +1,4 @@
-linuxmuster-base (1.5.3.3-etch11) etch; urgency=low
+linuxmuster-base (1.5.3.3-etch12) etch; urgency=low
 
   * wimport.sh: converts now lowercase macs to uppercase in workstations data file.
 
