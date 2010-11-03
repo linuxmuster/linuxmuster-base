@@ -689,6 +689,12 @@ rm -f /etc/apt/apt.conf.d/99upgrade
 # final stuff
 dpkg-reconfigure linuxmuster-base
 linuxmuster-nagios-setup
+if grep paedML /etc/issue; then
+ sed -e 's|openML|paedML|g' -i /etc/nagios3/conf.d/linuxmuster_main.cfg
+else
+ sed -e 's|paedML|openML|g' -i /etc/nagios3/conf.d/linuxmuster_main.cfg
+fi
+
 echo
 
 echo "######################"

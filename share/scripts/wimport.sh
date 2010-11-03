@@ -259,14 +259,20 @@ if [ -s "$WIMPORTDATA" ]; then
   line=${line// /}
   [ -z "$line" ] && continue
 
-  room=`echo $line | awk -F\; '{ print $1 }'`
-  if ! check_string "$room"; then
-   [ -z "$room" ] && room="<empty>"
-   exitmsg "$room is no valid room name!"
+  room_orig=`echo $line | awk -F\; '{ print $1 }'`
+  if ! check_string "$room_orig"; then
+   [ -z "$room_orig" ] && room_orig="<empty>"
+   exitmsg "$room_orig is no valid room name!"
+  fi
+  tolower $room_orig
+  room=$RET
+  # check for uppercase room names
+  if [ "$room_orig" != "$room" ]; then
+   rooms_to_be_converted="$rooms_to_be_converted $room_orig"
   fi
 
-  hostname=`echo $line | awk -F\; '{ print $2 }'`
-  tolower $hostname
+  hostname_orig=`echo $line | awk -F\; '{ print $2 }'`
+  tolower $hostname_orig
   hostname=$RET
   if ! validhostname "$hostname"; then
    [ -z "$hostname" ] && hostname="<empty>"
@@ -276,6 +282,10 @@ if [ -s "$WIMPORTDATA" ]; then
   if ! check_user_account; then
    exitmsg "Hostname $hostname exists already as a $RET user account!"
   fi
+  # check for uppercase hostnames
+  if [ "$hostname_orig" != "$hostname" ]; then
+   hostnames_to_be_converted="$hostnames_to_be_converted $hostname_orig"
+  fi
 
   hostgroup=`echo $line | awk -F\; '{ print $3 }'`
   if ! check_string "$hostgroup"; then
@@ -283,12 +293,18 @@ if [ -s "$WIMPORTDATA" ]; then
    exitmsg "Host $hostname: $hostgroup is no valid group name!"
   fi
 
-  mac=`echo $line | awk -F\; '{ print $4 }'`
-  toupper $mac
+  mac_orig=`echo $line | awk -F\; '{ print $4 }'`
+  if ! validmac "$mac_orig"; then
+   [ -z "$mac_orig" ] && mac_orig="<empty>"
+   echo "  > $mac_orig is no valid mac address! Skipping $hostname."
+   RC_LINE=1
+   continue
+  fi
+  toupper $mac_orig
   mac=$RET
-  if ! validmac "$mac"; then
-   [ -z "$mac" ] && mac="<empty>"
-   exitmsg "Host $hostname: $mac is no valid mac address!"
+  # check for lowercase macs
+  if [ "$mac_orig" != "$mac" ]; then
+   macs_to_be_converted="$macs_to_be_converted $mac_orig"
   fi
 
   ip=`echo $line | awk -F\; '{ print $5 }'`
@@ -329,6 +345,34 @@ if [ -s "$WDATATMP" ]; then
   check_unique "$i" "$ips" || exitmsg "IP address $i is not unique!"
  done
 
+fi
+
+# convert lowercase macs
+if [ -n "$macs_to_be_converted" ]; then
+ for i in $macs_to_be_converted; do
+  toupper $i
+  sed -e "s|$i|$RET|g" -i "$WIMPORTDATA"
+ done
+fi
+
+# convert uppercase room names
+if [ -n "$rooms_to_be_converted" ]; then
+ for i in $rooms_to_be_converted; do
+  tolower $i
+  sed -e "s|^$i\;|$RET\;|g
+          s|^$i |$RET |g" -i "$WIMPORTDATA"
+ done
+fi
+
+# convert uppercase hostnames
+if [ -n "$hostnames_to_be_converted" ]; then
+ for i in $hostnames_to_be_converted; do
+  tolower $i
+  sed -e "s|\;$i\;|\;$RET\;|g
+          s|\;$i |\;$RET |g
+          s| $i | $RET |g
+          s| $i\;| $RET\;|g" -i "$WIMPORTDATA"
+ done
 fi
 
 # evaluate workstation data checks

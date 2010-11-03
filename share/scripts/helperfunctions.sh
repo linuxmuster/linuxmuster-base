@@ -220,10 +220,11 @@ validhostname() {
 get_ip() {
   unset RET
   [ -f "$WIMPORTDATA" ] || return 1
-  if validmac "$1"; then
-   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $4 " " $5 }' | grep ^"$1 " | awk '{ print $2 }'` &> /dev/null
+  local pattern="$1"
+  if validmac "$pattern"; then
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $4 " " $5 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
   else # assume hostname
-   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $2 " " $5 }' | grep ^"$1 " | awk '{ print $2 }'` &> /dev/null
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $2 " " $5 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
   fi
   return 0
 }
@@ -232,7 +233,8 @@ get_ip() {
 get_room_ip() {
   unset RET
   [ -f "$WIMPORTDATA" ] || return 1
-  RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $1 " " $5 }' | grep ^"$1 " | tail -1 | awk '{ print $2 }'` &> /dev/null
+  local pattern="$1"
+  RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $1 " " $5 }' | grep -i ^"$pattern " | tail -1 | awk '{ print $2 }'` &> /dev/null
   return 0
 }
 
@@ -240,12 +242,14 @@ get_room_ip() {
 get_mac() {
   unset RET
   [ -f "$WIMPORTDATA" ] || return 1
-  if validip "$1"; then
-   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $5 " " $4 }' | grep ^"$1 " | awk '{ print $2 }'` &> /dev/null
+  local pattern="$1"
+  if validip "$pattern"; then
+   pattern="${pattern//./\\.}"
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $5 " " $4 }' | grep ^"$pattern " | awk '{ print $2 }'` &> /dev/null
   else # assume hostname
-   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $2 " " $4 }' | grep ^"$1 " | awk '{ print $2 }'` &> /dev/null
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $2 " " $4 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
   fi
-  toupper "$RET"
+  [ -n "$RET" ] && toupper "$RET"
   return 0
 }
 
@@ -253,12 +257,14 @@ get_mac() {
 get_hostname() {
   unset RET
   [ -f "$WIMPORTDATA" ] || return 1
-  if validip "$1"; then
-   local pattern="${1//./\\.}"
+  local pattern="$1"
+  if validip "$pattern"; then
+   pattern="${pattern//./\\.}"
    RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $5 " " $2 }' | grep ^"$pattern " | awk '{ print $2 }'` &> /dev/null
-  elif validmac "$1"; then
-   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $4 " " $2 }' | grep -i ^"$1 " | awk '{ print $2 }'` &> /dev/null
+  elif validmac "$pattern"; then
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $4 " " $2 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
   fi
+  [ -n "$RET" ] && tolower "$RET"
   return 0
 }
 
@@ -266,14 +272,16 @@ get_hostname() {
 get_room() {
   unset RET
   [ -f "$WIMPORTDATA" ] || return 1
-  if validip "$1"; then
-   local pattern="${1//./\\.}"
+  local pattern="$1"
+  if validip "$pattern"; then
+   pattern="${1//./\\.}"
    RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $5 " " $1 }' | grep ^"$pattern " | awk '{ print $2 }'` &> /dev/null
-  elif validmac "$1"; then
-   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $4 " " $1 }' | grep -i ^"$1 " | awk '{ print $2 }'` &> /dev/null
+  elif validmac "$pattern"; then
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $4 " " $1 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
   else # assume hostname
-   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $2 " " $1 }' | grep -i ^"$1 " | awk '{ print $2 }'` &> /dev/null
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $2 " " $1 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
   fi
+  [ -n "$RET" ] && tolower "$RET"
   return 0
 }
 
@@ -303,7 +311,7 @@ get_maclist() {
     OIFS=$IFS
     IFS=","
     for i in $hostlist; do
-      host[$n]=$i
+      host[$n]="$(echo $i | tr A-Z a-z)"
       let n+=1
     done
     IFS=$OIFS
