@@ -254,14 +254,18 @@ if [ -s "$WIMPORTDATA" ]; then
    continue
   fi
 
-  mac=`echo $line | awk -F\; '{ print $4 }'`
-  toupper $mac
+  mac_orig=`echo $line | awk -F\; '{ print $4 }'`
+  toupper $mac_orig
   mac=$RET
   if ! validmac "$mac"; then
    [ -z "$mac" ] && mac="<empty>"
    echo "  > $mac is no valid mac address! Skipping $hostname."
    RC_LINE=1
    continue
+  fi
+  # check for lowercase macs
+  if [ "$mac_orig" != "$mac" ]; then
+   macs_to_be_converted="$macs_to_be_converted $mac_orig"
   fi
 
   ip=`echo $line | awk -F\; '{ print $5 }'`
@@ -306,6 +310,14 @@ if [ -s "$WDATATMP" ]; then
   check_unique "$i" "$ips" || exitmsg "IP address $i is not unique!"
  done
 
+fi
+
+# convert lowercase macs
+if [ -n "$macs_to_be_converted" ]; then
+ for i in $macs_to_be_converted; do
+  toupper $i
+  sed -e "s|$i|$RET|g" -i "$WIMPORTDATA"
+ done
 fi
 
 # evaluate workstation data checks
