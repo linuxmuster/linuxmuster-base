@@ -210,6 +210,7 @@ for i in /etc/ldap/slapd.conf /etc/default/slapd /var/lib/ldap/DB_CONFIG; do
 	         s/@@message3@@/${message3}/
 	         s/@@basedn@@/${basedn}/g
 	         s/@@ipcopip@@/${ipcopip}/g
+	         s/@@serverip@@/${serverip}/g
 	         s/@@ldappassword@@/${ldapadminpw}/" $LDAPDYNTPLDIR/`basename $i` > $i
  else
   cp $STATICTPLDIR/$i $i
