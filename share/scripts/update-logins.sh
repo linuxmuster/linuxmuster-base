@@ -19,6 +19,7 @@ fi
 
 # read in linuxmuster environment
 . /usr/share/linuxmuster/config/dist.conf || exit 1
+. $HELPERFUNCTIONS || exit 1
 
 # check for cache dir
 mkdir -p $LOGINCACHE
