@@ -257,6 +257,8 @@ get_hostname() {
    RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $5 " " $2 }' | grep ^"$pattern " | awk '{ print $2 }'` &> /dev/null
   elif validmac "$1"; then
    RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $4 " " $2 }' | grep -i ^"$1 " | awk '{ print $2 }'` &> /dev/null
+  else # assume hostname
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $2 " " $4 }' | grep ^"$1 " | awk '{ print $2 }'` &> /dev/null
   fi
   return 0
 }

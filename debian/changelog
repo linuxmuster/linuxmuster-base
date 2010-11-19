@@ -1,3 +1,9 @@
+linuxmuster-base (1.5.3.3-etch13) etch; urgency=low
+
+  * update-logins.sh, helperfunctions.sh: fixed missing hostname if linux clients were logging in.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 19 Nov 2010 12:12:12 +0100
+
 linuxmuster-base (1.5.3.3-etch12) etch; urgency=low
 
   * wimport.sh: converts now lowercase macs to uppercase in workstations data file.

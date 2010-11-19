@@ -19,6 +19,7 @@ fi
 
 # read in linuxmuster environment
 . /usr/share/linuxmuster/config/dist.conf || exit 1
+. $HELPERFUNCTIONS || exit 1
 
 # check for cache dir
 mkdir -p $LOGINCACHE
@@ -49,6 +50,9 @@ for room in $rooms; do
   # read smbstatus file and grep logins from it
   grep "^\s*[1-9]" $status | while read line; do
    machine="$(echo $line | awk '{ print $4 }')"
+   # check if ip instead of hostname was returned
+   get_hostname "$machine"
+   machine="$RET"
    echo $hosts | grep -qw $machine || continue
    if [ "$msg" = "false" ]; then
     echo "Login status for room $room:"
