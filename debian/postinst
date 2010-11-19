@@ -344,6 +344,14 @@ case "$1" in
     chmod 400 /etc/linuxmuster/schulkonsole/db.conf*
    fi
 
+   # update udev rules
+   conf=/etc/udev/rules.d/75-persistent-net-generator.rules
+   if ! grep -qw ^"\$Id" $conf; then
+    echo "Deactivating net rules creation in $conf."
+    cp $conf $conf.dpkg-bak
+    cp $STATICTPLDIR/$conf $conf
+   fi
+
    # removing obsolete apache modules
    rm -f /etc/apache2/mods-enabled/mime_magic.*
 

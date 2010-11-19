@@ -1,3 +1,11 @@
+linuxmuster-base (1.5.23-lenny0) lenny; urgency=low
+
+  * update-logins.sh, helperfunctions.sh: fixed missing hostname if linux clients were logging in.
+  * linuxmuster-setup: updated udev's static templates according to lenny.
+  * postinst: changes /etc/udev/rules.d/75-persistent-net-generator.rules if net rules creation is not deactivated.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 19 Nov 2010 18:09:13 +0100
+
 linuxmuster-base (1.5.22-lenny0) lenny; urgency=low
 
   * paedml50-upgrade:

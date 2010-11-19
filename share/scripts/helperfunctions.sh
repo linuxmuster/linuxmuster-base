@@ -262,7 +262,9 @@ get_hostname() {
    pattern="${pattern//./\\.}"
    RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $5 " " $2 }' | grep ^"$pattern " | awk '{ print $2 }'` &> /dev/null
   elif validmac "$pattern"; then
-   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $4 " " $2 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
+   RET=`grep -v ^# $WIMPORTDATA awk -F\; '{ print $4 " " $2 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
+  else # assume hostname
+   RET=`grep -v ^# $WIMPORTDATA | tr A-Z a-z | awk -F\; '{ print $2 }' | grep -i \;$pattern\; | head -1` &> /dev/null
   fi
   [ -n "$RET" ] && tolower "$RET"
   return 0
