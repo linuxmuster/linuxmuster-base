@@ -367,7 +367,7 @@ sed -e "s|@@administrator@@|$ADMINISTRATOR|g
 echo " udev ..."
 CONF="/etc/udev/persistent-net-generator-rules /etc/udev/rules.d/z25_persistent-net.rules"
 for i in $CONF; do
- [ -e "$CONF" ] && mv $CONF $CONF.lenny-upgrade
+ [ -e "$i" ] && mv $i $i.lenny-upgrade
 done
 cp $STATICTPLDIR/etc/udev/rules.d/* /etc/udev/rules.d
 
