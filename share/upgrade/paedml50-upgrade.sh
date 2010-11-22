@@ -363,6 +363,14 @@ CONF=/etc/warnquota.conf
 sed -e "s|@@administrator@@|$ADMINISTRATOR|g
         s|@@domainname@@|$domainname|g" $QUOTDYNTPLDIR/$(basename $CONF) > $CONF
 
+# udev
+echo " udev ..."
+CONF="/etc/udev/persistent-net-generator-rules /etc/udev/rules.d/z25_persistent-net.rules"
+for i in $CONF; do
+ [ -e "$CONF" ] && mv $CONF $CONF.lenny-upgrade
+done
+cp $STATICTPLDIR/etc/udev/rules.d/* /etc/udev/rules.d
+
 # webmin
 echo " webmin ..."
 CONF=/etc/webmin/config
