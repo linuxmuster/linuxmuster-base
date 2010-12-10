@@ -352,6 +352,27 @@ case "$1" in
     cp $STATICTPLDIR/$conf $conf
    fi
 
+   # adjust value for max open files (#397)
+   conf=/etc/security/limits.conf
+   confstr="* - nofile 16384"
+   endstr="# End of file"
+   if [ -s "$conf" ]; then
+    if ! grep -q "$confstr" $conf; then
+     echo "Adding missing option \"$confstr\" to /etc/security/limits.conf!"
+     cp $conf $conf.dpkg-bak
+     grep -v "$endstr" $conf.dpkg-bak > $conf
+     echo "# paedML/openML" >> $conf
+     echo "$confstr" >> $conf
+     echo >> $conf
+     echo "$endstr" >> $conf
+     reboot=yes
+    fi
+   else
+    echo "Providing missing configfile /etc/security/limits.conf!"
+    cp $STATICTPLDIR/$conf $conf
+    reboot=yes
+   fi
+
    # removing obsolete apache modules
    rm -f /etc/apache2/mods-enabled/mime_magic.*
 
@@ -369,10 +390,15 @@ case "$1" in
    [ -n "$slapd_reload" ] && /etc/init.d/slapd restart
    [ -n "$postgres_reload" ] && /etc/init.d/postgresql-8.1 reload
 	
-   # important message if upgrade is necessary
+   # notify if upgrade is necessary
    if [ -n "$upgrade" ]; then
+    echo "NOTE!"
+    echo "Be sure to make a dist-upgrade very soon!"
+   fi
+   # notify if reboot is necessary
+   if [ -n "$reboot" ]; then
     echo "IMPORTANT!"
-    echo "Be sure to make apt-get update and apt-get dist-upgrade very soon!"
+    echo "You have to REBOOT the server to make the changes effective!"
    fi
 
   fi # upgrade tasks

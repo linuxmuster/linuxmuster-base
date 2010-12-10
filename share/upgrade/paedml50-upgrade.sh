@@ -193,6 +193,12 @@ CONF=/etc/default/uml-utilities
 [ -e "$CONF.lenny-upgrade" ] || cp $CONF $CONF.lenny-upgrade
 cp $STATICTPLDIR/$CONF $CONF
 
+# limits
+echo " limits ..."
+CONF=/etc/security/limits.conf
+[ -e "$CONF.lenny-upgrade" ] || cp $CONF $CONF.lenny-upgrade
+cp $STATICTPLDIR/$CONF $CONF
+
 # bootlogd
 echo " bootlogd ..."
 CONF=/etc/default/bootlogd

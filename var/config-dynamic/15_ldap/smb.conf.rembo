@@ -256,7 +256,6 @@
    guest ok = yes
    writable = no
    force create mode = 664
-   share modes = no
    write list = @@@domadmins@@
    force group = @@domadmins@@
 
