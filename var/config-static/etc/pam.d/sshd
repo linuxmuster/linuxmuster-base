@@ -1,4 +1,6 @@
 # PAM configuration for the Secure Shell service
+#
+# $Id$
 
 # Disallow non-root logins when /etc/nologin exists.
 auth       required     pam_nologin.so

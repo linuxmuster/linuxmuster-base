@@ -379,6 +379,25 @@ case "$1" in
    # add clamav-freshclam startlinks
    [[ ! -e /etc/rc2.d/S20clamav-freshclam && -e /etc/init.d/clamav-freshclam ]] && update-rc.d clamav-freshclam defaults
 
+   # fixes pam.d's sshd config file (closes #410)
+   [ -e /etc/pam.d/ssh && rm /etc/pam.d/ssh
+   conf=/etc/pam.d/sshd
+   if ! grep ^account $conf | grep required | grep -q pam_access.so; then
+    echo "Fixing pam's sshd config file."
+    mv $conf $conf.dpkg-bak
+    cp $STATICTPLDIR/$conf $conf
+   fi
+
+   # fixing kdm greeting message
+   conf=/etc/kde3/kdm/kdmrc
+   if [ -e "$conf" ]; then
+    searchstr=" to paedML 4.0"
+    if grep -q "$searchstr" $conf; then
+     cp $conf $conf.lenny-upgrade
+     sed -e "s|$searchstr||g" -i $conf
+    fi
+   fi
+
    # updating release information
    echo "$(getdistname) $DISTFULLVERSION / Codename $CODENAME" > /etc/issue
    cp /etc/issue /etc/issue.net
