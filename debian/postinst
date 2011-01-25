@@ -380,7 +380,7 @@ case "$1" in
    [[ ! -e /etc/rc2.d/S20clamav-freshclam && -e /etc/init.d/clamav-freshclam ]] && update-rc.d clamav-freshclam defaults
 
    # fixes pam.d's sshd config file (closes #410)
-   [ -e /etc/pam.d/ssh && rm /etc/pam.d/ssh
+   [ -e /etc/pam.d/ssh ] && rm /etc/pam.d/ssh
    conf=/etc/pam.d/sshd
    if ! grep ^account $conf | grep required | grep -q pam_access.so; then
     echo "Fixing pam's sshd config file."
