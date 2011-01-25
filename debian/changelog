@@ -4,8 +4,9 @@ linuxmuster-base (1.5.25-lenny0) lenny; urgency=low
   * postinst:
     - fixes pam.d's sshd config file.
     - removes "to paedML 4.0" from kdm GreetString.
+    - fixes SophomorixBase.pm's nscd invokation (closes #56 & #64).
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 24 Jan 2011 19:31:47 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 25 Jan 2011 19:47:47 +0100
 
 linuxmuster-base (1.5.24-lenny0) lenny; urgency=low
 
