@@ -161,6 +161,15 @@ case $opt in
       DEBIAN_FRONTEND=noninteractive aptitude -y install $task | tee -a $logfile
     done
 
+    # reconfigure locale settings
+    conf=/etc/locale.gen
+    cp $STATICTPLDIR/$conf $conf
+    DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales
+    DEBIAN_FRONTEND=noninteractive dpkg-reconfigure tzdata
+    install-keymap /usr/share/keymaps/i386/qwertz/de-latin1-nodeadkeys.kmap.gz
+    kmapmd5=`md5sum /etc/console-setup/boottime.kmap.gz | awk '{ print $1 }' 2> /dev/null`
+    sed -e "s/^BOOTTIME_KMAP_MD5=.*/BOOTTIME_KMAP_MD5=\"$kmapmd5\"/" $STATICTPLDIR/etc/default/console-setup > /etc/default/console-setup
+
     # install indexpage if available
     [ -n "$indexpage" ] && aptitude -y install linuxmuster-indexpage | tee -a $logfile
     [ -n "$templatespaedml" ] && aptitude -y install linuxmuster-schulkonsole-templates-paedml | tee -a $logfile
