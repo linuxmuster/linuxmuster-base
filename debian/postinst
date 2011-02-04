@@ -251,6 +251,11 @@ case "$1" in
     esac
    fi
 
+   # adding win7 netlogon example files.
+   for i in common.bat.win7 replace.vbs; do
+    [ -s "$NETLOGONDIR/$i" ] || cp $STATICTPLDIR/$NETLOGONDIR/$i $NETLOGONDIR
+   done
+
    # reparing permissions in netlogondir (1.5.3-1)
    echo "Repairing permissions in $NETLOGONDIR ..."
    find $NETLOGONDIR/ -type f -exec chmod 664 '{}' \;

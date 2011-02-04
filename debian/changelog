@@ -1,8 +1,9 @@
 linuxmuster-base (1.5.26-lenny0) lenny; urgency=low
 
   * fixed german locale during first time setup (closes #413).
+  * added common.bat.win7 example file.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 4 Feb 2011 08:36:13 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 4 Feb 2011 20:00:13 +0100
 
 linuxmuster-base (1.5.25-lenny0) lenny; urgency=low
 
