@@ -1,8 +1,9 @@
 linuxmuster-base (1.5.26-lenny1) lenny; urgency=low
 
   * updated upgrade info text in doc.
+  * paedml50-upgrade.sh: fixed not installing paedml nonfree components.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 9 Feb 2011 11:39:34 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 9 Feb 2011 19:20:34 +0100
 
 linuxmuster-base (1.5.26-lenny0) lenny; urgency=low
 

@@ -18,6 +18,7 @@ HORDDYNTPLDIR=$DYNTPLDIR/21_horde3
 NAGIDYNTPLDIR=$DYNTPLDIR/22_nagios
 FREEDYNTPLDIR=$DYNTPLDIR/55_freeradius
 OPENML=`dpkg -l | grep "schulkonsole-templates-openlml" | grep ^i`
+TEMPLBASE=`dpkg -l | grep "linuxmuster-schulkonsole-templates-base" | grep ^i | awk '{ print $2 }'`
 PYKOTA=`dpkg -l | grep "linuxmuster-pk " | grep ^i`
 BITTORRENT=`dpkg -l | grep " bittorrent " | grep ^i`
 FREERADIUS=`dpkg -l | grep linuxmuster-freeradius | grep ^i`
@@ -655,6 +656,17 @@ if [ -n "$OPENML" ]; then
  aptitude update
  aptitude -y install linuxmuster-schulkonsole-templates-openlml
  echo
+else
+ echo "##########"
+ echo "# paedML #"
+ echo "##########"
+ indexpage="$(ls -t /var/cache/apt/linuxmuster-indexpage_5.0*.deb | head -1)"
+ schukotempl="$(ls -t /var/cache/apt/linuxmuster-schulkonsole-templates-paedml_*.deb | head -1)"
+ [ -s "$indexpage" ] && dpkg -i $indexpage
+ if [ -s "$schukotempl" ]; then
+  [ -n "$TEMPLBASE" ] && dpkg -r --force-all $TEMPLBASE &> /dev/null
+  dpkg -i $schukotempl
+ fi
 fi
 
 # horde3, db and pear upgrade
