@@ -27,18 +27,31 @@ if NOT exist "%USERPROFILE%" goto winnt_end
 
 REM Replace template user paths in registry.
 cd "%USERPROFILE%"
+
 reg export "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" %USERNAME%.reg /y
 cscript \\%SERVER%\netlogon\replace.vbs \\"%TEMPLATE%"\\ \\"%USERNAME%"\\ %USERNAME%.reg
 reg import %USERNAME%.reg
-reg export "HKEY_CURRENT_USER\Control Panel\Desktop" %USERNAME%.reg /y
+
+reg export "HKCU\Control Panel\Desktop" %USERNAME%.reg /y
 cscript \\%SERVER%\netlogon\replace.vbs \\"%TEMPLATE%"\\ \\"%USERNAME%"\\ %USERNAME%.reg
 reg import %USERNAME%.reg
-reg export "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes" %USERNAME%.reg /y
+
+reg export "HKCU\Software\Microsoft\GDIPlus" %USERNAME%.reg /y
 cscript \\%SERVER%\netlogon\replace.vbs \\"%TEMPLATE%"\\ \\"%USERNAME%"\\ %USERNAME%.reg
 reg import %USERNAME%.reg
-reg export "HKEY_CURRENT_USER\Software\Microsoft\Windows Media\WMSDK\Namespace" %USERNAME%.reg /y
+
+reg export "HKCU\Software\Microsoft\MediaPlayer\Preferences" %USERNAME%.reg /y
 cscript \\%SERVER%\netlogon\replace.vbs \\"%TEMPLATE%"\\ \\"%USERNAME%"\\ %USERNAME%.reg
 reg import %USERNAME%.reg
+
+reg export "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes" %USERNAME%.reg /y
+cscript \\%SERVER%\netlogon\replace.vbs \\"%TEMPLATE%"\\ \\"%USERNAME%"\\ %USERNAME%.reg
+reg import %USERNAME%.reg
+
+reg export "HKCU\Software\Microsoft\Windows Media\WMSDK\Namespace" %USERNAME%.reg /y
+cscript \\%SERVER%\netlogon\replace.vbs \\"%TEMPLATE%"\\ \\"%USERNAME%"\\ %USERNAME%.reg
+reg import %USERNAME%.reg
+
 del %USERNAME%.reg
 
 :winnt_end

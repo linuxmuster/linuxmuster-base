@@ -1,0 +1,270 @@
+Upgrade von paedML/openML 4.0.4/4.0.5/4.0.6 auf Version 5.0.0
+-------------------------------------------------------------
+
+Dieses Upgrade aktualisiert das Betriebssystem des Servers auf Debian 5.0
+(Lenny). Zusätzlich werden die folgenden paedML/openML spezifischen Software-
+Pakete aktualisiert (Versionen auf Stand v. 09.02.2011):
+ * linuxmuster-base 1.5.26-lenny1.
+ * linuxmuster-freeradius 0.2.0-lenny0 (optional).
+ * linuxmuster-ipcop 1.4.21-lenny18.
+ * linuxmuster-ipcop-addon-copspot 0.1.0-5 (optional).
+ * linuxmuster-linbo 1.99.17-20.
+ * linuxmuster-nagios-base 0.8.2-lenny6.
+ * linuxmuster-pk 0.2.2-lenny2_i386.deb (optional).
+ * linuxmuster-pkipplib 0.07.0-3 (optional).
+ * linuxmuster-schulkonsole 0.9.25-lenny0.
+ * mindi 2.0.7.5-1.
+ * mindi-busybox 1.7.3-1.
+ * mondo 2.2.9.4-1.
+ * moodle 1.9.7+20091209-0belwue0.
+ * pkipplib 0.07-lml-lenny1 (optional).
+ * pykota 1.26-fixes-lml-lenny1 (optional).
+ * samba 3.5.5~dfsg-1~bpo50+2.1.
+ * sophomorix 2.2.13-1.
+ * webmin 1.500.
+
+Upgrade-Voraussetzungen:
+ * Ausgangssystem auf dem Server: paedML/openML mindestens der Version 4.0.4.
+ * Internetverbindung ist zwingend erforderlich, damit gegebenenfalls
+   Aktualisierungen heruntergeladen werden können. 
+
+Wichtig:
+ * Falls während der Aktualisierung Abfragen des Paketsystems nach der Ersetzung
+   von Konfigurationsdateien erscheinen, sind diese in jedem Fall mit der
+   Standardantwort "N" beziehungsweise mit ENTER zu beantworten. 
+ * Für die Eingabe der für das Upgrade notwendigen Konsolenbefehle müssen als
+   Benutzer "root" auf dem Server eingeloggt sein.
+
+
+Vorgehensweise bei Online-Upgrade
+---------------------------------
+
+ 1. Zunächst muss das System auf den aktuellen Stand gebracht werden
+    (siehe auch Handbuch Abschnitt 5.1.1 "Sicherheitsupdates einspielen"):
+
+    Befehle auf der Serverkonsole:
+    # aptitude update
+    # aptitude dist-upgrade
+
+    Bemerkung: Die Paket-Repositories für Debian 4.0 wurden in der Zwischenzeit
+    auf andere Server verschoben. Deshalb ist es möglich, dass bei der
+    Aktualisierung der Paketlisten Fehlermeldungen bezüglich nicht gefundener
+    Pakete erscheinen. Diese können jedoch ignoriert werden, da für das Server-
+    Upgrade keine Pakete für Debian 4.0 mehr benötigt werden.
+
+ 2. Im nächsten Schritt ist die Konfigurationsdatei /etc/apt/sources.list ist
+    um folgenden Eintrag zu ergänzen:
+
+    deb http://pkg.lml.support-netz.de/paedml50-upgrade ./
+
+    Öffnen Sie also auf der Serverkonsole diese Datei mit einem Editor Ihrer
+    Wahl und fügen Sie die obengenannte Zeile am Ende der Datei ein.
+
+ 3. Nun muss das System noch einmal aktualisiert werden. Geben Sie also wiederum
+    Die Konsolenbefehle aus Schritt 1 ein:
+
+    # aptitude update
+    # aptitude dist-upgrade
+
+ 4. Anschließend wird das Server-Upgrade durch Eingabe des Konsolen-Befehls
+
+    # paedml50-upgrade
+
+    gestartet.
+
+    Bemerkung: Das Upgradeskript lädt nun zunächst die ISO-Datei der openML nach
+    /home/administrators/administrator/iso herunter und kopiert die für das
+    Upgrade benötigten Softwarepakete in den lokalen Paketcache unter
+    /var/cache/apt/archives, sodass diese nicht mehr während des Upgrades
+    heruntergeladen werden müssen.
+
+ 5. Ist das Upgrade durchgelaufen, muss der Server neu gestartet werden.
+
+ 6. Support-Netz-Kunden (mit paedML-Installation) müssen sich noch das Archiv
+    für die unfreien paedML-Komponenten über die Support-Netz-Hotline besorgen
+    und einspielen.
+
+    Kopieren Sie das Archiv auf den Server und wechseln in das Verzeichnis,
+    in der es abgelegt wurde. Machen Sie das Archiv ausführbar:
+
+    # chmod +x paedML_Linux_5.0.0-nonfree-components_20101108.run
+
+    Starten Sie die Installation mit dem Befehl:
+
+    # ./paedML_Linux_5.0.0-nonfree-components_20101108.run
+
+
+Vorgehensweise bei CDROM-Upgrade
+---------------------------------
+
+ 1. paedML/openML-CDROM in Serverlaufwerk einlegen und einhängen:
+
+    # mount /cdrom
+
+ 2. Jetzt startet man das Server-Upgrade durch Eingabe des Befehls:
+
+    # sh /cdrom/paedml50-cdrom-upgrade
+
+    Bemerkung: Das Upgradeskript kopiert zunächst die für das Upgrade
+    notwendigen Softwarepakete in den lokalen Paketcache unter
+    /var/cache/apt/archives, sodass diese nicht mehr heruntergeladen werden
+    müssen.
+
+ 3. Ist das Upgrade durchgelaufen, muss der Server neu gestartet werden. 
+
+
+Was nach dem Upgrade zu beachten ist
+------------------------------------
+
+ * Sollten Sie die Testversion des Druckquotasystems installiert haben, müssen
+   Sie nichts weiter beachten. Die entsprechenden Pakete werden im Zuge des
+   Server-Upgrades ebenso aktualisiert.
+
+ * Zu Beginn des Upgrades werden eine Datenbanksicherung (s.u.), dann
+   Konfigurationsanpassungen und Softwareaktualisierungen durchgeführt. 
+
+ * Zu ändernde Konfigurationsdateien werden zu Beginn des Upgrades mit der
+   Erweiterung .lenny-upgrade gesichert.
+
+ * Die Konsolenausgabe des Upgradeprozesses wird komplett nach
+   /var/log/linuxmuster/paedml50-upgrade.log geloggt.
+
+ * Auf Serverhardware mit IDE-Platten müssen, falls der neue Debian-Kernel nicht
+   bootet, in den Dateien /etc/fstab und /boot/grub/menu.lst ggf. die
+   Festplatten-Gerätenamen von /dev/sda bzw. /dev/sdb auf /dev/hda bzw. /dev/hdb
+   geändert werden. Dazu kann nach dem Reset des fehlgeschlagenen Bootvorgangs
+   im Bootmenü einfach wieder der alte Kernel (2.6.24) ausgewählt und gebootet
+   werden.
+
+ * Besonderheiten bzgl. Postgresql-Datenbanken:
+   - Die Postgresql-Datenbanken werden im Zuge des Upgrades, soweit
+     erforderlich, auf UTF8-Kodierung umgestellt.
+   - Zu Beginn des Upgrades werden alle vorgefundenen Datenbanken UTF8-kodiert
+     nach /var/tmp/<dbname>.lenny-upgrade.pgsql gesichert.
+   - Die Datenbanken ldap, moodle und pykota werden automatisch wieder
+     eingespielt.
+   - Eine evtl. vorhandene mrbs-Datenbank wird automatisch wieder hergestellt,
+     wenn sie gemäß Linuxmuster.net-Wiki-Anleitung nach /etc/www oder
+     /var/www/apache2-default installiert wurde (mrbs-Installationen per
+     Debianpaket sind hiervon nicht betroffen, da sie MySQL benutzen).
+   - Weitere selbstangelegte Postgresql-Datenbanken müssen händisch aus der
+     Sicherung wieder eingespielt werden:
+     o Zunächst legt man den Datenbank-Benutzer wieder an:
+       # createuser -U postgres -S -D -R <dbuser>
+     o Im nächsten Schritt wird die leere Datenbank erzeugt:
+       # createdb -U postgres -O <dbuser> <dbname>
+     o Schließlich wird der Inhalt wieder eingelesen:
+       # psql -U postgres <dbname> < /var/tmp/<dbname>.lenny-upgrade.pgsql
+
+ * LDAP/Freeradius: Hier ändert sich die Syntax der Konfigurationsdateien
+   /etc/ldap/slapd.conf und /etc/freeradius/clients.conf. Die Dateien werden
+   daher ausgetauscht. Eigene Anpassungen müssen nach dem Upgrade wieder
+   eingepflegt werden.
+
+ * Neue Encoding-Optionen in Sophomorix:
+
+   sophomorix-check geht ab Version 2.2.13 davon aus, dass die Dateien
+   - schueler.txt
+   - lehrer.txt
+   - extraschueler.txt
+   - extrakurse.txt
+   in einer der folgenden Zeichencodierungen abgespeichert sind:
+   - ISO 8859-1
+   - ISO 8859-15 (Standardeinstellung)
+   - windows1252
+   - UTF8
+
+   Rufen Sie nach dem upgrade auf 5.0.0 auf der Konsole
+
+   # sophomorix-check
+
+   auf. Falls es dabei zu Namensumbenennungen kommt, sollten Sie diese
+   anschließend beheben, indem Sie sophomorix-check mit einer Encoding-Option
+   aufrufen (alle Optionen mit sophomorix-check --help), z. Bsp.:
+
+   # sophomorix-check --encoding-students 8859-1
+
+   Dieser Befehl liest schueler.txt als ISO 8859-1 ein. Sind die richtigen
+   Optionen gefunden, werden sie in /etc/sophomorix/user/sophomorix.conf
+   eingetragen, z. Bsp.:
+
+   $encoding_students="8859-1";
+
+   Nun kann sophomorix-check wieder ohne Encoding-Option aufgerufen werden.
+
+   Wenn Sie lehrer.txt auf verschiedene Weise editiert haben (mal mit Emacs/Vi?
+   direkt auf dem Server, mal vom Windows-Client aus via Putty mit Emacs/Vi?),
+   dann kann in lehrer.txt ein Gemisch von Zeichenkodierungen entstehen. In
+   einem solchen Fall sollten Sie lehrer.txt so editieren, dass die betroffenen
+   Sonderzeichen als ASCII-Zeichen eingetragen werden (A-Umlaut als Ae).
+
+ * Wenn Sie das Upgrade ausgehend von Version 4.0.4 bzw. 4.0.5 gestartet haben:
+   Externe (LAN u. WAN) LDAP-Authentifizierungsabfragen werden nach dem Upgrade
+   nur noch verschlüsselt (per start_tls bzw. ldaps) akzeptiert. Beachten Sie
+   bitte die Release-Informationen zu Version 4.0.6 auf www.support-netz.de.
+
+ * Falls der Upgradeprozess unterbrochen wurde, kann man ihn durch erneute
+   Eingabe von
+   # paedml50-upgrade
+   wieder aufnehmen. Die Versionsprüfung zu Beginn lässt sich bei Bedarf mit
+   # paedml50-upgrade --force
+   ausschalten. 
+
+
+Release-Informationen
+---------------------
+
+ * Neues in paedML/openML 5.0.0:
+   - Debian 5.0 Lenny als Basisbetriebssystem.
+   - Grafisches Menü der Installations-CD.
+   - LINBO pre 2 mit:
+     o verbesserter Hardware-Unterstützung (Kernel 2.6.36),
+     o performanteres Imaging per Torrent-Protokoll,
+     o schnellere Synchronisation von NTFS-Partitionen,
+     o ferngesteuertes Client-Imaging per linbo-ssh,
+     o erweiterter Funktionalität durch Postsync-Skripting.
+   - Umstellung auf SSHA-verschlüsselte Passwörter.
+     Die Passwörter neu angelegter Benutzer werden künftig per SSHA-Algorhythmus
+     verschlüsselt.
+   - Windows-7-Unterstützung (noch im Testbetrieb).
+
+ * paedML/openML 5.0.0 enthält zahlreiche Fehlerkorrekturen.
+   Hier die Wichtigsten:
+   - Zugriff auf Klassen- und Projekttauschverzeichnisse klappt nicht immer
+     (#56, #64).
+   - Mehrfachklick bei LINBO-Rechner-Registrierung führt zu Mehrfacheinträgen in
+     /etc/linuxmuster/workstations (#98).
+   - Mondorescue: USB-Tastatur funktioniert nicht im Restoremodus (#200).
+   - IPCop: restore-dedicated bleibt hängen (#203).
+   - Schulkonsole: Webfilter nicht automatisch aktiviert (#265).
+   - import_workstations mit Fehlermeldungen bei groß geschriebenen Raumnamen
+     (#386).
+   Einen detailierten Überblick über alle Bugfixes erhalten Sie unter
+   http://lml.support-netz.de/trac/query?status=closed&group=resolution&milestone=5.0.0.
+
+ * Im Handbuch aktualisierte Abschnitte:
+   - 3.2.2.    Installationsvarianten
+   - 7.2.7.    Domänenbeitritt, Softwareinstallation und Benutzerprofile
+   - 7.3.2.1.  PXE-Boot-Konfiguration
+   - 7.3.2.2.  Hilfe bei Hardware- und Bootproblemen
+   - 7.3.2.3.  Einrichten des Reboot-Workarounds bei Windows-Startproblemen
+   - 7.3.2.4.  Aufbau der start.conf-Konfigurationsdatei
+   - 7.3.3.    LINBO im Einsatz
+   - 7.3.3.3.  Image erstellen
+   - 7.3.3.4.  Windows-Registry-Patches bereitstellen
+   - 7.3.3.7.  Multicast-Server einrichten
+   - 7.3.3.8.  Torrent nutzen
+   - 7.3.3.9.  Fernsteuerung per SSH
+   - 7.3.3.10. Postsync-Skripte einsetzen
+   - 7.4.      Ubuntu
+   - 7.4.1.    Installation des Client-Pakets
+   - 7.5.      Windows 7
+   - 7.5.1.    Hinweise zur Installation
+   - 7.5.2.    Domänenbeitritt
+   - 7.5.3.    Bereitstellen eines lokalen Standard-Profils
+   - 7.5.4.    Produktaktivierung
+
+
+09.02.2011
+Thomas Schmitt
+
