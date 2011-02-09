@@ -660,8 +660,8 @@ else
  echo "##########"
  echo "# paedML #"
  echo "##########"
- indexpage="$(ls -t /var/cache/apt/archives/linuxmuster-indexpage_5.0*.deb | head -1)"
- schukotempl="$(ls -t /var/cache/apt/archives/linuxmuster-schulkonsole-templates-paedml_*.deb | head -1)"
+ indexpage="$(ls -t /var/cache/apt/archives/linuxmuster-indexpage_5.0*.deb 2> /dev/null | head -1)"
+ schukotempl="$(ls -t /var/cache/apt/archives/linuxmuster-schulkonsole-templates-paedml_*.deb 2> /dev/null | head -1)"
  [ -s "$indexpage" ] && dpkg -i $indexpage
  if [ -s "$schukotempl" ]; then
   [ -n "$TEMPLBASE" ] && dpkg -r --force-all $TEMPLBASE &> /dev/null
