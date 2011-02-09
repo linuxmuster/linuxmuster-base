@@ -667,6 +667,7 @@ else
   [ -n "$TEMPLBASE" ] && dpkg -r --force-all $TEMPLBASE &> /dev/null
   dpkg -i $schukotempl
  fi
+ echo
 fi
 
 # horde3, db and pear upgrade
