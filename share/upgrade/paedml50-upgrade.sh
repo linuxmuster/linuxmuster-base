@@ -29,10 +29,12 @@ NFSCOMMON=`dpkg -l | grep nfs-common | grep ^i | awk '{ print $2 }'`
 NFSSERVER=`dpkg -l | grep nfs-kernel-server | grep ^i | awk '{ print $2 }'`
 PKGSTOREMOVE="linuxmuster-freeradius linux-image-server phpmyadmin phppgadmin \
               linuxmuster-schulkonsole-templates-openlml mindi mondo nagios2 \
-              linuxmuster-nagios-base postgresql-7.4 postgresql-8.1 samba \
-              linuxmuster-pkpgcounter python-egenix-mxtools python-egenix-mxdatetime \
-              linuxmuster-pykota linuxmuster-pk linuxmuster-linbo \
-              sophomorix2 sophomorix-base sophomorix-pgldap"
+              nagios2-common nagios2-doc linuxmuster-nagios-base \
+              postgresql-7.4 postgresql-8.1 postgresql-client-8.1 libgnutls13 \
+              libldap-2.3-0 libpq4 libsnmp9 samba linuxmuster-pkpgcounter \
+              python-egenix-mxtools python-egenix-mxdatetime \
+              linuxmuster-pykota linuxmuster-pk linuxmuster-linbo sophomorix2 \
+              sophomorix-base sophomorix-pgldap"
 PKGREPOS="ftp.de.debian.org/debian/ \
           ftp.de.debian.org/debian-volatile/ \
           security.debian.org \

@@ -40,7 +40,7 @@ while [ -z "$INPUT" ]; do
   db_go
   db_get linuxmuster-base/country || true
   INPUT=`echo ${RET:0:2} | tr a-z A-Z`
-  if ! expr match "$INPUT" '\([A-Z][A-Z]\)'; then
+  if ! (expr match "$INPUT" '\([ABCDEFGHIJKLMNOPQRSTUVWXYZ][ABCDEFGHIJKLMNOPQRSTUVWXYZ]\)'); then
     unset INPUT
     continue
   fi
@@ -58,7 +58,7 @@ for i in state location schoolname workgroup; do
     db_go
     db_get linuxmuster-base/$i || true
     INPUT="$RET"
-    if ! expr match "$INPUT" '\([a-zA-Z0-9_\-]\+$\)'; then
+    if ! check_string "$INPUT"; then
       unset INPUT
       continue
     fi
@@ -75,7 +75,7 @@ done
 
 # intern network configuration
 # servername
-while ! (expr match "$SERVERNAME" '\([a-z0-9\-]\+$\)'); do
+while ! validhostname "$SERVERNAME"; do
   db_fset linuxmuster-base/servername seen false
   db_input $PRIORITY linuxmuster-base/servername || true
   db_go

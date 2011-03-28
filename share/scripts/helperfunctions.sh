@@ -884,11 +884,12 @@ check_empty_dir() {
 
 # check valid string without special characters
 check_string() {
-  if (expr match "$1" '\([a-zA-Z0-9\_\-]\+$\)') &> /dev/null; then
-    return 0
-  else
-    return 1
-  fi
+ tolower "$1"
+ if (expr match "$RET" '\([abcdefghijklmnopqrstuvwxyz0-9\_\-]\+$\)') &> /dev/null; then
+  return 0
+ else
+  return 1
+ fi
 }
 
 # converting string to lower chars
