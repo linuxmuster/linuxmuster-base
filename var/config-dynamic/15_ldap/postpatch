@@ -1,3 +1,5 @@
+# $Id$
+
 # remove smb.conf template again
 [ -e smb.conf ] && rm smb.conf
 
@@ -27,9 +29,11 @@ sed -e "s/^base.*/base $basedn/
         s/^rootbinddn.*/rootbinddn cn=admin,$basedn/" -i $template
 
 
-# patching sophomorix.conf with schoolname and location
+# patching sophomorix.conf with schoolname, location and year
 [ "$1" = "--modify" ] && backup_file $SOPHOMORIXCONF
-sed -e "s/^\$schul_name=.*/\$schul_name=\"${schoolname} ${location}\";/" -i $SOPHOMORIXCONF
+yearnow="$(date +%Y)"
+sed -e "s/^\$schul_name=.*/\$schul_name=\"${schoolname} ${location}\";/
+        s/^\$geburts_jahreszahl_stop=.*/\$geburts_jahreszahl_stop=$yearnow;/" -i $SOPHOMORIXCONF
 
 
 # patch sophomorix pgldap.conf with workgroup, server, internip and domainname

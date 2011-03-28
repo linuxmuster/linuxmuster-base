@@ -1,9 +1,11 @@
 linuxmuster-base (1.5.27-lenny0) lenny; urgency=low
 
-  * linuxmuster-setup, fix: input of special characters for schoolname etc. was not filtered (closes #429).
+  * linuxmuster-setup:
+    * input of special characters for schoolname etc. was not filtered (closes #429).
+    * sets geburts_jahreszahl_stop in sophomorix.conf to actual year.
   * paedml50-upgrade.sh: some etch packages were not deinstalled (closes #430).
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 28 Mar 2011 13:43:32 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 28 Mar 2011 19:58:18 +0200
 
 linuxmuster-base (1.5.26-lenny2) lenny; urgency=low
 
