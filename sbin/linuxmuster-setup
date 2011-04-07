@@ -162,8 +162,10 @@ case $opt in
     done
 
     # reconfigure locale settings
-    conf=/etc/locale.gen
-    cp $STATICTPLDIR/$conf $conf
+    for i in locale.gen timezone; do
+     conf=/etc/$i
+     cp $STATICTPLDIR/$conf $conf
+    done
     DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales
     DEBIAN_FRONTEND=noninteractive dpkg-reconfigure tzdata
     install-keymap /usr/share/keymaps/i386/qwertz/de-latin1-nodeadkeys.kmap.gz
