@@ -61,6 +61,8 @@ for room in $rooms; do
    username="$(echo $line | awk '{ print $2 }')"
    echo " $machine: $username"
    echo $username >> $machine
+   chgrp www-data $machine
+   chmod 640 $machine
   done
   rm -f $locker
  fi
