@@ -72,12 +72,12 @@ Description: Samba-Domaene des Schulnetzes?
 
 Template: linuxmuster-base/fwconfig
 Type: select
-Choices: integrated, dedicated
-Default: integrated
+Choices: dedicated, integrated
+Default: dedicated
 Description: Ein- oder Zwei-Server-Installation?
  Waehlen Sie den Typ der Firewall:\n
- 'integrated' fuer die Ein-Server-Installation mit integriertem IPCop.\n
- 'dedicated' fuer die Zwei-Server-Installation mit dediziertem IPCop.
+ 'dedicated' fuer die Zwei-Server-Installation mit dediziertem IPCop.\n
+ 'integrated' fuer die Ein-Server-Installation mit integriertem IPCop.
 
 Template: linuxmuster-base/externtype
 Type: select
