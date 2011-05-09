@@ -1,69 +1,87 @@
+# $Id$
 if  [ "$imaging" = "rembo" ]; then
 
-	if [ "$1" = "--first" ]; then
+ if [ "$1" = "--first" ]; then
 
-	  # patch rembo.conf with admin password
-	  sed -e "s/^NetPassword.*/NetPassword \"$adminpw\"/" -i $REMBOCONF
+  # patch rembo.conf with admin password
+  sed -e "s/^NetPassword.*/NetPassword \"$adminpw\"/" -i $REMBOCONF
 
-	  # create emtpy wimport_data
-   [ -d "$REMBOFILES/files/global" ] || mkdir -p $REMBOFILES/files/global
-	  [ -e "$REMBOFILES/files/global/wimport_data" ] && rm $REMBOFILES/files/global/wimport_data
-	  touch $REMBOFILES/files/global/wimport_data
-	  [ -e "$SYSCONFDIR/workstations" ] && rm $SYSCONFDIR/workstations
+  # create emtpy wimport_data
+  [ -d "$REMBOFILES/files/global" ] || mkdir -p $REMBOFILES/files/global
+  [ -e "$REMBOFILES/files/global/wimport_data" ] && rm $REMBOFILES/files/global/wimport_data
+  touch $REMBOFILES/files/global/wimport_data
+  [ -e "$SYSCONFDIR/workstations" ] && rm $SYSCONFDIR/workstations
 
-	else
+ else
 
-	  # prevent user.conf from being patched completely
-	  mv user.conf.target user.conf.target.nopatch
+  # check if user.conf is already configured
+  if grep -q ^"User $ADMINISTRATOR" $MYSHNDIR/user.conf; then
+   # prevent user.conf from being patched completely
+   mv user.conf.target user.conf.target.nopatch
 
-	  # patch userconf only with altered domain name
-	  backup_file $MYSHNDIR/user.conf
-	  sed -e "s/eMail $ADMINISTRATOR@.*/eMail $ADMINISTRATOR@$domainname/" -i $MYSHNDIR/user.conf
+   # patch userconf only with altered domain name
+   backup_file $MYSHNDIR/user.conf
+   sed -e "s/eMail $ADMINISTRATOR@.*/eMail $ADMINISTRATOR@$domainname/" -i $MYSHNDIR/user.conf
 
-	  # if imaging method has altered
-	  if [ "$imaging_old" != "rembo" ]; then
-		backup_file $SYSCONFDIR/workstations
-		mv $SYSCONFDIR/workstations $REMBOFILES/files/global/wimport_data
-	  fi
+  else # patch rembo/myshn configuration
 
-	fi
+   # grep adminpw from LINBO's rsyncd.secrets
+   [ -s /etc/rsyncd.secrets ] && adminpw="$(grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }')"
+   # or set it to muster
+   [ -z "$adminpw" ] && adminpw=muster
+    
+   # compute md5sum for adminpw
+   adminpw_md5=`echo -n $adminpw | md5sum | cut -c -32`
 
-	# link workstation data file to /etc/linuxmuster/workstations
-	ln -sf $REMBOFILES/files/global/wimport_data $SYSCONFDIR/workstations
+   # patch rembo.conf with admin password
+   sed -e "s/^NetPassword.*/NetPassword \"$adminpw\"/" -i $REMBOCONF
+  fi
 
-	# patch path to wimport_data in dist.conf
-	backup_file /usr/share/linuxmuster/config/dist.conf
-	sed -e "s/^WIMPORTDATA=.*/WIMPORTDATA=\"\$REMBOFILES\/files\/global\/wimport_data\"/" -i /usr/share/linuxmuster/config/dist.conf
+  # if imaging method has altered
+  if [ "$imaging_old" != "rembo" ]; then
+   backup_file $SYSCONFDIR/workstations
+   mv $SYSCONFDIR/workstations $REMBOFILES/files/global/wimport_data
+  fi
 
-	# patch rembo.conf with workgroup and startpage
-	backup_file $REMBOCONF
-	sed -e "s/^AuthLocalDomain.*/AuthLocalDomain $workgroup \{/
-	        s/StartPage.*/StartPage \"$REMBOSTARTPAGE\"/
-	        s/^Interfaces.*/Interfaces $serverip/" -i $REMBOCONF
+ fi
 
-	# patch rembo start variable
-	sed -e "s/^START_REMBO=.*/START_REMBO=yes/" -i /etc/default/rembo
+ # link workstation data file to /etc/linuxmuster/workstations
+ ln -sf $REMBOFILES/files/global/wimport_data $SYSCONFDIR/workstations
 
-	# patch inetd.conf
-	if ! grep -v ^# /etc/inetd.conf | grep mtaadd.sh; then
-		backup_file /etc/inetd.conf
-		echo "1001 stream tcp nowait root /usr/sbin/mtaadd.sh" >> /etc/inetd.conf
-	fi
+ # patch path to wimport_data in dist.conf
+ backup_file /usr/share/linuxmuster/config/dist.conf
+ sed -e "s/^WIMPORTDATA=.*/WIMPORTDATA=\"\$REMBOFILES\/files\/global\/wimport_data\"/" -i /usr/share/linuxmuster/config/dist.conf
+
+ # patch rembo.conf with workgroup and startpage
+ backup_file $REMBOCONF
+ sed -e "s/^AuthLocalDomain.*/AuthLocalDomain $workgroup \{/
+         s/StartPage.*/StartPage \"$REMBOSTARTPAGE\"/
+         s/^Interfaces.*/Interfaces $serverip/" -i $REMBOCONF
+
+ # patch rembo start variable
+ sed -e "s/^START_REMBO=.*/START_REMBO=yes/" -i /etc/default/rembo
+ 
+ # patch inetd.conf
+ if ! grep -v ^# /etc/inetd.conf | grep mtaadd.sh; then
+  backup_file /etc/inetd.conf
+  echo "1001 stream tcp nowait root /usr/sbin/mtaadd.sh" >> /etc/inetd.conf
+ fi
 
 else
 
-	# remove myshn's mtaadd.sh from inetd.conf
-	if grep -q mtaadd.sh /etc/inetd.conf; then
-		backup_file /etc/inetd.conf
-		grep -v myshn /etc/inetd.conf > /var/tmp/inetd.conf
-		grep -v mtaadd.sh /var/tmp/inetd.conf > /etc/inetd.conf
-		rm /var/tmp/inetd.conf
-	fi
+ # remove myshn's mtaadd.sh from inetd.conf
+ if grep -q mtaadd.sh /etc/inetd.conf; then
+  backup_file /etc/inetd.conf
+  grep -v myshn /etc/inetd.conf > /var/tmp/inetd.conf
+  grep -v mtaadd.sh /var/tmp/inetd.conf > /etc/inetd.conf
+  rm /var/tmp/inetd.conf
+ fi
 
-	# patch rembo start variable
-	[ -e /etc/default/rembo ] && sed -e "s/^START_REMBO=.*/START_REMBO=no/" -i /etc/default/rembo
+ # patch rembo start variable
+ [ -e /etc/default/rembo ] && sed -e "s/^START_REMBO=.*/START_REMBO=no/" -i /etc/default/rembo
 
-	# prevent user.conf from being patched completely
-	mv user.conf.target user.conf.target.nopatch
+ # prevent user.conf from being patched completely
+ mv user.conf.target user.conf.target.nopatch
 
 fi
+

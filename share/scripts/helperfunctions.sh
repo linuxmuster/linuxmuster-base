@@ -173,7 +173,9 @@ removefrom_file()
 
 # check valid domain name
 validdomain() {
-  if (expr match "$1" '\([a-z0-9-]\+\(\.[a-z0-9-]\+\)\+$\)') &> /dev/null; then
+ [ -z "$1" ] && return 1
+ tolower "$1"
+  if (expr match "$RET" '\([abcdefghijklmnopqrstuvwxyz0-9\-]\+\(\.[abcdefghijklmnopqrstuvwxyz0-9\-]\+\)\+$\)') &> /dev/null; then
     return 0
   else
     return 1

@@ -359,21 +359,20 @@ case "$1" in
 
    # adjust value for max open files (#397)
    conf=/etc/security/limits.conf
-   confstr="* - nofile 16384"
-   endstr="# End of file"
    if [ -s "$conf" ]; then
-    if ! grep -q "$confstr" $conf; then
-     echo "Adding missing option \"$confstr\" to /etc/security/limits.conf!"
+    rev="$(grep ^"# \$Id$4 }')"
+    [ -z "$rev" ] && rev=0
+    minrev=1073
+    if [ $rev -lt $minrev ]; then
+     echo "Backing up $conf to $conf.dpkg-bak!"
      cp $conf $conf.dpkg-bak
-     grep -v "$endstr" $conf.dpkg-bak > $conf
-     echo "# paedML/openML" >> $conf
-     echo "$confstr" >> $conf
-     echo >> $conf
-     echo "$endstr" >> $conf
-     reboot=yes
+     newlimit=yes
     fi
    else
-    echo "Providing missing configfile /etc/security/limits.conf!"
+    newlimit=yes
+   fi
+   if [ -n "$newlimit" ]; then
+    echo "Updating $conf!"
     cp $STATICTPLDIR/$conf $conf
     reboot=yes
    fi

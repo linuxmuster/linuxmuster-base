@@ -1,4 +1,7 @@
 #!/bin/sh
+#
+# $Id$
+#
 
 # Source debconf library.
 . /usr/share/debconf/confmodule
@@ -33,25 +36,9 @@ if [ "$1" = "--first" ]; then
   db_go
 fi
 
-# country
-while [ -z "$INPUT" ]; do
-  db_fset linuxmuster-base/country seen false
-  db_input $PRIORITY linuxmuster-base/country || true
-  db_go
-  db_get linuxmuster-base/country || true
-  INPUT=`echo ${RET:0:2} | tr a-z A-Z`
-  if ! (expr match "$INPUT" '\([ABCDEFGHIJKLMNOPQRSTUVWXYZ][ABCDEFGHIJKLMNOPQRSTUVWXYZ]\)'); then
-    unset INPUT
-    continue
-  fi
-  db_set linuxmuster-base/country $INPUT || true
-  [[ "$oldvalues" = "yes" && "$INPUT" != "$country_old" ]] && ask_ipcop=yes
-done
-unset INPUT
-
 
 # data for certificates and workgroup
-for i in state location schoolname workgroup; do
+for i in country state location schoolname workgroup; do
   while [ -z "$INPUT" ]; do
     db_fset linuxmuster-base/$i seen false
     db_input $PRIORITY linuxmuster-base/$i || true
@@ -62,6 +49,15 @@ for i in state location schoolname workgroup; do
       unset INPUT
       continue
     fi
+    if [ "$i" = "country" ]; then
+      [ ${#RET} -ne 2 ] && unset INPUT && continue
+      INPUT=`echo $RET | tr a-z A-Z`
+      if ! (expr match "$INPUT" '\([ABCDEFGHIJKLMNOPQRSTUVWXYZ][ABCDEFGHIJKLMNOPQRSTUVWXYZ]\)'); then
+        unset INPUT
+        continue
+      fi
+    fi
+    [[ "$oldvalues" = "yes" && "$i" = "country"  && "$INPUT" != "$country_old" ]] && ask_ipcop=yes
     [[ "$oldvalues" = "yes" && "$i" = "state" && "$INPUT" != "$state_old" ]] && ask_ipcop=yes
     [[ "$oldvalues" = "yes" && "$i" = "location" && "$INPUT" != "$location_old" ]] && ask_ipcop=yes
     [[ "$oldvalues" = "yes" && "$i" = "schoolname" && "$INPUT" != "$schoolname_old" ]] && ask_ipcop=yes

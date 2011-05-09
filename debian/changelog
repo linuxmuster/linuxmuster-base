@@ -1,3 +1,13 @@
+linuxmuster-base (1.5.30-lenny0) lenny; urgency=low
+
+  * fixed limits in /etc/security/limits.conf (closes finally #397).
+  * fixed separator for includedirs and excludedirs in linuxmuster-backup (closes #462).
+  * linuxmuster-setup: fixed unpatched rembo/myshn configuration when switching
+    from first time installed LINBO to Rembo (closes #443).
+  * linuxmuster-setup: fixed special chars filter for domain name input (closes finally #429).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 9 May 2011 18:06:23 +0200
+
 linuxmuster-base (1.5.29-lenny2) lenny; urgency=low
 
   * paedml50-upgrade.sh: removed libgnutls13, libldap-2.3-0 and libsnmp9 from packages to remove (closes #456).
