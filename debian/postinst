@@ -360,7 +360,7 @@ case "$1" in
    # adjust value for max open files (#397)
    conf=/etc/security/limits.conf
    if [ -s "$conf" ]; then
-    rev="$(grep ^"# \$Id$4 }')"
+    rev="$(grep "Id: limits.conf" $conf | awk '{ print $4 }')"
     [ -z "$rev" ] && rev=0
     minrev=1073
     if [ $rev -lt $minrev ]; then
