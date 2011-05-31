@@ -3,8 +3,11 @@
 # linuxmuster-reset-rooms
 # resets the internet, intranet, webfilter, lession state of rooms/hosts
 #
-# 29.01.2008
-# Thomas Schmitt <schmitt@lmz-bw.de>
+# Thomas Schmitt
+# <schmitt@lmz-bw.de>
+# GPL V3
+#
+# $Id$
 #
 
 
@@ -46,12 +49,12 @@ usage() {
   echo
   echo "--room : reset all hosts of this room."
   echo "--host : reset only this specific host."
-  echo "--all  : reset all rooms and hosts defined in $ROOMDEFAULTS."
+  echo "--all  : reset all rooms and hosts defined in $ROOMDEFAULTS_TEMP."
   echo "--kill : kill the room's active lession, if there is one (optional)."
   echo "         Use this with care!"
   echo
   echo "Note: --room and --host are using default values if room/host is not"
-  echo "      defined in $ROOMDEFAULTS."
+  echo "      defined in $ROOMDEFAULTS_TEMP."
   exit_script
 }
 
@@ -65,7 +68,7 @@ usage() {
 
 # check if $ROOMDEFAULTS exists
 if [ ! -e "$ROOMDEFAULTS" ]; then
-	echo "Fatal: File $ROOMDEFAULTS not found!"
+	echo "Fatal: File $ROOMDEFAULTS_TEMP not found!"
 	exit_script
 fi
 
@@ -81,19 +84,24 @@ echo "#####################################################################" | t
 echo "Starting linuxmuster-reset session at `date`" | tee -a $LOGFILE
 echo | tee -a $LOGFILE
 
+# first convert all input files to lower case
+ROOMDEFAULTS_TEMP=/var/tmp/room_defaults.$$
+WIMPORTDATA_TEMP=/var/tmp/workstations.$$
+grep -v ^# $ROOMDEFAULTS | tr A-Z a-z > $ROOMDEFAULTS_TEMP
+grep -v ^# $WIMPORTDATA | tr A-Z a-z > $WIMPORTDATA_TEMP
 
 # create resetlist
 if [ -n "$all" ]; then
-	resetlist=`awk '{ print $1 }' $ROOMDEFAULTS`
+	resetlist=`awk '{ print $1 }' $ROOMDEFAULTS_TEMP`
 elif [ -n "$host" ]; then
-	resetlist=$host
+	resetlist=`echo $host | tr A-Z a-z`
 elif [ -n "$room" ]; then
-	resetlist=$room
-	# fetch hosts for this room and look for host definitions in $ROOMDEFAULTS
-	hosts=`grep ^$room\; $WIMPORTDATA | cut -f2 -d";"`
+	resetlist=`echo $room | tr A-Z a-z`
+	# fetch hosts for this room and look for host definitions in $ROOMDEFAULTS_TEMP
+	hosts=`grep ^$room\; $WIMPORTDATA_TEMP | cut -f2 -d";"`
 	if [ -n "$hosts" ]; then
 		for h in $hosts; do
-			grep -q ^$h[[:space:]] $ROOMDEFAULTS && resetlist="$resetlist $h"
+			grep -q ^$h[[:space:]] $ROOMDEFAULTS_TEMP && resetlist="$resetlist $h"
 		done
 	fi
 fi
@@ -102,15 +110,12 @@ fi
 # check resetlist for valid entries and clean it up
 for r in $resetlist; do
 
-	# skip comments
-	[ "${r:0:1}" = "#" ] && continue
-
 	# skip rooms or hosts which are named "default"
 	[ "$r" = "default" ] && continue
 
-	# check if room/host is defined in $WIMPORTDATA
-	if ! grep -v ^# $WIMPORTDATA | grep -qw $r; then
-		echo "Room or host $r is not defined in $WIMPORTDATA! Skipping $r!" | tee -a $LOGFILE
+	# check if room/host is defined in $WIMPORTDATA_TEMP
+	if ! grep -qw $r $WIMPORTDATA_TEMP; then
+		echo "Room or host $r is not defined in $WIMPORTDATA_TEMP! Skipping $r!" | tee -a $LOGFILE
 		continue
 	fi
 
@@ -141,8 +146,8 @@ webfilter_default=on
 roomfile_prefix="/var/run/schulkonsole/room_"
 
 
-# read default values from $ROOMDEFAULTS if set
-if line=`grep ^default[[:space:]] $ROOMDEFAULTS`; then
+# read default values from $ROOMDEFAULTS_TEMP if set
+if line=`grep ^default[[:space:]] $ROOMDEFAULTS_TEMP`; then
 	internet_default=`echo $line | awk '{ print $2 }'`
 	intranet_default=`echo $line | awk '{ print $3 }'`
 	webfilter_default=`echo $line | awk '{ print $4 }'`
@@ -171,7 +176,7 @@ $SCRIPTSDIR/check_urlfilter.sh && uf_active=yes
 for r in $resetlist; do
 
 	# check if $r is a room
-	if grep -q ^$r\; $WIMPORTDATA; then
+	if grep -q ^$r\; $WIMPORTDATA_TEMP; then
 		room=yes; typ=room; typm=Room
 	else
 		room=no; typ=host; typm=Host
@@ -180,24 +185,24 @@ for r in $resetlist; do
 	echo
 	echo "Processing $typ $r ..." | tee -a $LOGFILE
 
-	# check if room/host is defined in $ROOMDEFAULTS
-	if ! grep -q ^$r[[:space:]] $ROOMDEFAULTS; then
+	# check if room/host is defined in $ROOMDEFAULTS_TEMP
+	if ! grep -q ^$r[[:space:]] $ROOMDEFAULTS_TEMP; then
 		# if not use default values
-		echo "  * $typm $r is not defined in $ROOMDEFAULTS! Using default values!" | tee -a $LOGFILE
+		echo "  * $typm $r is not defined in $ROOMDEFAULTS_TEMP! Using default values!" | tee -a $LOGFILE
 		internet=$internet_default
 		intranet=$intranet_default
 		webfilter=$webfilter_default
 	else
-		# else read room/host values from $ROOMDEFAULTS
-		line=`grep ^$r[[:space:]] $ROOMDEFAULTS`
+		# else read room/host values from $ROOMDEFAULTS_TEMP
+		line=`grep ^$r[[:space:]] $ROOMDEFAULTS_TEMP`
 		internet=`echo $line | awk '{ print $2 }'`
 		intranet=`echo $line | awk '{ print $3 }'`
 		webfilter=`echo $line | awk '{ print $4 }'`
 	fi
 
 	if [ "$room" = "yes" ]; then
-		# fetch room's hostlist from $WIMPORTDATA
-		hostlist=`grep ^$r\; $WIMPORTDATA | cut -f2 -d\;`
+		# fetch room's hostlist from $WIMPORTDATA_TEMP
+		hostlist=`grep ^$r\; $WIMPORTDATA_TEMP | cut -f2 -d\;`
 		hostlist=`echo $hostlist | sed -e 's/ /,/g'`
 		# skips if hostlist is empty
 		if [ -z "$hostlist" ]; then
@@ -280,4 +285,5 @@ echo | tee -a $LOGFILE
 echo "Ending linuxmuster-reset session at `date`" | tee -a $LOGFILE
 echo "#####################################################################" | tee -a $LOGFILE
 
-rm -f $locker
+rm -f $locker $ROOMDEFAULTS_TEMP $WIMPORTDATA_TEMP
+

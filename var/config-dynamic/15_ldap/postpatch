@@ -1,5 +1,168 @@
-# remove template
+# $Id$
+
+# remove smb.conf template again
 [ -e smb.conf ] && rm smb.conf
+
+
+# set samba sid
+if [ -n "$sambasid" ]; then
+ net setlocalsid $sambasid
+ net setdomainsid $sambasid
+fi
+
+
+# restore ldapadmin password
+smbpasswd -w $ldapadminpw
+
+
+# patch libnss-ldap.conf with basedn
+template=/etc/libnss-ldap.conf
+[ "$1" = "--modify" ] && backup_file $template
+sed -e "s/^base.*/base $basedn/
+        s/^rootbinddn.*/rootbinddn cn=admin,$basedn/" -i $template
+
+
+# patch pam_ldap.conf with basedn
+template=/etc/pam_ldap.conf
+[ "$1" = "--modify" ] && backup_file $template
+sed -e "s/^base.*/base $basedn/
+        s/^rootbinddn.*/rootbinddn cn=admin,$basedn/" -i $template
+
+
+# patching sophomorix.conf with schoolname, location and year
+[ "$1" = "--modify" ] && backup_file $SOPHOMORIXCONF
+yearnow="$(date +%Y)"
+sed -e "s/^\$schul_name=.*/\$schul_name=\"${schoolname} ${location}\";/
+        s/^\$geburts_jahreszahl_stop=.*/\$geburts_jahreszahl_stop=$yearnow;/" -i $SOPHOMORIXCONF
+
+
+# patch sophomorix pgldap.conf with workgroup, server, internip and domainname
+template=/etc/sophomorix/pgldap/pgldap.conf
+[ "$1" = "--modify" ] && backup_file $template
+sed -e "s/^\$domainname=.*/\$domainname=\"${domainname}\";/
+        s/^\$servername=.*/\$servername=\"${servername}\";/
+        s/^\$internip=.*/\$internip=\"${serverip}\";/
+        s/^\$internmask=.*/\$internmask=\"${internmask}\";/
+        s/^\$smbworkgroup=.*/\$smbworkgroup=\"${workgroup}\";/" -i $template
+
+
+# patch sophomorix ldif template
+template1=/usr/share/sophomorix/config-templates/ldap/standalone.ldif.template
+template2=/usr/share/sophomorix/config-templates/ldap/local-gen.ldif
+dc="$(echo $domainname | awk -F\. '{ print $1 }')"
+[ "$1" = "--modify" ] && backup_file $template2
+sed -e "s|@@basedn@@|$basedn|g
+        s|@@workgroup@@|$workgroup|g
+        s|sambaDomainName:.*|sambaDomainName: $workgroup|
+        s|@@sid@@|$sambasid|
+        s|@@dc@@|$dc|" $template1 > $template2
+# only on fresh install
+if [ "$1" = "--first" ]; then
+
+	# delete old userdata
+	[[ -n "$ADMINSHOME" && -d "$ADMINSHOME" ]] && rm -rf $ADMINSHOME/*
+	[[ -n "$TEACHERSHOME" && -d "$TEACHERSHOME" ]] && rm -rf $TEACHERSHOME/*
+	[[ -n "$STUDENTSHOME" && -d "$STUDENTSHOME" ]] && rm -rf $STUDENTSHOME/*
+	[[ -n "$WSHOME" && -d "$WSHOME" ]] && rm -rf $WSHOME/*
+	[[ -n "$SHAREHOME" && -d "$SHAREHOME" ]] && rm -rf $SHAREHOME/*/*
+	[[ -n "$TASKSCACHE" && -d "$TASKSCACHE" ]] && rm -rf $TASKSCACHE/*/*
+	rm -rf /var/lib/sophomorix/check-result/*
+	rm -rf /var/lib/sophomorix/database/*
+	rm -rf /var/lib/sophomorix/tmp/*
+	rm -rf /var/lib/sophomorix/print-data/*
+	rm -rf /var/log/sophomorix/*.log
+	rm -rf /var/log/sophomorix/exam/*
+	rm -rf /var/log/sophomorix/user/*
+
+	# changing user's default shell to /bin/bash
+	sed -e 's/^\$schueler_per_ssh=.*/\$schueler_per_ssh=\"yes\"\;/
+		s/^\$lehrer_per_ssh=.*/\$lehrer_per_ssh=\"yes\"\;/' -i $SOPHOMORIXCONF
+
+	# openldap access to ssl-certs
+	addgroup openldap ssl-cert
+
+	# create a new ldap database
+	createuser -U postgres -S -D -R ldap
+	createdb -U postgres -O ldap ldap
+	sed -e "s|@@workgroup@@|${workgroup}|g
+	        s|@@sambasid@@|${sambasid}|g
+                s|@@basedn@@|${basedn}|g" ldap.pgsql | psql -U postgres ldap
+	[ -e /etc/ldap/slapd.d ] && rm -rf /etc/ldap/slapd.d
+	mkdir -p /etc/ldap/slapd.d
+	slaptest -u -f /etc/ldap/slapd.conf -F /etc/ldap/slapd.d
+	chown openldap:openldap /etc/ldap/slapd.d -R
+
+	# new random password for ldap db user
+	ldapdbpw=`pwgen -s 8 1`
+
+	# set ldap db password for schulkonsole
+	psql -U postgres -d template1 -qc "ALTER USER ldap WITH PASSWORD '"$ldapdbpw"';"
+	sed -e "s|^Password=.*|Password=$ldapdbpw|" -i /etc/linuxmuster/schulkonsole/db.conf
+
+else
+
+	# update user database with basedn and workgroup if necessary
+	if [ "$update_ldap" = "yes" ]; then
+
+	 dumpfile=/var/tmp/ldap.pgsql
+	 dumpgzfile="$BACKUPDIR/ldap/ldap-$DATETIME.pgsql.gz"
+
+	 echo "Backing up ldap db to $dumpgzfile ..."
+	 [ -d "$BACKUPDIR/ldap" ] || mkdir -p $BACKUPDIR/ldap
+	 pg_dump -U postgres ldap > $dumpfile
+	 gzip -c9 $dumpfile > $dumpgzfile
+
+	 # change basedn
+	 if [ "$basedn_old" != "$basedn" ]; then
+	  if [ -s "$dumpfile" ]; then
+	   if sed -e "s|$basedn_old|$basedn|g" -i $dumpfile; then
+	    # restore ldap db
+	    echo "Ändere BaseDN in LDAP-Datenbank."
+	    dropdb -U postgres ldap
+	    createdb -U postgres -O ldap ldap
+	    psql -U postgres ldap < $dumpfile
+	   else
+	    echo "Fehler beim Patchen von $dumpfile! Kann BaseDN nicht ändern!"
+	   fi
+	  else
+	   echo "LDAP-Dump $dumpfile nicht gefunden! Kann BaseDN nicht ändern!"
+	  fi
+	 fi
+
+	 # change samba domain
+	 if [ "$workgroup_old" != "$workgroup" ]; then
+	  echo "Ändere Samba-Domäne in LDAP-Datenbank."
+	  psql -U postgres -d ldap -qc "UPDATE samba_domain SET sambadomainname = '$workgroup' WHERE id = '1';"
+	 fi
+
+	 rm $dumpfile
+
+	fi
+
+fi
+
+
+# repair permissions
+for i in /etc/ldap.secret /etc/smbldap-tools/smbldap_bind.conf /etc/sophomorix/pgldap/pgldap.conf; do
+  chown root:root $i
+  chmod 600 $i
+done
+chown www-data:www-data /etc/linuxmuster/schulkonsole/*
+chmod 400 /etc/linuxmuster/schulkonsole/db.conf*
+chown root:openldap /etc/ldap/slapd.conf*
+chmod 640  /etc/ldap/slapd.conf*
+chown root:root /etc/ldap/ldap.conf
+chmod 644 /etc/ldap/ldap.conf
+chown openldap:openldap /var/lib/ldap -R
+chmod 700 /var/lib/ldap
+chmod 600 /var/lib/ldap/*
+rm /etc/pam_ldap.secret
+ln -sf ldap.secret /etc/pam_ldap.secret
+
+
+# recreate ldap tree
+sophomorix-dump-pg2ldap
+
 
 # start services again
 /etc/init.d/nscd stop
@@ -8,3 +171,11 @@
 /etc/init.d/slapd start
 /etc/init.d/samba start
 /etc/init.d/nscd start
+
+
+# finally create homes on first install
+if [ "$1" = "--first" ]; then
+ sophomorix-repair --permissions
+ sophomorix-repair --repairhome
+fi
+

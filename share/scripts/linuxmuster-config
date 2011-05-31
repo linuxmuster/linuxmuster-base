@@ -1,4 +1,7 @@
 #!/bin/sh
+#
+# $Id$
+#
 
 # Source debconf library.
 . /usr/share/debconf/confmodule
@@ -25,7 +28,6 @@ fi
 # check which imaging software is available
 linbo=`aptitude search linuxmuster-linbo`
 rembo=`aptitude search myshn`
-tivoli=`aptitude search tpmfos`
 
 if [ "$1" = "--first" ]; then
   # intro
@@ -34,35 +36,28 @@ if [ "$1" = "--first" ]; then
   db_go
 fi
 
-# country
-while [ -z "$INPUT" ]; do
-  db_fset linuxmuster-base/country seen false
-  db_input $PRIORITY linuxmuster-base/country || true
-  db_go
-  db_get linuxmuster-base/country || true
-  INPUT=`echo ${RET:0:2} | tr a-z A-Z`
-  if ! expr match "$INPUT" '\([A-Z][A-Z]\)'; then
-    unset INPUT
-    continue
-  fi
-  db_set linuxmuster-base/country $INPUT || true
-  [[ "$oldvalues" = "yes" && "$INPUT" != "$country_old" ]] && ask_ipcop=yes
-done
-unset INPUT
-
 
 # data for certificates and workgroup
-for i in state location schoolname workgroup; do
+for i in country state location schoolname workgroup; do
   while [ -z "$INPUT" ]; do
     db_fset linuxmuster-base/$i seen false
     db_input $PRIORITY linuxmuster-base/$i || true
     db_go
     db_get linuxmuster-base/$i || true
     INPUT="$RET"
-    if ! expr match "$INPUT" '\([a-zA-Z0-9_\-]\+$\)'; then
+    if ! check_string "$INPUT"; then
       unset INPUT
       continue
     fi
+    if [ "$i" = "country" ]; then
+      [ ${#RET} -ne 2 ] && unset INPUT && continue
+      INPUT=`echo $RET | tr a-z A-Z`
+      if ! (expr match "$INPUT" '\([ABCDEFGHIJKLMNOPQRSTUVWXYZ][ABCDEFGHIJKLMNOPQRSTUVWXYZ]\)'); then
+        unset INPUT
+        continue
+      fi
+    fi
+    [[ "$oldvalues" = "yes" && "$i" = "country"  && "$INPUT" != "$country_old" ]] && ask_ipcop=yes
     [[ "$oldvalues" = "yes" && "$i" = "state" && "$INPUT" != "$state_old" ]] && ask_ipcop=yes
     [[ "$oldvalues" = "yes" && "$i" = "location" && "$INPUT" != "$location_old" ]] && ask_ipcop=yes
     [[ "$oldvalues" = "yes" && "$i" = "schoolname" && "$INPUT" != "$schoolname_old" ]] && ask_ipcop=yes
@@ -76,7 +71,7 @@ done
 
 # intern network configuration
 # servername
-while ! (expr match "$SERVERNAME" '\([a-z0-9\-]\+$\)'); do
+while ! validhostname "$SERVERNAME"; do
   db_fset linuxmuster-base/servername seen false
   db_input $PRIORITY linuxmuster-base/servername || true
   db_go
@@ -202,22 +197,7 @@ done
 
 # imaging system
 imaging=""
-if [[ -n "$linbo" && -n "$rembo" && -n "$tivoli" ]]; then
-
-	IMG_CHOICES="linbo, rembo, tivoli"
-	IMG_DESC="LINBO [linbo], Rembo/mySHN (tm) [rembo] und IBM TPMfOS (tm) [tivoli]."
-
-elif [[ -n "$rembo" && -n "$tivoli" ]]; then
-
-	IMG_CHOICES="rembo, tivoli"
-	IMG_DESC="Rembo/mySHN (tm) [rembo] und IBM TPMfOS (tm) [tivoli]."
-
-elif [[ -n "$linbo" && -n "$tivoli" ]]; then
-
-	IMG_CHOICES="linbo, tivoli"
-	IMG_DESC="LINBO [linbo] und IBM TPMfOS (tm) [tivoli]."
-
-elif [[ -n "$linbo" && -n "$rembo" ]]; then
+if [[ -n "$linbo" && -n "$rembo" ]]; then
 
 	IMG_CHOICES="linbo, rembo"
 	IMG_DESC="LINBO [linbo] und Rembo/mySHN (tm) [rembo]."
@@ -229,10 +209,6 @@ elif [ -n "$linbo" ]; then
 elif [ -n "$rembo" ]; then
 
 	imaging=rembo
-
-elif [ -n "$tivoli" ]; then
-
-	imaging=tivoli
 
 fi
 
@@ -246,69 +222,6 @@ if [ -n "$IMG_CHOICES" ]; then
 	imaging=$RET
 else
 	db_set linuxmuster-base/imaging "$imaging" || true
-fi
-
-# present and let accept or decline sun java license if necessary
-# stolen from sun-java5-bin package
-if [ "$imaging" = "tivoli" ]; then
-
-	license=sun-dlj-v1-1
-
-	db_get shared/accepted-$license
-	if [ "$RET" = "true" ]; then
-
-		echo "$license license has already been accepted" >&2
-
-	else
-
-		STATE=1
-		while true; do
-    			case "$STATE" in
-				0)  # ensure going back from license presentment is harmless
-					STATE=1 
-					continue
-					;;
-				1)  # present license
-					db_fset shared/present-$license seen false
-					if ! db_input critical shared/present-$license ; then
-						echo "$license license could not be presented!"
-						echo "Please start linuxmuster-setup $1 again to repeat the configuration!" >&2
-						exit 2
-					fi
-					db_fset shared/accepted-$license seen false
-					if ! db_input critical shared/accepted-$license ; then
-						echo "$license agree question could not be asked!"
-						echo "Please start linuxmuster-setup $1 again to repeat the configuration!" >&2
-						exit 2
-					fi
-					;;
-				2)  # determine users' choice
-					db_get shared/accepted-$license
-					if [ "$RET" = "true" ]; then
-						# license accepted
-						break
-					fi
-					;;
-				3)  # user has confirmed declining license
-					echo "You did not accept the $license license!" >&2
-					echo "Please start linuxmuster-setup $1 again to repeat the configuration!" >&2
-					exit 1
-					;;
-				*)  # unknown state
-					echo "$license license state unknown: $STATE!" >&2
-					echo "Please start linuxmuster-setup $1 again to repeat the configuration!" >&2
-					exit 2
-					;;
-			esac
-			if db_go; then
-				STATE=$(($STATE + 1))
-			else
-				STATE=$(($STATE - 1))
-			fi
-		done
-
-	fi
-
 fi
 
 

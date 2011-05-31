@@ -1,9 +1,19 @@
 #!/bin/sh
-#
-# assign nics to interfaces on boot
+
+### BEGIN INIT INFO
+# Provides:          linuxmuster-nic-setup
+# Required-Start:    $local_fs
+# Required-Stop:     $local_fs
+# Should-Start:
+# Should-Stop:
+# Default-Start:     S
+# Default-Stop:
+# Short-Description: assign nics to interfaces on boot
+# Description:       assign nics to interfaces on boot
+### END INIT INFO
+
 # Thomas Schmitt <schmitt@lmz-bw.de>
-# 03.05.2007
-#
+# 2010-02-03
 
 # source linuxmuster stuff
 . /usr/share/linuxmuster/config/dist.conf || exit 1
@@ -24,7 +34,8 @@ nic_setup() {
 	echo -n "Checking for changed mac addresses ..."
 
 	valid_macs=`LANG=C ifconfig -a | grep HWaddr | awk '{ print $5 }'`
-
+	toupper "$valid_macs" && valid_macs="$RET"
+ 
 	if [ -n "$mac_extern" ]; then
 		toupper $mac_extern && mac_extern=$RET
 		stringinstring $mac_extern "$valid_macs" || nic_setup=yes
@@ -86,12 +97,26 @@ assign_macs() {
 }
 
 
+remove_ipv6() {
+
+	local ipv6_module="$(find /lib/modules/`uname -r`/kernel/ -name ipv6.ko)"
+	if [ -e "$ipv6_module" ]; then
+	 echo -n "Removing ipv6 support"
+	 rm $ipv6_module
+	 depmod -a
+	 echo "."
+	fi
+
+}
+
+
 # name interfaces
 case $1 in
 
 	start)
 
 		# called on boot
+		remove_ipv6
 		nic_setup
 		assign_macs
 

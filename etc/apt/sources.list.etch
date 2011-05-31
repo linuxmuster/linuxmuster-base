@@ -1,9 +1,0 @@
-# etch
-deb http://ftp.de.debian.org/debian/ etch main contrib non-free
-#deb-src http://ftp.de.debian.org/debian/ etch main contrib non-free
-deb http://ftp2.de.debian.org/debian-security/ etch/updates main contrib non-free
-#deb-src http://ftp2.de.debian.org/debian-security/ etch/updates main contrib non-free
-
-# recent clamav stuff
-deb http://ftp.de.debian.org/debian-volatile/ etch/volatile main
-

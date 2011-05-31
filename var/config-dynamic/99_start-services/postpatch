@@ -1,12 +1,7 @@
+# $Id$
 # repair permissions for root's scheduled cron jobs
 chown root:crontab /var/spool/cron/crontabs/root
 chmod 600 /var/spool/cron/crontabs/root
-
-# copy sources.list
-if [ "$1" = "--first" ]; then
-	cp /etc/apt/sources.list.etch /etc/apt/sources.list
-	cp /etc/apt/apt.conf.etch /etc/apt/apt.conf
-fi
 
 # waiting for ipcop to come up 
 c=0
@@ -36,10 +31,9 @@ while [ $c -lt $maxwait ]; do
 		fi
 
 		# restart ipcop's proxy
-		if [ "$1" = "--first" ]; then
-			echo "Reloading ipcop's squid ..."
-			exec_ipcop /usr/sbin/squid -k reconfigure
-		fi
+		echo "Restarting ipcop's squid ..."
+		exec_ipcop /usr/bin/find "/var/ipcop/urlfilter -name \*.db -exec chmod 666 '{}' \;"
+		exec_ipcop /usr/local/bin/restartsquid
 
 		success=yes
 		break
@@ -68,10 +62,14 @@ for service in $services; do
 	/etc/init.d/$service start
 done
 
+# set installed flag
+touch $INSTALLED
+
+# reconfigure linuxmuster-base to fix what has been not yet fixed
+dpkg-reconfigure linuxmuster-base
+
 # repair linbo stuff, if necessary
-if [[ "$1" = "--modify" && "$imaging" = "linbo" && "$imaging" != "$imaging_old" ]]; then
-	dpkg-reconfigure linuxmuster-linbo
-fi
+[ "$imaging" = "linbo" ] && dpkg-reconfigure linuxmuster-linbo
 
 # apply workstation data if internal net has changed
 if [[ "$1" = "--modify" && "$internsub" != "$internsub_old" ]]; then
@@ -101,10 +99,4 @@ fi
 for i in kronolith2 php4 uucp; do
 	[ -e "/etc/cron.d/$i" ] && rm /etc/cron.d/$i
 done
-
-# set installed flag
-touch $INSTALLED
-
-# reconfigure linuxmuster-base to fix what has been not yet fixed
-dpkg-reconfigure linuxmuster-base
 

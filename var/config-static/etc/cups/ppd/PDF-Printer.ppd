@@ -1,6 +1,6 @@
 *PPD-Adobe: "4.3"
 *%
-*% "$Id: postscript.ppd,v 1.1.1.1 2000/08/24 19:23:13 goffioul Exp $"
+*% "$Id$"
 *%
 *%   Sample Postscript driver PPD file for the Common UNIX Printing
 *%   System (CUPS).
@@ -379,5 +379,5 @@
 *Font ZapfChancery-MediumItalic: Standard "(001.007S)" Standard ROM
 *Font ZapfDingbats: Special "(001.004S)" Standard ROM
 *%
-*% End of "$Id: postscript.ppd,v 1.1.1.1 2000/08/24 19:23:13 goffioul Exp $".
+*% End of "$Id$".
 *%

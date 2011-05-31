@@ -2,6 +2,7 @@
 ##### @@message2@@
 ##### @@message3@@
 #
+# $Id$
 ############################################################
 #  Include your own stuff in the following files:
 #  global stuff:      /etc/samba/smb.conf.global
@@ -104,7 +105,7 @@
 # This boolean parameter controls whether Samba attempts to sync the Unix
 # password with the SMB password when the encrypted SMB password in the
 # passdb is changed.
-   unix password sync = yes
+;   unix password sync = yes
 
 # For Unix password sync to work on a Debian GNU/Linux system, the following
 # parameters must be set (thanks to Augustin Luton <aluton@hybrigenics.fr> for
@@ -158,6 +159,7 @@
    logon home = \\%L\%u
    use sendfile = No
    os level = 99
+   wide links = No
 
    # server side cifs configuration
    unix extensions = yes
@@ -165,6 +167,11 @@
    delete readonly = Yes
    case sensitive = auto
    mangled names = no
+
+   # fix for #56 & #64
+   winbind enum users = yes
+   winbind enum groups = yes
+   unix password sync = no
 
    ldap passwd sync = No
    add user script = /usr/sbin/smbldap-useradd -m "%u"
@@ -217,6 +224,9 @@
    comment = Home Directories
    browseable = no
 
+   # administrator is able to do housekeeping
+   admin users = @@administrator@@
+
 # By default, the home directories are exported read-only. Change next
 # parameter to 'yes' if you want to be able to write to them.
    writable = yes
@@ -246,7 +256,6 @@
    guest ok = yes
    writable = no
    force create mode = 664
-   share modes = no
    write list = @@@domadmins@@
    force group = @@domadmins@@
 
@@ -302,11 +311,13 @@
    writeable = no
    write list = @@administrator@@,@@@teachersgroup@@
    valid users = @@administrator@@,@@@teachersgroup@@
+   admin users = @@administrator@@
    browseable = No
    guest ok = No
 
 [shares]
    comment = Shares
+   admin users = @@administrator@@
    path = /home/share
    writeable = yes
    create mode = 2664
@@ -319,6 +330,7 @@
    path = /var/cache/sophomorix/tasks
    writeable = no
    write list = @@administrator@@,@@@teachersgroup@@
+   admin users = @@administrator@@
    browseable = No
    guest ok = No
 

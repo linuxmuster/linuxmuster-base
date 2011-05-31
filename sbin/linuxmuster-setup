@@ -3,10 +3,13 @@
 #
 # Thomas Schmitt <schmitt@lmz-bw.de>
 # GPL-2
+#
+# $Id$
+#
 
 # check debian version
-if [ "$(cat /etc/debian_version)" != "4.0" ]; then
-	echo "This is not Debian 4.0 Etch. Please upgrade your system!"
+if ! grep -q 5\.0\.[1-9] /etc/debian_version; then
+	echo "This is not Debian 5.0.x Lenny. Please upgrade your system!"
 	exit 1
 fi
 
@@ -31,10 +34,25 @@ usage() {
   exit 1
 }
 
+# mount installation cdrom
+mount_cdrom() {
+ local device=$1
+ [ -n "$device" ] && device="/dev/$device"
+ mount $device /cdrom &> /dev/null
+ if grep -q "[op][pa][e][nd]ML Linux" /cdrom/.disk/info &> /dev/null; then
+  return 0
+ else
+  umount /cdrom &> /dev/null
+  return 1
+ fi
+}
+
 [[ "$opt" = "--first" || "$opt" = "--modify" ]] || usage
 
 # look if we were on first boot
 if [ -e /etc/inittab.real ]; then
+
+  firstboot=yes
 
   # reread inittab
   mv /etc/inittab.real /etc/inittab
@@ -62,67 +80,102 @@ fi
 
 # logfile
 logfile=$LOGDIR/setup.log
-echo >> $LOGDIR/setup.log
-echo "####################################################" >> $LOGDIR/setup.log
-echo "Setup session started at `date`" >> $LOGDIR/setup.log
-date >> $LOGDIR/setup.log
-echo "####################################################" >> $LOGDIR/setup.log
+echo >> $logfile
+chmod 600 $logfile
+echo "####################################################" >> $logfile
+echo "Setup session started at `date`" >> $logfile
+date >> $logfile
+echo "####################################################" >> $logfile
 
 echo "Logging output to $logfile ..."
 echo
 
 # reconfiguring package to have all templates
-dpkg-reconfigure linuxmuster-base | tee -a $LOGDIR/setup.log
+dpkg-reconfigure linuxmuster-base | tee -a $logfile
 
 # calling as base-config late command
 case $opt in
 
   --first)
 
+    # copy apt configs if not on first boot
+    if [ -z "$firstboot" ]; then
+     cp /etc/apt/sources.list /etc/apt/sources.list.orig
+     cp -a $STATICTPLDIR/etc/apt/* /etc/apt
+    fi
+
     # turn shadow passwords on
-    shadowconfig on | tee -a $LOGDIR/setup.log
+    shadowconfig on | tee -a $logfile
 
     # add cyrus user
-    id cyrus &> /dev/null || useradd -c "Cyrus Mailsystem User" -d /var/spool/cyrus -g mail -m -r -s /bin/sh cyrus | tee -a $LOGDIR/setup.log
+    id cyrus &> /dev/null || useradd -c "Cyrus Mailsystem User" -d /var/spool/cyrus -g mail -m -r -s /bin/sh cyrus | tee -a $logfile
 
-    # load cdrom tray
+    # mount cdrom
     if grep -q ^"deb cdrom" /etc/apt/sources.list; then
-	eject -t
-	mount /cdrom
+	eject -t &> /dev/null
+	for i in "" scd0 scd1 scd2; do
+	 if mount_cdrom "$i"; then
+	  if stringinstring scd "$i"; then
+	   rm -f /dev/cdrom /dev/dvd
+	   ln -s /dev/$i /dev/cdrom
+	   ln -s /dev/$i /dev/dvd
+	   cp /etc/fstab /etc/fstab.linuxmuster-setup.first
+	   grep -v cdrom /etc/fstab.linuxmuster-setup.first > /etc/fstab
+	   echo "/dev/$i /media/cdrom0 udf,iso9660 user,noauto 0 0" >> /etc/fstab
+	  fi
+	  cdrom_mounted=yes
+	  break
+	 fi
+	done
+	if [ -z "$cdrom_mounted" ]; then
+	 echo "Fatal: Cannot mount install cd!"
+	 exit 1
+	fi
     fi
 
     # install paedml release key
     [ -e /cdrom/paedml-release.asc ] && apt-key add /cdrom/paedml-release.asc
 
     # check tasks
-    for i in common server desktop imaging-linbo imaging-tivoli imaging-rembo; do
+    for i in common server desktop imaging-linbo imaging-rembo; do
       if [ ! -s "/usr/share/linuxmuster/tasks/$i" ]; then
         echo "Error: Taskfile $i not found!"
         exit 1
       fi
     done
 
-		# tweak system time due to debian bug #531569 (http://www.mail-archive.com/debian-bugs-dist@lists.debian.org/msg654573.html)
-		date 0101000009
-
     # force apt to do ugly things during upgrade
     echo 'DPkg::Options {"--force-confold";"--force-confdef";"--force-bad-verify";"--force-overwrite";};' > /etc/apt/apt.conf.d/99upgrade
 
-    # check if linuxmuster-indexpage is installable
+    # check for installable non-free packages
     indexpage=`aptitude search linuxmuster-indexpage`
+    templatespaedml=`aptitude search linuxmuster-schulkonsole-templates-paedml`
 
     # tweaking buggy sophomorix, install postgresql first
-    DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql | tee -a $LOGDIR/setup.log
-    #DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql-8.1 | tee -a $LOGDIR/setup.log
+    DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql | tee -a $logfile
+    #DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql-8.1 | tee -a $logfile
 
     # installing depending task
     for i in common server; do
       task=`cat /usr/share/linuxmuster/tasks/$i`
-      DEBIAN_FRONTEND=noninteractive aptitude -y install $task | tee -a $LOGDIR/setup.log
+      DEBIAN_FRONTEND=noninteractive aptitude -y install $task | tee -a $logfile
     done
 
+    # reconfigure locale settings
+    for i in locale.gen timezone; do
+     conf=/etc/$i
+     cp $STATICTPLDIR/$conf $conf
+    done
+    DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales
+    DEBIAN_FRONTEND=noninteractive dpkg-reconfigure tzdata
+    install-keymap /usr/share/keymaps/i386/qwertz/de-latin1-nodeadkeys.kmap.gz
+    kmapmd5=`md5sum /etc/console-setup/boottime.kmap.gz | awk '{ print $1 }' 2> /dev/null`
+    sed -e "s/^BOOTTIME_KMAP_MD5=.*/BOOTTIME_KMAP_MD5=\"$kmapmd5\"/" $STATICTPLDIR/etc/default/console-setup > /etc/default/console-setup
+    /etc/init.d/console-setup restart
+
     # install indexpage if available
-    [ -n "$indexpage" ] && aptitude -y install linuxmuster-indexpage | tee -a $LOGDIR/setup.log
+    [ -n "$indexpage" ] && aptitude -y install linuxmuster-indexpage | tee -a $logfile
+    [ -n "$templatespaedml" ] && aptitude -y install linuxmuster-schulkonsole-templates-paedml | tee -a $logfile
 
     # remove upgrade cheat
     rm /etc/apt/apt.conf.d/99upgrade
@@ -133,8 +186,8 @@ case $opt in
 
     # check for installed flag
     if [ ! -e "$INSTALLED" ]; then
-      echo "Linux-Musterloesung isn't installed yet!" | tee -a $LOGDIR/setup.log
-      echo "You have to use the command linuxmuster-setup --first!" | tee -a $LOGDIR/setup.log
+      echo "Linux-Musterloesung isn't installed yet!" | tee -a $logfile
+      echo "You have to use the command linuxmuster-setup --first!" | tee -a $logfile
       exit 1
     fi
 
@@ -142,7 +195,7 @@ case $opt in
 
 	# fetch external network configuration from ipcop
 	if ping -c 2 $ipcopip &> /dev/null; then
-		echo "Reading IPCop's external network configuration ..." | tee -a $LOGDIR/setup.log
+		echo "Reading IPCop's external network configuration ..." | tee -a $logfile
 		tmpdir=/var/tmp/ipcop.$$
 		mkdir -p $tmpdir
 		get_ipcop /var/ipcop/ethernet/settings $tmpdir/settings
@@ -176,13 +229,13 @@ case $opt in
 
 	else
 
-		echo "Cannot connect to IPCop!" | tee -a $LOGDIR/setup.log
+		echo "Cannot connect to IPCop!" | tee -a $logfile
 		exit 1
 
 	fi
 
     # reading current debconf values
-    echo "Reading current configuration values ..." | tee -a $LOGDIR/setup.log
+    echo "Reading current configuration values ..." | tee -a $logfile
     for i in country state location workgroup servername domainname schoolname dsluser dslpasswd smtprelay \
              internsubrange fwconfig externtype externip externmask gatewayip dnsforwarders imaging; do
       RET=`echo get linuxmuster-base/$i | debconf-communicate`
@@ -206,8 +259,8 @@ case $opt in
 esac
 
 # backup debconf db
-backup_file /var/cache/debconf/config.dat | tee -a $LOGDIR/setup.log
-backup_file /var/cache/debconf/passwords.dat | tee -a $LOGDIR/setup.log
+backup_file /var/cache/debconf/config.dat | tee -a $logfile
+backup_file /var/cache/debconf/passwords.dat | tee -a $logfile
 chmod 600 $BACKUPDIR/var/cache/debconf/passwords.dat-$DATETIME.gz
 
 # ask questions
@@ -228,4 +281,6 @@ fi
 
 # call configuration patch script
 $SCRIPTSDIR/linuxmuster-patch $opt
+
+chmod 600 $logfile
 

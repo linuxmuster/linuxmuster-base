@@ -3,7 +3,7 @@
 # blocking web access on ipcop
 #
 # Thomas Schmitt <schmitt@lmz-bw.de>
-# 12.11.2009
+# $Id$
 # GPL v3
 #
 
@@ -224,8 +224,8 @@ put_ipcop $CACHEDIR/fwrules.config.new /var/ipcop/fwrules/config &> /dev/null ||
 exec_ipcop /usr/sbin/squid -k reconfigure &> /dev/null || cancel "Restarting of ipcop proxy failed!"
 
 
-# restarting firewall rules
-exec_ipcop /etc/rc.d/rc.firewall.local reload &> /dev/null || cancel "Restarting of ipcop firewall failed!"
+# reload bot rules
+exec_ipcop /var/linuxmuster/reloadbot.sh || cancel "Reloading BOT rules failed!"
 
 
 # renew list of internet blocked hosts

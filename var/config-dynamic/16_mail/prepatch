@@ -27,7 +27,7 @@ else
 	mv main.cf.target main.cf.target.nopatch
 	if [ "$update_smtp" = "yes" ]; then
 		backup_file /etc/postfix/main.cf
-		postconf -e relayhost=$smptrelay
+		postconf -e relayhost=$smtprelay
 	fi
 	if [ "$internsub" != "$internsub_old" ]; then
 		[ -e "$BACKUPDIR/etc/postfix/main.cf-$DATETIME.gz" ] || backup_file /etc/postfix/main.cf

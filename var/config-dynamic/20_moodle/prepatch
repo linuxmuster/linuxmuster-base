@@ -9,10 +9,6 @@ if dpkg -L moodle &> /dev/null; then
       dpkg --configure moodle
     fi
 
-    # drop horde db on first time install
-    dropdb -U postgres moodle
-    dropuser -U postgres moodle
-
     # create new db and user
     createuser -U postgres -S -D -R moodle
     createdb -U postgres -O moodle -E UTF8 moodle
@@ -47,7 +43,7 @@ if dpkg -L moodle &> /dev/null; then
       echo "Backing up moodle db to $BACKUPDIR/moodle/moodle-dump-$DATETIME.gz ..."
       [ -d "$BACKUPDIR/moodle" ] || mkdir -p $BACKUPDIR/moodle
       pg_dump -U postgres -f /var/tmp/moodle-dump -F p -C moodle
-      gzip -c /var/tmp/moodle-dump > $BACKUPDIR/moodle/moodle-dump-$DATETIME.gz
+      gzip -c9 /var/tmp/moodle-dump > $BACKUPDIR/moodle/moodle-dump-$DATETIME.gz
       rm /var/tmp/moodle-dump
 
       # patch moodle db with new servername.domainname

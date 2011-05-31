@@ -107,6 +107,7 @@ fi
 
 # compute basedn from domainname
 basedn="dc=`echo $domainname|sed 's/\./,dc=/g'`"
+basedn_old="dc=`echo $domainname_old|sed 's/\./,dc=/g'`"
 
 # write network settings
 echo "# linuxmuster network settings" > $NETWORKSETTINGS
@@ -178,28 +179,33 @@ dsluser=${dsluser//\//\\\/}
 
 # messages for config file headers
 message1="##### Do not change this file! It will be overwritten!"
-message2="##### This configuration file was automatically created by linuxmuster-base!"
+message2="##### This configuration file was automatically created by linuxmuster-setup!"
 message3="##### Last Modification: `date`"
 
 # set a new random password for cyrus user
 $SCRIPTSDIR/cyradmpw.sh
 cyradmpw=`cat /etc/imap.secret`
 
-
 if [ "$1" = "--first" ]; then
-	# copying default configuration an remove installed flag for first time installation
-	echo "Copying default static configuration files ..." | tee -a $LOGDIR/setup.log
-	cp -a $STATICTPLDIR/* /
-	# delete installed flag
-	if [ -e "$INSTALLED" ]; then
-		echo "Removing installed flag $INSTALLED ..." | tee -a $LOGDIR/setup.log
-		rm -f $INSTALLED
-	fi
-        # remove backup files
-	if ! check_empty_dir $BACKUPDIR; then
-		echo "Cleaning up $BACKUPDIR ..." | tee -a $LOGDIR/setup.log
-		rm -rf $BACKUPDIR/*
-	fi
+ # copying default configuration an remove installed flag for first time installation
+ echo "Copying default static configuration files ..." | tee -a $LOGDIR/setup.log
+ cp -a $STATICTPLDIR/* /
+ # delete installed flag
+ if [ -e "$INSTALLED" ]; then
+  echo "Removing installed flag $INSTALLED ..." | tee -a $LOGDIR/setup.log
+  rm -f $INSTALLED
+ fi
+ # remove backup files
+ if ! check_empty_dir $BACKUPDIR; then
+  echo "Cleaning up $BACKUPDIR ..." | tee -a $LOGDIR/setup.log
+  rm -rf $BACKUPDIR/*
+ fi
+ # set a ldap admin password
+ ldapadminpw=`pwgen -s 8 1`
+ echo -n $ldapadminpw > /etc/ldap.secret
+ chmod 600 /etc/ldap.secret
+else
+ ldapadminpw="$(cat /etc/ldap.secret)"
 fi
 
 
@@ -248,6 +254,7 @@ for i in $DYNTPLDIR/*; do
               s/@@smtprelay@@/${smtprelay}/g
               s/@@workgroup@@/${workgroup}/g
               s/@@basedn@@/${basedn}/g
+              s/@@ldappassword@@/${ldapadminpw}/g
               s/@@adminpw@@/${adminpw}/g
               s/@@adminpw_md5@@/${adminpw_md5}/g
               s/@@cyradmpw@@/${cyradmpw}/g

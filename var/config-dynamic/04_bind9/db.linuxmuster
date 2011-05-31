@@ -1,5 +1,5 @@
 $ORIGIN .
-$TTL 3600       ; 1 hour
+$TTL 7200       ; 2 hours
 @@domainname@@	IN SOA	@@servername@@.@@domainname@@. postmaster.@@domainname@@. (
 			2004030801
 			10800
@@ -11,6 +11,6 @@ $TTL 3600       ; 1 hour
 		MX	10 @@servername@@.@@domainname@@.
 
 $ORIGIN @@domainname@@.
-$TTL 7200       ; 2 hours
-@@servername@@		IN	A	@@serverip@@
-ipcop		IN	A	@@ipcopip@@
+@@servername@@ IN A @@serverip@@
+ipcop IN A @@ipcopip@@
+

@@ -1,8 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 #
 # creates /etc/cups/access.conf for printer access definitions
-
-#set -x
+# GPL v3
+# Thomas Schmitt <schmitt@lmz-bw.de>
+#
+# $Id$
+#
 
 # source linuxmuster defaults
 . /usr/share/linuxmuster/config/dist.conf || exit 1
@@ -36,7 +39,7 @@ while read printer roomlist hostlist; do
   echo "  Allow From 127.0.0.1" >> $ACCESSCONF.new || cancel "Cannot write $ACCESSCONF.new!"
   for i in $roomlist; do
     if [ "$i" != "-" ]; then
-      get_ip $i
+      get_room_ip $i
       if validip $RET; then
         OIFS="$IFS"
         IFS="."
@@ -62,7 +65,7 @@ done <$PRINTERS
 
 mv $ACCESSCONF.new $ACCESSCONF || cancel "Cannot write $ACCESSCONF!"
 
-/etc/init.d/cupsys restart || cancel "Cannot restart CUPS!"
+/etc/init.d/cups restart || cancel "Cannot restart CUPS!"
 
 [ -e "$ACCESSCONF.off" ] && rm -f $ACCESSCONF.off
 

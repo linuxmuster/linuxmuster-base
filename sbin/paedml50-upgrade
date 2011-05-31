@@ -1,0 +1,69 @@
+#!/bin/bash
+#
+# upgrade paedML 4.0.x to 5.0.x
+# online wrapper script
+#
+# cmdline parameter: path to paedML/openML iso file
+# downloads openML iso if no iso file is given on cmdline
+# invokes at least upgrade script
+#
+# $Id$
+# 
+# Thomas Schmitt
+# <schmitt@lmz-bw.de>
+# GPL V3
+#
+
+. /usr/share/linuxmuster/config/dist.conf
+. $HELPERFUNCTIONS
+
+if [ "$1" = "--force" ]; then
+
+ echo "--force angegeben: überspringe Versionsprüfung!"
+ echo
+
+else
+
+ if [ "$(cat /etc/debian_version)" != "4.0" ]; then
+  echo "Das Upgrade funktioniert nur mit Debian 4.0!"
+  exit 0
+ fi
+
+ if ! grep -q "[op][pa][e][nd]ML Linux 4\.0\.[4-9]" /etc/issue; then
+  echo "Das Upgrade funktioniert nur ab openML/paedML Linux 4.0.4!"
+  exit 0
+ fi
+
+fi # force
+
+if ! check_free_space /var 1000000; then
+ echo "Zuwenig Speicherplatz unter /var. Stellen Sie sicher, dass dort 1GB freier Platz zur Verfügung steht."
+ exit 1
+fi
+
+# downloading openML/paedML iso
+DLDIR=$ADMINSHOME/$ADMINISTRATOR/iso
+mkdir -p $DLDIR
+if [ ! -s "$DLDIR/$FREECDNAME" -a ! -s "$DLDIR/${FREECDNAME}.md5" ]; then
+ echo "Lade $FREECDNAME herunter ..."
+ rm -f $DLDIR/${FREECDNAME}*
+ wget $ISOURL/$FREECDNAME -O $DLDIR/$FREECDNAME
+ wget $ISOURL/${FREECDNAME}.md5 -O $DLDIR/${FREECDNAME}.md5
+ chown $ADMINISTRATOR $DLDIR -R
+fi
+cd $DLDIR
+echo "Überpruefe IS0-Datei ..."
+md5sum -c ${FREECDNAME}.md5 || exit 1
+
+# copy packages from iso to cache
+mount -o loop $FREECDNAME /mnt || exit 1
+cd /mnt/pool || exit 1
+echo "Kopiere Pakete ..."
+for i in `find . -name \*.deb`; do
+ cp -v "$i" /var/cache/apt/archives
+done
+cd ~
+umount /mnt
+
+. $DATADIR/upgrade/paedml50-upgrade.sh 2>&1 | tee -a $LOGDIR/paedml50-upgrade.log
+

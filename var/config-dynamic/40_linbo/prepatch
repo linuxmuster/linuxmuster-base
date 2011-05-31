@@ -137,6 +137,16 @@ linbo: \"\|\/usr\/share\/linuxmuster-linbo\/mail2log.sh\"" -i /etc/aliases
 	# start necessary services
 	/etc/init.d/atftpd start
 	/etc/init.d/rsync start
+	# don't start these on first install
+	if [ "$1" != "--first" ]; then
+	 /etc/init.d/bittorrent start
+	 /etc/init.d/linbo-bittorrent start
+	 /etc/init.d/linbo-multicast start
+	else
+	 [ -e /etc/default/bittorrent ] && sed -e 's|^START_BTTRACK=.*|START_BTTRACK=0|' -i /etc/default/bittorrent
+	 [ -e /etc/default/linbo-bittorrent ] && sed -e 's|^START_BITTORRENT=.*|START_BITTORRENT=0|' -i /etc/default/linbo-bittorrent
+	 [ -e /etc/default/linuxmuster-linbo ] && sed -e 's|^START_MULTICAST=.*|START_MULTICAST=no|' -i /etc/default/linuxmuster-linbo
+	fi
 
 else
 

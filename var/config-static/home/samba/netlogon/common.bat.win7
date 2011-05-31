@@ -1,0 +1,58 @@
+REM Windows 7 example.
+REM $Id$
+
+:winnt
+
+echo off
+
+REM Do not for Windows version prior to Win2K.
+if NOT "%OS%"=="Windows_NT" goto winnt_end
+
+REM Extract servername from unc path.
+set UNC=%0%
+for /f "tokens=1 delims=\" %%i in ("%UNC%") do set SERVER=%%i
+if "%SERVER%"=="" goto winnt_end
+
+REM Set name for template user.
+set TEMPLATE=pgmadmin
+
+REM Create personal folders in homedir.
+for %%i in (Dokumente Musik Bilder Videos) do if not exist "H:\Eigene %%i" md "H:\Eigene %%i"
+
+REM Do not for template user.
+if "%USERNAME%"=="%TEMPLATE%" goto winnt_end
+
+REM Do not if user profile does not exist.
+if NOT exist "%USERPROFILE%" goto winnt_end
+
+REM Replace template user paths in registry.
+cd "%USERPROFILE%"
+
+reg export "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" %USERNAME%.reg /y
+cscript \\%SERVER%\netlogon\replace.vbs \\"%TEMPLATE%"\\ \\"%USERNAME%"\\ %USERNAME%.reg
+reg import %USERNAME%.reg
+
+reg export "HKCU\Control Panel\Desktop" %USERNAME%.reg /y
+cscript \\%SERVER%\netlogon\replace.vbs \\"%TEMPLATE%"\\ \\"%USERNAME%"\\ %USERNAME%.reg
+reg import %USERNAME%.reg
+
+reg export "HKCU\Software\Microsoft\GDIPlus" %USERNAME%.reg /y
+cscript \\%SERVER%\netlogon\replace.vbs \\"%TEMPLATE%"\\ \\"%USERNAME%"\\ %USERNAME%.reg
+reg import %USERNAME%.reg
+
+reg export "HKCU\Software\Microsoft\MediaPlayer\Preferences" %USERNAME%.reg /y
+cscript \\%SERVER%\netlogon\replace.vbs \\"%TEMPLATE%"\\ \\"%USERNAME%"\\ %USERNAME%.reg
+reg import %USERNAME%.reg
+
+reg export "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes" %USERNAME%.reg /y
+cscript \\%SERVER%\netlogon\replace.vbs \\"%TEMPLATE%"\\ \\"%USERNAME%"\\ %USERNAME%.reg
+reg import %USERNAME%.reg
+
+reg export "HKCU\Software\Microsoft\Windows Media\WMSDK\Namespace" %USERNAME%.reg /y
+cscript \\%SERVER%\netlogon\replace.vbs \\"%TEMPLATE%"\\ \\"%USERNAME%"\\ %USERNAME%.reg
+reg import %USERNAME%.reg
+
+del %USERNAME%.reg
+
+:winnt_end
+

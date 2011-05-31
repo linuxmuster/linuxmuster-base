@@ -12,8 +12,6 @@ mc
 perl
 rsync
 smbclient
-sysutils
-unzoo
 vim
 xfsprogs
 openssh-client

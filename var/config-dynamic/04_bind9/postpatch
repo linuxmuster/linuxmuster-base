@@ -9,5 +9,13 @@ chmod 664 /etc/bind/db.linuxmuster
 # delete journaling files
 ls /etc/bind/*.jnl &> /dev/null && rm /etc/bind/*.jnl
 
+# create rndc-keyfile if necessary
+if [ ! -e /etc/bind/rndc.key ]; then
+  echo "Creating /etc/bind/rndc.key ..."
+  rndc-confgen -a -u bind
+else
+  chown bind /etc/bind/rndc.key
+fi
+
 # start the service
 /etc/init.d/bind9 start

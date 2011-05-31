@@ -1,7 +1,19 @@
 #!/bin/bash
-# internal firewall script
-# 13.02.2007 by Thomas Schmitt for Linux-Musterloesung
-# LMZ Baden-Wuerttemberg, <schmitt@lmz-bw.de>
+
+### BEGIN INIT INFO
+# Provides:          linuxmuster-base
+# Required-Start:    $network $local_fs
+# Required-Stop:     $network $local_fs
+# Should-Start:      
+# Should-Stop:       
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: internal firewall script
+# Description:       starts and stops internal firewall
+### END INIT INFO
+
+# Thomas Schmitt <schmitt@lmz-bw.de>
+# 13.02.2007
 
 # source default settings
 [ -f /etc/default/linuxmuster-base ] && . /etc/default/linuxmuster-base

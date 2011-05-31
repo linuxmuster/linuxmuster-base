@@ -4,7 +4,7 @@
 # wrapper script for serverbackup with mondo
 # schmitt@lmz-bw.de
 #
-# 26.11.2008
+# $Id$
 #
 
 
@@ -184,10 +184,14 @@ fi
 rl=`runlevel | awk '{ print $2 }'`
 
 
-# converting lists
-excludedirs=${excludedirs//,/ }
-includedirs=${includedirs//,/ }
-services=${services//,/ }
+# remove mountpoint from excludedirs, will be added directly to mondoarchive parameters below (#458).
+excludedirs="${excludedirs//$mountpoint/}"
+
+
+# converting lists (see #462)
+excludedirs="${excludedirs//,/|}"
+includedirs="${includedirs//,/|}"
+services="${services//,/ }"
 
 
 # temp file for sorted services

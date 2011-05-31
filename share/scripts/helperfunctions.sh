@@ -4,7 +4,7 @@
 # <schmitt@lmz-bw.de>
 # GPL v3
 #
-# 22.01.2010
+# $Id$
 #
 
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
@@ -111,7 +111,7 @@ backup_file() {
 
 # get legal distro name
 getdistname() {
-	if dpkg -s linuxmuster-schulkonsole-templates-paedml | grep -q ^Installed-Size; then
+	if dpkg -s linuxmuster-schulkonsole-templates-paedml | grep -q ^Installed-Size &> /dev/null; then
 		echo "$NONFREEDISTNAME"
 	else
 		echo "$FREEDISTNAME"
@@ -135,13 +135,47 @@ check_free_space(){
 	fi
 }
 
+#######################
+# config file editing #
+#######################
+
+addto_file()
+{
+	# Parameter 1 original file
+	# Parameter 2 changes file
+	# Parameter 3 search pattern after that content of changes file will be inserted
+ local ofile="$1"
+ local cfile="$2"
+ local pattern="$3"
+ local tfile="/var/tmp/addto_file.$$"
+	sed ''/$pattern/' r '$cfile'' <$ofile > $tfile || return 1
+	cp $tfile $ofile
+	rm $tfile
+	return 0
+}
+
+removefrom_file()
+{
+	# Parameter 1 original file
+	# Parameter 2 search pattern e.g. /\;### linuxmuster - begin ###/,/\;### linuxmuster - end ###/
+ local ofile="$1"
+ local pattern="$2"
+ local tfile="/var/tmp/removefrom_file.$$"
+	sed "$pattern"d <$ofile > $tfile || return 1
+	cp $tfile $ofile
+	rm $tfile
+	return 0
+}
+
 ##########################
 # check parameter values #
 ##########################
 
 # check valid domain name
 validdomain() {
-  if (expr match "$1" '\([a-z0-9-]\+\(\.[a-z0-9-]\+\)\+$\)') &> /dev/null; then
+ [ -z "$1" ] && return 1
+ tolower "$1"
+  if (expr match "$RET" '\([abcdefghijklmnopqrstuvwxyz0-9\-]\+\(\.[abcdefghijklmnopqrstuvwxyz0-9\-]\+\)\+$\)') &> /dev/null; then
     return 0
   else
     return 1
@@ -168,6 +202,17 @@ validmac() {
   fi
 }
 
+# test for valid hostname
+validhostname() {
+ [ -z "$1" ] && return 1
+ tolower "$1"
+ if (expr match "$RET" '\([abcdefghijklmnopqrstuvwxyz0-9\-]\+$\)') &> /dev/null; then
+  return 0
+ else
+  return 1
+ fi
+}
+
 
 #######################
 # workstation related #
@@ -177,7 +222,21 @@ validmac() {
 get_ip() {
   unset RET
   [ -f "$WIMPORTDATA" ] || return 1
-  RET=`grep -v ^# $WIMPORTDATA | grep -w -m1 $1 | awk -F\; '{ print $5 }' -` &> /dev/null
+  local pattern="$1"
+  if validmac "$pattern"; then
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $4 " " $5 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
+  else # assume hostname
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $2 " " $5 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
+  fi
+  return 0
+}
+
+# extract room ip address from file $WIMPORTDATA
+get_room_ip() {
+  unset RET
+  [ -f "$WIMPORTDATA" ] || return 1
+  local pattern="$1"
+  RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $1 " " $5 }' | grep -i ^"$pattern " | tail -1 | awk '{ print $2 }'` &> /dev/null
   return 0
 }
 
@@ -185,7 +244,14 @@ get_ip() {
 get_mac() {
   unset RET
   [ -f "$WIMPORTDATA" ] || return 1
-  RET=`grep -v ^# $WIMPORTDATA | grep -w -m1 $1 | awk -F\; '{ print $4 }' -` &> /dev/null
+  local pattern="$1"
+  if validip "$pattern"; then
+   pattern="${pattern//./\\.}"
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $5 " " $4 }' | grep ^"$pattern " | awk '{ print $2 }'` &> /dev/null
+  else # assume hostname
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $2 " " $4 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
+  fi
+  [ -n "$RET" ] && toupper "$RET"
   return 0
 }
 
@@ -193,15 +259,33 @@ get_mac() {
 get_hostname() {
   unset RET
   [ -f "$WIMPORTDATA" ] || return 1
-  RET=`grep -v ^# $WIMPORTDATA | grep -w -m1 $1 | awk -F\; '{ print $2 }' -` &> /dev/null
+  local pattern="$1"
+  if validip "$pattern"; then
+   pattern="${pattern//./\\.}"
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $5 " " $2 }' | grep ^"$pattern " | awk '{ print $2 }'` &> /dev/null
+  elif validmac "$pattern"; then
+   RET=`grep -v ^# $WIMPORTDATA awk -F\; '{ print $4 " " $2 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
+  else # assume hostname
+   RET=`grep -v ^# $WIMPORTDATA | tr A-Z a-z | awk -F\; '{ print $2 }' | grep -wi ^"$pattern" | head -1` &> /dev/null
+  fi
+  [ -n "$RET" ] && tolower "$RET"
   return 0
 }
 
-# extract hostname from file $WIMPORTDATA
+# extract room from file $WIMPORTDATA
 get_room() {
   unset RET
   [ -f "$WIMPORTDATA" ] || return 1
-  RET=`grep -v ^# $WIMPORTDATA | grep -m1 $1 | awk -F\; '{ print $1 }' -` &> /dev/null
+  local pattern="$1"
+  if validip "$pattern"; then
+   pattern="${1//./\\.}"
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $5 " " $1 }' | grep ^"$pattern " | awk '{ print $2 }'` &> /dev/null
+  elif validmac "$pattern"; then
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $4 " " $1 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
+  else # assume hostname
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $2 " " $1 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
+  fi
+  [ -n "$RET" ] && tolower "$RET"
   return 0
 }
 
@@ -215,7 +299,7 @@ get_maclist() {
     IFS=","
     for i in $maclist; do
       if validmac $i; then
-        mac[$n]=$i
+        mac[$n]="$(echo $i | tr a-z A-Z)"
       else
         continue
       fi
@@ -231,7 +315,7 @@ get_maclist() {
     OIFS=$IFS
     IFS=","
     for i in $hostlist; do
-      host[$n]=$i
+      host[$n]="$(echo $i | tr A-Z a-z)"
       let n+=1
     done
     IFS=$OIFS
@@ -321,7 +405,7 @@ discover_nics() {
 
 			else
 
-				model[$n]="Unrecognized Ethernet Controller Device"
+				model[$n]="Unrecognized_Ethernet_Controller"
 
 			fi
 
@@ -663,7 +747,7 @@ check_group() {
 
 # get all host accounts from db
 hosts_db() {
-  unset RET
+  local RET
   RET=`psql -U ldap -d ldap -t -c "select uid from posix_account where firstname = 'Exam';"`
   if [ -n "$RET" ]; then
 	 	echo "$RET" | awk '{ print $1 }'
@@ -675,8 +759,8 @@ hosts_db() {
 
 # get all host accounts from ldap
 hosts_ldap() {
-  unset RET
-  RET=`ldapsearch -x -ZZ -h localhost "(cn=ExamAccount)" | grep ^uid\: | awk '{ print $2 }'`
+  local RET
+  RET=`ldapsearch -x -h localhost "(description=ExamAccount)" | grep ^uid\: | awk '{ print $2 }'`
   if [ -n "$RET" ]; then
 		echo "$RET"
     return 0
@@ -687,7 +771,7 @@ hosts_ldap() {
 
 # get all host accounts
 machines_db() {
-  unset RET
+  local RET
   RET=`psql -U ldap -d ldap -t -c "select uid from posix_account where firstname = 'Computer';"`
   if [ -n "$RET" ]; then
 		 echo "$RET" | awk '{ print $1 }'
@@ -699,8 +783,8 @@ machines_db() {
 
 # get all host accounts from ldap
 machines_ldap() {
-  unset RET
-  RET=`ldapsearch -x -ZZ -h localhost "(cn=Computer)" | grep ^uid\: | awk '{ print $2 }'`
+  local RET
+  RET=`ldapsearch -x -h localhost "(gidNumber=515)" | grep ^uid\: | awk '{ print $2 }'`
   if [ -n "$RET" ]; then
 		echo "$RET"
     return 0
@@ -711,7 +795,7 @@ machines_ldap() {
 
 # get all user accounts
 accounts_db() {
-  unset RET
+  local RET
   RET=`psql -U ldap -d ldap -t -c "select uid from posix_account where firstname <> 'Computer' and firstname <> 'Exam';"`
   if [ -n "$RET" ]; then
 		 echo "$RET" | awk '{ print $1 }'
@@ -723,8 +807,8 @@ accounts_db() {
 
 # get all user accounts from ldap
 accounts_ldap() {
-  unset RET
-  RET=`ldapsearch -x -ZZ -h localhost "(&(!(cn=Computer))(!(cn=ExamAccount)))" | grep ^uid\: | awk '{ print $2 }'`
+  local RET
+  RET=`ldapsearch -x -h localhost "(&(!(gidNumber=515))(!(description=ExamAccount)))" | grep ^uid\: | awk '{ print $2 }'`
   if [ -n "$RET" ]; then
 		echo "$RET"
     return 0
@@ -802,11 +886,12 @@ check_empty_dir() {
 
 # check valid string without special characters
 check_string() {
-  if (expr match "$1" '\([a-zA-Z0-9_\-]\+$\)') &> /dev/null; then
-    return 0
-  else
-    return 1
-  fi
+ tolower "$1"
+ if (expr match "$RET" '\([abcdefghijklmnopqrstuvwxyz0-9\_\-]\+$\)') &> /dev/null; then
+  return 0
+ else
+  return 1
+ fi
 }
 
 # converting string to lower chars

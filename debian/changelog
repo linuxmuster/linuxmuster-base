@@ -1,8 +1,633 @@
-linuxmuster-base (1.5.4-1) etch; urgency=low
+linuxmuster-base (1.5.30-lenny0) lenny; urgency=low
 
-  * helperfunctions.sh, discover_nics(): added code to discover also bonding interfaces (bond*).
+  * fixed limits in /etc/security/limits.conf (closes finally #397).
+  * fixed separator for includedirs and excludedirs in linuxmuster-backup (closes #462).
+  * linuxmuster-setup: fixed unpatched rembo/myshn configuration when switching
+    from first time installed LINBO to Rembo (closes #443).
+  * linuxmuster-setup: fixed special chars filter for domain name input (closes finally #429).
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 22 Jan 2010 09:32:46 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 9 May 2011 18:06:23 +0200
+
+linuxmuster-base (1.5.29-lenny2) lenny; urgency=low
+
+  * paedml50-upgrade.sh: removed libgnutls13, libldap-2.3-0 and libsnmp9 from packages to remove (closes #456).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 18 Apr 2011 11:30:51 +0200
+
+linuxmuster-base (1.5.29-lenny1) lenny; urgency=low
+
+  * linuxmuster-setup: changed default firewall to dedicated.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 15 Apr 2011 16:48:23 +0200
+
+linuxmuster-base (1.5.29-lenny0) lenny; urgency=low
+
+  * update-logins.sh: fixed permissions of login cache files for www-data.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 13 Apr 2011 18:51:17 +0200
+
+linuxmuster-base (1.5.28-lenny0) lenny; urgency=low
+
+  * linuxmuster-setup:
+    * timezone is not Europe/Berlin after first time installation (closes #444).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 07 Mar 2011 11:07:07 +0200
+
+linuxmuster-base (1.5.27-lenny0) lenny; urgency=low
+
+  * linuxmuster-setup:
+    * input of special characters for schoolname etc. was not filtered (closes #429).
+    * sets geburts_jahreszahl_stop in sophomorix.conf to actual year.
+  * paedml50-upgrade.sh: some etch packages were not deinstalled (closes #430).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 28 Mar 2011 19:58:18 +0200
+
+linuxmuster-base (1.5.26-lenny2) lenny; urgency=low
+
+  * increased version to 5.0.1.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 19 Mar 2011 14:49:22 +0100
+
+linuxmuster-base (1.5.26-lenny1) lenny; urgency=low
+
+  * updated upgrade info text in doc.
+  * paedml50-upgrade.sh: fixed not installing paedml nonfree components (closes #415).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 9 Feb 2011 19:20:34 +0100
+
+linuxmuster-base (1.5.26-lenny0) lenny; urgency=low
+
+  * fixed german locale during first time setup (closes #413).
+  * added common.bat.win7 example file.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 4 Feb 2011 20:00:13 +0100
+
+linuxmuster-base (1.5.25-lenny0) lenny; urgency=low
+
+  * fixed pam.d's sshd config file in static configuration templates (closes #410).
+  * postinst:
+    - fixes pam.d's sshd config file.
+    - removes "to paedML 4.0" from kdm GreetString.
+    - fixes SophomorixBase.pm's nscd invokation (closes #56 & #64).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 25 Jan 2011 19:47:47 +0100
+
+linuxmuster-base (1.5.24-lenny0) lenny; urgency=low
+
+  * linuxmuster-setup: added static template /etc/security/limits.conf
+    with "* - nofile 16384" entry (closes #397).
+  * paedml50-upgrade: added update for /etc/security/limits.conf.
+  * postinst: adding "* - nofile 16384" to /etc/security/limits.conf.
+  * removed deprecated share modes option from smb.conf (closes #396).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 10 Dec 2010 10:09:14 +0100
+
+linuxmuster-base (1.5.23-lenny1) lenny; urgency=low
+
+  * paedml50-upgrade: added udev configuration update.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 22 Nov 2010 09:59:22 +0100
+
+linuxmuster-base (1.5.23-lenny0) lenny; urgency=low
+
+  * update-logins.sh, helperfunctions.sh: fixed missing hostname if linux clients were logging in.
+  * linuxmuster-setup: updated udev's static templates according to lenny.
+  * postinst: changes /etc/udev/rules.d/75-persistent-net-generator.rules if net rules creation is not deactivated.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 19 Nov 2010 18:09:13 +0100
+
+linuxmuster-base (1.5.22-lenny0) lenny; urgency=low
+
+  * paedml50-upgrade:
+    - fixed unpatched server ip in /etc/ldap/slapd.conf (closes #387).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon,  8 Nov 2010 11:40:29 +0100
+
+linuxmuster-base (1.5.21-lenny0) lenny; urgency=low
+
+  * helperfunctions.sh, get_maclist(): convert macs to upper case (#291).
+  * wimport.sh, helperfunctions.sh, linuxmuster-reset: improved case handling
+    for macs, hostnames and room names (#386). 
+    and hostnames to lowercase in workstations data file.
+  * slapd.conf:
+    - added access rules for server and ipcop ip.
+  * postinst: updated slapd.conf patch code.
+  * paedml50-upgrade:
+    - changed upgradedable versions up to 4.0.9.
+    - patching correct distribution name into /etc/nagios3/conf.d/linuxmuster_main.cfg.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed,  3 Nov 2010 11:47:43 +0100
+
+linuxmuster-base (1.5.20-lenny0) lenny; urgency=low
+
+  * internet_on_off.sh: invoking now script /var/linuxmuster/reloadbot.sh on ipcop to reload bot rules.
+  * linuxmuster-setup:
+    - added /etc/hesiod.conf configuration template.
+    - fixed cdrom mount on first installation.
+  * paedml50-upgrade:
+    - added openML iso download.
+    - fixed ipcop ip patch for slapd.conf.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 26 Oct 2010 19:44:11 +0200
+
+linuxmuster-base (1.5.19-lenny0) lenny; urgency=low
+
+  * internet_on_off.sh: reloading only BOT rules not the whole rc.firewall.local (#293).
+  * paedml50-upgrade.sh: checking for nfs-common/nfs-kernel-server and reinstall it
+    if necessary at the end of upgrade process.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 11 Oct 2010 11:30:43 +0200
+
+linuxmuster-base (1.5.18-lenny0) lenny; urgency=low
+
+  * update-logins.sh: fixed logins with id < 10000 finally (#204).
+  * slapd.conf: added acl for ipcop (#303).
+  * postinst: updating slapd.conf if not rev. 850 (s.a.).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 29 Sep 2010 10:18:34 +0200
+
+linuxmuster-base (1.5.17-lenny0) lenny; urgency=low
+
+  * update-logins.sh: fixed logins with id < 10000 (#204).
+  * postinst: fixing moodle's ldap host url (#284).
+  * import_printers: fixed invokation of cups' init script (#287).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon,  6 Sep 2010 17:47:21 +0200
+
+linuxmuster-base (1.5.16-lenny1) lenny; urgency=low
+
+  * wimport.sh, create_account(): fixed password settings.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed,  4 Aug 2010 18:38:24 +0200
+
+linuxmuster-base (1.5.16-lenny0) lenny; urgency=low
+
+  * smb.conf: removed [admin] share, added "admin users = administrator" to 
+    [home], [students], [shares] and [tasks].
+  * wimport.sh: sets machine account password only on account creation to speed
+    things up.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue,  3 Aug 2010 11:38:57 +0200
+
+linuxmuster-base (1.5.15-lenny2) lenny; urgency=low
+
+  * postinst: fixed wrong variable for slapd.conf.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 30 Jul 2010 08:24:36 +0200
+
+linuxmuster-base (1.5.15-lenny1) lenny; urgency=low
+
+  * paedml50-upgrade.sh: removed samba from PKGSTOREMOVE.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 29 Jul 2010 12:35:31 +0200
+
+linuxmuster-base (1.5.15-lenny0) lenny; urgency=low
+
+  * remoteadmin.sh:
+    - fixed nagios2 stuff (closes #278),
+    - removed remoteadmin access to nagios and webmin web interfaces, so
+      remoteadmin is a console user only.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 28 Jul 2010 19:58:09 +0200
+
+linuxmuster-base (1.5.14-lenny1) lenny; urgency=low
+
+  * paedml50-upgrade: fixed wrong debian version message.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 26 Jul 2010 17:06:43 +0200
+
+linuxmuster-base (1.5.14-lenny0) lenny; urgency=low
+
+  * import_workstations, wimport.sh:
+    - removed obsolete tivoli imaging type.
+    - improved error handling: workstation data check will now cancel at any
+      type of wrong workstation data.
+    - removing now orphaned workstation homes without error message.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 26 Jul 2010 12:37:56 +0200
+
+linuxmuster-base (1.5.13-lenny3) lenny; urgency=low
+
+  * postinst: invokes smbpasswd only if installed.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 23 Jul 2010 12:25:35 +0200
+
+linuxmuster-base (1.5.13-lenny2) lenny; urgency=low
+
+  * added samba-common-bin to server task.
+  * added samba-common-bin | samba-common to package control file.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 23 Jul 2010 10:30:59 +0200
+
+linuxmuster-base (1.5.13-lenny1) lenny; urgency=low
+
+  * slapd configuration:
+    - removed unnecessary admin acls from slapd.conf template.
+    - added SLAPD_OPTIONS="-4" to slapd default template.
+  * postinst:
+    - reparing userPassword in slapd.conf.
+    - adding SLAPD_OPTIONS="-4" to /etc/default/slapd if necessary.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 21 Jul 2010 15:13:30 +0200
+
+linuxmuster-base (1.5.13-lenny0) lenny; urgency=low
+
+  * smb.conf:
+    - fixed access to new share folders of projects and classes (closes #56 & #64):
+      [global]
+      winbind enum users = yes
+      winbind enum groups = yes
+      unix password sync = no
+    - added admin share to enable administrator to do some housekeeping in the
+      share folders (closes #151):
+      [admin]
+      comment = Tauschverzeichnisse leeren
+      path = /home/share
+      admin users = administrator
+      valid users = administrator
+      browseable = no
+      writable = yes
+  * wimport.sh:
+    - remove_account(): added check for computer account so that user accounts
+      identical to the hostname were not removed (finally closes #137).
+    - improved workstations data checks (closes #269).
+  * helperfunctions.sh, check_string(): fixed unescaped underscore.
+  * slapd.conf: changed password-hash to {SSHA}.
+  * postinst:
+    - fixes password-hash in slapd.conf if necessary.
+    - linbo user check only if slapd and postgresql are running.
+    - fixes ldaps in /etc/default/slapd.conf.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 20 Jul 2010 12:25:44 +0200
+
+linuxmuster-base (1.5.12-lenny0) lenny; urgency=low
+
+  * paedml50-upgrade:
+    - added parameter --force to be able to skip version check.
+  * paedml50-upgrade.sh:
+    - many improvements concerning to upgrade testing and systems with non standard addons.
+    - added ability to run upgrade script again after an interrupted upgrade session.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 13 Jul 2010 17:22:24 +0200
+
+linuxmuster-base (1.5.11-lenny0) lenny; urgency=low
+
+  * paedml50-upgrade.sh:
+    - finally minor improvements concerning to console output.
+    - integrated horde upgrade script and removed it.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 10 Jul 2010 17:32:08 +0200
+
+linuxmuster-base (1.5.10-lenny20) lenny; urgency=low
+
+  * removed samba-common-bin from server task
+  * added several horde recommended php-pear modules to server task.
+  * postinst: 
+    - removed alternative link repair for /usr/bin/net.
+    - added check for clamav-freshclam startlinks (closes #262).
+  * horde-upgrade.sh:
+    - removed pear upgrade and direct pear modules installation.
+  * paedml50-upgrade.sh:
+    - improved reinstallation of pykota.
+    - improved upgrade of linuxmuster-linbo and linuxmuster-freeradius.
+    - check for samba version, any version different to etch's version will be
+      removed and reinstalled later.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 09 Jul 2010 20:35:12 +0200
+
+linuxmuster-base (1.5.10-lenny19) lenny; urgency=low
+
+  * paedml50-upgrade & postinst:
+    - removes obsolete apache2 config files /etc/apache2/mods-enabled/mime_magic.*.
+  * horde-upgrade.sh:
+    - reinstalls php-net-sieve (closes #259).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 08 Jul 2010 20:05:31 +0200
+
+linuxmuster-base (1.5.10-lenny18) lenny; urgency=low
+
+  * paedml50-upgrade:
+    - added backup for custom nagios2 configs.
+    - suppress more debconf questions.
+  * helperfunctions.sh:
+    - fixed get_room_ip() (closes #244 finally).
+  * linuxmuster-setup: repairs ipcop's urlfilter db files permissions at the end
+    of setup (closes #257).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 06 Jul 2010 20:11:43 +0200
+
+linuxmuster-base (1.5.10-lenny17) lenny; urgency=low
+
+  * paedml50-upgrade:
+    - added check for correct installation of postgresql-8.3.
+  * postinst:
+    - added alternative link repair for /usr/bin/net.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 30 Jun 2010 10:48:39 +0200
+
+linuxmuster-base (1.5.10-lenny16) lenny; urgency=low
+
+  * paedml50-upgrade:
+    - several fixes due to linuxmuster-freeradius, linuxmuster-linbo, pykota,
+      nagios2 and sophomorix upgrade.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 25 Jun 2010 12:46:47 +0200
+
+linuxmuster-base (1.5.10-lenny15) lenny; urgency=low
+
+  * linuxmuster-setup:
+    - added recreation of pkyota db on first installation.
+  * paedml50-upgrade:
+    - modified pykota handling.
+  * helperfunctions.sh: suppressed query output from linuxmuster-schulkonsole-templates-paedml.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 22 Jun 2010 13:45:53 +0200
+
+linuxmuster-base (1.5.10-lenny14) lenny; urgency=low
+
+  * linuxmuster-setup:
+    - improved cdrom mount on first install.
+    - removed obsolete tivoli configuration templates.
+  * added eject to package dependencies.
+  * helperfunctions.sh:
+    - added function get_room_ip() to return an ip address for the room.
+    - added function validhostname() to check if hostnames comply with RFC 952.
+  * wimport.sh:
+    - hostname check uses now validhostname() (closes #245).
+    - sets machine password now on every invokation, not only for new hosts.
+  * import_printers: uses now get_room_ip() to compute room's subnet
+    (closes #244).
+  * paedml50-upgrade: removing obsolete /etc/apache2/conf.d/nagios2.conf.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 16 Jun 2010 11:04:20 +0200
+
+linuxmuster-base (1.5.10-lenny13) lenny; urgency=low
+
+  * changed release version from 4.1.0 to 5.0.0, renamed an reworked upgrade
+    scripts accordingly.
+  * helper.rb: changed name of required module from obsolete "postgres" to "pg"
+    (fixes #227).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 21 May 2010 16:37:26 +0200
+
+linuxmuster-base (1.5.10-lenny12) lenny; urgency=low
+
+  * paedml41-upgrade:
+    - fixed cluster handling for postgresql-8.3.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 11 May 2010 08:23:32 +0200
+
+linuxmuster-base (1.5.10-lenny11) lenny; urgency=low
+
+  * paedml41-upgrade:
+    - added handling for linuxmuster-pk packages.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 05 May 2010 16:25:25 +0200
+
+linuxmuster-base (1.5.10-lenny10) lenny; urgency=low
+
+  * added "duplicatesuppression: 0" to imapd.conf template.
+  * added pam.d's common configs to static templates.
+  * linuxmuster-setup: removed IPCop's SKAS Kernel configuration.
+  * paedml41-upgrade:
+    - added handling for pykota and mrbs postgres databases.
+    - removed IPCop config upgrade (now in linuxmuster-ipcop's postinst).
+  * bugfix in ipcop-test-ssh.exp script.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 05 May 2010 16:05:24 +0200
+
+linuxmuster-base (1.5.10-lenny9) lenny; urgency=low
+
+  * helperfunctions.sh: several improvements in the workstation related
+    functions get_ip(), get_mac(), get_room() and get_hostname().
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 29 Apr 2010 10:48:24 +0200
+
+linuxmuster-base (1.5.10-lenny8) lenny; urgency=low
+
+  * import_workstations: creates /home/workstations if necessary.
+  * linuxmuster-setup:
+    - more fixes for initial ldap creation.
+    - fixed missing homedirs after first install.
+    - reconfigures linuxmuster-linbo at the end of setup session.
+    - fix permissions of setup.log.
+    - added defaultMaxPasswordAge="0" in smbldap.conf template.
+    - don't start linbo's torrent and multicast services on first install.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 21 Apr 2010 20:34:18 +0200
+
+linuxmuster-base (1.5.10-lenny7) lenny; urgency=low
+
+  * paedml41-upgrade:
+    - improved database handling.
+    - databases ldap and moodle were backed up and converted to utf8 before
+      upgrade.
+    - obsolete ogo database will be backed up and deleted.
+  * linuxmuster-setup:
+    - nagios3: providing a /etc/nagios3/commands.cfg if missing.
+    - reworked and improved ldap configuration.
+    - removed obsolete copying of sources.list and apt.conf in
+      99_start-services/postpatch.
+    - removed obsolete database drop for moodle on first install.
+    - removed obsolete sysutils and unzoo from common task.
+    - removed libldap-2.3-0 from server task.
+    - copies now paedml specific apt configs already on begin of setup session
+      if not on first boot.
+  * helperfunctions.sh, discover_nics(): changed spaces to "_" in model name for
+    unrecognized adapters.
+  * postinst: skipping package configuration if ldap is not running.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 21 Apr 2010 14:35:13 +0200
+
+linuxmuster-base (1.5.10-lenny6) lenny; urgency=low
+
+  * various fixes in linuxmuster-setup according to Lenny:
+    - removed linuxmuster-tivoli task and debian bug #531569 date workaround.
+    - fixed changed dialog in ipcop's expect scripts.
+    - fixed creating horde's turba tables in create-horde-db.sh.
+    - added postgresql ldap database template for use on first time
+      installation instead of sophomorix-setup-pgldap.
+    - various sophomorix fixes in config-dynamic/15_ldap/prepatch.
+    - fixed nagios3 configuration.
+    - updated start-stop services in 00_stop_services.
+    - added linbo multicast and bittorrent services.
+    - changed cupsys to cups.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 19 Apr 2010 21:08:18 +0200
+
+linuxmuster-base (1.5.10-lenny5) lenny; urgency=low
+
+  * postinst: added check and repair for correct basedn in slapd.conf.
+  * fixed wrong basedn in slapd.conf config template.
+  * linuxmuster-setup: fixed smtprelay variable name in
+    /var/lib/linuxmuster/config-dynamic/16_mail/prepatch (#214) (thanks to S.
+    Schwarzl for reporting this bug).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 16 Apr 2010 15:36:29 +0200
+
+linuxmuster-base (1.5.10-lenny4) lenny; urgency=low
+
+  * postfix master.cf template: added retry entry.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 01 Apr 2010 08:43:06 +0200
+
+linuxmuster-base (1.5.10-lenny3) lenny; urgency=low
+
+  * paedml41-upgrade: fixed syntax error in freeradius upgrade.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 01 Apr 2010 08:43:06 +0200
+
+linuxmuster-base (1.5.10-lenny2) lenny; urgency=low
+
+  * postinst: removed more obsolete stuff.
+  * paedml41-upgrade:
+    - fixed nagios upgrade, linuxmuster-nagios-base will be first removed and
+      later reinstalled.
+    - fixed freeradius upgrade.
+    - moved package removal to earlier position in script.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 31 Mar 2010 21:12:26 +0200
+
+linuxmuster-base (1.5.10-lenny1) lenny; urgency=low
+
+  * linuxmuster-patch: added basedn_old variable.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 30 Mar 2010 17:18:29 +0200
+
+linuxmuster-base (1.5.10-lenny0) lenny; urgency=low
+
+  * paedml41-upgrade: added freeradius config upgrade.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 30 Mar 2010 17:18:29 +0200
+
+linuxmuster-base (1.5.9-3) lenny; urgency=low
+
+  * postinst: removed check for sun java templates.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 20 Mar 2010 11:20:28 +0100
+
+linuxmuster-base (1.5.9-2) lenny; urgency=low
+
+  * paedml41-upgrade: added linuxmuster-nagios-setup.
+  * linuxmuster-setup: debian version check updated.
+  * added $Id$ to several script headers.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 20 Mar 2010 11:20:28 +0100
+
+linuxmuster-base (1.5.9-1) lenny; urgency=low
+
+  * paedml41-upgrade: recreates ldap now with slapcat and slapadd.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 19 Mar 2010 15:21:39 +0100
+
+linuxmuster-base (1.5.9-0) lenny; urgency=low
+
+  * paedml41-upgrade:
+    - removed nagios3 stuff.
+    - recreating ldap at the end of upgrade.
+  * added linuxmuster-nagios-base to server task.
+  * updated slapd.conf and smbldap.conf.
+  * updated php.ini.
+  * linuxmuster-nic-setup: removing ipv6 support.
+  * removed ipv6 entries from /etc/hosts templates.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 19 Mar 2010 00:19:38 +0100
+
+linuxmuster-base (1.5.8-3) lenny; urgency=low
+
+  * changed codename to 'Glufamichel'.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 17 Mar 2010 15:21:55 +0100
+
+linuxmuster-base (1.5.8-2) lenny; urgency=low
+
+  * paedml41-upgrade: hold linuxmuster-linbo during upgrade to upgrade it seperately
+    later when samba and slapd are running again.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 09 Mar 2010 08:18:55 +0100
+
+linuxmuster-base (1.5.8-1) lenny; urgency=low
+
+  * paedml41-upgrade: directory /etc/apt/sources.list.d is moved to
+    sources.list.d.lenny-upgrade, new initial apt configuration is copied in place.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 08 Mar 2010 20:03:55 +0100
+
+linuxmuster-base (1.5.8-0) lenny; urgency=low
+
+  * added bash script "update-logins.sh" to be able to update the cached logins in
+    /var/cache/linuxmuster/logins.
+  * paedml41-upgrade.sh: touching /etc/nagios2/resource.cfg before upgrade if not
+    present.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 08 Mar 2010 15:47:45 +0100
+
+linuxmuster-base (1.5.7-2) lenny; urgency=low
+
+  * samba-userlog: moved sourcing of custom scripts to the end.
+  * added "/etc/default/bootlogd" with "BOOTLOGD_ENABLE=Yes" (closes # 205, RFC-00352).
+  * enabling bootlogd on 4.1 upgrade.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 05 Mar 2010 17:13:15 +0100
+
+linuxmuster-base (1.5.7-1) lenny; urgency=low
+
+  * helperfunctions.sh, hosts_ldap()/accounts_ldap(): changed search field for host
+    accounts to description.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 05 Mar 2010 09:13:07 +0100
+
+linuxmuster-base (1.5.7-0) lenny; urgency=low
+
+  * fixed broken ip address search in get_hostname() in helperfunctions.sh (closes #202).
+  * removed smbstatus test on logout (closes #204, RFC-00367).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 05 Mar 2010 09:11:37 +0100
+
+linuxmuster-base (1.5.6-0) lenny; urgency=low
+
+  * added "wide links = No" to smb.conf's global section.
+  * more cleaning in postinst.
+  * more configuration file modifications according to lenny.
+  * upgrade improvements.
+  * updated horde3 configuration.
+  * replaced /etc/mindi/mindi.conf with the one shipped with the mindi package.
+  * updated release information in dist.conf, removed online cd iso stuff.
+  * changed repository to paedml41-updates.
+  * improved apt configuration.
+  * added lsb header to init scripts.
+  * fixed and improved ldap account query functions in helperfunctions.sh.
+  * setup modifications for integrated IPCop.
+  * updated moodle's (1.9.7+20091209) sql script for initial db creation.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 27 Feb 2010 10:32:53 +0100
+
+linuxmuster-base (1.5.5-0) lenny; urgency=low
+
+  * more modifications according to lenny upgrade.
+  * removed obsolete odbc ini files.
+  * postinst: removed more obsolete stuff.
+  * control: removed unknown ${shlibs:Depends}.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 08 Feb 2010 12:02:40 +0100
+
+linuxmuster-base (1.5.4-1) lenny; urgency=low
+
+  * helperfunctions.sh:
+    o discover_nics(): added code to discover also bonding interfaces (bond*).
+    o added config file editing functions addto_file() and removefrom_file().
+    o removed tls option from ldapsearch commands.
+  * removed more obsolete tivoli stuff.
+  * removed samba-common-bin from package depends.
+  * various modifications according to lenny upgrade.
+  * removed old and added new lenny related upgrade scripts under /usr/share/linuxmuster/upgrade.
+  * removed ddns from dhcp and bind configuration, writing static bind9 configuration
+    during import_workstations.
+  * allowed_ports: added tcp ports 6881:6969 for linbo torrent.
+  * postinst: removed old fixes.
+  * backup.conf: updated services list.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 06 Feb 2010 12:56:06 +0100
 
 linuxmuster-base (1.5.3-1) etch; urgency=low
 

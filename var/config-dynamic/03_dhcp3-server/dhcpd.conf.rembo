@@ -1,7 +1,7 @@
 #
 # Sample configuration file for ISC dhcpd for Debian
 #
-# $Id: dhcpd.conf,v 1.1.1.1 2002/05/21 00:07:44 peloy Exp $
+# $Id$
 #
 
 # The ddns-updates-style parameter controls whether or not the server will
@@ -9,12 +9,6 @@
 # behavior of the version 2 packages ('none', since DHCP v2 didn't
 # have support for DDNS.)
 server-identifier @@servername@@;
-ddns-update-style interim;
-ddns-domainname "@@domainname@@";
-ddns-updates on;
-ddns-ttl 7200;
-deny client-updates;
-ddns-rev-domainname "in-addr.arpa.";
 update-static-leases true;
 
 # option definitions common to all supported networks...
@@ -31,18 +25,6 @@ use-host-decl-names on; #rembo
 
 default-lease-time 86400;
 max-lease-time 86400;
-
-include "/etc/bind/rndc.key";
-
-zone @@domainname@@ {
-	primary @@serverip@@;
-	key rndc-key;
-}
-
-zone 10.in-addr.arpa {
-	primary @@serverip@@;
-	key rndc-key;
-}
 
 # If this DHCP server is the official DHCP server for the local
 # network, the authoritative directive should be uncommented.

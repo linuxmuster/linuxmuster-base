@@ -6,18 +6,14 @@
 // organization
 //include "/etc/bind/zones.rfc1918";
 
-include "/etc/bind/rndc.key";
-
 zone "@@domainname@@" {
 	type master;
 	file "/etc/bind/db.linuxmuster";
-	allow-update { key rndc-key; };
 	notify yes;
 };
 
 zone "10.in-addr.arpa" {
 	type master;
 	file "/etc/bind/db.10";
-	allow-update { key rndc-key; };
 	notify yes;
 };

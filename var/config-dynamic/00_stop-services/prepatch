@@ -1,10 +1,13 @@
+# $Id$
+#
 # stop all relevant services
 
-services="linuxmuster-base atftpd rsync linbo-multicast nagios2 atd cron\
-          tpmfos rbagent dbgw tpmfos-derby rembo quota apache2 cupsys \
-          clamav-freshclam clamav-daemon cyrus2.2 postfix saslauthd amavis mysql openntpd \
-          ssh samba slapd postgresql-8.1 postgresql-7.4 nscd linuxmuster-ipcop uml-utilities \
-          portmap openbsd-inetd bind9 dhcp3-server avahi-daemon webmin"
+services="linuxmuster-base atftpd bittorrent rsync linbo-bittorrent \
+          linbo-multicast nagios3 atd cron rembo quota apache2 cups \
+          clamav-freshclam clamav-daemon cyrus2.2 postfix saslauthd amavis \
+          mysql openntpd ssh samba slapd postgresql-8.3 postgresql-8.1 \
+          postgresql-7.4 nscd linuxmuster-ipcop uml-utilities portmap \
+          openbsd-inetd bind9 dhcp3-server avahi-daemon webmin"
 
 # make sure they are enabled to be able to shut them down
 [ -e /etc/default/atftpd ] && sed -e 's/^USE_INETD=.*/USE_INETD=false/' -i /etc/default/atftpd
@@ -16,15 +19,4 @@ for service in $services; do
 	[ -e "/etc/init.d/$service" ] && /etc/init.d/$service stop
 
 done
-
-if [ "$1" = "--first" ]; then
-
-	# reconfigure locale settings
-	DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales
-	DEBIAN_FRONTEND=noninteractive dpkg-reconfigure tzdata
-	install-keymap /usr/share/keymaps/i386/qwertz/de-latin1-nodeadkeys.kmap.gz
-	kmapmd5=`md5sum /etc/console-setup/boottime.kmap.gz | awk '{ print $1 }' 2> /dev/null`
-	sed -e "s/^BOOTTIME_KMAP_MD5=.*/BOOTTIME_KMAP_MD5=\"$kmapmd5\"/" $STATICTPLDIR/etc/default/console-setup > /etc/default/console-setup
-
-fi
 
