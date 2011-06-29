@@ -1,4 +1,14 @@
-# custom share definitions 
+# custom share definitions
+# $Id$
+
+# a sample share for programs which need write permissions (path needs to be created with world writable permissions)
+;[pgmrw]
+;  comment = Windows Programs RW
+;  path = /home/samba/progsrw
+;  writable = yes
+;  force group = domadmins
+;  force create mode = 664
+;  force directory mode = 775
 
 # A sample share for sharing your CD-ROM with others.
 ;[cdrom]

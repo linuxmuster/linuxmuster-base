@@ -19,6 +19,7 @@ NAGIDYNTPLDIR=$DYNTPLDIR/22_nagios
 FREEDYNTPLDIR=$DYNTPLDIR/55_freeradius
 OPENML=`dpkg -l | grep "schulkonsole-templates-openlml" | grep ^i`
 TEMPLBASE=`dpkg -l | grep "linuxmuster-schulkonsole-templates-base" | grep ^i | awk '{ print $2 }'`
+REMOTEMON=`dpkg -l | grep "linuxmuster-nagios-fernueberwachung" | grep ^i | awk '{ print $2 }'`
 PYKOTA=`dpkg -l | grep "linuxmuster-pk " | grep ^i`
 BITTORRENT=`dpkg -l | grep " bittorrent " | grep ^i`
 FREERADIUS=`dpkg -l | grep linuxmuster-freeradius | grep ^i`
@@ -709,6 +710,14 @@ else
   echo "##############"
   aptitude -y install $NFSCOMMON
  fi
+fi
+
+# check for linuxmuster-nagios-fernueberwachung
+if [ -n "$REMOTEMON" ]; then
+ echo "#######################################"
+ echo "# linuxmuster-nagios-fernueberwachung #"
+ echo "#######################################"
+ aptitude -y install $REMOTEMON
 fi
 
 echo "#############"
