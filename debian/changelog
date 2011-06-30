@@ -4,7 +4,7 @@ linuxmuster-base (1.5.31-lenny0) lenny; urgency=low
   * paedml50-upgrade.sh, fix: linuxmuster remote monitoring packages were deinstalled during upgrade (closes #470).
   * smb.conf.shares: added a sample share for programs which need write permissions (closes #466).
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 29 Jun 2011 16:29:16 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 30 Jun 2011 08:24:42 +0200
 
 linuxmuster-base (1.5.30-lenny0) lenny; urgency=low
 

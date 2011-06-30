@@ -632,6 +632,16 @@ if [ -n "$PYKOTA" ]; then
  echo
 fi
 
+# check for linuxmuster-nagios-fernueberwachung
+if [ -n "$REMOTEMON" ]; then
+ echo "#######################################"
+ echo "# linuxmuster-nagios-fernueberwachung #"
+ echo "#######################################"
+ tweak_apt
+ aptitude -y install $REMOTEMON
+ echo
+fi
+
 if [ -n "$PHPMYADMIN" ]; then
  echo "##############"
  echo "# phpmyadmin #"
@@ -710,14 +720,6 @@ else
   echo "##############"
   aptitude -y install $NFSCOMMON
  fi
-fi
-
-# check for linuxmuster-nagios-fernueberwachung
-if [ -n "$REMOTEMON" ]; then
- echo "#######################################"
- echo "# linuxmuster-nagios-fernueberwachung #"
- echo "#######################################"
- aptitude -y install $REMOTEMON
 fi
 
 echo "#############"
