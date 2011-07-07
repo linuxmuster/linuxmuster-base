@@ -705,6 +705,11 @@ for i in $HORDEUPGRADE $KRONOUPGRADE $MNEMOUPGRADE $NAGUPGRADE $TURBAUPGRADE; do
  fi
  mysql horde < $i && touch $CACHEDIR/.${t}.upgrade50.done
 done
+# create missing columns (#477)
+echo 'ALTER TABLE nag_tasks ADD task_creator VARCHAR(255)' | mysql -D horde &> /dev/null
+echo 'ALTER TABLE nag_tasks ADD task_assignee VARCHAR(255)' | mysql -D horde &> /dev/null
+echo 'ALTER TABLE kronolith_events ADD COLUMN event_recurcount INT' | mysql -D horde &> /dev/null
+echo 'ALTER TABLE kronolith_events ADD COLUMN event_private INT DEFAULT 0 NOT NULL' | mysql -D horde &> /dev/null
 echo
 
 # check for nfs

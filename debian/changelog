@@ -1,10 +1,12 @@
 linuxmuster-base (1.5.31-lenny0) lenny; urgency=low
 
   * increased version to 5.0.2.
-  * paedml50-upgrade.sh, fix: linuxmuster remote monitoring packages were deinstalled during upgrade (closes #470).
+  * paedml50-upgrade.sh, fix:
+    * linuxmuster remote monitoring packages were deinstalled during upgrade (closes #470).
+    * fixed missing horde columns (closes #477).
   * smb.conf.shares: added a sample share for programs which need write permissions (closes #466).
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 30 Jun 2011 08:24:42 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 7 Jun 2011 20:22:57 +0200
 
 linuxmuster-base (1.5.30-lenny0) lenny; urgency=low
 
