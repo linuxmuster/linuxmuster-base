@@ -8,6 +8,23 @@ SET check_function_bodies = false;
 SET client_min_messages = warning;
 SET escape_string_warning = off;
 
+--
+-- Name: moodle; Type: DATABASE; Schema: -; Owner: moodle
+--
+
+CREATE DATABASE moodle WITH TEMPLATE = template0 ENCODING = 'UTF8';
+
+
+ALTER DATABASE moodle OWNER TO moodle;
+
+\connect moodle
+
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = off;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+SET escape_string_warning = off;
+
 SET search_path = public, pg_catalog;
 
 SET default_tablespace = '';
@@ -1477,7 +1494,7 @@ ALTER SEQUENCE mdl_capabilities_id_seq OWNED BY mdl_capabilities.id;
 -- Name: mdl_capabilities_id_seq; Type: SEQUENCE SET; Schema: public; Owner: moodle
 --
 
-SELECT pg_catalog.setval('mdl_capabilities_id_seq', 285, true);
+SELECT pg_catalog.setval('mdl_capabilities_id_seq', 286, true);
 
 
 --
@@ -1846,7 +1863,7 @@ ALTER SEQUENCE mdl_config_id_seq OWNED BY mdl_config.id;
 -- Name: mdl_config_id_seq; Type: SEQUENCE SET; Schema: public; Owner: moodle
 --
 
-SELECT pg_catalog.setval('mdl_config_id_seq', 446, true);
+SELECT pg_catalog.setval('mdl_config_id_seq', 453, true);
 
 
 --
@@ -1894,7 +1911,7 @@ ALTER SEQUENCE mdl_config_plugins_id_seq OWNED BY mdl_config_plugins.id;
 -- Name: mdl_config_plugins_id_seq; Type: SEQUENCE SET; Schema: public; Owner: moodle
 --
 
-SELECT pg_catalog.setval('mdl_config_plugins_id_seq', 143, true);
+SELECT pg_catalog.setval('mdl_config_plugins_id_seq', 144, true);
 
 
 --
@@ -2451,7 +2468,7 @@ CREATE TABLE mdl_data (
     defaultsort bigint DEFAULT 0 NOT NULL,
     defaultsortdir smallint DEFAULT 0 NOT NULL,
     editany smallint DEFAULT 0 NOT NULL,
-    notification bigint
+    notification bigint DEFAULT 0 NOT NULL
 );
 
 
@@ -6932,7 +6949,7 @@ ALTER SEQUENCE mdl_log_id_seq OWNED BY mdl_log.id;
 -- Name: mdl_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: moodle
 --
 
-SELECT pg_catalog.setval('mdl_log_id_seq', 7, true);
+SELECT pg_catalog.setval('mdl_log_id_seq', 10, true);
 
 
 --
@@ -7088,6 +7105,61 @@ ALTER SEQUENCE mdl_message_read_id_seq OWNED BY mdl_message_read.id;
 --
 
 SELECT pg_catalog.setval('mdl_message_read_id_seq', 1, false);
+
+
+--
+-- Name: mdl_mindmap; Type: TABLE; Schema: public; Owner: moodle; Tablespace: 
+--
+
+CREATE TABLE mdl_mindmap (
+    id bigint NOT NULL,
+    course bigint DEFAULT 0 NOT NULL,
+    name character varying(255) DEFAULT ''::character varying NOT NULL,
+    intro text,
+    introformat smallint DEFAULT 0 NOT NULL,
+    userid bigint NOT NULL,
+    editable smallint NOT NULL,
+    xmldata text NOT NULL,
+    timecreated bigint DEFAULT 0 NOT NULL,
+    timemodified bigint DEFAULT 0 NOT NULL
+);
+
+
+ALTER TABLE public.mdl_mindmap OWNER TO moodle;
+
+--
+-- Name: TABLE mdl_mindmap; Type: COMMENT; Schema: public; Owner: moodle
+--
+
+COMMENT ON TABLE mdl_mindmap IS 'Table for Moodle-Mindmaps';
+
+
+--
+-- Name: mdl_mindmap_id_seq; Type: SEQUENCE; Schema: public; Owner: moodle
+--
+
+CREATE SEQUENCE mdl_mindmap_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.mdl_mindmap_id_seq OWNER TO moodle;
+
+--
+-- Name: mdl_mindmap_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: moodle
+--
+
+ALTER SEQUENCE mdl_mindmap_id_seq OWNED BY mdl_mindmap.id;
+
+
+--
+-- Name: mdl_mindmap_id_seq; Type: SEQUENCE SET; Schema: public; Owner: moodle
+--
+
+SELECT pg_catalog.setval('mdl_mindmap_id_seq', 1, false);
 
 
 --
@@ -7265,12 +7337,12 @@ CREATE TABLE mdl_mnet_host (
     public_key text NOT NULL,
     public_key_expires bigint DEFAULT 0 NOT NULL,
     transport smallint DEFAULT 0 NOT NULL,
-    portno smallint DEFAULT 0 NOT NULL,
     last_connect_time bigint DEFAULT 0 NOT NULL,
     last_log_id bigint DEFAULT 0 NOT NULL,
     force_theme smallint DEFAULT 0 NOT NULL,
     theme character varying(100),
-    applicationid bigint DEFAULT 1 NOT NULL
+    applicationid bigint DEFAULT 1 NOT NULL,
+    portno integer DEFAULT 0 NOT NULL
 );
 
 
@@ -7717,7 +7789,7 @@ ALTER SEQUENCE mdl_modules_id_seq OWNED BY mdl_modules.id;
 -- Name: mdl_modules_id_seq; Type: SEQUENCE SET; Schema: public; Owner: moodle
 --
 
-SELECT pg_catalog.setval('mdl_modules_id_seq', 22, true);
+SELECT pg_catalog.setval('mdl_modules_id_seq', 23, true);
 
 
 --
@@ -10292,7 +10364,7 @@ ALTER SEQUENCE mdl_role_capabilities_id_seq OWNED BY mdl_role_capabilities.id;
 -- Name: mdl_role_capabilities_id_seq; Type: SEQUENCE SET; Schema: public; Owner: moodle
 --
 
-SELECT pg_catalog.setval('mdl_role_capabilities_id_seq', 719, true);
+SELECT pg_catalog.setval('mdl_role_capabilities_id_seq', 720, true);
 
 
 --
@@ -14450,6 +14522,13 @@ ALTER TABLE mdl_message_read ALTER COLUMN id SET DEFAULT nextval('mdl_message_re
 -- Name: id; Type: DEFAULT; Schema: public; Owner: moodle
 --
 
+ALTER TABLE mdl_mindmap ALTER COLUMN id SET DEFAULT nextval('mdl_mindmap_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: moodle
+--
+
 ALTER TABLE mdl_mnet_application ALTER COLUMN id SET DEFAULT nextval('mdl_mnet_application_id_seq'::regclass);
 
 
@@ -15381,7 +15460,6 @@ COPY mdl_backup_log (id, courseid, "time", laststarttime, info) FROM stdin;
 COPY mdl_block (id, name, version, cron, lastcron, visible, multiple) FROM stdin;
 1	activity_modules	2007101509	0	0	1	0
 2	admin	2007101509	0	0	1	0
-3	admin_alert	2009062602	0	0	1	1
 4	admin_bookmarks	2007101509	0	0	1	0
 5	admin_tree	2007101509	0	0	1	0
 6	blog_menu	2007101509	0	0	1	0
@@ -15390,7 +15468,6 @@ COPY mdl_block (id, name, version, cron, lastcron, visible, multiple) FROM stdin
 9	calendar_upcoming	2007101509	0	0	1	0
 10	course_list	2007101509	0	0	1	0
 11	course_summary	2007101509	0	0	1	0
-12	exabis_eportfolio	2009051901	0	0	1	0
 13	feedback	2009050701	0	0	1	0
 14	glossary_random	2007101509	0	0	1	1
 15	html	2007101509	0	0	1	1
@@ -15427,8 +15504,10 @@ COPY mdl_block (id, name, version, cron, lastcron, visible, multiple) FROM stdin
 48	wiki_tags	2008013106	0	0	1	0
 49	wiki_updated	2004081200	0	0	1	0
 50	wiki_wanted	2004081200	0	0	1	0
-21	mrbs	2009061900	300	1266597902	1	0
-28	rss_client	2007101511	300	1266597902	1	1
+21	mrbs	2009061900	300	1310133902	1	0
+28	rss_client	2007101511	300	1310133901	1	1
+3	admin_alert	2010052401	0	0	1	1
+12	exabis_eportfolio	2009121801	0	0	1	0
 \.
 
 
@@ -15571,7 +15650,6 @@ COPY mdl_cache_filters (id, filter, version, md5key, rawtext, timemodified) FROM
 --
 
 COPY mdl_cache_flags (id, flagtype, name, timemodified, value, expiry) FROM stdin;
-1	accesslib/dirtycontexts	/1	1266595451	1	1266602651
 \.
 
 
@@ -15873,6 +15951,7 @@ COPY mdl_capabilities (id, name, captype, contextlevel, component, riskbitmask) 
 283	report/courseoverview:view	read	10	report/courseoverview	8
 284	report/security:view	read	10	report/security	2
 285	report/unittest:view	read	10	report/unittest	32
+286	moodle/restore:createuser	write	10	moodle	24
 \.
 
 
@@ -15972,7 +16051,6 @@ COPY mdl_config (id, name, value) FROM stdin;
 53	filter_mediaplugin_enable_rpm	1
 54	filter_mediaplugin_enable_rm	1
 55	filter_mediaplugin_enable_youtube	0
-56	filter_tex_latexpreamble	 \\usepackage[latin1]{inputenc}\n \\usepackage{amsmath}\n \\usepackage{amsfonts}\n \\RequirePackage{amsmath,amssymb,latexsym}\n
 57	filter_tex_latexbackground	#FFFFFF
 58	filter_tex_density	120
 62	filter_censor_badwords	
@@ -15998,7 +16076,6 @@ COPY mdl_config (id, name, value) FROM stdin;
 90	loginhttps	0
 91	cookiesecure	0
 92	cookiehttponly	0
-93	regenloginsession	0
 94	excludeoldflashclients	10.0.12
 95	restrictmodulesfor	none
 96	restrictbydefault	0
@@ -16053,6 +16130,7 @@ COPY mdl_config (id, name, value) FROM stdin;
 38	latinexcelexport	0
 32	autolang	0
 3	auth	ldap
+56	filter_tex_latexpreamble	\\usepackage[latin1]{inputenc}\n\\usepackage{amsmath}\n\\usepackage{amsfonts}\n\\RequirePackage{amsmath,amssymb,latexsym}\n
 126	emoticons	:-){:}smiley{;}:){:}smiley{;}:-D{:}biggrin{;};-){:}wink{;}:-/{:}mixed{;}V-.{:}thoughtful{;}:-P{:}tongueout{;}B-){:}cool{;}^-){:}approve{;}8-){:}wideeyes{;}:o){:}clown{;}:-({:}sad{;}:({:}sad{;}8-.{:}shy{;}:-I{:}blush{;}:-X{:}kiss{;}8-o{:}surprise{;}P-|{:}blackeye{;}8-[{:}angry{;}xx-P{:}dead{;}|-.{:}sleepy{;}}-]{:}evil{;}(h){:}heart{;}(heart){:}heart{;}(y){:}yes{;}(n){:}no{;}(martin){:}martin{;}( ){:}egg
 127	formatstringstriptags	1
 128	docroot	http://docs.moodle.org
@@ -16126,8 +16204,6 @@ COPY mdl_config (id, name, value) FROM stdin;
 196	mnet_dispatcher_mode	off
 197	mnet_localhost_id	1
 198	mnet_all_hosts_id	2
-199	version	2007101570
-200	release	1.9.7+ (Build: 20091209)
 201	assignment_type_online_version	2005042900
 202	exercise_initialdisable	1
 203	hotpot_showtimes	0
@@ -16186,6 +16262,7 @@ COPY mdl_config (id, name, value) FROM stdin;
 256	enrol_authorize_version	2006112903
 257	enrol_paypal_version	2006092200
 258	gradeexport_ods_version	2007092701
+200	release	1.9.12+ (Build: 20110518)
 259	gradeexport_txt_version	2007092700
 260	gradeexport_xls_version	2007092700
 261	gradeexport_xml_version	2007092700
@@ -16206,9 +16283,6 @@ COPY mdl_config (id, name, value) FROM stdin;
 276	siteidentifier	wE16cVthZRd7SCBWdUuO6aqDC0JH3nNp@@servername@@.@@domainname@@
 277	rolesactive	1
 278	digestmailtimelast	1266595502
-279	forum_lastreadclean	1266595502
-280	scorm_updatetimelast	1266595502
-281	lastexpirynotify	20100219
 282	guestroleid	6
 283	creatornewroleid	3
 284	notloggedinroleid	6
@@ -16310,8 +16384,9 @@ COPY mdl_config (id, name, value) FROM stdin;
 380	resource_framesize	130
 381	resource_websearch	http://google.com/
 382	resource_defaulturl	http://
+279	forum_lastreadclean	1310133902
+281	lastexpirynotify	20110708
 383	resource_secretphrase	
-384	resource_allowlocalfiles	0
 385	resource_popup	
 386	resource_popupresizable	checked
 387	resource_popupscrollbars	checked
@@ -16374,6 +16449,15 @@ COPY mdl_config (id, name, value) FROM stdin;
 444	supportname	Nutzer Admin
 445	supportemail	wwwadmin@@@domainname@@
 446	registerauth	
+280	scorm_updatetimelast	1310133901
+447	filter_mediaplugin_enable_ogv	1
+448	filter_mediaplugin_enable_ogg	1
+199	version	2007101591.03
+449	grade_report_overview_showtotalsifcontainhidden	0
+450	grade_report_user_showtotalsifcontainhidden	0
+451	feedback_allowfullanonymous	0
+452	filter_tex_convertformat	gif
+453	regenloginsession	1
 \.
 
 
@@ -16525,6 +16609,7 @@ COPY mdl_config_plugins (id, plugin, name, value) FROM stdin;
 141	auth/ldap	field_updatelocal_address	oncreate
 142	auth/ldap	field_updateremote_address	0
 143	auth/ldap	field_lock_address	unlocked
+144	scorm	grademethodfixed	1
 \.
 
 
@@ -16559,7 +16644,7 @@ COPY mdl_context_temp (id, path, depth) FROM stdin;
 --
 
 COPY mdl_course (id, category, sortorder, password, fullname, shortname, idnumber, summary, format, showgrades, modinfo, newsitems, teacher, teachers, student, students, guest, startdate, enrolperiod, numsections, marker, maxbytes, showreports, visible, hiddensections, groupmode, groupmodeforce, defaultgroupingid, lang, theme, cost, currency, timecreated, timemodified, metacourse, requested, restrictmodules, expirynotify, expirythreshold, notifystudents, enrollable, enrolstartdate, enrolenddate, enrol, defaultrole) FROM stdin;
-1	0	0		@@schoolname@@ @@location@@	@@schoolname@@			site	1	a:0:{}	3	Teacher	Teachers	Student	Students	0	0	0	0	0	0	0	1	0	0	0	0				USD	0	1266595738	0	0	0	0	0	0	1	0	0		0
+1	0	1000		@@schoolname@@ @@location@@	@@schoolname@@			site	1	a:0:{}	3	Teacher	Teachers	Student	Students	0	0	0	0	0	0	0	1	0	0	0	0				USD	0	1266595738	0	0	0	0	0	0	1	0	0		0
 \.
 
 
@@ -17272,13 +17357,6 @@ COPY mdl_lesson_timer (id, lessonid, userid, starttime, lessontime) FROM stdin;
 --
 
 COPY mdl_log (id, "time", userid, ip, course, module, cmid, action, url, info) FROM stdin;
-1	1266595683	2	10.16.1.10	1	user	0	update	view.php?id=2&course=1	
-2	1266595739	2	10.16.1.10	1	course	0	view	view.php?id=1	1
-3	1266595783	2	10.16.1.10	1	user	0	logout	view.php?id=2&course=1	2
-4	1266595797	2	10.16.1.10	1	user	0	login	view.php?id=0&course=1	2
-5	1266595797	2	10.16.1.10	1	course	0	view	view.php?id=1	1
-6	1266596581	2	10.16.1.10	1	user	0	view	view.php?id=2&course=1	2
-7	1266596615	2	10.16.1.10	1	user	0	logout	view.php?id=2&course=1	2
 \.
 
 
@@ -17449,6 +17527,14 @@ COPY mdl_message_read (id, useridfrom, useridto, message, format, timecreated, t
 
 
 --
+-- Data for Name: mdl_mindmap; Type: TABLE DATA; Schema: public; Owner: moodle
+--
+
+COPY mdl_mindmap (id, course, name, intro, introformat, userid, editable, xmldata, timecreated, timemodified) FROM stdin;
+\.
+
+
+--
 -- Data for Name: mdl_mnet_application; Type: TABLE DATA; Schema: public; Owner: moodle
 --
 
@@ -17478,9 +17564,9 @@ COPY mdl_mnet_enrol_course (id, hostid, remoteid, cat_id, cat_name, cat_descript
 -- Data for Name: mdl_mnet_host; Type: TABLE DATA; Schema: public; Owner: moodle
 --
 
-COPY mdl_mnet_host (id, deleted, wwwroot, ip_address, name, public_key, public_key_expires, transport, portno, last_connect_time, last_log_id, force_theme, theme, applicationid) FROM stdin;
-1	0	/moodle	10.16.1.1			0	0	0	0	0	0	\N	1
-2	0			All Hosts		0	0	0	0	0	0	\N	1
+COPY mdl_mnet_host (id, deleted, wwwroot, ip_address, name, public_key, public_key_expires, transport, last_connect_time, last_log_id, force_theme, theme, applicationid, portno) FROM stdin;
+1	0	/moodle	10.16.1.1			0	0	0	0	0	\N	1	0
+2	0			All Hosts		0	0	0	0	0	\N	1	0
 \.
 
 
@@ -17505,20 +17591,20 @@ COPY mdl_mnet_log (id, hostid, remoteid, "time", userid, ip, course, coursename,
 --
 
 COPY mdl_mnet_rpc (id, function_name, xmlrpc_path, parent_type, parent, enabled, help, profile) FROM stdin;
-7	update_enrolments	auth/mnet/auth.php/update_enrolments	auth	mnet	0	Invoke this function _on_ the IDP to update it with enrolment info local to \\n the SP right after calling user_authorise() \\n \\n Normally called by the SP after calling	a:3:{i:0;a:2:{s:4:"type";s:7:"boolean";s:11:"description";N;}i:1;a:2:{s:4:"type";s:6:"string";s:11:"description";s:23:"username - The username";}i:2;a:2:{s:4:"type";s:6:"string";s:11:"description";s:77:"courses - Assoc array of courses following the structure of mnet_enrol_course";}}
+1	user_authorise	auth/mnet/auth.php/user_authorise	auth	mnet	0	Return user data for the provided token, compare with user_agent string.	a:3:{i:0;a:2:{s:4:"type";s:5:"array";s:11:"description";s:44:"$userdata Array of user info for remote host";}i:1;a:2:{s:4:"type";s:6:"string";s:11:"description";s:45:"token - The unique ID provided by remotehost.";}i:2;a:2:{s:4:"type";s:6:"string";s:11:"description";s:30:"useragent - User Agent string.";}}
+2	keepalive_server	auth/mnet/auth.php/keepalive_server	auth	mnet	0	Receives an array of usernames from a remote machine and prods their\\n sessions to keep them alive	a:2:{i:0;a:2:{s:4:"type";s:6:"string";s:11:"description";s:30:"\\"All ok\\" or an error message";}i:1;a:2:{s:4:"type";s:5:"array";s:11:"description";s:29:"array - An array of usernames";}}
+3	kill_children	auth/mnet/auth.php/kill_children	auth	mnet	0	The IdP uses this function to kill child sessions on other hosts	a:3:{i:0;a:2:{s:4:"type";s:6:"string";s:11:"description";s:39:"A plaintext report of what has happened";}i:1;a:2:{s:4:"type";s:6:"string";s:11:"description";s:39:"username - Username for session to kill";}i:2;a:2:{s:4:"type";s:6:"string";s:11:"description";s:47:"useragent - SHA1 hash of user agent to look for";}}
+4	refresh_log	auth/mnet/auth.php/refresh_log	auth	mnet	0	Receives an array of log entries from an SP and adds them to the mnet_log\\n table	a:2:{i:0;a:2:{s:4:"type";s:6:"string";s:11:"description";s:30:"\\"All ok\\" or an error message";}i:1;a:2:{s:4:"type";s:5:"array";s:11:"description";s:29:"array - An array of usernames";}}
+5	fetch_user_image	auth/mnet/auth.php/fetch_user_image	auth	mnet	0	Returns the user's image as a base64 encoded string.	a:2:{i:0;a:2:{s:4:"type";s:6:"string";s:11:"description";s:17:"The encoded image";}i:1;a:2:{s:4:"type";s:6:"string";s:11:"description";s:29:"username - The id of the user";}}
+6	fetch_theme_info	auth/mnet/auth.php/fetch_theme_info	auth	mnet	0	Returns the theme information and logo url as strings.	a:1:{i:0;a:2:{s:4:"type";s:6:"string";s:11:"description";s:14:"The theme info";}}
+7	update_enrolments	auth/mnet/auth.php/update_enrolments	auth	mnet	0	Invoke this function _on_ the IDP to update it with enrolment info local to\\n the SP right after calling user_authorise()\\n \\n Normally called by the SP after calling	a:3:{i:0;a:2:{s:4:"type";s:7:"boolean";s:11:"description";N;}i:1;a:2:{s:4:"type";s:6:"string";s:11:"description";s:23:"username - The username";}i:2;a:2:{s:4:"type";s:6:"string";s:11:"description";s:77:"courses - Assoc array of courses following the structure of mnet_enrol_course";}}
+8	keepalive_client	auth/mnet/auth.php/keepalive_client	auth	mnet	0	Poll the IdP server to let it know that a user it has authenticated is still\\n online	a:1:{i:0;a:2:{s:4:"type";s:6:"string";s:11:"description";N;}}
+9	kill_child	auth/mnet/auth.php/kill_child	auth	mnet	0	TODO:Untested When the IdP requests that child sessions are terminated,\\n this function will be called on each of the child hosts. The machine that\\n calls the function (over xmlrpc) provides us with the mnethostid we need.	a:3:{i:0;a:2:{s:4:"type";s:7:"boolean";s:11:"description";s:15:"True on success";}i:1;a:2:{s:4:"type";s:6:"string";s:11:"description";s:39:"username - Username for session to kill";}i:2;a:2:{s:4:"type";s:6:"string";s:11:"description";s:47:"useragent - SHA1 hash of user agent to look for";}}
+10	available_courses	enrol/mnet/enrol.php/available_courses	enrol	mnet	0	Does Foo	a:1:{i:0;a:2:{s:4:"type";s:7:"boolean";s:11:"description";s:47:"Whether the user can login from the remote host";}}
+11	user_enrolments	enrol/mnet/enrol.php/user_enrolments	enrol	mnet	0	No description given.	a:2:{i:0;a:2:{s:4:"type";s:4:"void";s:11:"description";s:0:"";}i:1;s:6:"userid";}
 12	enrol_user	enrol/mnet/enrol.php/enrol_user	enrol	mnet	0	Enrols user to course with the default role	a:3:{i:0;a:2:{s:4:"type";s:7:"boolean";s:11:"description";s:41:"Whether the enrolment has been successful";}i:1;a:2:{s:4:"type";s:6:"string";s:11:"description";s:37:"user - The username of the remote use";}i:2;a:2:{s:4:"type";s:3:"int";s:11:"description";s:37:"courseid - The id of the local course";}}
 13	unenrol_user	enrol/mnet/enrol.php/unenrol_user	enrol	mnet	0	Unenrol a user from a course	a:3:{i:0;a:2:{s:4:"type";s:7:"boolean";s:11:"description";s:47:"Whether the user can login from the remote host";}i:1;a:2:{s:4:"type";s:6:"string";s:11:"description";s:23:"username - The username";}i:2;a:2:{s:4:"type";s:3:"int";s:11:"description";s:37:"courseid - The id of the local course";}}
 14	course_enrolments	enrol/mnet/enrol.php/course_enrolments	enrol	mnet	0	Get a list of users from the client server who are enrolled in a course	a:3:{i:0;a:2:{s:4:"type";s:5:"array";s:11:"description";s:39:"Array of usernames who are homed on the";}i:1;a:2:{s:4:"type";s:3:"int";s:11:"description";s:24:"courseid - The Course ID";}i:2;a:2:{s:4:"type";s:6:"string";s:11:"description";s:47:"roles - Comma-separated list of role shortnames";}}
-1	user_authorise	auth/mnet/auth.php/user_authorise	auth	mnet	0	Return user data for the provided token, compare with user_agent string.	a:3:{i:0;a:2:{s:4:"type";s:5:"array";s:11:"description";s:44:"$userdata Array of user info for remote host";}i:1;a:2:{s:4:"type";s:6:"string";s:11:"description";s:45:"token - The unique ID provided by remotehost.";}i:2;a:2:{s:4:"type";s:6:"string";s:11:"description";s:30:"useragent - User Agent string.";}}
-2	keepalive_server	auth/mnet/auth.php/keepalive_server	auth	mnet	0	Receives an array of usernames from a remote machine and prods their \\n sessions to keep them alive	a:2:{i:0;a:2:{s:4:"type";s:6:"string";s:11:"description";s:30:""All ok" or an error message";}i:1;a:2:{s:4:"type";s:5:"array";s:11:"description";s:29:"array - An array of usernames";}}
-3	kill_children	auth/mnet/auth.php/kill_children	auth	mnet	0	The IdP uses this function to kill child sessions on other hosts	a:3:{i:0;a:2:{s:4:"type";s:6:"string";s:11:"description";s:39:"A plaintext report of what has happened";}i:1;a:2:{s:4:"type";s:6:"string";s:11:"description";s:39:"username - Username for session to kill";}i:2;a:2:{s:4:"type";s:6:"string";s:11:"description";s:47:"useragent - SHA1 hash of user agent to look for";}}
-4	refresh_log	auth/mnet/auth.php/refresh_log	auth	mnet	0	Receives an array of log entries from an SP and adds them to the mnet_log \\n table	a:2:{i:0;a:2:{s:4:"type";s:6:"string";s:11:"description";s:30:""All ok" or an error message";}i:1;a:2:{s:4:"type";s:5:"array";s:11:"description";s:29:"array - An array of usernames";}}
-5	fetch_user_image	auth/mnet/auth.php/fetch_user_image	auth	mnet	0	Returns the user's image as a base64 encoded string.	a:2:{i:0;a:2:{s:4:"type";s:6:"string";s:11:"description";s:17:"The encoded image";}i:1;a:2:{s:4:"type";s:6:"string";s:11:"description";s:29:"username - The id of the user";}}
-6	fetch_theme_info	auth/mnet/auth.php/fetch_theme_info	auth	mnet	0	Returns the theme information and logo url as strings.	a:1:{i:0;a:2:{s:4:"type";s:6:"string";s:11:"description";s:14:"The theme info";}}
-8	keepalive_client	auth/mnet/auth.php/keepalive_client	auth	mnet	0	Poll the IdP server to let it know that a user it has authenticated is still \\n online	a:1:{i:0;a:2:{s:4:"type";s:6:"string";s:11:"description";N;}}
-9	kill_child	auth/mnet/auth.php/kill_child	auth	mnet	0	TODO:Untested When the IdP requests that child sessions are terminated, \\n this function will be called on each of the child hosts. The machine that \\n calls the function (over xmlrpc) provides us with the mnethostid we need.	a:3:{i:0;a:2:{s:4:"type";s:7:"boolean";s:11:"description";s:15:"True on success";}i:1;a:2:{s:4:"type";s:6:"string";s:11:"description";s:39:"username - Username for session to kill";}i:2;a:2:{s:4:"type";s:6:"string";s:11:"description";s:47:"useragent - SHA1 hash of user agent to look for";}}
-10	available_courses	enrol/mnet/enrol.php/available_courses	enrol	mnet	0	Does Foo	a:1:{i:0;a:2:{s:4:"type";s:7:"boolean";s:11:"description";s:47:"Whether the user can login from the remote host";}}
-11	user_enrolments	enrol/mnet/enrol.php/user_enrolments	enrol	mnet	0	No description given.	a:2:{i:0;a:2:{s:4:"type";s:4:"void";s:11:"description";s:0:"";}i:1;s:6:"userid";}
 \.
 
 
@@ -17578,9 +17664,7 @@ COPY mdl_mnet_sso_access_control (id, username, mnet_host_id, accessctrl) FROM s
 COPY mdl_modules (id, name, version, cron, lastcron, search, visible) FROM stdin;
 2	book	2008081402	0	0		1
 4	choice	2007101509	0	0		1
-5	data	2007101514	60	0		1
 6	exercise	2007110500	60	0		0
-7	feedback	2008050120	0	0		1
 9	glossary	2007101509	0	0		1
 10	hotpot	2007101513	0	0		0
 11	journal	2007101509	60	0		0
@@ -17588,16 +17672,19 @@ COPY mdl_modules (id, name, version, cron, lastcron, search, visible) FROM stdin
 13	lams	2007101509	0	0		0
 14	lesson	2008112601	0	0		1
 16	quiz	2007101511	0	0		1
-17	resource	2007101510	0	0		1
 19	survey	2007101509	0	0		1
 20	webquest	2007081222	0	0		1
-21	wiki	2009012201	0	0		1
 22	workshop	2007101510	60	0		0
-15	questionnaire	2008060405	43200	1266595502		1
-3	chat	2009031100	300	1266597902		1
-18	scorm	2007110502	300	1266597902		1
-1	assignment	2007101511	60	1266598202		1
-8	forum	2007101513	60	1266598202		1
+15	questionnaire	2008060405	43200	1310133901		1
+3	chat	2009031100	300	1310133901		1
+1	assignment	2007101511	60	1310133901		1
+8	forum	2007101513	60	1310133901		1
+5	data	2007101515	60	0		1
+7	feedback	2008050125	0	0		1
+23	mindmap	20080622	0	0		1
+17	resource	2007101511	0	0		1
+18	scorm	2007110503	300	1310133901		1
+21	wiki	2010052800	0	0		1
 \.
 
 
@@ -18756,6 +18843,7 @@ COPY mdl_role_capabilities (id, contextid, roleid, capability, permission, timem
 717	1	1	report/courseoverview:view	1	1266595447	0
 718	1	1	report/security:view	1	1266595447	0
 719	1	1	report/unittest:view	1	1266595447	0
+720	1	1	moodle/restore:createuser	1	1310133933	2
 \.
 
 
@@ -20368,6 +20456,14 @@ ALTER TABLE ONLY mdl_message_contacts
 
 ALTER TABLE ONLY mdl_message_read
     ADD CONSTRAINT mdl_messread_id_pk PRIMARY KEY (id);
+
+
+--
+-- Name: mdl_mind_id_pk; Type: CONSTRAINT; Schema: public; Owner: moodle; Tablespace: 
+--
+
+ALTER TABLE ONLY mdl_mindmap
+    ADD CONSTRAINT mdl_mind_id_pk PRIMARY KEY (id);
 
 
 --
@@ -23188,6 +23284,20 @@ CREATE INDEX mdl_messread_use_ix ON mdl_message_read USING btree (useridfrom);
 
 
 --
+-- Name: mdl_mind_cou_ix; Type: INDEX; Schema: public; Owner: moodle; Tablespace: 
+--
+
+CREATE INDEX mdl_mind_cou_ix ON mdl_mindmap USING btree (course);
+
+
+--
+-- Name: mdl_mind_use_ix; Type: INDEX; Schema: public; Owner: moodle; Tablespace: 
+--
+
+CREATE INDEX mdl_mind_use_ix ON mdl_mindmap USING btree (userid);
+
+
+--
 -- Name: mdl_mnetenroassi_hoscou_ix; Type: INDEX; Schema: public; Owner: moodle; Tablespace: 
 --
 
@@ -24375,6 +24485,13 @@ CREATE INDEX mdl_user_las_ix ON mdl_user USING btree (lastname);
 --
 
 CREATE UNIQUE INDEX mdl_user_mneuse_uix ON mdl_user USING btree (mnethostid, username);
+
+
+--
+-- Name: mdl_userinfodata_usefie_ix; Type: INDEX; Schema: public; Owner: moodle; Tablespace: 
+--
+
+CREATE INDEX mdl_userinfodata_usefie_ix ON mdl_user_info_data USING btree (userid, fieldid);
 
 
 --

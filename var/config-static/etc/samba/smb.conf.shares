@@ -1,34 +1,12 @@
 # custom share definitions
 # $Id$
 
-# a sample share for programs which need write permissions (path needs to be created with world writable permissions)
-;[pgmrw]
-;  comment = Windows Programs RW
-;  path = /home/samba/progsrw
-;  writable = yes
-;  force group = domadmins
-;  force create mode = 664
-;  force directory mode = 775
-
-# A sample share for sharing your CD-ROM with others.
-;[cdrom]
-;   comment = Samba server's CD-ROM
-;   writable = no
-;   locking = no
-;   path = /cdrom
-;   public = yes
-
-# The next two parameters show how to auto-mount a CD-ROM when the
-#	cdrom share is accesed. For this to work /etc/fstab must contain
-#	an entry like this:
-#
-#       /dev/scd0   /cdrom  iso9660 defaults,noauto,ro,user   0 0
-#
-# The CD-ROM gets unmounted automatically after the connection to the
-#
-# If you don't want to use auto-mounting/unmounting make sure the CD
-#	is mounted on /cdrom
-#
-;   preexec = /bin/mount /cdrom
-;   postexec = /bin/umount /cdrom
+# program share with write permissions
+;[pgmw]
+;   comment = Windows Programs with write perms
+;   path = /home/samba/pgmw
+;   force directory mode = 775
+;   force group = domadmins
+;   force create mode = 664
+;   writeable = yes
 

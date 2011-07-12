@@ -326,7 +326,7 @@ fi
 
 # starting mondoarchive
 if [ $RC -eq 0 ]; then
-	nice -n 19 mondoarchive $btypeparam -p $isoprefix $rtypeparam -I "$includedirs" -E "$mountpoint $excludedirs" -N -d $target -s ${mediasize}m -$compression -L
+	nice -n 19 mondoarchive $btypeparam -p $isoprefix $rtypeparam -I "$includedirs" -E "${mountpoint}|${excludedirs}" -N -d $target -s ${mediasize}m -$compression -L
 	RC=$?
 fi
 

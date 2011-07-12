@@ -4,9 +4,14 @@ linuxmuster-base (1.5.31-lenny0) lenny; urgency=low
   * paedml50-upgrade.sh, fix:
     * linuxmuster remote monitoring packages were deinstalled during upgrade (closes #470).
     * fixed missing horde columns (closes #477).
-  * smb.conf.shares: added a sample share for programs which need write permissions (closes #466).
+  * smb.conf.shares: added a sample share for programs which need write permissions (closes #466). According to this:
+    * dist.conf: added new constant PROGSRWDIR (/home/samba/pgmw).
+    * postinst: creates $PROGSRWDIR if necessary.
+    * login.bat: added mapping example for pgmw share.
+  * linuxmuster-setup: updated moodle database template to version 1.9.12+20110518.
+  * linuxmuster-backup: another separator fix for excludedirs in mondarchive invokation line (closes finally #462).
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 7 Jun 2011 20:22:57 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 12 Jul 2011 13:30:01 +0200
 
 linuxmuster-base (1.5.30-lenny0) lenny; urgency=low
 

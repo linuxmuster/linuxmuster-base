@@ -68,7 +68,7 @@ case "$1" in
   chmod 600 $HELPERFUNCTIONS
 
   # check all necessary dirs and links and create them if needed
-  for i in $NETLOGONDIR $PROGSDIR $CDSDIR $BACKUPDIR $BACKUPMNTPOINT $LOGINCACHE $LOGDIR; do
+  for i in $NETLOGONDIR $PROGSDIR $PROGSRWDIR $CDSDIR $BACKUPDIR $BACKUPMNTPOINT $LOGINCACHE $LOGDIR; do
    [ -d "$i" ] || mkdir -p $i
   done
 
@@ -261,6 +261,9 @@ case "$1" in
    find $NETLOGONDIR/ -type f -exec chmod 664 '{}' \;
    find $NETLOGONDIR/ -type d -exec chmod 775 '{}' \;
    chown $ADMINISTRATOR:$DOMADMINS $NETLOGONDIR -R
+   # see #477
+   chown $ADMINISTRATOR:$DOMADMINS $SAMBAHOME
+   chmod 775 $SAMBAHOME/*
 
    # linking registry-patches to administrator's home (1.2-15)
    if [ ! -e "$ADMINSHOME/$ADMINISTRATOR/registry-patches" ]; then

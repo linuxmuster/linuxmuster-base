@@ -3,6 +3,7 @@
 if NOT "%OS%"=="Windows_NT" goto win9x
 
 :winnt
+rem call \\@@servername@@\netlogon\logon.bat H: %USERNAME% K: pgm M: pgmw R: cdrom
 call \\@@servername@@\netlogon\logon.bat H: %USERNAME% K: pgm R: cdrom
 goto ende
 
