@@ -261,8 +261,9 @@ case "$1" in
    find $NETLOGONDIR/ -type f -exec chmod 664 '{}' \;
    find $NETLOGONDIR/ -type d -exec chmod 775 '{}' \;
    chown $ADMINISTRATOR:$DOMADMINS $NETLOGONDIR -R
-   # see #477
+   # see #466
    chown $ADMINISTRATOR:$DOMADMINS $SAMBAHOME
+   chown $ADMINISTRATOR:$DOMADMINS $SAMBAHOME/*
    chmod 775 $SAMBAHOME/*
 
    # linking registry-patches to administrator's home (1.2-15)
@@ -420,6 +421,27 @@ case "$1" in
       nscd -i $i
      done
     fi
+   fi
+
+   # add writable program share (#466)
+   searchstr="\[pgmw\]"
+   conf=/etc/samba/smb.conf.shares
+   if ! grep -q "$searchstr" $conf; then
+    echo "Adding example share to $conf."
+    cp $conf $conf.dpkg-bak
+    cp $STATICTPLDIR/$conf $conf
+    grep -v "# custom share definitions" $conf.dpkg-bak >> $conf
+   fi
+   searchstr="M: pgmw"
+   conf=$NETLOGONDIR/login.bat
+   if ! grep -q "$searchstr" $conf; then
+    echo "Adding example mapping to $conf."
+    addstr="rem call \\\\\\\\$servername\\\netlogon\\\logon.bat H: %USERNAME% K: pgm M: pgmw R: cdrom"
+    cp $conf $conf.dpkg-bak
+    sed "/^:winnt/a\
+$addstr" -i $conf
+    chown $ADMINISTRATOR:$DOMADMINS ${conf}*
+    chmod 664 ${conf}*
    fi
 
    # updating release information

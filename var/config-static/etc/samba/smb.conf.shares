@@ -5,8 +5,9 @@
 ;[pgmw]
 ;   comment = Windows Programs with write perms
 ;   path = /home/samba/pgmw
-;   force directory mode = 775
-;   force group = domadmins
-;   force create mode = 664
-;   writeable = yes
+;   admin users = @domadmins
+;   writeable = Yes
+;   guest ok = No
+
+# add your own shares here
 
