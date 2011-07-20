@@ -4,8 +4,9 @@ linuxmuster-base (1.5.31-lenny1) lenny; urgency=low
     * ldap configuration file backup: no backup if it does not exist.
     * not starting import_workstations if workstation data file is empty.
     * creating temporary local package repository from apt's archive cache to force the use of more recent cdrom packages.
+  * linuxmuster-task, fix: temporary apt.conf configuration of paedml50-upgrade.sh was overwritten (closes #485).
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 20 Jul 2011 10:03:29 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 20 Jul 2011 16:44:43 +0200
 
 linuxmuster-base (1.5.31-lenny0) lenny; urgency=low
 
