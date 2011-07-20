@@ -212,7 +212,7 @@ cp $STATICTPLDIR/$CONF $CONF
 # slapd
 echo " slapd ..."
 for i in /etc/ldap/slapd.conf /etc/default/slapd /var/lib/ldap/DB_CONFIG; do
- [ -e "$i.lenny-upgrade" ] || cp $i $i.lenny-upgrade
+ [ -e "$i" -a ! -e "$i.lenny-upgrade" ] && cp $i $i.lenny-upgrade
  if stringinstring slapd.conf $i; then
   ldapadminpw=`grep ^rootpw $i | awk '{ print $2 }'`
   sed -e "s/@@message1@@/${message1}/
@@ -407,6 +407,11 @@ echo "# apt-utils #"
 echo "#############"
 aptitude -y install apt-utils tasksel debian-archive-keyring dpkg locales
 tweak_apt
+echo "Erstelle lokales Paketrepository ..."
+cd /var/cache/apt/archives
+apt-ftparchive packages ./ > Packages
+cd /tmp
+echo "deb file:///var/cache/apt/archives ./" > /etc/apt/sources.list.d/local.list
 aptitude update
 echo
 
@@ -732,6 +737,9 @@ echo "# Aufräumen #"
 echo "#############"
 # remove apt.conf stuff only needed for upgrade
 rm -f /etc/apt/apt.conf.d/99upgrade
+rm -f /etc/apt/sources.list.d/lokal.list
+rm -f /var/cache/apt/archives/Packages
+aptitude update
 # final stuff
 dpkg-reconfigure linuxmuster-base
 linuxmuster-nagios-setup
@@ -743,15 +751,17 @@ fi
 
 echo
 
-echo "######################"
-echo "# Workstationsimport #"
-echo "######################"
-# temporarily deactivation of internal firewall
-. /etc/default/linuxmuster-base
-[ "$START_LINUXMUSTER" = "[Yy][Ee][Ss]" ] && sed -e 's|^START_LINUXMUSTER=.*|START_LINUXMUSTER=no|' -i /etc/default/linuxmuster-base
-import_workstations
-[ "$START_LINUXMUSTER" = "[Yy][Ee][Ss]" ] && sed -e 's|^START_LINUXMUSTER=.*|START_LINUXMUSTER=yes|' -i /etc/default/linuxmuster-base
-echo
+if [ -s "$WIMPORTDATA" ]; then
+ echo "######################"
+ echo "# Workstationsimport #"
+ echo "######################"
+ # temporarily deactivation of internal firewall
+ . /etc/default/linuxmuster-base
+ [ "$START_LINUXMUSTER" = "[Yy][Ee][Ss]" ] && sed -e 's|^START_LINUXMUSTER=.*|START_LINUXMUSTER=no|' -i /etc/default/linuxmuster-base
+ import_workstations
+ [ "$START_LINUXMUSTER" = "[Yy][Ee][Ss]" ] && sed -e 's|^START_LINUXMUSTER=.*|START_LINUXMUSTER=yes|' -i /etc/default/linuxmuster-base
+ echo
+fi
 
 echo "#############################################"
 echo "# Beendet um `date`. #"
