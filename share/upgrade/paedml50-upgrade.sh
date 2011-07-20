@@ -21,6 +21,7 @@ OPENML=`dpkg -l | grep "schulkonsole-templates-openlml" | grep ^i`
 TEMPLBASE=`dpkg -l | grep "linuxmuster-schulkonsole-templates-base" | grep ^i | awk '{ print $2 }'`
 REMOTEMON=`dpkg -l | grep "linuxmuster-nagios-fernueberwachung" | grep ^i | awk '{ print $2 }'`
 PYKOTA=`dpkg -l | grep "linuxmuster-pk " | grep ^i`
+[ -z "$PYKOTA" ] && PYKOTA=`dpkg -l | grep "linuxmuster-pykota " | grep ^i`
 BITTORRENT=`dpkg -l | grep " bittorrent " | grep ^i`
 FREERADIUS=`dpkg -l | grep linuxmuster-freeradius | grep ^i`
 PHPMYADMIN=`dpkg -l | grep phpmyadmin | grep ^i`
