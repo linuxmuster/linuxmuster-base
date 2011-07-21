@@ -36,8 +36,8 @@ else
 
 fi # force
 
-if ! check_free_space /var 1000000; then
- echo "Zuwenig Speicherplatz unter /var. Stellen Sie sicher, dass dort 1GB freier Platz zur Verfügung steht."
+if ! check_free_space /var 1500000; then
+ echo "Zuwenig Speicherplatz unter /var. Stellen Sie sicher, dass dort 1,5GB freier Platz zur Verfügung steht."
  exit 1
 fi
 
