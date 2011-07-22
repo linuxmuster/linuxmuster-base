@@ -34,7 +34,7 @@ fi
 
 # save samba status
 status=$LOGINCACHE/.smbstatus.$$
-$SMBSTATUS -b > $status
+$SMBSTATUS -b | sed 's|__ffff_||g' > $status
 
 # process given rooms
 for room in $rooms; do
