@@ -24,6 +24,8 @@ PYKOTA=`dpkg -l | grep "linuxmuster-pk " | grep ^i`
 [ -z "$PYKOTA" ] && PYKOTA=`dpkg -l | grep "linuxmuster-pykota " | grep ^i`
 BITTORRENT=`dpkg -l | grep " bittorrent " | grep ^i`
 FREERADIUS=`dpkg -l | grep linuxmuster-freeradius | grep ^i`
+MRBS=`dpkg -l | grep linuxmuster-mrbs | grep ^i`
+PORTFOLIO=`dpkg -l | grep linuxmuster-portfolio | grep ^i`
 PHPMYADMIN=`dpkg -l | grep phpmyadmin | grep ^i`
 PHPPGADMIN=`dpkg -l | grep phppgadmin | grep ^i`
 COPSPOT=`dpkg -l | grep linuxmuster-ipcop-addon-copspot | grep ^i`
@@ -686,6 +688,24 @@ else
   [ -n "$TEMPLBASE" ] && dpkg -r --force-all $TEMPLBASE &> /dev/null
   dpkg -i $schukotempl
  fi
+ echo
+fi
+
+if [ -n "$MRBS" ]; then
+ echo "####################"
+ echo "# linuxmuster-mrbs #"
+ echo "####################"
+ tweak_apt
+ aptitude -y install linuxmuster-mrbs
+ echo
+fi
+
+if [ -n "$PORTFOLIO" ]; then
+ echo "#########################"
+ echo "# linuxmuster-portfolio #"
+ echo "#########################"
+ tweak_apt
+ aptitude -y install linuxmuster-portfolio
  echo
 fi
 

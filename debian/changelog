@@ -1,8 +1,9 @@
 linuxmuster-base (1.5.32-lenny0) lenny; urgency=low
 
   * update-logins.sh: filters now ip address prefix of smbstatus output (closes #486).
+  * paedml50-upgrade.sh, minor improvements: reinstalls linuxmuster-mrbs and linuxmuster-portfolio if detected.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 22 Jul 2011 08:45:09 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 22 Jul 2011 10:39:11 +0200
 
 linuxmuster-base (1.5.31-lenny1) lenny; urgency=low
 
