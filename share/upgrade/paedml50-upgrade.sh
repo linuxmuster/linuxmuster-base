@@ -192,6 +192,7 @@ if [ -n "$REMADMINPWHASH" ]; then
  echo "# Remoteadmin-Konto entfernen #"
  echo "###############################"
  linuxmuster-remoteadmin --remove
+ echo
 fi
 
 
@@ -762,6 +763,7 @@ else
   echo "##############"
   aptitude -y install $NFSCOMMON
  fi
+ echo
 fi
 
 # recreate remoteadmin
@@ -775,6 +777,7 @@ if [ -n "$REMADMINPWHASH" ]; then
  rm /tmp/shadow
  chown root:shadow /etc/shadow
  chmod 640 /etc/shadow
+ echo
 fi
 
 echo "#############"
@@ -793,7 +796,6 @@ if grep paedML /etc/issue; then
 else
  sed -e 's|paedML|openML|g' -i /etc/nagios3/conf.d/linuxmuster_main.cfg
 fi
-
 echo
 
 if [ -s "$WIMPORTDATA" ]; then

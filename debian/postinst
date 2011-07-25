@@ -176,9 +176,9 @@ case "$1" in
 
    # update slapd.conf
    conf=/etc/ldap/slapd.conf
-   rev=873
-   id="$(basename $conf) $rev"
-   if ! grep -q "$id" $conf; then
+   minrev=873
+   currev="$(grep "# \$Id\:" "$conf" | awk '{ print $4 }')"
+   if [ $minrev -gt $currev ]; then
     confbak=${conf}.dpkg-old
     template=$DYNTPLDIR/15_ldap/$(basename $conf)
     ldappassword="$(cat /etc/ldap.secret)"
