@@ -1,13 +1,15 @@
 linuxmuster-base (1.5.33-lenny0) lenny; urgency=low
 
-  * paedml50-upgrade.sh: removes and recreates remoteadmin-account if detected (closes #489).
+  * paedml50-upgrade.sh:
+    * removes and recreates remoteadmin-account if detected (closes #489).
+    * checks before creation of local package repository if it was already done by cdrom script.
   * remoteadmin.sh, minor improvements according to #489:
     * creates remoteadmin group now as a system group.
     * invokation with "NOPASSWD=yes" as a prefix of the linuxmuster-remoteadmin command allows passwordless creation of account:
       # NOPASSWD=yes linuxmuster-remoteadmin --create.
   * postinst: fixed revision for slapd.conf upgrade.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 25 Jul 2011 18:43:39 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 25 Jul 2011 19:06:29 +0200
 
 linuxmuster-base (1.5.32-lenny0) lenny; urgency=low
 

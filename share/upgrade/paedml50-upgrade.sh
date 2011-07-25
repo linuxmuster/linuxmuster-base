@@ -166,6 +166,7 @@ echo "#####################"
 [ -e /etc/apt/apt.conf ] && mv /etc/apt/apt.conf /etc/apt/apt.conf.lenny-upgrade
 [ -d /etc/apt/sources.list.d.lenny-upgrade ] || mv /etc/apt/sources.list.d /etc/apt/sources.list.d.lenny-upgrade
 cp -a $STATICTPLDIR/etc/apt/* /etc/apt
+[ -s /var/tmp/local.list ] && mv /var/tmp/local.list /etc/apt/sources.list.d
 
 tweak_apt() {
  export DEBIAN_FRONTEND=noninteractive
@@ -422,11 +423,15 @@ echo "# apt-utils #"
 echo "#############"
 aptitude -y install apt-utils tasksel debian-archive-keyring dpkg locales
 tweak_apt
-echo "Erstelle lokales Paketrepository ..."
-cd /var/cache/apt/archives
-apt-ftparchive packages ./ > Packages
-cd /tmp
-echo "deb file:///var/cache/apt/archives ./" > /etc/apt/sources.list.d/local.list
+if [ ! -s /var/cache/apt/archives/Packages ]; then
+ echo "Erstelle lokales Paketrepository ..."
+ cd /var/cache/apt/archives
+ apt-ftparchive packages ./ > Packages
+ cd /tmp
+fi
+if [ -s /var/cache/apt/archives/Packages ]; then
+ [ -s /etc/apt/sources.list.d/local.list ] || echo "deb file:///var/cache/apt/archives ./" > /etc/apt/sources.list.d/local.list
+fi
 aptitude update
 echo
 
