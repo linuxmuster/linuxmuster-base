@@ -197,6 +197,24 @@ if [ -n "$REMADMINPWHASH" ]; then
 fi
 
 
+echo "###########################"
+echo "# apt-utils aktualisieren #"
+echo "###########################"
+tweak_apt
+aptitude -y install apt-utils tasksel debian-archive-keyring dpkg locales
+if [ ! -s /var/cache/apt/archives/Packages ]; then
+ echo "Erstelle lokales Paketrepository ..."
+ cd /var/cache/apt/archives
+ apt-ftparchive packages ./ > Packages
+ cd /tmp
+fi
+if [ -s /var/cache/apt/archives/Packages ]; then
+ [ -s /etc/apt/sources.list.d/local.list ] || echo "deb file:///var/cache/apt/archives ./" > /etc/apt/sources.list.d/local.list
+fi
+aptitude update
+echo
+
+
 echo "#########################"
 echo "# Pakete deinstallieren #"
 echo "#########################"
@@ -417,23 +435,6 @@ echo
 echo "#########################"
 echo "# Distributions-Upgrade #"
 echo "#########################"
-echo
-
-echo "#############"
-echo "# apt-utils #"
-echo "#############"
-tweak_apt
-aptitude -y install apt-utils tasksel debian-archive-keyring dpkg locales
-if [ ! -s /var/cache/apt/archives/Packages ]; then
- echo "Erstelle lokales Paketrepository ..."
- cd /var/cache/apt/archives
- apt-ftparchive packages ./ > Packages
- cd /tmp
-fi
-if [ -s /var/cache/apt/archives/Packages ]; then
- [ -s /etc/apt/sources.list.d/local.list ] || echo "deb file:///var/cache/apt/archives ./" > /etc/apt/sources.list.d/local.list
-fi
-aptitude update
 echo
 
 echo "##############"
