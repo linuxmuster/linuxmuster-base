@@ -200,6 +200,7 @@ fi
 echo "#########################"
 echo "# Pakete deinstallieren #"
 echo "#########################"
+tweak_apt
 aptitude -y remove $PKGSTOREMOVE
 echo
 
@@ -421,8 +422,8 @@ echo
 echo "#############"
 echo "# apt-utils #"
 echo "#############"
-aptitude -y install apt-utils tasksel debian-archive-keyring dpkg locales
 tweak_apt
+aptitude -y install apt-utils tasksel debian-archive-keyring dpkg locales
 if [ ! -s /var/cache/apt/archives/Packages ]; then
  echo "Erstelle lokales Paketrepository ..."
  cd /var/cache/apt/archives
