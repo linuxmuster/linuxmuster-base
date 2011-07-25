@@ -45,6 +45,9 @@ PKGREPOS="ftp.de.debian.org/debian/ \
           pkg.lml.support-netz.de/paedml50-updates/"
 NOW=`date`
 
+# check for remoteadmin account and save password hash
+REMADMINPWHASH="$(grep remoteadmin /etc/shadow | awk -F\: '{ print $2 }')"
+
 # messages for config file headers
 message1="##### Do not change this file! It will be overwritten!"
 message2="##### This configuration file was automatically created by paedml50-upgrade!"
@@ -182,6 +185,14 @@ if ! aptitude update; then
  exit 1
 fi
 echo
+
+
+if [ -n "$REMADMINPWHASH" ]; then
+ echo "###############################"
+ echo "# Remoteadmin-Konto entfernen #"
+ echo "###############################"
+ linuxmuster-remoteadmin --remove
+fi
 
 
 echo "#########################"
@@ -751,6 +762,19 @@ else
   echo "##############"
   aptitude -y install $NFSCOMMON
  fi
+fi
+
+# recreate remoteadmin
+if [ -n "$REMADMINPWHASH" ]; then
+ echo "####################################"
+ echo "# Remoteadmin-Konto wieder anlegen #"
+ echo "####################################"
+ NOPASSWD=yes linuxmuster-remoteadmin --create
+ cp /etc/shadow /tmp/shadow
+ sed -e "s|^$REMOTEADMIN\:\!\:|$REMOTEADMIN\:$REMADMINPWHASH\:|" /tmp/shadow > /etc/shadow
+ rm /tmp/shadow
+ chown root:shadow /etc/shadow
+ chmod 640 /etc/shadow
 fi
 
 echo "#############"
