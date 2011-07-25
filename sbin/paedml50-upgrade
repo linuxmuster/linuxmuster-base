@@ -62,6 +62,13 @@ echo "Kopiere Pakete ..."
 for i in `find . -name \*.deb`; do
  cp -v "$i" /var/cache/apt/archives
 done
+rm -f /var/cache/apt/archives/Packages*
+if [ -x /usr/bin/apt-ftparchive ]; then
+ echo "Erstelle lokales Paketrepository ..."
+ cd /var/cache/apt/archives
+ apt-ftparchive packages ./ > Packages
+ echo "deb file:///var/cache/apt/archives ./" > /var/tmp/local.list
+fi
 cd ~
 umount /mnt
 
