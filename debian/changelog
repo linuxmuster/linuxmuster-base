@@ -9,7 +9,7 @@ linuxmuster-base (1.5.33-lenny0) lenny; urgency=low
       # NOPASSWD=yes linuxmuster-remoteadmin --create.
   * postinst: fixed revision check for slapd.conf upgrade.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 25 Jul 2011 22:10:07 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 26 Jul 2011 08:49:21 +0200
 
 linuxmuster-base (1.5.32-lenny0) lenny; urgency=low
 

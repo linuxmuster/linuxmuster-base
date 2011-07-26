@@ -763,6 +763,7 @@ if [ -n "$NFSSERVER" ]; then
  echo "# nfs-server #"
  echo "##############"
  aptitude -y install $NFSSERVER
+ echo
 else
  if [ -n "$NFSCOMMON" ]; then
   echo "##############"
