@@ -1,3 +1,11 @@
+linuxmuster-base (1.5.34-lenny0) lenny; urgency=low
+
+  * increased version to 5.0.3.
+  * dist.conf: introduced new environment variables CDMINORVERSION and CDVERSION.
+  * linuxmuster-backup: adds /sbin/portmap to /etc/mindi/deplist.d/netconf (closes #515).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 12 Sep 2011 09:04:27 +0200
+
 linuxmuster-base (1.5.33-lenny0) lenny; urgency=low
 
   * paedml50-upgrade.sh:

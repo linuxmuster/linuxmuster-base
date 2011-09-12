@@ -17,6 +17,8 @@
 
 
 # default values
+deplistdir=/etc/mindi/deplist.d
+netconf=$deplistdir/net.conf
 mondocache=/var/cache/mondo
 cachefiles="difflevel.0"
 verify=yes
@@ -321,6 +323,15 @@ if [ $RC -eq 0 ]; then
 		cp -f /etc/fstab $fstabtmp || RC=1
 		grep -v $backupdevice $fstabtmp > /etc/fstab || RC=1
 	fi
+fi
+
+
+# portmap is needed in mondorescue's iso file system
+[ -d "$deplistdir" ] || mkdir -p $deplistdir
+[ -e "$netconf" ] || touch "$netconf"
+if ! grep -q ^/sbin/portmap "$netconf"; then
+ echo "Adding /sbin/portmap to $netconf ..."
+ echo "/sbin/portmap" >> "$netconf"
 fi
 
 
