@@ -213,6 +213,7 @@ aptitude -y install apt-utils tasksel debian-archive-keyring dpkg locales
 if [ ! -s /var/cache/apt/archives/Packages ]; then
  echo "Erstelle lokales Paketrepository ..."
  cd /var/cache/apt/archives
+ [ -e mindi-busybox_1.18.3-3_i386.deb ] && rm -f mindi-busybox_1.18.3-3_i386.deb
  apt-ftparchive packages ./ > Packages
  cd /tmp
 fi
