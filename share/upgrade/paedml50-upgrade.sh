@@ -197,6 +197,14 @@ if [ -n "$REMADMINPWHASH" ]; then
 fi
 
 
+if [ -e /usr/lib/cups/backend/dnssd ]; then
+ echo "########################"
+ echo "# cups dnssd entfernen #"
+ echo "########################"
+ rm /usr/lib/cups/backend/dnssd
+fi
+
+
 echo "###########################"
 echo "# apt-utils aktualisieren #"
 echo "###########################"

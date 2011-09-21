@@ -15,3 +15,8 @@ sed -e "s|###basedn###|$basedn|" /var/lib/linuxmuster-nagios/templates/apache2.c
 /etc/init.d/nagios3 stop
 /etc/init.d/nagios3 start
 
+# nagios fernueberwachung, reconfigure in case of domainname change
+if [ "$domainname" != "$domainname_old" ]; then
+ dpkg -l | grep linuxmuster-nagios-fernueberwachung | grep -q ^i && dpkg-reconfigure linuxmuster-nagios-fernueberwachung
+fi
+
