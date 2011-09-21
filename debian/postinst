@@ -444,6 +444,11 @@ $addstr" -i $conf
     chmod 664 ${conf}*
    fi
 
+   # remove local.list not removed by upgrade script
+   if [ -e /var/log/linuxmuster/paedml50-upgrade.log ]; then
+    grep -q /var/cache/apt/archives /etc/apt/sources.list.d/local.list &> /dev/null && rm /etc/apt/sources.list.d/local.list
+   fi
+
    # updating release information
    echo "$(getdistname) $DISTFULLVERSION / Codename $CODENAME" > /etc/issue
    cp /etc/issue /etc/issue.net

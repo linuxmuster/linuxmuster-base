@@ -787,6 +787,7 @@ echo "###########################"
 echo "# mindi-busybox Downgrade #"
 echo "###########################"
 aptitude -y install mindi-busybox=1.7.3-1
+rm -f /var/cache/apt/archives/mindi-busybox_1.18.3*
 
 # recreate remoteadmin
 if [ -n "$REMADMINPWHASH" ]; then
@@ -807,7 +808,7 @@ echo "# Aufräumen #"
 echo "#############"
 # remove apt.conf stuff only needed for upgrade
 rm -f /etc/apt/apt.conf.d/99upgrade
-rm -f /etc/apt/sources.list.d/lokal.list
+rm -f /etc/apt/sources.list.d/local.list
 rm -f /var/cache/apt/archives/Packages
 aptitude update
 # final stuff
