@@ -3,9 +3,8 @@ linuxmuster-base (1.5.35-lenny0) lenny; urgency=low
   * paedml50-upgrade.sh: removes /usr/lib/cups/backend/dnssd at the beginning (closes #522).
   * linuxmuster-setup: starts "dpkg-reconfigure linuxmuster-nagios-fernueberwachung"
     in case of domainname change if package is installed (see #215).
-  * control: added dependency to mindi-busybox 1.7.3-1 (closes #517).
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 21 Sep 2011 09:12:02 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 21 Sep 2011 10:48:34 +0200
 
 linuxmuster-base (1.5.34-lenny0) lenny; urgency=low
 
