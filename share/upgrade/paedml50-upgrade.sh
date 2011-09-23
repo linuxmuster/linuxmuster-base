@@ -782,13 +782,6 @@ else
  echo
 fi
 
-# downgrade mindi-busybox
-echo "###########################"
-echo "# mindi-busybox Downgrade #"
-echo "###########################"
-aptitude -y install mindi-busybox=1.7.3-1
-rm -f /var/cache/apt/archives/mindi-busybox_1.18.3*
-
 # recreate remoteadmin
 if [ -n "$REMADMINPWHASH" ]; then
  echo "####################################"

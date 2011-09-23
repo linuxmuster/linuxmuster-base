@@ -15,7 +15,6 @@
 # source helperfunctions
 . $HELPERFUNCTIONS || exit 1
 
-
 # default values
 deplistdir=/etc/mindi/deplist.d
 netconf=$deplistdir/net.conf
@@ -128,7 +127,6 @@ error() {
 	rm $mypidfile
 	exit 1
 } # error
-
 
 # create mountpoint if necessary
 [ -d "$mountpoint" ] || mkdir -p $mountpoint
