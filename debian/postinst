@@ -406,23 +406,6 @@ case "$1" in
     fi
    fi
 
-   # nscd-patch for SophomorixBase.pm (#56 & #64)
-   sophover=2213
-   pkgver="$(dpkg -s sophomorix-base | grep Version | awk '{ print $2 }' | awk -F\- '{ print $1 }' | sed -e 's|\.||g')"
-   if [ "$pkgver" -le "$sophover" ]; then
-    conf=/usr/share/perl5/Sophomorix/SophomorixBase.pm
-    if grep -q "system(\"/usr/sbin/nscd -i passwd -i group -i hosts\")\;" $conf; then
-     echo "Patching SophomorixBase.pm ..."
-     cp $conf $conf.dpkg-bak
-     sed -e 's|system("/usr/sbin/nscd -i passwd -i group -i hosts");|system("/usr/sbin/nscd -i passwd");\
-	system("/usr/sbin/nscd -i group");\
-	system("/usr/sbin/nscd -i hosts");|' -i $conf
-     for i in passwd group hosts; do
-      nscd -i $i
-     done
-    fi
-   fi
-
    # add writable program share (#466)
    searchstr="\[pgmw\]"
    conf=/etc/samba/smb.conf.shares

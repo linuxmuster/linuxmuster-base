@@ -5,9 +5,11 @@ linuxmuster-base (1.5.35-lenny0) lenny; urgency=low
     * fixed typo in local.list file name.
   * linuxmuster-setup: starts "dpkg-reconfigure linuxmuster-nagios-fernueberwachung"
     in case of domainname change if package is installed (see #215).
-  * postinst: removes local.list which was not removed by upgrade script (because of typo, see above).
+  * postinst:
+    * removes local.list which was not removed by upgrade script (because of typo, see above).
+    * removed obsolete sophomorix nscd patch. 
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 23 Sep 2011 08:40:00 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 24 Sep 2011 12:57:20 +0200
 
 linuxmuster-base (1.5.34-lenny0) lenny; urgency=low
 
