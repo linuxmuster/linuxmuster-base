@@ -1,8 +1,6 @@
 linuxmuster-base (1.5.35-lenny1) lenny; urgency=low
 
-  * linuxmuster-setup:
-    * fixed networking start command.
-    * changing ipcop name to ip in /etc/nagios3/conf.d/linuxmuster_main.cfg.
+  * linuxmuster-setup: fixed networking start command
 
  -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 27 Sep 2011 13:09:58 +0200
 
