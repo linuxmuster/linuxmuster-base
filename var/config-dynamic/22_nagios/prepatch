@@ -11,6 +11,9 @@ sed -e "s|###basedn###|$basedn|" /var/lib/linuxmuster-nagios/templates/apache2.c
 # provide a commands.cfg if necessary
 [ -e /etc/nagios3/commands.cfg ] || cp commands.cfg /etc/nagios3
 
+# change ipcop to ip
+sed -e "s|check_ssh\!222\!ipcop|check_ssh\!222\!$ipcopip|g" -i /etc/nagios3/conf.d/linuxmuster_main.cfg
+
 # starting nagios3 again
 /etc/init.d/nagios3 stop
 /etc/init.d/nagios3 start
