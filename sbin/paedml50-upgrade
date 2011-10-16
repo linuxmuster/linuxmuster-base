@@ -16,61 +16,217 @@
 
 . /usr/share/linuxmuster/config/dist.conf
 . $HELPERFUNCTIONS
+LOGFILE="$LOGDIR/paedml50-upgrade.log"
+PKGCACHE="/var/cache/apt/archives"
+PKGLIST="$PKGCACHE/Packages"
+LOCALSRC="/etc/apt/sources.list.d/local.list"
+NOW=`date`
 
-if [ "$1" = "--force" ]; then
 
- echo "--force angegeben: überspringe Versionsprüfung!"
+# print help
+usage(){
+ echo "Usage: `basename $0` <options>"
+ echo
+ echo "Options:"
+ echo
+ echo " -c                   Upgrade with real paedML/openML-CDROM placed in the"
+ echo "                      local drive."
+ echo " -d                   Download and upgrade with openML ISO. This is the default."
+ echo " -f                   Force upgrade without version test."
+ echo " -i <path to isofile> Use this local isofile to upgrade."
+ echo " -h                   Show this help."
+ echo
+ echo "Note: -c, -d and -i exclude each other and will not be evalutated if"
+ echo "running directly from cdrom."
+ echo
+ exit 1
+}
+
+
+# downloading openML/paedML iso
+download(){
+ DLDIR=$ADMINSHOME/$ADMINISTRATOR/iso
+ mkdir -p $DLDIR
+ if [ ! -s "$DLDIR/$FREECDNAME" -a ! -s "$DLDIR/${FREECDNAME}.md5" ]; then
+  echo "Lade $FREECDNAME herunter ..." | tee -a $LOGFILE
+  rm -f $DLDIR/${FREECDNAME}*
+  wget $ISOURL/$FREECDNAME -O $DLDIR/$FREECDNAME | tee -a $LOGFILE
+  wget $ISOURL/${FREECDNAME}.md5 -O $DLDIR/${FREECDNAME}.md5 | tee -a $LOGFILE
+  chown $ADMINISTRATOR $DLDIR -R
+ else
+  echo "Überspringe Download. $FREECDNAME ist bereits in $DLDIR vorhanden." | tee -a $LOGFILE
+ fi
+ cd $DLDIR
+ RC=0
+ echo "Überpruefe MD5-Summe der IS0-Datei ..." | tee -a $LOGFILE
+ if ! md5sum -c ${FREECDNAME}.md5; then
+  echo "Prüfsumme passt nicht!" | tee -a $LOGFILE
+  RC=1
+  RC="0" && checked=yes
+ fi
+ cd ~
+ # mount iso
+ if [ "$RC" = "0" ]; then
+  mount -o loop "$DLDIR/$FREECDNAME" "$CDROOT" || RC=1
+ fi
+ return "$RC"
+}
+
+
+echo | tee -a $LOGFILE
+echo "####################################################################" | tee -a $LOGFILE
+echo "# paedML/openML Linux Distributions-Upgrade auf Debian 5.0.3 Lenny #" | tee -a $LOGFILE
+echo "# Startzeit: $NOW                         #" | tee -a $LOGFILE
+echo "####################################################################" | tee -a $LOGFILE
+echo | tee -a $LOGFILE
+
+
+# first check for enough space on /var
+if ! check_free_space /var 1500000; then
+ echo "Zuwenig Speicherplatz unter /var. Stellen Sie sicher, dass dort 1,5GB freier Platz zur Verfügung steht." | tee -a $LOGFILE
+ exit 1
+fi
+
+
+# check if we are running from cdrom
+[ "$(basename "$0")" = "paedml50-cdrom-upgrade" ] && CDROOT="$(dirname "$0")"
+
+
+# parse commandline arguments if not running from cdrom
+while getopts ":cdhi:" opt; do
+ case $opt in
+  c) CDROM=yes ;;
+  d) DOWNLOAD=yes ;;
+  f) FORCE=yes ;;
+  i) ISOFILE="$OPTARG" ;;
+  h) usage ;;
+  \?) echo "Invalid option: -$OPTARG" >&2
+      usage ;;
+  :) echo "Option -$OPTARG requires an argument." >&2
+     usage ;;
+ esac
+done
+
+# check args
+if [ -z "$CDROOT" ]; then
+ 
+ [ -n "$CDROM" -a -n "$ISOFILE" -a -n "$DOWNLOAD" ] && usage
+ [ -n "$CDROM" -a -n "$DOWNLOAD" ] && usage
+ [ -n "$ISOFILE" -a -n "$DOWNLOAD" ] && usage
+ [ -n "$CDROM" -a -n "$ISOFILE" ] && usage
+ [ -z "$CDROM" -a -z "$ISOFILE" -a -z "$DOWNLOAD" ] && usage
+ if [ -n "$ISOFILE" -a ! -s "$ISOFILE" ]; then
+  echo "$ISOFILE does not exist!"
+  usage
+ fi
+
+ CDROOT=/cdrom
+ mount | grep -q "$CDROOT" && umount "$CDROOT"
+
+ if [ -n "$CDROM" ]; then
+  mount "$CDROOT" || exit 1
+ elif [ -s "$ISOFILE" ]; then
+  mount -o loop "$ISOFILE" "$CDROOT" || exit 1
+ else
+  DOWNLOAD=yes
+  download || exit 1
+ fi
+
+fi
+
+
+# skip version test
+if [ -n "$FORCE" ]; then
+
+ echo "-f angegeben: überspringe Versionsprüfung!" | tee -a $LOGFILE
  echo
 
 else
 
  if [ "$(cat /etc/debian_version)" != "4.0" ]; then
-  echo "Das Upgrade funktioniert nur mit Debian 4.0!"
+  echo "Das Upgrade lässt sich nur mit Debian 4.0 durchführen!" | tee -a $LOGFILE
   exit 0
  fi
 
- if ! grep -q "[op][pa][e][nd]ML Linux 4\.0\.[4-9]" /etc/issue; then
-  echo "Das Upgrade funktioniert nur ab openML/paedML Linux 4.0.4!"
+ if ! grep -q "[op][pa][e][nd]ML Linux 4\.0\.6" /etc/issue; then
+  echo "Das Upgrade lässt sich nur mit openML/paedML Linux 4.0.6 durchführen!" | tee -a $LOGFILE
   exit 0
  fi
 
 fi # force
 
-if ! check_free_space /var 1500000; then
- echo "Zuwenig Speicherplatz unter /var. Stellen Sie sicher, dass dort 1,5GB freier Platz zur Verfügung steht."
+
+# put apt in unattended mode
+tweak_apt() {
+ export DEBIAN_FRONTEND=noninteractive
+ export DEBIAN_PRIORITY=critical
+ export DEBCONF_TERSE=yes
+ export DEBCONF_NOWARNINGS=yes
+ echo 'DPkg::Options {"--force-configure-any";"--force-confmiss";"--force-confold";"--force-confdef";"--force-bad-verify";"--force-overwrite";};' > /etc/apt/apt.conf.d/99upgrade
+ echo 'APT::Get::AllowUnauthenticated "true";' >> /etc/apt/apt.conf.d/99upgrade
+ dpkg -l linuxmuster-base | grep -q ^ii &> /dev/null || apt-get -y install linuxmuster-base
+}
+
+
+# check medium if it was not already checked
+if [ -z "$checked" ]; then
+ echo "Prüfe Upgrade-Medium ..." | tee -a $LOGFILE
+ cd "$CDROOT"
+ RC=0
+ if ! grep -q "ML Linux 5" .disk/info; then
+  echo "Das ist keine paedML/openML-CDROM der Version 5!" | tee -a $LOGFILE
+  RC=1
+ fi
+ if [ "$RC" = "0" ]; then
+  if ! md5sum -c md5sum.txt; then
+   echo "Prüfsummenfehler!" | tee -a $LOGFILE
+   RC=1
+  fi
+ fi
+ if [ "$RC" = "0" ]; then
+  checked=yes
+ else
+  cd ~
+  umount "$CDROOT"
+  exit 1
+ fi
+fi
+
+
+# check for apt-ftparchive
+RC=0
+if [ ! -x /usr/bin/apt-ftparchive ]; then
+ echo "Installiere apt-utils ..."
+ tweak_apt
+ apt-get -y install apt-utils ; RC="$?"
+fi
+if [ "$RC" != "0" -o ! -x /usr/bin/apt-ftparchive ]; then
+ echo "Fehler bei der Installation der apt-utils!" | tee -a $LOGFILE
+ echo "Beheben Sie den Fehler und installieren Sie das Paket \"apt-utils\"." | tee -a $LOGFILE
  exit 1
 fi
 
-# downloading openML/paedML iso
-DLDIR=$ADMINSHOME/$ADMINISTRATOR/iso
-mkdir -p $DLDIR
-if [ ! -s "$DLDIR/$FREECDNAME" -a ! -s "$DLDIR/${FREECDNAME}.md5" ]; then
- echo "Lade $FREECDNAME herunter ..."
- rm -f $DLDIR/${FREECDNAME}*
- wget $ISOURL/$FREECDNAME -O $DLDIR/$FREECDNAME
- wget $ISOURL/${FREECDNAME}.md5 -O $DLDIR/${FREECDNAME}.md5
- chown $ADMINISTRATOR $DLDIR -R
-fi
-cd $DLDIR
-echo "Überpruefe IS0-Datei ..."
-md5sum -c ${FREECDNAME}.md5 || exit 1
 
-# copy packages from iso to cache
-mount -o loop $FREECDNAME /mnt || exit 1
-cd /mnt/pool || exit 1
-echo "Kopiere Pakete ..."
+# copy packages from cdrom to cache
+cd "$CDROOT/pool" || exit 1
+echo "Kopiere Pakete ..." | tee -a $LOGFILE
 for i in `find . -name \*.deb`; do
- cp -v "$i" /var/cache/apt/archives
+ cp -v "$i" "$PKGCACHE" | tee -a $LOGFILE
 done
-rm -f /var/cache/apt/archives/Packages*
-if [ -x /usr/bin/apt-ftparchive ]; then
- echo "Erstelle lokales Paketrepository ..."
- cd /var/cache/apt/archives
- apt-ftparchive packages ./ > Packages
- echo "deb file:///var/cache/apt/archives ./" > /var/tmp/local.list
-fi
-cd ~
-umount /mnt
 
-. $DATADIR/upgrade/paedml50-upgrade.sh 2>&1 | tee -a $LOGDIR/paedml50-upgrade.log
+
+# create local packages repo
+rm -f "$PKGLIST"*
+echo "Erstelle lokales Paketrepository ..." | tee -a $LOGFILE
+cd "$PKGCACHE" || exit 1
+apt-ftparchive packages ./ > "$PKGLIST" || exit 1
+echo
+
+
+# we don't need the cdrom from now on
+cd ~
+umount "$CDROOT"
+
+
+. $DATADIR/upgrade/paedml50-upgrade.sh 2>&1 | tee -a $LOGFILE
 

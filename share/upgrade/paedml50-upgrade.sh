@@ -17,6 +17,7 @@ QUOTDYNTPLDIR=$DYNTPLDIR/18_quota
 HORDDYNTPLDIR=$DYNTPLDIR/21_horde3
 NAGIDYNTPLDIR=$DYNTPLDIR/22_nagios
 FREEDYNTPLDIR=$DYNTPLDIR/55_freeradius
+KDE=`dpkg -l | grep "kdm" | grep ^i`
 OPENML=`dpkg -l | grep "schulkonsole-templates-openlml" | grep ^i`
 TEMPLBASE=`dpkg -l | grep "linuxmuster-schulkonsole-templates-base" | grep ^i | awk '{ print $2 }'`
 REMOTEMON=`dpkg -l | grep "linuxmuster-nagios-fernueberwachung" | grep ^i | awk '{ print $2 }'`
@@ -43,7 +44,6 @@ PKGREPOS="ftp.de.debian.org/debian/ \
           ftp.de.debian.org/debian-volatile/ \
           security.debian.org \
           pkg.lml.support-netz.de/paedml50-updates/"
-NOW=`date`
 
 # check for remoteadmin account and save password hash
 REMADMINPWHASH="$(grep remoteadmin /etc/shadow | awk -F\: '{ print $2 }')"
@@ -52,14 +52,6 @@ REMADMINPWHASH="$(grep remoteadmin /etc/shadow | awk -F\: '{ print $2 }')"
 message1="##### Do not change this file! It will be overwritten!"
 message2="##### This configuration file was automatically created by paedml50-upgrade!"
 message3="##### Last Modification: $NOW"
-
-
-echo
-echo "####################################################################"
-echo "# paedML/openML Linux Distributions-Upgrade auf Debian 5.0.3 Lenny #"
-echo "# Startzeit: $NOW                         #"
-echo "####################################################################"
-echo
 
 
 echo "######################"
@@ -131,31 +123,36 @@ echo
 echo "######################"
 echo "# Postgres-DB-Backup #"
 echo "######################"
-for i in `psql -t -l -U postgres | awk '{ print $1 }'`; do
- case $i in
+PGBACKUPDIR="$BACKUPDIR/postgres"
+mkdir -p "$PGBACKUPDIR"
+for dbname in `psql -t -l -U postgres | awk '{ print $1 }'`; do
+ case $dbname in
   postgres|template0|template1) continue ;;
  esac
- if [ -s "$BACKUPDIR/$i/$i.lenny-upgrade.pgsql.gz" ]; then
-  echo "Sicherung von $i-Datenbank gefunden. Lasse $i aus!"
+ dbarchive="$PGBACKUPDIR/$dbname.pgsql.gz"
+ if [ -s "$dbarchive" ]; then
+  echo "Sicherung von $dbname-Datenbank gefunden. Lasse $dbname aus!"
   continue
  fi
- echo "Sichere $i-Datenbank nach $BACKUPDIR/$i/$i.lenny-upgrade.pgsql.gz ..."
- RC=1
- pg_dump --encoding=UTF8 -U postgres $i > /var/tmp/$i.lenny-upgrade.pgsql ; RC="$?"
- if [ "$RC" != "0" ]; then
-  echo "Fehler bei der Sicherung der $i-Datenbank!"
-  rm -f /var/tmp/$i.lenny-upgrade.pgsql
-  exit 1
- fi
- mkdir -p "$BACKUPDIR/$i"
- RC=1
- gzip -c9 /var/tmp/$i.lenny-upgrade.pgsql > $BACKUPDIR/$i/$i.lenny-upgrade.pgsql.gz ; RC="$?"
- if [ "$RC" != "0" ]; then
-  echo "Fehler bei der Komprimierung der $i-Datenbank!"
-  rm -f $BACKUPDIR/$i/$i.lenny-upgrade.pgsql.gz
+ echo -n "Sichere $dbname-Datenbank nach $dbarchive ..."
+ if pg_dump --encoding=UTF8 -U postgres $dbname | gzip -c9 > "$dbarchive"; then
+  echo " OK!"
+ else
+  echo " Fehler!"
+  rm -f "$dbarchive"
   exit 1
  fi
 done
+# metadata
+metaarchive="$PGBACKUPDIR/pgsql.metadata.gz"
+echo -n "Sichere Postgres-Metadaten nach $metaarchive ..."
+if pg_dumpall -U postgres --globals-only | gzip -c9 > "$metaarchive"; then
+ echo " OK!"
+else
+ echo " Fehler!"
+ rm -f "$metaarchive"
+ exit 1
+fi
 echo
 
 
@@ -166,26 +163,44 @@ echo "#####################"
 [ -e /etc/apt/apt.conf ] && mv /etc/apt/apt.conf /etc/apt/apt.conf.lenny-upgrade
 [ -d /etc/apt/sources.list.d.lenny-upgrade ] || mv /etc/apt/sources.list.d /etc/apt/sources.list.d.lenny-upgrade
 cp -a $STATICTPLDIR/etc/apt/* /etc/apt
-[ -s /var/tmp/local.list ] && mv /var/tmp/local.list /etc/apt/sources.list.d
 
-tweak_apt() {
- export DEBIAN_FRONTEND=noninteractive
- export DEBIAN_PRIORITY=critical
- export DEBCONF_TERSE=yes
- export DEBCONF_NOWARNINGS=yes
- echo 'DPkg::Options {"--force-configure-any";"--force-confmiss";"--force-confold";"--force-confdef";"--force-bad-verify";"--force-overwrite";};' > /etc/apt/apt.conf.d/99upgrade
- echo 'APT::Get::AllowUnauthenticated "true";' >> /etc/apt/apt.conf.d/99upgrade
-}
-
-# force apt to do an unattended upgrade
+# package list update
 echo "Aktualisiere Paketlisten ..."
 tweak_apt
-if ! aptitude update; then
+if [ ! -s "$PKGLIST" ]; then
+ echo "Fehler: Lokale Paketliste $PKGLIST nicht vorhanden!"
+ exit 1
+fi
+if ! echo "deb file://$PKGCACHE ./" > "$LOCALSRC"; then
+ echo "Fehler: Kann Quellendatei "$LOCALSRC" nicht erstellen!"
+ exit 1
+fi
+if ! apt-get update; then
  echo
  echo "Fehler: Kann Paketlisten nicht aktualisieren."
  exit 1
 fi
+
+# check package dependencies
+echo -n "Überprüfe Abhängigkeiten ..."
+if apt-get -s remove $PKGSTOREMOVE | grep "Remv linuxmuster-base" 2>> $LOGFILE 1>> $LOGFILE; then
+ echo " Fehler!"
+ echo "Abhängigkeitsproblem: linuxmuster-base soll deinstalliert werden."
+ echo "Breche ab! Details siehe $LOGFILE."
+ exit 1
+else
+ echo " OK!"
+fi
 echo
+
+
+if [ -e /usr/lib/cups/backend/dnssd ]; then
+ echo "########################"
+ echo "# cups dnssd entfernen #"
+ echo "########################"
+ echo
+ rm /usr/lib/cups/backend/dnssd
+fi
 
 
 if [ -n "$REMADMINPWHASH" ]; then
@@ -195,40 +210,6 @@ if [ -n "$REMADMINPWHASH" ]; then
  linuxmuster-remoteadmin --remove
  echo
 fi
-
-
-if [ -e /usr/lib/cups/backend/dnssd ]; then
- echo "########################"
- echo "# cups dnssd entfernen #"
- echo "########################"
- rm /usr/lib/cups/backend/dnssd
-fi
-
-
-echo "###########################"
-echo "# apt-utils aktualisieren #"
-echo "###########################"
-tweak_apt
-aptitude -y install apt-utils tasksel debian-archive-keyring dpkg locales
-if [ ! -s /var/cache/apt/archives/Packages ]; then
- echo "Erstelle lokales Paketrepository ..."
- cd /var/cache/apt/archives
- apt-ftparchive packages ./ > Packages
- cd /tmp
-fi
-if [ -s /var/cache/apt/archives/Packages ]; then
- [ -s /etc/apt/sources.list.d/local.list ] || echo "deb file:///var/cache/apt/archives ./" > /etc/apt/sources.list.d/local.list
-fi
-aptitude update
-echo
-
-
-echo "#########################"
-echo "# Pakete deinstallieren #"
-echo "#########################"
-tweak_apt
-aptitude -y remove $PKGSTOREMOVE
-echo
 
 
 echo "###############################"
@@ -436,7 +417,6 @@ CONF=/etc/linuxmuster/backup.conf
 [ -e "$CONF.lenny-upgrade" ] || cp $CONF $CONF.lenny-upgrade
 sed -e 's|postgresql-8.1|postgresql-8.3|g
         s|nagios2|nagios3|g' -i $CONF
-
 echo
 
 
@@ -445,9 +425,20 @@ echo "# Distributions-Upgrade #"
 echo "#########################"
 echo
 
-echo "##############"
-echo "# postgresql #"
-echo "##############"
+
+echo "###########################"
+echo "# apt-utils aktualisieren #"
+echo "###########################"
+tweak_apt
+apt-get -y install apt-utils tasksel debian-archive-keyring dpkg locales
+apt-get update
+echo
+
+
+echo "#########################"
+echo "# Pakete deinstallieren #"
+echo "#########################"
+tweak_apt
 # tweaking kdm
 CONF=/etc/init.d/kdm
 if [ -e "$CONF" ]; then
@@ -456,76 +447,18 @@ if [ -e "$CONF" ]; then
  echo "exit 0" >> $CONF
  chmod 755 $CONF
 fi
-aptitude -y install postgresql
-for i in postgresql postgresql-8.3 postgresql-client-8.3; do
- # check installed ok
- dpkg -s $i | grep -q ^"Status: install ok installed" || aptitude -y install $i
-done
-[ -e "$CONF.lenny-upgrade" ] && mv $CONF.lenny-upgrade $CONF
-/etc/init.d/postgresql-8.3 stop
-pg_dropcluster 8.3 main &> /dev/null
-pg_createcluster 8.3 main
-cp $STATICTPLDIR/etc/postgresql/8.3/main/* /etc/postgresql/8.3/main
-/etc/init.d/postgresql-8.3 start
-update-rc.d -f postgresql-7.4 remove
-update-rc.d -f postgresql-8.1 remove
+apt-get -y remove $PKGSTOREMOVE
 echo
 
-# restore databases
-for i in ldap moodle mrbs pykota; do
- if [ -e "/var/tmp/$i.lenny-upgrade.pgsql" ]; then
-  dbuser=$i
-  case $i in
-   ldap) dbpw="$(grep ^Password /etc/linuxmuster/schulkonsole/db.conf | awk -F\= '{ print $2 }')" ;;
-   moodle) dbpw="$(grep \$CFG\-\>dbpass /etc/moodle/config.php | awk -F\' '{ print $2 }')" ;;
-   mrbs) dbuser=""
-         for p in /var/www/apache2-default /etc/www; do
-          if [ -e "$p/$i/config.inc.php" ]; then
-           dbuser="$(grep ^\$db_login $p/$i/config.inc.php | awk -F\" '{ print $2 }')"
-           [ -z "$dbuser" ] && dbuser="$(grep ^\$db_login $p/$i/config.inc.php | awk -F\' '{ print $2 }')"
-           dbpw="$(grep ^\$db_password $p/$i/config.inc.php | awk -F\" '{ print $2 }')"
-           [ -z "$dbpw" ] && dbpw="$(grep ^\$db_password $p/$i/config.inc.php | awk -F\' '{ print $2 }')"
-          fi
-         done ;;
-   pykota) dbuser=pykotaadmin
-           dbpw="$(grep -w ^storageadminpw /etc/pykota/pykotadmin.conf | awk -F\: '{ print $2 }' | awk '{ print $1 }')"
-           pkuser=pykotauser
-           pkpw="$(grep -w ^storageuserpw /etc/pykota/pykota.conf | awk -F\: '{ print $2 }' | awk '{ print $1 }')" ;;
-   *) dbuser="" ;;
-  esac
-  if [ -z "$dbuser" ]; then
-   echo "WARNUNG: Konnte Benutzer für Datenbank $i nicht bestimmen!"
-   echo "Überspringe das Wiederanlegen von $i. Bitte legen Sie die Datenbank nach dem Upgrade von Hand selbst an."
-   sleep 5
-   continue
-  fi
-  dbname=$i
-  [ "$i" = "mrbs" ] && dbname="mrbs  "
-  echo "################################"
-  echo "# Restauriere Datenbank $dbname #"
-  echo "################################"
-  createuser -U postgres -S -D -R $dbuser
-  psql -U postgres -d template1 -qc "ALTER USER $dbuser WITH PASSWORD '"$dbpw"';"
-  if [ "$i" = "pykota" ]; then
-   createuser -U postgres -S -D -R $pkuser
-   psql -U postgres -d template1 -qc "ALTER USER $pkuser WITH PASSWORD '"$pkpw"';"
-   createdb -U postgres -O postgres $i
-  else
-   createdb -U postgres -O $dbuser $i
-  fi
-  psql -U postgres $i < /var/tmp/$i.lenny-upgrade.pgsql
- fi
- echo
-done
 
 echo "###############"
 echo "# base-passwd #"
 echo "###############"
 tweak_apt
-aptitude -y install passwd
+apt-get -y install passwd
 # check for bittorrent user
 id bittorrent &> /dev/null && BTUSER=yes
-aptitude -y install base-passwd
+apt-get -y install base-passwd
 # recreate bittorrent user removed by update-passwd
 if [ -n "$BTUSER" ]; then
  if ! grep -q ^bittorrent: /etc/group; then
@@ -537,34 +470,27 @@ if [ -n "$BTUSER" ]; then
 fi
 echo
 
+
 if [ -n "$BITTORRENT" ]; then
  echo "##############"
  echo "# bittorrent #"
  echo "##############"
- aptitude -y install bittorrent
+ apt-get -y install bittorrent
  chown bittorrent /var/log/bittorrent -R
  chown bittorrent /var/lib/bittorrent -R
  echo
 fi
 
+
 echo "################"
 echo "# dist-upgrade #"
 echo "################"
 tweak_apt
-aptitude -y safe-upgrade
-aptitude -y dist-upgrade
-aptitude -y dist-upgrade
-aptitude -y purge avahi-daemon
+apt-get -y upgrade
+apt-get -y dist-upgrade
+apt-get -y purge avahi-daemon
 echo
 
-echo "##############"
-echo "# sophomorix #"
-echo "##############"
-tweak_apt
-rm $INSTALLED
-aptitude -y install sophomorix2
-touch $INSTALLED
-echo
 
 echo "###############"
 echo "# common task #"
@@ -573,12 +499,80 @@ tweak_apt
 linuxmuster-task --unattended --install=common
 echo
 
+
 echo "###############"
 echo "# server task #"
 echo "###############"
 tweak_apt
 linuxmuster-task --unattended --install=server
 echo
+
+
+echo "##############"
+echo "# postgresql #"
+echo "##############"
+
+# postgresql upgrade
+tweak_apt
+apt-get -y install postgresql
+for i in postgresql postgresql-8.3 postgresql-client-8.3; do
+ # check installed ok
+ dpkg -s $i | grep -q ^"Status: install ok installed" || apt-get -y install $i
+done
+/etc/init.d/postgresql-8.3 stop
+pg_dropcluster 8.3 main &> /dev/null
+pg_createcluster 8.3 main
+cp $STATICTPLDIR/etc/postgresql/8.3/main/* /etc/postgresql/8.3/main
+/etc/init.d/postgresql-8.3 start
+update-rc.d -f postgresql-7.4 remove
+update-rc.d -f postgresql-8.1 remove
+if ! /etc/init.d/postgresql-8.3 status 2>> $LOGFILE 1>> $LOGFILE; then
+ echo "Postgresql-Datenbank läuft nicht! Details siehe $LOGFILE."
+ echo "Beheben Sie den Fehler und starten Sie das Upgrade danach erneut!"
+ exit 1
+fi
+
+# restore databases
+echo -n "Restauriere Postgres-Metadaten ..."
+if zcat "$metaarchive" | psql -U postgres template1 2>> $LOGFILE 1>> $LOGFILE; then
+ echo " OK!"
+else
+ echo " FEHLER! Details siehe $LOGFILE."
+ exit 1
+fi
+# iterate over db archives
+for dbarchive in $PGBACKUPDIR/*.pgsql.gz; do
+ dbname="$(basename $(echo $dbarchive | sed -e 's|\.pgsql\.gz||'))"
+ echo -n "Restauriere Datenbank $dbname ..."
+ # determine dbuser
+ case $dbname in
+  pykota) dbuser=pykotaadmin ;;
+  *)
+   # if a user with same name as db is defined use db name as user name
+   if zcat "$metaarchive" | grep -q "ALTER ROLE $dbname "; then
+    dbuser=$dbname
+   else
+    # in the other case use postgres as dbuser
+    dbuser=postgres
+   fi
+  ;;
+ esac
+ # create empty db
+ if ! createdb -U postgres -O $dbuser $dbname 2>> $LOGFILE 1>> $LOGFILE; then
+  echo " FEHLER! Kann Datenbank nicht anlegen."
+  echo "Details siehe $LOGFILE."
+  exit 1
+ fi
+ # dump database back
+ if zcat "$dbarchive" | psql -U postgres $dbname 2>> $LOGFILE 1>> $LOGFILE; then
+  echo " OK!"
+ else
+  echo " FEHLER! Details siehe $LOGFILE."
+  exit 1
+ fi
+done
+echo
+
 
 echo "############"
 echo "# openldap #"
@@ -602,6 +596,7 @@ fi
 /etc/init.d/slapd start
 echo
 
+
 echo "################"
 echo "# imaging task #"
 echo "################"
@@ -609,13 +604,42 @@ tweak_apt
 linuxmuster-task --unattended --install=imaging-$imaging
 echo
 
+
+echo "##############"
+echo "# sophomorix #"
+echo "##############"
+tweak_apt
+rm $INSTALLED
+apt-get -y install sophomorix2
+touch $INSTALLED
+echo
+
+
+if [ -n "$KDE" ]; then
+ echo "###########"
+ echo "# desktop #"
+ echo "###########"
+ tweak_apt
+ linuxmuster-task --unattended --install=desktop
+ echo
+fi
+
+# untweaking kdm
+CONF=/etc/init.d/kdm
+if [ ! -e "$CONF" -a -e "$CONF.lenny-upgrade" ]; then
+ mv $CONF.lenny-upgrade $CONF
+else
+ rm -f "$CONF.lenny-upgrade"
+fi
+
+
 if [ -n "$FREERADIUS" ]; then
  echo "##########################"
  echo "# linuxmuster-freeradius #"
  echo "##########################"
  tweak_apt
- aptitude -y install freeradius freeradius-ldap
- aptitude -y install linuxmuster-freeradius
+ apt-get -y install freeradius freeradius-ldap
+ apt-get -y install linuxmuster-freeradius
  CONF=/etc/freeradius/clients.conf
  if [ -s "$CONF" -a -d "$FREEDYNTPLDIR" -a ! -e "$CACHEDIR/.freeradius.upgrade50.done" ]; then
   echo "Aktualisiere freeradius ..."
@@ -650,22 +674,26 @@ if [ -n "$FREERADIUS" ]; then
  echo
 fi
 
+
 if [ -n "$COPSPOT" ]; then
  echo "###########"
  echo "# copspot #"
  echo "###########"
- aptitude -y install linuxmuster-ipcop-addon-copspot
+ tweak_apt
+ apt-get -y install linuxmuster-ipcop-addon-copspot
  echo
 fi
+
 
 if [ -n "$PYKOTA" ]; then
  echo "##################"
  echo "# linuxmuster-pk #"
  echo "##################"
  tweak_apt
- aptitude -y install linuxmuster-pk
+ apt-get -y install linuxmuster-pk
  echo
 fi
+
 
 # check for linuxmuster-nagios-fernueberwachung
 if [ -n "$REMOTEMON" ]; then
@@ -673,27 +701,30 @@ if [ -n "$REMOTEMON" ]; then
  echo "# linuxmuster-nagios-fernueberwachung #"
  echo "#######################################"
  tweak_apt
- aptitude -y install $REMOTEMON
+ apt-get -y install $REMOTEMON
  echo
 fi
+
 
 if [ -n "$PHPMYADMIN" ]; then
  echo "##############"
  echo "# phpmyadmin #"
  echo "##############"
  tweak_apt
- aptitude -y install phpmyadmin
+ apt-get -y install phpmyadmin
  echo
 fi
+
 
 if [ -n "$PHPPGADMIN" ]; then
  echo "##############"
  echo "# phppgadmin #"
  echo "##############"
  tweak_apt
- aptitude -y install phppgadmin
+ apt-get -y install phppgadmin
  echo
 fi
+
 
 if [ -n "$OPENML" ]; then
  echo "##########"
@@ -701,8 +732,8 @@ if [ -n "$OPENML" ]; then
  echo "##########"
  tweak_apt
  echo "deb http://www.linuxmuster.net/openlml-unsupported/ openlml/" > /etc/apt/sources.list.d/openml.list
- aptitude update
- aptitude -y install linuxmuster-schulkonsole-templates-openlml
+ apt-get update
+ apt-get -y install linuxmuster-schulkonsole-templates-openlml
  echo
 else
  echo "##########"
@@ -718,23 +749,26 @@ else
  echo
 fi
 
+
 if [ -n "$MRBS" ]; then
  echo "####################"
  echo "# linuxmuster-mrbs #"
  echo "####################"
  tweak_apt
- aptitude -y install linuxmuster-mrbs
+ apt-get -y install linuxmuster-mrbs
  echo
 fi
+
 
 if [ -n "$PORTFOLIO" ]; then
  echo "#########################"
  echo "# linuxmuster-portfolio #"
  echo "#########################"
  tweak_apt
- aptitude -y install linuxmuster-portfolio
+ apt-get -y install linuxmuster-portfolio
  echo
 fi
+
 
 # horde3, db and pear upgrade
 echo "##########"
@@ -765,22 +799,26 @@ echo 'ALTER TABLE kronolith_events ADD COLUMN event_recurcount INT' | mysql -D h
 echo 'ALTER TABLE kronolith_events ADD COLUMN event_private INT DEFAULT 0 NOT NULL' | mysql -D horde &> /dev/null
 echo
 
+
 # check for nfs
 if [ -n "$NFSSERVER" ]; then
  echo "##############"
  echo "# nfs-server #"
  echo "##############"
- aptitude -y install $NFSSERVER
+ tweak_apt
+ apt-get -y install $NFSSERVER
  echo
 else
  if [ -n "$NFSCOMMON" ]; then
   echo "##############"
   echo "# nfs-common #"
   echo "##############"
-  aptitude -y install $NFSCOMMON
+  tweak_apt
+  apt-get -y install $NFSCOMMON
  fi
  echo
 fi
+
 
 # recreate remoteadmin
 if [ -n "$REMADMINPWHASH" ]; then
@@ -796,14 +834,15 @@ if [ -n "$REMADMINPWHASH" ]; then
  echo
 fi
 
+
 echo "#############"
 echo "# Aufräumen #"
 echo "#############"
 # remove apt.conf stuff only needed for upgrade
 rm -f /etc/apt/apt.conf.d/99upgrade
-rm -f /etc/apt/sources.list.d/local.list
-rm -f /var/cache/apt/archives/Packages
-aptitude update
+rm -f "$LOCALSRC"
+rm -f "$PKGLIST"
+apt-get update
 # final stuff
 dpkg-reconfigure linuxmuster-base
 linuxmuster-nagios-setup
@@ -813,6 +852,7 @@ else
  sed -e 's|paedML|openML|g' -i /etc/nagios3/conf.d/linuxmuster_main.cfg
 fi
 echo
+
 
 if [ -s "$WIMPORTDATA" ]; then
  echo "######################"

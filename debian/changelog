@@ -1,3 +1,21 @@
+linuxmuster-base (1.5.36-lenny0) lenny; urgency=low
+
+  * paedml50-upgrade:
+    * uses now apt-get instead of aptitude.
+    * improved error handling in conjunction with package dependencies.
+    * improved handling of postgresql upgrade.
+    * improved logging.
+    * reworked commandline options:
+      -c: Upgrade with cdrom in drive.
+      -d: Online-Upgrade with iso download.
+      -f: Force upgrade whithout version test.
+      -i: ISO file to use for upgrade.
+    * fixed deinstallation of linuxmuster-base during upgrade (closes #531).
+  * linuxmuster-setup: removes LINBO's torrent files if serverip has changed (closes #531).
+  * Version increased to 5.0.4.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 16 Oct 2011 11:03:48 +0200
+
 linuxmuster-base (1.5.35-lenny1) lenny; urgency=low
 
   * linuxmuster-setup: fixed networking start command
