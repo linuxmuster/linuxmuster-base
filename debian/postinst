@@ -432,6 +432,21 @@ $addstr" -i $conf
     grep -q /var/cache/apt/archives /etc/apt/sources.list.d/local.list &> /dev/null && rm /etc/apt/sources.list.d/local.list
    fi
 
+   # update backup.conf (#551, #499)
+   conf="$SYSCONFDIR/backup.conf"
+   searchstr="cupsys,cups atftpd,tftpd-hpa"
+   backup=false
+   for i in $searchstr; do
+    search="$(echo "$i" | awk -F\, '{ print $1 }')"
+    replace="$(echo "$i" | awk -F\, '{ print $2 }')"
+    if grep -qw "$search" "$conf"; then
+     echo "Replacing $search with $replace in $conf."
+     [ "$backup" = "false" ] && cp "$conf" "$conf.dpkg-bak"
+     backup=true
+     sed -e "s|$search|$replace|g" -i "$conf"
+    fi
+   done
+
    # updating release information
    echo "$(getdistname) $DISTFULLVERSION / Codename $CODENAME" > /etc/issue
    cp /etc/issue /etc/issue.net
