@@ -25,10 +25,6 @@ if [ -e $OLDVALUES ]; then
   oldvalues=yes
 fi
 
-# check which imaging software is available
-linbo=`aptitude search linuxmuster-linbo`
-rembo=`aptitude search myshn`
-
 if [ "$1" = "--first" ]; then
   # intro
   db_fset linuxmuster-base/intro seen false
@@ -195,20 +191,16 @@ while ! validdomain "$SMTPRELAY"; do
 done
 
 
+
+# check whether rembo is available
+rembo=`aptitude search myshn`
+
 # imaging system
-imaging=""
-if [[ -n "$linbo" && -n "$rembo" ]]; then
+imaging="linbo"
+if [ -n "$rembo" ]; then
 
 	IMG_CHOICES="linbo, rembo"
 	IMG_DESC="LINBO [linbo] und Rembo/mySHN (tm) [rembo]."
-
-elif [ -n "$linbo" ]; then
-
-	imaging=linbo
-
-elif [ -n "$rembo" ]; then
-
-	imaging=rembo
 
 fi
 

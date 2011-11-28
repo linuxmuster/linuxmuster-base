@@ -1,3 +1,15 @@
+linuxmuster-base (1.5.37-lenny0) lenny; urgency=low
+
+  * paedml50-upgrade:
+    * more improvements according to #531.
+    * changed apt-get back to aptitude.
+  * linuxmuster-setup:
+    * implemented linbo as default imaging method.
+    * added 'aptitude::CmdLine::Ignore-Trust-Violations "true";' to temporary
+      apt configuration.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 19 Oct 2011 11:28:15 +0200
+
 linuxmuster-base (1.5.36-lenny0) lenny; urgency=low
 
   * paedml50-upgrade:
@@ -11,7 +23,9 @@ linuxmuster-base (1.5.36-lenny0) lenny; urgency=low
       -f: Force upgrade whithout version test.
       -i: ISO file to use for upgrade.
     * fixed deinstallation of linuxmuster-base during upgrade (closes #531).
-  * linuxmuster-setup: removes LINBO's torrent files if serverip has changed (closes #531).
+  * linuxmuster-setup:
+    * removes LINBO's torrent files if serverip has changed (closes #531).
+    * implemented linbo as default imaging method.
   * Version increased to 5.0.4.
 
  -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 16 Oct 2011 11:03:48 +0200

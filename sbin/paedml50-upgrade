@@ -60,10 +60,10 @@ download(){
  RC=0
  echo "Überpruefe MD5-Summe der IS0-Datei ..." | tee -a $LOGFILE
  if ! md5sum -c ${FREECDNAME}.md5; then
-  echo "Prüfsumme passt nicht!" | tee -a $LOGFILE
+  echo "Prüfsummenfehler!" | tee -a $LOGFILE
   RC=1
-  RC="0" && checked=yes
  fi
+ RC="0" && checked=yes
  cd ~
  # mount iso
  if [ "$RC" = "0" ]; then
@@ -114,7 +114,7 @@ if [ -z "$CDROOT" ]; then
  [ -n "$CDROM" -a -n "$DOWNLOAD" ] && usage
  [ -n "$ISOFILE" -a -n "$DOWNLOAD" ] && usage
  [ -n "$CDROM" -a -n "$ISOFILE" ] && usage
- [ -z "$CDROM" -a -z "$ISOFILE" -a -z "$DOWNLOAD" ] && usage
+ [ -z "$CDROM" -a -z "$ISOFILE" -a -z "$DOWNLOAD" ] && DOWNLOAD=yes
  if [ -n "$ISOFILE" -a ! -s "$ISOFILE" ]; then
   echo "$ISOFILE does not exist!"
   usage
@@ -128,10 +128,17 @@ if [ -z "$CDROOT" ]; then
  elif [ -s "$ISOFILE" ]; then
   mount -o loop "$ISOFILE" "$CDROOT" || exit 1
  else
-  DOWNLOAD=yes
   download || exit 1
  fi
 
+fi
+
+
+# check for nfs mounts
+if mount | awk '{ print $5 }' | grep -qw nfs; then
+ echo
+ echo "Ein NFS-Share ist eingehängt! Bitte aushängen und nochmal starten!"
+ exit 1
 fi
 
 
@@ -163,14 +170,16 @@ tweak_apt() {
  export DEBCONF_TERSE=yes
  export DEBCONF_NOWARNINGS=yes
  echo 'DPkg::Options {"--force-configure-any";"--force-confmiss";"--force-confold";"--force-confdef";"--force-bad-verify";"--force-overwrite";};' > /etc/apt/apt.conf.d/99upgrade
- echo 'APT::Get::AllowUnauthenticated "true";' >> /etc/apt/apt.conf.d/99upgrade
- dpkg -l linuxmuster-base | grep -q ^ii &> /dev/null || apt-get -y install linuxmuster-base
+ echo 'aptitude::CmdLine::Ignore-Trust-Violations "true";' >> /etc/apt/apt.conf.d/99upgrade
+ echo 'APT::Install-Recommends "0";' >> /etc/apt/apt.conf.d/99upgrade
+ echo 'APT::Install-Suggests "0";' >> /etc/apt/apt.conf.d/99upgrade
+ dpkg -l linuxmuster-base | grep -q ^ii &> /dev/null || aptitude -y install linuxmuster-base
 }
 
 
 # check medium if it was not already checked
 if [ -z "$checked" ]; then
- echo "Prüfe Upgrade-Medium ..." | tee -a $LOGFILE
+ echo "Prüfe Upgrade-Medium." | tee -a $LOGFILE
  cd "$CDROOT"
  RC=0
  if ! grep -q "ML Linux 5" .disk/info; then
@@ -198,7 +207,7 @@ RC=0
 if [ ! -x /usr/bin/apt-ftparchive ]; then
  echo "Installiere apt-utils ..."
  tweak_apt
- apt-get -y install apt-utils ; RC="$?"
+ aptitude -y install apt-utils ; RC="$?"
 fi
 if [ "$RC" != "0" -o ! -x /usr/bin/apt-ftparchive ]; then
  echo "Fehler bei der Installation der apt-utils!" | tee -a $LOGFILE
@@ -216,17 +225,30 @@ done
 
 
 # create local packages repo
+echo
 rm -f "$PKGLIST"*
-echo "Erstelle lokales Paketrepository ..." | tee -a $LOGFILE
+echo "Erstelle lokales Paketrepository." | tee -a $LOGFILE
 cd "$PKGCACHE" || exit 1
 apt-ftparchive packages ./ > "$PKGLIST" || exit 1
 echo
 
 
-# we don't need the cdrom from now on
+# check if newer linuxmuster-base package is on cdrom and install it
+curver="$(dpkg -s linuxmuster-base | grep ^Version | awk '{ print $2 }')"
+cdpkg="$(ls "$PKGCACHE"/linuxmuster-base_*.deb | tail -1)"
+if [ -z "$cdpkg" ]; then
+ echo "Fehler! Kein linuxmuster-base-Paket gefunden!" | tee -a $LOGFILE
+ exit 1
+fi
+cdver="$(echo "$cdpkg" | awk -F \_ '{ print $2 }')"
+if [ "$cdver" \> "$curver" ]; then
+ echo "Aktualisiere linuxmuster-base: $curver -> $cdver." | tee -a $LOGFILE
+ dpkg --force-all -i "$cdpkg" | tee -a $LOGFILE
+fi
+
+
+# source upgradeskript from /tmp
 cd ~
-umount "$CDROOT"
-
-
-. $DATADIR/upgrade/paedml50-upgrade.sh 2>&1 | tee -a $LOGFILE
+cp $DATADIR/upgrade/paedml50-upgrade.sh /tmp || exit 1
+. /tmp/paedml50-upgrade.sh 2>&1 | tee -a $LOGFILE
 

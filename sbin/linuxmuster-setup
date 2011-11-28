@@ -146,6 +146,7 @@ case $opt in
 
     # force apt to do ugly things during upgrade
     echo 'DPkg::Options {"--force-confold";"--force-confdef";"--force-bad-verify";"--force-overwrite";};' > /etc/apt/apt.conf.d/99upgrade
+    echo 'aptitude::CmdLine::Ignore-Trust-Violations "true";' >> /etc/apt/apt.conf.d/99upgrade
 
     # check for installable non-free packages
     indexpage=`aptitude search linuxmuster-indexpage`
@@ -156,7 +157,7 @@ case $opt in
     #DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql-8.1 | tee -a $logfile
 
     # installing depending task
-    for i in common server; do
+    for i in common server imaging-linbo; do
       task=`cat /usr/share/linuxmuster/tasks/$i`
       DEBIAN_FRONTEND=noninteractive aptitude -y install $task | tee -a $logfile
     done

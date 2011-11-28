@@ -28,8 +28,8 @@ for i in adminpw ipcoppw pgmadminpw wwwadminpw; do
   RET=`echo set linuxmuster-base/$i "" | debconf-communicate`
 done
 
-# installing apropriate imaging task
-if [[ "$imaging" = "linbo" || "$imaging" = "rembo" || "$imaging" = "tivoli" ]]; then
+# installs rembo
+if [ "$imaging" = "rembo" ]; then
 	echo 'DPkg::Options {"--force-confold";"--force-confdef";"--force-bad-verify";"--force-overwrite";};' > /etc/apt/apt.conf.d/99upgrade
 	task=`cat /usr/share/linuxmuster/tasks/imaging-$imaging`
 	export DEBIAN_FRONTEND=noninteractive

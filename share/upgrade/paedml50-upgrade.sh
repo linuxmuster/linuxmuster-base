@@ -54,6 +54,7 @@ message2="##### This configuration file was automatically created by paedml50-up
 message3="##### Last Modification: $NOW"
 
 
+echo
 echo "######################"
 echo "# Internetverbindung #"
 echo "######################"
@@ -175,21 +176,10 @@ if ! echo "deb file://$PKGCACHE ./" > "$LOCALSRC"; then
  echo "Fehler: Kann Quellendatei "$LOCALSRC" nicht erstellen!"
  exit 1
 fi
-if ! apt-get update; then
+if ! aptitude update; then
  echo
  echo "Fehler: Kann Paketlisten nicht aktualisieren."
  exit 1
-fi
-
-# check package dependencies
-echo -n "Überprüfe Abhängigkeiten ..."
-if apt-get -s remove $PKGSTOREMOVE | grep "Remv linuxmuster-base" 2>> $LOGFILE 1>> $LOGFILE; then
- echo " Fehler!"
- echo "Abhängigkeitsproblem: linuxmuster-base soll deinstalliert werden."
- echo "Breche ab! Details siehe $LOGFILE."
- exit 1
-else
- echo " OK!"
 fi
 echo
 
@@ -430,15 +420,14 @@ echo "###########################"
 echo "# apt-utils aktualisieren #"
 echo "###########################"
 tweak_apt
-apt-get -y install apt-utils tasksel debian-archive-keyring dpkg locales
-apt-get update
+aptitude -y install apt-utils tasksel debian-archive-keyring dpkg locales apache2
+aptitude update
 echo
 
 
 echo "#########################"
 echo "# Pakete deinstallieren #"
 echo "#########################"
-tweak_apt
 # tweaking kdm
 CONF=/etc/init.d/kdm
 if [ -e "$CONF" ]; then
@@ -447,78 +436,16 @@ if [ -e "$CONF" ]; then
  echo "exit 0" >> $CONF
  chmod 755 $CONF
 fi
-apt-get -y remove $PKGSTOREMOVE
-echo
-
-
-echo "###############"
-echo "# base-passwd #"
-echo "###############"
-tweak_apt
-apt-get -y install passwd
-# check for bittorrent user
-id bittorrent &> /dev/null && BTUSER=yes
-apt-get -y install base-passwd
-# recreate bittorrent user removed by update-passwd
-if [ -n "$BTUSER" ]; then
- if ! grep -q ^bittorrent: /etc/group; then
-  groupadd -r bittorrent
- fi
- if ! grep -q ^bittorrent: /etc/passwd; then
-  useradd -r -d /home/bittorrent -c "bittorrent user" -g bittorrent -s /bin/bash bittorrent
- fi 
-fi
-echo
-
-
-if [ -n "$BITTORRENT" ]; then
- echo "##############"
- echo "# bittorrent #"
- echo "##############"
- apt-get -y install bittorrent
- chown bittorrent /var/log/bittorrent -R
- chown bittorrent /var/lib/bittorrent -R
- echo
-fi
-
-
-echo "################"
-echo "# dist-upgrade #"
-echo "################"
-tweak_apt
-apt-get -y upgrade
-apt-get -y dist-upgrade
-apt-get -y purge avahi-daemon
-echo
-
-
-echo "###############"
-echo "# common task #"
-echo "###############"
-tweak_apt
-linuxmuster-task --unattended --install=common
-echo
-
-
-echo "###############"
-echo "# server task #"
-echo "###############"
-tweak_apt
-linuxmuster-task --unattended --install=server
+aptitude -y remove $PKGSTOREMOVE
 echo
 
 
 echo "##############"
 echo "# postgresql #"
 echo "##############"
-
-# postgresql upgrade
+# then do the postgresql upgrade
 tweak_apt
-apt-get -y install postgresql
-for i in postgresql postgresql-8.3 postgresql-client-8.3; do
- # check installed ok
- dpkg -s $i | grep -q ^"Status: install ok installed" || apt-get -y install $i
-done
+aptitude -y install postgresql postgresql-8.3 postgresql-client-8.3
 /etc/init.d/postgresql-8.3 stop
 pg_dropcluster 8.3 main &> /dev/null
 pg_createcluster 8.3 main
@@ -526,7 +453,7 @@ cp $STATICTPLDIR/etc/postgresql/8.3/main/* /etc/postgresql/8.3/main
 /etc/init.d/postgresql-8.3 start
 update-rc.d -f postgresql-7.4 remove
 update-rc.d -f postgresql-8.1 remove
-if ! /etc/init.d/postgresql-8.3 status 2>> $LOGFILE 1>> $LOGFILE; then
+if ! /etc/init.d/postgresql-8.3 status | grep /var/lib/postgresql/8.3 | grep -q online; then
  echo "Postgresql-Datenbank läuft nicht! Details siehe $LOGFILE."
  echo "Beheben Sie den Fehler und starten Sie das Upgrade danach erneut!"
  exit 1
@@ -577,6 +504,8 @@ echo
 echo "############"
 echo "# openldap #"
 echo "############"
+tweak_apt
+aptitude -y install slapd
 /etc/init.d/slapd stop
 RC=1
 slapcat > /var/tmp/ldap.ldif ; RC="$?"
@@ -597,21 +526,79 @@ fi
 echo
 
 
-echo "################"
-echo "# imaging task #"
-echo "################"
-tweak_apt
-linuxmuster-task --unattended --install=imaging-$imaging
-echo
-
-
 echo "##############"
 echo "# sophomorix #"
 echo "##############"
 tweak_apt
 rm $INSTALLED
-apt-get -y install sophomorix2
+aptitude -y install sophomorix2
 touch $INSTALLED
+echo
+
+
+echo "###############"
+echo "# base-passwd #"
+echo "###############"
+tweak_apt
+aptitude -y install passwd
+# check for bittorrent user
+id bittorrent &> /dev/null && BTUSER=yes
+aptitude -y install base-passwd
+# recreate bittorrent user removed by update-passwd
+if [ -n "$BTUSER" ]; then
+ if ! grep -q ^bittorrent: /etc/group; then
+  groupadd -r bittorrent
+ fi
+ if ! grep -q ^bittorrent: /etc/passwd; then
+  useradd -r -d /home/bittorrent -c "bittorrent user" -g bittorrent -s /bin/bash bittorrent
+ fi 
+fi
+echo
+
+
+if [ -n "$BITTORRENT" ]; then
+ echo "##############"
+ echo "# bittorrent #"
+ echo "##############"
+ aptitude -y install bittorrent
+ chown bittorrent /var/log/bittorrent -R
+ chown bittorrent /var/lib/bittorrent -R
+ echo
+fi
+
+
+echo "################"
+echo "# dist-upgrade #"
+echo "################"
+tweak_apt
+aptitude -y safe-upgrade
+aptitude -y dist-upgrade
+aptitude -y dist-upgrade
+aptitude -y purge avahi-daemon
+echo
+
+
+echo "###############"
+echo "# common task #"
+echo "###############"
+tweak_apt
+linuxmuster-task --unattended --install=common
+echo
+
+
+echo "###############"
+echo "# server task #"
+echo "###############"
+tweak_apt
+linuxmuster-task --unattended --install=server
+echo
+
+
+echo "################"
+echo "# imaging task #"
+echo "################"
+tweak_apt
+linuxmuster-task --unattended --install=imaging-$imaging
 echo
 
 
@@ -638,8 +625,8 @@ if [ -n "$FREERADIUS" ]; then
  echo "# linuxmuster-freeradius #"
  echo "##########################"
  tweak_apt
- apt-get -y install freeradius freeradius-ldap
- apt-get -y install linuxmuster-freeradius
+ aptitude -y install freeradius freeradius-ldap
+ aptitude -y install linuxmuster-freeradius
  CONF=/etc/freeradius/clients.conf
  if [ -s "$CONF" -a -d "$FREEDYNTPLDIR" -a ! -e "$CACHEDIR/.freeradius.upgrade50.done" ]; then
   echo "Aktualisiere freeradius ..."
@@ -680,7 +667,7 @@ if [ -n "$COPSPOT" ]; then
  echo "# copspot #"
  echo "###########"
  tweak_apt
- apt-get -y install linuxmuster-ipcop-addon-copspot
+ aptitude -y install linuxmuster-ipcop-addon-copspot
  echo
 fi
 
@@ -690,7 +677,7 @@ if [ -n "$PYKOTA" ]; then
  echo "# linuxmuster-pk #"
  echo "##################"
  tweak_apt
- apt-get -y install linuxmuster-pk
+ aptitude -y install linuxmuster-pk
  echo
 fi
 
@@ -701,7 +688,7 @@ if [ -n "$REMOTEMON" ]; then
  echo "# linuxmuster-nagios-fernueberwachung #"
  echo "#######################################"
  tweak_apt
- apt-get -y install $REMOTEMON
+ aptitude -y install $REMOTEMON
  echo
 fi
 
@@ -711,7 +698,7 @@ if [ -n "$PHPMYADMIN" ]; then
  echo "# phpmyadmin #"
  echo "##############"
  tweak_apt
- apt-get -y install phpmyadmin
+ aptitude -y install phpmyadmin
  echo
 fi
 
@@ -721,7 +708,7 @@ if [ -n "$PHPPGADMIN" ]; then
  echo "# phppgadmin #"
  echo "##############"
  tweak_apt
- apt-get -y install phppgadmin
+ aptitude -y install phppgadmin
  echo
 fi
 
@@ -732,8 +719,8 @@ if [ -n "$OPENML" ]; then
  echo "##########"
  tweak_apt
  echo "deb http://www.linuxmuster.net/openlml-unsupported/ openlml/" > /etc/apt/sources.list.d/openml.list
- apt-get update
- apt-get -y install linuxmuster-schulkonsole-templates-openlml
+ aptitude update
+ aptitude -y install linuxmuster-schulkonsole-templates-openlml
  echo
 else
  echo "##########"
@@ -755,7 +742,7 @@ if [ -n "$MRBS" ]; then
  echo "# linuxmuster-mrbs #"
  echo "####################"
  tweak_apt
- apt-get -y install linuxmuster-mrbs
+ aptitude -y install linuxmuster-mrbs
  echo
 fi
 
@@ -765,7 +752,7 @@ if [ -n "$PORTFOLIO" ]; then
  echo "# linuxmuster-portfolio #"
  echo "#########################"
  tweak_apt
- apt-get -y install linuxmuster-portfolio
+ aptitude -y install linuxmuster-portfolio
  echo
 fi
 
@@ -806,7 +793,7 @@ if [ -n "$NFSSERVER" ]; then
  echo "# nfs-server #"
  echo "##############"
  tweak_apt
- apt-get -y install $NFSSERVER
+ aptitude -y install $NFSSERVER
  echo
 else
  if [ -n "$NFSCOMMON" ]; then
@@ -814,7 +801,7 @@ else
   echo "# nfs-common #"
   echo "##############"
   tweak_apt
-  apt-get -y install $NFSCOMMON
+  aptitude -y install $NFSCOMMON
  fi
  echo
 fi
@@ -842,7 +829,7 @@ echo "#############"
 rm -f /etc/apt/apt.conf.d/99upgrade
 rm -f "$LOCALSRC"
 rm -f "$PKGLIST"
-apt-get update
+aptitude update
 # final stuff
 dpkg-reconfigure linuxmuster-base
 linuxmuster-nagios-setup
@@ -865,6 +852,9 @@ if [ -s "$WIMPORTDATA" ]; then
  [ "$START_LINUXMUSTER" = "[Yy][Ee][Ss]" ] && sed -e 's|^START_LINUXMUSTER=.*|START_LINUXMUSTER=yes|' -i /etc/default/linuxmuster-base
  echo
 fi
+
+eject "$CDROOT"
+echo
 
 echo "#############################################"
 echo "# Beendet um `date`. #"
