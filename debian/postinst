@@ -432,6 +432,10 @@ $addstr" -i $conf
     grep -q /var/cache/apt/archives /etc/apt/sources.list.d/local.list &> /dev/null && rm /etc/apt/sources.list.d/local.list
    fi
 
+   # remove old paedml50.list
+   conf="/etc/apt/sources.list.d/paedml50.list"
+   [ -e "$conf" ] && mv "$conf" "$conf.dpkg-bak"
+
    # update backup.conf (#551, #499)
    conf="$SYSCONFDIR/backup.conf"
    searchstr="cupsys,cups atftpd,tftpd-hpa"

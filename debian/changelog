@@ -4,10 +4,10 @@ linuxmuster-base (5.1.0-0lenny0) lenny; urgency=low
   * updated paedml sources.list file.
   * dist.conf: updated paedml version furthermore using 5.0.4 iso for upgrade.
   * backup.conf, services: changed cupsys to cups, atftpd to tftpd-hpa (closes #551, see #499).
-  * postinst: updates backup.conf as mentioned above.
-  * linuxmuster-setup: some modifications according to #499 (change atftpd to tftpd-hpa).
+  * postinst: updates backup.conf as mentioned above, removes old paedml50.list.
+  * linuxmuster-setup: some modifications according to #499 (change atftpd to tftpd-hpa), paedml sources.list update.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 28 Nov 2011 12:32:31 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 28 Nov 2011 19:57:48 +0100
 
 linuxmuster-base (1.5.37-lenny0) lenny; urgency=low
 
