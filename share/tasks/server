@@ -16,6 +16,8 @@ cyrus-admin-2.2
 cyrus-imapd-2.2
 cyrus-pop3d-2.2
 dhcp3-server
+firmware-linux-free
+firmware-linux-nonfree
 foomatic-filters-ppds
 gollem
 horde3

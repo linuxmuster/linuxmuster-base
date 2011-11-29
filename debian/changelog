@@ -6,8 +6,9 @@ linuxmuster-base (5.1.0-0lenny0) lenny; urgency=low
   * backup.conf, services: changed cupsys to cups, atftpd to tftpd-hpa (closes #551, see #499).
   * postinst: updates backup.conf as mentioned above, removes old paedml50.list.
   * linuxmuster-setup: some modifications according to #499 (change atftpd to tftpd-hpa), paedml sources.list update.
+  * added firmware packages to server task.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 28 Nov 2011 19:57:48 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 29 Nov 2011 10:13:38 +0100
 
 linuxmuster-base (1.5.37-lenny0) lenny; urgency=low
 
