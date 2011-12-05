@@ -94,6 +94,7 @@ case $opt in
      echo "Providing apt configuration." | tee -a $logfile
      cp /etc/apt/sources.list /etc/apt/sources.list.dpkg-bak
      cp -a $STATICTPLDIR/etc/apt/* /etc/apt
+     [ -d "$PKGCACHE/dists" -a -d "$PKGCACHE/pool" ] || rm -f /etc/apt/sources.list.d/local.list
     fi
 
     # turn shadow passwords on
