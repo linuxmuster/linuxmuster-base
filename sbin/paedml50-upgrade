@@ -16,6 +16,7 @@
 
 . /usr/share/linuxmuster/config/dist.conf
 . $HELPERFUNCTIONS
+[ -z "$PKGCACHE" ] && PKGCACHE="$CACHEDIR/pkgs"
 LOGFILE="$LOGDIR/paedml50-upgrade.log"
 NOW=`date`
 

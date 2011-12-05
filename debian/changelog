@@ -7,7 +7,7 @@ linuxmuster-base (5.1.0-1lenny0) lenny; urgency=low
     to be equal to linuxmuster-setup.
   * changed codename to "Niveau-LINBO".
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 05 Dec 2011 17:56:47 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 05 Dec 2011 18:26:11 +0100
 
 linuxmuster-base (5.1.0-0lenny0) lenny; urgency=low
 
