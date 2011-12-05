@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# copy cdrom content to hd 
+mkdir -p /target/var/cache/linuxmuster/pkgs
+cp -a /cdrom/dists /target/var/cache/linuxmuster/pkgs
+cp -a /cdrom/pool /target/var/cache/linuxmuster/pkgs
+cp /cdrom/paedml-release.asc /target/var/cache/linuxmuster/pkgs
+echo "deb file:///var/cache/linuxmuster/pkgs/ lenny main non-free" > /target/etc/apt/sources.list
+

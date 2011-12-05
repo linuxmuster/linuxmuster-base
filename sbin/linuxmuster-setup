@@ -34,19 +34,6 @@ usage() {
   exit 1
 }
 
-# mount installation cdrom
-mount_cdrom() {
- local device=$1
- [ -n "$device" ] && device="/dev/$device"
- mount $device /cdrom &> /dev/null
- if grep -q "[op][pa][e][nd]ML Linux" /cdrom/.disk/info &> /dev/null; then
-  return 0
- else
-  umount /cdrom &> /dev/null
-  return 1
- fi
-}
-
 [[ "$opt" = "--first" || "$opt" = "--modify" ]] || usage
 
 # look if we were on first boot
@@ -98,9 +85,14 @@ case $opt in
 
   --first)
 
-    # copy apt configs if not on first boot
-    if [ -z "$firstboot" ]; then
-     cp /etc/apt/sources.list /etc/apt/sources.list.orig
+    # copy local repo files on first boot
+    if [ -n "$firstboot" ]; then
+     echo "Providing local repo list." | tee -a $logfile
+     rm -f /etc/apt/sources.list.d/*
+     cp $STATICTPLDIR/etc/apt/sources.list.d/local.list /etc/apt/sources.list
+    else # renew complete apt configuration
+     echo "Providing apt configuration." | tee -a $logfile
+     cp /etc/apt/sources.list /etc/apt/sources.list.dpkg-bak
      cp -a $STATICTPLDIR/etc/apt/* /etc/apt
     fi
 
@@ -110,36 +102,17 @@ case $opt in
     # add cyrus user
     id cyrus &> /dev/null || useradd -c "Cyrus Mailsystem User" -d /var/spool/cyrus -g mail -m -r -s /bin/sh cyrus | tee -a $logfile
 
-    # mount cdrom
-    if grep -q ^"deb cdrom" /etc/apt/sources.list; then
-	eject -t &> /dev/null
-	for i in "" scd0 scd1 scd2; do
-	 if mount_cdrom "$i"; then
-	  if stringinstring scd "$i"; then
-	   rm -f /dev/cdrom /dev/dvd
-	   ln -s /dev/$i /dev/cdrom
-	   ln -s /dev/$i /dev/dvd
-	   cp /etc/fstab /etc/fstab.linuxmuster-setup.first
-	   grep -v cdrom /etc/fstab.linuxmuster-setup.first > /etc/fstab
-	   echo "/dev/$i /media/cdrom0 udf,iso9660 user,noauto 0 0" >> /etc/fstab
-	  fi
-	  cdrom_mounted=yes
-	  break
-	 fi
-	done
-	if [ -z "$cdrom_mounted" ]; then
-	 echo "Fatal: Cannot mount install cd!"
-	 exit 1
-	fi
-    fi
-
     # install paedml release key
-    [ -e /cdrom/paedml-release.asc ] && apt-key add /cdrom/paedml-release.asc
+    relkey="$CACHEDIR/pkgs/paedml-release.asc"
+    if [ -e "$relkey" ]; then
+     echo "Installing paedml release key." | tee -a $logfile
+     apt-key "$relkey" | tee -a $logfile
+    fi
 
     # check tasks
     for i in common server desktop imaging-linbo imaging-rembo; do
       if [ ! -s "/usr/share/linuxmuster/tasks/$i" ]; then
-        echo "Error: Taskfile $i not found!"
+        echo "Error: Taskfile $i not found!" | tee -a $logfile
         exit 1
       fi
     done
@@ -153,6 +126,7 @@ case $opt in
     templatespaedml=`aptitude search linuxmuster-schulkonsole-templates-paedml`
 
     # tweaking buggy sophomorix, install postgresql first
+    aptitude update | tee -a $logfile
     DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql | tee -a $logfile
     #DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql-8.1 | tee -a $logfile
 
