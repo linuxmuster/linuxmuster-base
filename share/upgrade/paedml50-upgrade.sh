@@ -21,6 +21,7 @@ KDE=`dpkg -l | grep "kdm" | grep ^i`
 OPENML=`dpkg -l | grep "schulkonsole-templates-openlml" | grep ^i`
 TEMPLBASE=`dpkg -l | grep "linuxmuster-schulkonsole-templates-base" | grep ^i | awk '{ print $2 }'`
 REMOTEMON=`dpkg -l | grep "linuxmuster-nagios-fernueberwachung" | grep ^i | awk '{ print $2 }'`
+REMBO=`dpkg -l | grep "myshn" | grep ^i | awk '{ print $2 }'`
 PYKOTA=`dpkg -l | grep "linuxmuster-pk " | grep ^i`
 [ -z "$PYKOTA" ] && PYKOTA=`dpkg -l | grep "linuxmuster-pykota " | grep ^i`
 BITTORRENT=`dpkg -l | grep " bittorrent " | grep ^i`
@@ -80,14 +81,20 @@ for i in servername domainname internmask internsubrange imaging sambasid workgr
  RET=`echo get linuxmuster-base/$i | debconf-communicate`
  RET=${RET#[0-9] }
  esc_spec_chars "$RET"
+ # fix empty/missing imaging variable
  if [ -z "$RET" ]; then
   if [ "$i" = "imaging" ]; then
-   echo "set linuxmuster-base/imaging rembo" | debconf-communicate
-   RET=rembo
-   if grep -q ^imaging $NETWORKSETTINGS; then
-    sed -e 's/^imaging=.*/imaging=rembo/' -i $NETWORKSETTINGS
+   if [ -n "$REMBO" ]; then
+    imaging=rembo
    else
-    echo "imaging=rembo" >> $NETWORKSETTINGS
+    imaging=linbo
+   fi
+   echo "set linuxmuster-base/imaging $imaging" | debconf-communicate
+   RET=$imaging
+   if grep -q ^imaging $NETWORKSETTINGS; then
+    sed -e "s/^imaging=.*/imaging=$imaging/" -i $NETWORKSETTINGS
+   else
+    echo "imaging=$imaging" >> $NETWORKSETTINGS
    fi
   else
    echo "    Fehler! $i ist nicht gesetzt!"
@@ -168,14 +175,6 @@ cp -a $STATICTPLDIR/etc/apt/* /etc/apt
 # package list update
 echo "Aktualisiere Paketlisten ..."
 tweak_apt
-if [ ! -s "$PKGLIST" ]; then
- echo "Fehler: Lokale Paketliste $PKGLIST nicht vorhanden!"
- exit 1
-fi
-if ! echo "deb file://$PKGCACHE ./" > "$LOCALSRC"; then
- echo "Fehler: Kann Quellendatei "$LOCALSRC" nicht erstellen!"
- exit 1
-fi
 if ! aptitude update; then
  echo
  echo "Fehler: Kann Paketlisten nicht aktualisieren."
@@ -414,6 +413,8 @@ echo "#########################"
 echo "# Distributions-Upgrade #"
 echo "#########################"
 echo
+# sets rembo/myshn on hold
+[ -n "$REMBO" ] && aptitude hold rembo myshn
 
 
 echo "###########################"
@@ -594,12 +595,14 @@ linuxmuster-task --unattended --install=server
 echo
 
 
-echo "################"
-echo "# imaging task #"
-echo "################"
-tweak_apt
-linuxmuster-task --unattended --install=imaging-$imaging
-echo
+if [ "$imaging" = "linbo" ]; then
+ echo "################"
+ echo "# imaging task #"
+ echo "################"
+ tweak_apt
+ linuxmuster-task --unattended --install=imaging-$imaging
+ echo
+fi
 
 
 if [ -n "$KDE" ]; then
@@ -827,8 +830,6 @@ echo "# Aufräumen #"
 echo "#############"
 # remove apt.conf stuff only needed for upgrade
 rm -f /etc/apt/apt.conf.d/99upgrade
-rm -f "$LOCALSRC"
-rm -f "$PKGLIST"
 aptitude update
 # final stuff
 dpkg-reconfigure linuxmuster-base

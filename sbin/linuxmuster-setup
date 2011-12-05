@@ -106,7 +106,7 @@ case $opt in
     relkey="$CACHEDIR/pkgs/paedml-release.asc"
     if [ -e "$relkey" ]; then
      echo "Installing paedml release key." | tee -a $logfile
-     apt-key "$relkey" | tee -a $logfile
+     apt-key add "$relkey" | tee -a $logfile
     fi
 
     # check tasks

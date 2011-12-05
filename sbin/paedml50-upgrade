@@ -17,9 +17,6 @@
 . /usr/share/linuxmuster/config/dist.conf
 . $HELPERFUNCTIONS
 LOGFILE="$LOGDIR/paedml50-upgrade.log"
-PKGCACHE="/var/cache/apt/archives"
-PKGLIST="$PKGCACHE/Packages"
-LOCALSRC="/etc/apt/sources.list.d/local.list"
 NOW=`date`
 
 
@@ -202,40 +199,17 @@ if [ -z "$checked" ]; then
 fi
 
 
-# check for apt-ftparchive
-RC=0
-if [ ! -x /usr/bin/apt-ftparchive ]; then
- echo "Installiere apt-utils ..."
- tweak_apt
- aptitude -y install apt-utils ; RC="$?"
-fi
-if [ "$RC" != "0" -o ! -x /usr/bin/apt-ftparchive ]; then
- echo "Fehler bei der Installation der apt-utils!" | tee -a $LOGFILE
- echo "Beheben Sie den Fehler und installieren Sie das Paket \"apt-utils\"." | tee -a $LOGFILE
- exit 1
-fi
-
-
 # copy packages from cdrom to cache
-cd "$CDROOT/pool" || exit 1
-echo "Kopiere Pakete ..." | tee -a $LOGFILE
-for i in `find . -name \*.deb`; do
- cp -v "$i" "$PKGCACHE" | tee -a $LOGFILE
+for i in dists pool; do
+ [ -d "$CDROOT/$i" ] || exit 1
+ mkdir -p "$PKGCACHE/$i"
+ rsync -a -v --delete "$CDROOT/$i/" "$PKGCACHE/$i/" || exit 1
 done
-
-
-# create local packages repo
-echo
-rm -f "$PKGLIST"*
-echo "Erstelle lokales Paketrepository." | tee -a $LOGFILE
-cd "$PKGCACHE" || exit 1
-apt-ftparchive packages ./ > "$PKGLIST" || exit 1
-echo
 
 
 # check if newer linuxmuster-base package is on cdrom and install it
 curver="$(dpkg -s linuxmuster-base | grep ^Version | awk '{ print $2 }')"
-cdpkg="$(ls "$PKGCACHE"/linuxmuster-base_*.deb | tail -1)"
+cdpkg="$(ls "$PKGCACHE"/pool/main/l/linuxmuster/linuxmuster-base_*.deb | tail -1)"
 if [ -z "$cdpkg" ]; then
  echo "Fehler! Kein linuxmuster-base-Paket gefunden!" | tee -a $LOGFILE
  exit 1
