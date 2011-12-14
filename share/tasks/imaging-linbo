@@ -1,4 +1,4 @@
-tftp-hpa
+tftpd-hpa
 syslinux
 udpcast
 rsync
