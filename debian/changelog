@@ -5,9 +5,10 @@ linuxmuster-base (5.1.0-1lenny0) lenny; urgency=low
     is no more needed after reboot).
   * paedml50-upgrade: changed local repo dir also to /var/cache/linuxmuster/pkgs
     to be equal to linuxmuster-setup.
-  * changed codename to "Niveau-LINBO".
+  * changed codename to "NiveauLINBO".
+  * fixed name of tftp-hpa package in imaging-linbo task.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 05 Dec 2011 18:26:11 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 14 Dec 2011 18:25:29 +0100
 
 linuxmuster-base (5.1.0-0lenny0) lenny; urgency=low
 
