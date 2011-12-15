@@ -1,5 +1,5 @@
 #
-# paedML upgrade from 4.0.x to 5.0.x
+# paedML upgrade from 4.0.x to 5.1.x
 # main script
 # 
 # Thomas Schmitt
@@ -44,14 +44,14 @@ PKGSTOREMOVE="linuxmuster-freeradius linux-image-server phpmyadmin phppgadmin \
 PKGREPOS="ftp.de.debian.org/debian/ \
           ftp.de.debian.org/debian-volatile/ \
           security.debian.org \
-          pkg.lml.support-netz.de/paedml50-updates/"
+          pkg.lml.support-netz.de/paedml51-updates/"
 
 # check for remoteadmin account and save password hash
 REMADMINPWHASH="$(grep remoteadmin /etc/shadow | awk -F\: '{ print $2 }')"
 
 # messages for config file headers
 message1="##### Do not change this file! It will be overwritten!"
-message2="##### This configuration file was automatically created by paedml50-upgrade!"
+message2="##### This configuration file was automatically created by paedml51-upgrade!"
 message3="##### Last Modification: $NOW"
 
 
@@ -729,7 +729,7 @@ else
  echo "##########"
  echo "# paedML #"
  echo "##########"
- indexpage="$(ls -t /var/cache/apt/archives/linuxmuster-indexpage_5.0*.deb 2> /dev/null | head -1)"
+ indexpage="$(ls -t /var/cache/apt/archives/linuxmuster-indexpage_5.*.deb 2> /dev/null | head -1)"
  schukotempl="$(ls -t /var/cache/apt/archives/linuxmuster-schulkonsole-templates-paedml_*.deb 2> /dev/null | head -1)"
  [ -s "$indexpage" ] && dpkg -i $indexpage
  if [ -s "$schukotempl" ]; then

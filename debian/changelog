@@ -3,11 +3,13 @@ linuxmuster-base (5.1.0-1lenny0) lenny; urgency=low
   * linuxmuster-setup: various modifications due to #77 (cdrom package repository
     will be copied to /var/cache/linuxmuster/pkgs during stage 1, therefore cdrom
     is no more needed after reboot).
-  * paedml50-upgrade: changed local repo dir also to /var/cache/linuxmuster/pkgs
+  * changed version in upgrade scripts.
+  * removed 5.0 upgrade text in doc.
+  * paedml51-upgrade: changed local repo dir also to /var/cache/linuxmuster/pkgs
     to be equal to linuxmuster-setup.
   * changed codename to "NiveauLINBO".
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 14 Dec 2011 18:28:45 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de> Thu, 15 Dec 2011 20:00:20 +0100
 
 linuxmuster-base (5.1.0-0lenny0) lenny; urgency=low
 

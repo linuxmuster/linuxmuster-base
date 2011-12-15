@@ -1,4 +1,3 @@
-doc/*				usr/share/doc/linuxmuster-base/
 etc/*				etc/
 sbin/*			usr/sbin/
 share/*		usr/share/linuxmuster/

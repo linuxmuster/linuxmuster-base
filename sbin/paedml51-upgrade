@@ -1,13 +1,13 @@
 #!/bin/bash
 #
-# upgrade paedML 4.0.x to 5.0.x
+# upgrade paedML 4.0.x to 5.1.x
 # online wrapper script
 #
 # cmdline parameter: path to paedML/openML iso file
 # downloads openML iso if no iso file is given on cmdline
 # invokes at least upgrade script
 #
-# $Id$
+# $Id: paedml50-upgrade 1185 2011-12-05 17:34:14Z tschmitt $
 # 
 # Thomas Schmitt
 # <schmitt@lmz-bw.de>
@@ -17,7 +17,7 @@
 . /usr/share/linuxmuster/config/dist.conf
 . $HELPERFUNCTIONS
 [ -z "$PKGCACHE" ] && PKGCACHE="$CACHEDIR/pkgs"
-LOGFILE="$LOGDIR/paedml50-upgrade.log"
+LOGFILE="$LOGDIR/paedml51-upgrade.log"
 NOW=`date`
 
 
@@ -87,7 +87,7 @@ fi
 
 
 # check if we are running from cdrom
-[ "$(basename "$0")" = "paedml50-cdrom-upgrade" ] && CDROOT="$(dirname "$0")"
+[ "$(basename "$0")" = "paedml51-cdrom-upgrade" ] && CDROOT="$(dirname "$0")"
 
 
 # parse commandline arguments if not running from cdrom
@@ -180,8 +180,8 @@ if [ -z "$checked" ]; then
  echo "Prüfe Upgrade-Medium." | tee -a $LOGFILE
  cd "$CDROOT"
  RC=0
- if ! grep -q "ML Linux 5" .disk/info; then
-  echo "Das ist keine paedML/openML-CDROM der Version 5!" | tee -a $LOGFILE
+ if ! grep -q "ML Linux 5.1" .disk/info; then
+  echo "Das ist keine paedML/openML-CDROM der Version 5.1.x!" | tee -a $LOGFILE
   RC=1
  fi
  if [ "$RC" = "0" ]; then
@@ -224,6 +224,6 @@ fi
 
 # source upgradeskript from /tmp
 cd ~
-cp $DATADIR/upgrade/paedml50-upgrade.sh /tmp || exit 1
-. /tmp/paedml50-upgrade.sh 2>&1 | tee -a $LOGFILE
+cp $DATADIR/upgrade/paedml51-upgrade.sh /tmp || exit 1
+. /tmp/paedml51-upgrade.sh 2>&1 | tee -a $LOGFILE
 
