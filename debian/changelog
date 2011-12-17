@@ -3,14 +3,14 @@ linuxmuster-base (5.1.0-2lenny0) lenny; urgency=low
   * linuxmuster-setup:
     - removed installation options for integrated firewall and rembo.
     - changed cdrom package repository to /var/cache/apt/archives.
-  * linuxmuster-prepare: added finish-install.d/06linuxmuster to copy all debs
+  * linuxmuster-prepare: added finish-install.d/61linuxmuster to copy all debs
     to /var/cache/apt/archives to be able to continue setup without cdrom after reboot.
   * paedml51-upgrade:
     - changed cdrom package repository also to /var/cache/apt/archives.
     - added check for integrated firewall.
     - hiding console message if cdrom cannot be unmounted.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 17 Dec 2011 17:47:14 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 17 Dec 2011 19:19:19 +0100
 
 linuxmuster-base (5.1.0-1lenny0) lenny; urgency=low
 

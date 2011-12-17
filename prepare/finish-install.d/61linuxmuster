@@ -1,4 +1,6 @@
 #!/bin/sh
+#
+# $Id$
 
 # copy cdrom content to hd 
 mkdir -p /target/var/cache/apt/archives
