@@ -91,7 +91,7 @@ case $opt in
      cd /var/cache/apt/archives | tee -a $logfile
      apt-ftparchive packages ./ > Packages | tee -a $logfile
      cd ~
-     echo "deb file:///var/cache/apt/archives ./" > etc/apt/sources.list | tee -a $logfile
+     echo "deb file:///var/cache/apt/archives ./" > /etc/apt/sources.list | tee -a $logfile
     else # renew complete apt configuration
      echo "Resetting apt configuration." | tee -a $logfile
      cp -a $STATICTPLDIR/etc/apt/* /etc/apt | tee -a $logfile
