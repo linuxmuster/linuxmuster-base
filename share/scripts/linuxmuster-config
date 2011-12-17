@@ -178,7 +178,8 @@ externconfig() {
 #fi
 
 # firewall is always dedicated
-db_set linuxmuster-base/fwconfig dedicated || true
+fwconfig=dedicated
+db_set linuxmuster-base/fwconfig $fwconfig || true
 [ "$1" = "--modify" ] && externconfig
 
 
