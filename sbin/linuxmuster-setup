@@ -88,7 +88,7 @@ case $opt in
     # create local package repository
     if [ -n "$firstboot" ]; then
      echo "Creating local repository ..." | tee -a $logfile
-     cd /var/cache/apt/archives | tee -a $logfile
+     cd /var/cache/apt/archives
      apt-ftparchive packages ./ > Packages | tee -a $logfile
      cd ~
      echo "deb file:///var/cache/apt/archives ./" > /etc/apt/sources.list | tee -a $logfile

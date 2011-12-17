@@ -10,7 +10,7 @@ linuxmuster-base (5.1.0-2lenny0) lenny; urgency=low
     - added check for integrated firewall.
     - hiding console message if cdrom cannot be unmounted.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 17 Dec 2011 21:08:24 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 17 Dec 2011 21:49:29 +0100
 
 linuxmuster-base (5.1.0-1lenny0) lenny; urgency=low
 
