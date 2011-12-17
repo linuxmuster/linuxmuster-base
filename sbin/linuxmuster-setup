@@ -85,16 +85,10 @@ case $opt in
 
   --first)
 
-    # copy local repo files on first boot
-    if [ -n "$firstboot" ]; then
-     echo "Providing local repo list." | tee -a $logfile
-     rm -f /etc/apt/sources.list.d/*
-     cp $STATICTPLDIR/etc/apt/sources.list.d/local.list /etc/apt/sources.list
-    else # renew complete apt configuration
-     echo "Providing apt configuration." | tee -a $logfile
-     cp /etc/apt/sources.list /etc/apt/sources.list.dpkg-bak
+    # renew complete apt configuration
+    if [ -z "$firstboot" ]; then
+     echo "Resetting apt configuration." | tee -a $logfile
      cp -a $STATICTPLDIR/etc/apt/* /etc/apt
-     [ -d "$PKGCACHE/dists" -a -d "$PKGCACHE/pool" ] || rm -f /etc/apt/sources.list.d/local.list
     fi
 
     # turn shadow passwords on
@@ -104,14 +98,14 @@ case $opt in
     id cyrus &> /dev/null || useradd -c "Cyrus Mailsystem User" -d /var/spool/cyrus -g mail -m -r -s /bin/sh cyrus | tee -a $logfile
 
     # install paedml release key
-    relkey="$CACHEDIR/pkgs/paedml-release.asc"
+    relkey="$CACHEDIR/paedml-release.asc"
     if [ -e "$relkey" ]; then
      echo "Installing paedml release key." | tee -a $logfile
      apt-key add "$relkey" | tee -a $logfile
     fi
 
     # check tasks
-    for i in common server desktop imaging-linbo imaging-rembo; do
+    for i in common server imaging-linbo; do
       if [ ! -s "/usr/share/linuxmuster/tasks/$i" ]; then
         echo "Error: Taskfile $i not found!" | tee -a $logfile
         exit 1

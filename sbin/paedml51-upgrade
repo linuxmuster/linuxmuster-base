@@ -16,7 +16,6 @@
 
 . /usr/share/linuxmuster/config/dist.conf
 . $HELPERFUNCTIONS
-[ -z "$PKGCACHE" ] && PKGCACHE="$CACHEDIR/pkgs"
 LOGFILE="$LOGDIR/paedml51-upgrade.log"
 NOW=`date`
 
@@ -77,6 +76,29 @@ echo "# paedML/openML Linux Distributions-Upgrade auf Debian 5.0.3 Lenny #" | te
 echo "# Startzeit: $NOW                         #" | tee -a $LOGFILE
 echo "####################################################################" | tee -a $LOGFILE
 echo | tee -a $LOGFILE
+
+
+# check for firewall type
+fwtype="$(debconf-show linuxmuster-base | grep fwconfig | awk -F \: '{ print $2}' | awk '{ print $1}')"
+if [ "$fwtype" = "integrated" ]; then
+ echo "Integrierte Firewall erkannt." | tee -a $LOGFILE
+ echo "Ab Version 5.1.0 wird die integrierte Firewall nicht mehr unterstützt." | tee -a $LOGFILE
+ echo "Stellen Sie auf dedizierte Firewall um und starten Sie das Upgrade danach erneut." | tee -a $LOGFILE
+ exit 1
+fi
+
+
+# check if apt-ftparchive is present
+APTARCHIVE="$(which apt-ftparchive)"
+if [ -z "$APTARCHIVE" ]; then
+ echo "Installiere apt-utils."
+ aptitude -y install apt-utils
+fi
+APTARCHIVE="$(which apt-ftparchive)"
+if [ -z "$APTARCHIVE" ]; then
+ echo "apt-ftparchive nicht gefunden!"
+ exit 1
+fi
 
 
 # first check for enough space on /var
@@ -200,17 +222,20 @@ if [ -z "$checked" ]; then
 fi
 
 
-# copy packages from cdrom to cache
-for i in dists pool; do
- [ -d "$CDROOT/$i" ] || exit 1
- mkdir -p "$PKGCACHE/$i"
- rsync -a -v --delete "$CDROOT/$i/" "$PKGCACHE/$i/" || exit 1
-done
+# copy packages from cdrom to cache and create local repo
+find "$CDROOT/pool" -name \*.deb -exec cp -v '{}' /var/cache/apt/archives \; | tee -a $LOGFILE
+echo "Erstelle lokales Paket-Repository ..." | tee -a $LOGFILE
+cd /var/cache/apt/archives
+"$APTARCHIVE" packages ./ > Packages | tee -a $LOGFILE
+if [ ! -s Packages ]; then
+ echo " fehlgeschlagen!" | tee -a $LOGFILE
+ exit 1
+fi
 
 
 # check if newer linuxmuster-base package is on cdrom and install it
 curver="$(dpkg -s linuxmuster-base | grep ^Version | awk '{ print $2 }')"
-cdpkg="$(ls "$PKGCACHE"/pool/main/l/linuxmuster/linuxmuster-base_*.deb | tail -1)"
+cdpkg="$(ls linuxmuster-base_*.deb | tail -1)"
 if [ -z "$cdpkg" ]; then
  echo "Fehler! Kein linuxmuster-base-Paket gefunden!" | tee -a $LOGFILE
  exit 1
