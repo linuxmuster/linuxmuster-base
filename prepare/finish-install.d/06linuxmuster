@@ -1,11 +1,8 @@
 #!/bin/sh
 
 # copy cdrom content to hd 
-mkdir -p /target/etc/apt
 mkdir -p /target/var/cache/apt/archives
-mkdir -p /target/var/lib/linuxmuster
+mkdir -p /target/var/cache/linuxmuster
 find /cdrom/pool -name \*.deb -exec cp '{}' /target/var/cache/apt/archives \;
-chroot /target (cd /var/cache/apt/archives && /usr/bin/apt-ftparchive packages ./ > Packages)
-echo "deb file:///var/cache/apt/archives ./" > /target/etc/apt/sources.list
 cp /cdrom/paedml-release.asc /target/var/cache/linuxmuster
 

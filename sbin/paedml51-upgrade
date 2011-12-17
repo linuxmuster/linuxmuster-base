@@ -212,11 +212,10 @@ if [ -z "$checked" ]; then
    RC=1
   fi
  fi
- if [ "$RC" = "0" ]; then
-  checked=yes
- else
+ if [ "$RC" != "0" ]; then
   cd ~
-  umount "$CDROOT"
+  umount "$CDROOT" &> /dev/null
+  eject "$CDROOT" &> /dev/null
   exit 1
  fi
 fi
@@ -251,4 +250,9 @@ fi
 cd ~
 cp $DATADIR/upgrade/paedml51-upgrade.sh /tmp || exit 1
 . /tmp/paedml51-upgrade.sh 2>&1 | tee -a $LOGFILE
+
+
+# umount and eject cdrom if possible
+umount "$CDROOT" &> /dev/null
+eject "$CDROOT" &> /dev/null
 

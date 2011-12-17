@@ -85,10 +85,16 @@ case $opt in
 
   --first)
 
-    # renew complete apt configuration
-    if [ -z "$firstboot" ]; then
+    # create local package repository
+    if [ -n "$firstboot" ]; then
+     echo "Creating local repository ..." | tee -a $logfile
+     cd /var/cache/apt/archives | tee -a $logfile
+     apt-ftparchive packages ./ > Packages | tee -a $logfile
+     cd ~
+     echo "deb file:///var/cache/apt/archives ./" > etc/apt/sources.list | tee -a $logfile
+    else # renew complete apt configuration
      echo "Resetting apt configuration." | tee -a $logfile
-     cp -a $STATICTPLDIR/etc/apt/* /etc/apt
+     cp -a $STATICTPLDIR/etc/apt/* /etc/apt | tee -a $logfile
     fi
 
     # turn shadow passwords on
@@ -148,7 +154,8 @@ case $opt in
     [ -n "$templatespaedml" ] && aptitude -y install linuxmuster-schulkonsole-templates-paedml | tee -a $logfile
 
     # remove upgrade cheat
-    rm /etc/apt/apt.conf.d/99upgrade
+    rm -f /etc/apt/apt.conf.d/99upgrade
+    rm -f /var/cache/apt/archives/Packages
 
     ;;
 
