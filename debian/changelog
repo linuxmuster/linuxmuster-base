@@ -1,3 +1,10 @@
+linuxmuster-base (5.1.0-3lenny0) lenny; urgency=low
+
+  * paedml51-upgrade:
+    - fixed -f parameter (closes #563).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 9 Jan 2012 18:29:32 +0100
+
 linuxmuster-base (5.1.0-2lenny0) lenny; urgency=low
 
   * linuxmuster-setup:
@@ -10,7 +17,7 @@ linuxmuster-base (5.1.0-2lenny0) lenny; urgency=low
     - added check for integrated firewall.
     - hiding console message if cdrom cannot be unmounted.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 17 Dec 2011 21:50:22 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 17 Dec 2011 22:37:49 +0100
 
 linuxmuster-base (5.1.0-1lenny0) lenny; urgency=low
 

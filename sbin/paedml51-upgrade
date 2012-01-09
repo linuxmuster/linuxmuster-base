@@ -113,7 +113,7 @@ fi
 
 
 # parse commandline arguments if not running from cdrom
-while getopts ":cdhi:" opt; do
+while getopts ":cdfhi:" opt; do
  case $opt in
   c) CDROM=yes ;;
   d) DOWNLOAD=yes ;;
