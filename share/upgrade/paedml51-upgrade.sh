@@ -18,6 +18,7 @@ HORDDYNTPLDIR=$DYNTPLDIR/21_horde3
 NAGIDYNTPLDIR=$DYNTPLDIR/22_nagios
 FREEDYNTPLDIR=$DYNTPLDIR/55_freeradius
 KDE=`dpkg -l | grep "kdm" | grep ^i`
+LIBC6=`dpkg -l | grep "libc6-i686" | grep ^i | awk '{ print $2 }'`
 OPENML=`dpkg -l | grep "schulkonsole-templates-openlml" | grep ^i`
 TEMPLBASE=`dpkg -l | grep "linuxmuster-schulkonsole-templates-base" | grep ^i | awk '{ print $2 }'`
 REMOTEMON=`dpkg -l | grep "linuxmuster-nagios-fernueberwachung" | grep ^i | awk '{ print $2 }'`
@@ -35,7 +36,7 @@ NFSCOMMON=`dpkg -l | grep nfs-common | grep ^i | awk '{ print $2 }'`
 NFSSERVER=`dpkg -l | grep nfs-kernel-server | grep ^i | awk '{ print $2 }'`
 PKGSTOREMOVE="linuxmuster-freeradius linux-image-server phpmyadmin phppgadmin \
               linuxmuster-schulkonsole-templates-openlml mindi mondo nagios2 \
-              nagios2-common nagios2-doc linuxmuster-nagios-base \
+              libc6-i686 nagios2-common nagios2-doc linuxmuster-nagios-base \
               postgresql-7.4 postgresql-8.1 postgresql-client-8.1 \
               libpq4 samba linuxmuster-pkpgcounter \
               python-egenix-mxtools python-egenix-mxdatetime \
@@ -423,6 +424,8 @@ echo "###########################"
 echo "# apt-utils aktualisieren #"
 echo "###########################"
 tweak_apt
+# remove libc6-i686 first to avoid upgrade problems (see http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=454557)
+[ -n "$LIBC6" ] && aptitude -y remove $LIBC6
 aptitude -y install apt-utils tasksel debian-archive-keyring dpkg locales apache2
 aptitude update
 echo
