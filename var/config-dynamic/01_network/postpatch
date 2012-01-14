@@ -3,7 +3,9 @@
 
 # start networking
 /etc/init.d/linuxmuster-nic-setup assign
-/etc/init.d/networking restart
+start networking
+ifconfig intern up
+route add default gw $ipcopip
 
 # set host and domain name
 hostname $servername.$domainname
