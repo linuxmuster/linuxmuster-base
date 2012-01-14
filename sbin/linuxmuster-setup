@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # setup for Linux-Musterloesung
 #
 # Thomas Schmitt <schmitt@lmz-bw.de>
@@ -8,10 +8,10 @@
 #
 
 # check debian version
-if ! grep -q 5\.0\.[1-9] /etc/debian_version; then
-	echo "This is not Debian 5.0.x Lenny. Please upgrade your system!"
-	exit 1
-fi
+#if ! grep -q 5\.0\.[1-9] /etc/debian_version; then
+#	echo "This is not Debian 5.0.x Lenny. Please upgrade your system!"
+#	exit 1
+#fi
 
 # read dist.conf
 . /usr/share/linuxmuster/config/dist.conf || exit 1

@@ -1,0 +1,4 @@
+# paedML Linux package sources
+deb http://pkg.lml.support-netz.de/paedml60-testing ./
+deb-src http://pkg.lml.support-netz.de/paedml60-testing ./
+
