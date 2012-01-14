@@ -25,10 +25,6 @@ if [ -e $OLDVALUES ]; then
   oldvalues=yes
 fi
 
-# check which imaging software is available
-linbo=`aptitude search linuxmuster-linbo`
-rembo=`aptitude search myshn`
-
 if [ "$1" = "--first" ]; then
   # intro
   db_fset linuxmuster-base/intro seen false
@@ -162,26 +158,29 @@ externconfig() {
 }
 
 
-# firewall
-db_fset linuxmuster-base/fwconfig seen false
-db_input $PRIORITY linuxmuster-base/fwconfig || true
-db_go
-db_get linuxmuster-base/fwconfig || true
-fwconfig=$RET
+# firewall (obsolet)
+#db_fset linuxmuster-base/fwconfig seen false
+#db_input $PRIORITY linuxmuster-base/fwconfig || true
+#db_go
+#db_get linuxmuster-base/fwconfig || true
+#fwconfig=$RET
 # check if fwconfig has been modified
-if [ "$oldvalues" = "yes" ]; then
-	[ "$fwconfig" = "$fwconfig_old" ] || ask_ipcop=yes
-fi
-
-
+#if [ "$oldvalues" = "yes" ]; then
+#	[ "$fwconfig" = "$fwconfig_old" ] || ask_ipcop=yes
+#fi
 # configure external network only if fwconfig is integrated or setup is in modify mode and fwconfig has not changed
-if [ "$fwconfig" = "integrated" ]; then
-	externconfig
-else
-	if [ "$1" = "--modify" ]; then
-		[ "$fwconfig" = "$fwconfig_old" ] && externconfig
-	fi
-fi
+#if [ "$fwconfig" = "integrated" ]; then
+#	externconfig
+#else
+#	if [ "$1" = "--modify" ]; then
+#		[ "$fwconfig" = "$fwconfig_old" ] && externconfig
+#	fi
+#fi
+
+# firewall is always dedicated
+fwconfig=dedicated
+db_set linuxmuster-base/fwconfig $fwconfig || true
+[ "$1" = "--modify" ] && externconfig
 
 
 # smtp relay
@@ -195,20 +194,17 @@ while ! validdomain "$SMTPRELAY"; do
 done
 
 
+
+# check whether rembo is available
+rembo=`aptitude search myshn`
+[ "$1" = "--first" ] && rembo=""
+
 # imaging system
-imaging=""
-if [[ -n "$linbo" && -n "$rembo" ]]; then
+imaging="linbo"
+if [ -n "$rembo" ]; then
 
 	IMG_CHOICES="linbo, rembo"
 	IMG_DESC="LINBO [linbo] und Rembo/mySHN (tm) [rembo]."
-
-elif [ -n "$linbo" ]; then
-
-	imaging=linbo
-
-elif [ -n "$rembo" ]; then
-
-	imaging=rembo
 
 fi
 

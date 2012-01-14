@@ -1,3 +1,160 @@
+linuxmuster-base (5.1.0-3lenny0) lenny; urgency=low
+
+  * paedml51-upgrade:
+    - fixed -f parameter (closes #563).
+    - removing libc6-i686 at begin of dist-upgrade (if installed) to avoid
+      upgrade problems, see http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=454557
+      (closes #560).
+  * linuxmuster-patch:
+    - ensures the right imaging task is installed if imaging is changed in modify mode.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 10 Jan 2012 12:31:32 +0100
+
+linuxmuster-base (5.1.0-2lenny0) lenny; urgency=low
+
+  * linuxmuster-setup:
+    - removed installation options for integrated firewall and rembo.
+    - changed cdrom package repository to /var/cache/apt/archives.
+  * linuxmuster-prepare: added finish-install.d/06linuxmuster to copy all debs
+    to /var/cache/apt/archives to be able to continue setup without cdrom after reboot.
+  * paedml51-upgrade:
+    - changed cdrom package repository also to /var/cache/apt/archives.
+    - added check for integrated firewall.
+    - hiding console message if cdrom cannot be unmounted.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 17 Dec 2011 22:37:49 +0100
+
+linuxmuster-base (5.1.0-1lenny0) lenny; urgency=low
+
+  * linuxmuster-setup: various modifications due to #77 (cdrom package repository
+    will be copied to /var/cache/linuxmuster/pkgs during stage 1, therefore cdrom
+    is no more needed after reboot).
+  * changed version in upgrade scripts.
+  * removed 5.0 upgrade text in doc.
+  * paedml51-upgrade: changed local repo dir also to /var/cache/linuxmuster/pkgs
+    to be equal to linuxmuster-setup.
+  * changed codename to "NiveauLINBO".
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 15 Dec 2011 20:03:43 +0100
+
+linuxmuster-base (5.1.0-0lenny0) lenny; urgency=low
+
+  * equalized package version to paedml version.
+  * updated paedml sources.list file.
+  * dist.conf: updated paedml version furthermore using 5.0.4 iso for upgrade.
+  * backup.conf, services: changed cupsys to cups, atftpd to tftpd-hpa (closes #551, see #499).
+  * postinst: updates backup.conf as mentioned above, removes old paedml50.list.
+  * linuxmuster-setup: some modifications according to #499 (change atftpd to tftpd-hpa), paedml sources.list update.
+  * added firmware packages to server task.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 29 Nov 2011 10:13:38 +0100
+
+linuxmuster-base (1.5.37-lenny0) lenny; urgency=low
+
+  * paedml50-upgrade:
+    * more improvements according to #531.
+    * changed apt-get back to aptitude.
+  * linuxmuster-setup:
+    * implemented linbo as default imaging method.
+    * added 'aptitude::CmdLine::Ignore-Trust-Violations "true";' to temporary
+      apt configuration.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 19 Oct 2011 11:28:15 +0200
+
+linuxmuster-base (1.5.36-lenny0) lenny; urgency=low
+
+  * paedml50-upgrade:
+    * uses now apt-get instead of aptitude.
+    * improved error handling in conjunction with package dependencies.
+    * improved handling of postgresql upgrade.
+    * improved logging.
+    * reworked commandline options:
+      -c: Upgrade with cdrom in drive.
+      -d: Online-Upgrade with iso download.
+      -f: Force upgrade whithout version test.
+      -i: ISO file to use for upgrade.
+    * fixed deinstallation of linuxmuster-base during upgrade (closes #531).
+  * linuxmuster-setup:
+    * removes LINBO's torrent files if serverip has changed (closes #531).
+    * implemented linbo as default imaging method.
+  * Version increased to 5.0.4.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 16 Oct 2011 11:03:48 +0200
+
+linuxmuster-base (1.5.35-lenny1) lenny; urgency=low
+
+  * linuxmuster-setup: fixed networking start command
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 27 Sep 2011 13:09:58 +0200
+
+linuxmuster-base (1.5.35-lenny0) lenny; urgency=low
+
+  * paedml50-upgrade.sh:
+    * removes /usr/lib/cups/backend/dnssd at the beginning (closes #522).
+    * fixed typo in local.list file name.
+  * linuxmuster-setup: starts "dpkg-reconfigure linuxmuster-nagios-fernueberwachung"
+    in case of domainname change if package is installed (see #215).
+  * postinst:
+    * removes local.list which was not removed by upgrade script (because of typo, see above).
+    * removed obsolete sophomorix nscd patch. 
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 24 Sep 2011 12:57:20 +0200
+
+linuxmuster-base (1.5.34-lenny0) lenny; urgency=low
+
+  * increased version to 5.0.3.
+  * dist.conf: introduced new environment variables CDMINORVERSION and CDVERSION.
+  * linuxmuster-backup: adds /sbin/portmap to /etc/mindi/deplist.d/netconf (closes #515).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 13 Sep 2011 13:59:15 +0200
+
+linuxmuster-base (1.5.33-lenny0) lenny; urgency=low
+
+  * paedml50-upgrade.sh:
+    * removes and recreates remoteadmin-account if detected (closes #489).
+    * minor improvements in upgrade sequence.
+  * remoteadmin.sh, minor improvements according to #489:
+    * creates remoteadmin group now as a system group.
+    * invokation with "NOPASSWD=yes" as a prefix of the linuxmuster-remoteadmin command allows passwordless creation of account:
+      # NOPASSWD=yes linuxmuster-remoteadmin --create.
+  * postinst: fixed revision check for slapd.conf upgrade.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 26 Jul 2011 08:49:21 +0200
+
+linuxmuster-base (1.5.32-lenny0) lenny; urgency=low
+
+  * update-logins.sh: filters now ip address prefix of smbstatus output (closes #486).
+  * paedml50-upgrade.sh, minor improvements: reinstalls linuxmuster-mrbs and linuxmuster-portfolio if detected.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 22 Jul 2011 10:39:11 +0200
+
+linuxmuster-base (1.5.31-lenny1) lenny; urgency=low
+
+  * paedml50-upgrade.sh, minor fixes:
+    * ldap configuration file backup: no backup if it does not exist.
+    * not starting import_workstations if workstation data file is empty.
+    * creating temporary local package repository from apt's archive cache to force the use of more recent cdrom packages.
+    * added extra check for linuxmuster-pykota to be sure it will be reinstalled during upgrade.
+    * increased required free space under /var to 1.5 GB.
+  * linuxmuster-task, fix: temporary apt.conf configuration of paedml50-upgrade.sh was overwritten (closes #485).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 21 Jul 2011 20:33:39 +0200
+
+linuxmuster-base (1.5.31-lenny0) lenny; urgency=low
+
+  * increased version to 5.0.2.
+  * paedml50-upgrade.sh, fix:
+    * linuxmuster remote monitoring packages were deinstalled during upgrade (closes #470).
+    * fixed missing horde columns (closes #477).
+  * smb.conf.shares: added a sample share for programs which need write permissions (closes #466). According to this:
+    * dist.conf: added new constant PROGSRWDIR (/home/samba/pgmw).
+    * postinst: creates $PROGSRWDIR and adds share and mapping examples if necessary.
+    * login.bat: added mapping example for pgmw share.
+  * linuxmuster-setup: updated moodle database template to version 1.9.12+20110518.
+  * linuxmuster-backup: another separator fix for excludedirs in mondarchive invokation line (closes finally #462).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 16 Jul 2011 12:35:22 +0200
+
 linuxmuster-base (1.5.30-lenny0) lenny; urgency=low
 
   * fixed limits in /etc/security/limits.conf (closes finally #397).

@@ -1,24 +1,13 @@
-# custom share definitions 
+# custom share definitions
+# $Id$
 
-# A sample share for sharing your CD-ROM with others.
-;[cdrom]
-;   comment = Samba server's CD-ROM
-;   writable = no
-;   locking = no
-;   path = /cdrom
-;   public = yes
+# program share with write permissions
+;[pgmw]
+;   comment = Windows Programs with write perms
+;   path = /home/samba/pgmw
+;   admin users = @domadmins
+;   writeable = Yes
+;   guest ok = No
 
-# The next two parameters show how to auto-mount a CD-ROM when the
-#	cdrom share is accesed. For this to work /etc/fstab must contain
-#	an entry like this:
-#
-#       /dev/scd0   /cdrom  iso9660 defaults,noauto,ro,user   0 0
-#
-# The CD-ROM gets unmounted automatically after the connection to the
-#
-# If you don't want to use auto-mounting/unmounting make sure the CD
-#	is mounted on /cdrom
-#
-;   preexec = /bin/mount /cdrom
-;   postexec = /bin/umount /cdrom
+# add your own shares here
 

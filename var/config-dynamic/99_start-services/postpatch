@@ -85,6 +85,7 @@ if [[ "$1" = "--modify" && "$internsub" != "$internsub_old" ]]; then
 		let n+=1
 		let o+=1
 	done
+	rm -f $LINBODIR/*.torrent
 	import_workstations
 	wsimport=yes
 	import_printers

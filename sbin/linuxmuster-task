@@ -3,8 +3,7 @@
 # linuxmuster-task
 # installs software tasks
 #
-# 24.06.2008
-# Thomas Schmitt <schmitt@lmz-bw.de>
+# $Id$
 #
 
 # source linuxmuster defaults
@@ -48,7 +47,7 @@ fi
 
 if [ -n "$unattended" ]; then
 
-	echo 'DPkg::Options {"--force-confold";"--force-confdef";};' > /etc/apt/apt.conf.d/99upgrade
+	echo 'DPkg::Options {"--force-confold";"--force-confdef";};' > /etc/apt/apt.conf.d/98linuxmuster-task
 	opt="-y $opt"
 
 fi
@@ -56,6 +55,6 @@ fi
 $cmd update
 $cmd $opt $taskpackages ; RC=$?
 
-[ -n "$unattended" ] && rm /etc/apt/apt.conf.d/99upgrade
+[ -n "$unattended" ] && rm /etc/apt/apt.conf.d/98linuxmuster-task
 
 exit $RC

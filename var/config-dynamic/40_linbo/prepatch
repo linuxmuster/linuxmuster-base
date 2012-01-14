@@ -1,142 +1,152 @@
+# $Id$
+#
 # check if imaging method is linbo 
+
 if  [ "$imaging" = "linbo" ]; then
 
-	# patch rsyncd.secrets with admin password
-	if [ "$1" = "--first" ]; then
+ # create tftpd-hpa configs if necessary
+ tpldir="/usr/share/linuxmuster-linbo/templates"
+ tpl="$tpldir/tftpd-hpa.default"
+ conf="/etc/default/tftpd-hpa"
+ if ! grep -q "$LINBODIR" "$conf"; then
+  echo "Patching $conf."
+  backup_file "$conf"
+  sed -e "s|@@linbodir@@|$LINBODIR|" "$tpl" > "$conf"
+ fi
+ conf="/etc/tftp_remap.conf"
+ tpl="$tpldir/$(basename $conf)"
+ if [ ! -e "$conf" ]; then
+  echo "Providing $conf."
+  cp "$tpl" "$conf"
+ fi
 
-		[ -e /etc/rsyncd.secrets ] && backup_file /etc/rsyncd.secrets
-		if grep ^linbo: /etc/rsyncd.secrets &> /dev/null; then
-			sed -e "s/^linbo:.*/linbo:$adminpw/" -i /etc/rsyncd.secrets
-		else
-			echo "linbo:$adminpw" >> /etc/rsyncd.secrets
-		fi
+ # check for tftp in inetd.conf
+ conf=/etc/inetd.conf
+ if grep -q ^tftp "$conf"; then
+  echo "Deactivating tftp in $conf."
+  backup_file "$conf"
+  sed -e 's|^tftp|#tftp|' -i "$conf"
+ fi
 
-		# provide empty workstations data
-		rm -rf $SYSCONFDIR/workstations
+ # stuff to do on first time install
+ if [ "$1" = "--first" ]; then
 
-	else
+  # patch rsyncd.secrets with admin password
+  [ -e /etc/rsyncd.secrets ] && backup_file /etc/rsyncd.secrets
+  if grep ^linbo: /etc/rsyncd.secrets &> /dev/null; then
+   sed -e "s/^linbo:.*/linbo:$adminpw/" -i /etc/rsyncd.secrets
+  else
+   echo "linbo:$adminpw" >> /etc/rsyncd.secrets
+  fi
 
-		if [ "$imaging_old" = "rembo" ]; then
-			if [ -L "$SYSCONFDIR/workstations" ]; then
-				rm $SYSCONFDIR/workstations
-			else
-				backup_file $SYSCONFDIR/workstations
-			fi
-			cp $REMBOFILES/files/global/wimport_data $SYSCONFDIR/workstations
-		fi
+  # provide empty workstations data
+  rm -rf $SYSCONFDIR/workstations
 
-	fi
+ else # modify
 
-	touch $SYSCONFDIR/workstations
+  # restore workstations file from link if coming from rembo
+  if [ "$imaging_old" = "rembo" ]; then
+   if [ -L "$SYSCONFDIR/workstations" ]; then
+    rm $SYSCONFDIR/workstations
+   else
+    backup_file $SYSCONFDIR/workstations
+   fi
+   cp $REMBOFILES/files/global/wimport_data $SYSCONFDIR/workstations
+  fi
 
-	# patch path to wimport_data in dist.conf
-	backup_file /usr/share/linuxmuster/config/dist.conf
-	sed -e "s/^WIMPORTDATA=.*/WIMPORTDATA=\"\$SYSCONFDIR\/workstations\"/" -i /usr/share/linuxmuster/config/dist.conf
+ fi
 
-	# grep rsync password from rembo.conf or if that fails take simply muster as password
-	if ! grep ^linbo: /etc/rsyncd.secrets &> /dev/null; then
-		linbopw=`grep ^NetPassword /etc/rembo/rembo.conf | awk -F\" '{ print $2 }'`
-		[ -z "$linbopw" ] && linbopw=muster
-		echo "linbo:$linbopw" >> /etc/rsyncd.secrets
-	fi
-	chmod 600 /etc/rsyncd.secrets
+ touch $SYSCONFDIR/workstations
 
-	# check for initial configuration and copy it if necessary
-	teststr="# automatically created by linuxmuster-setup"
-	grep "$teststr" /etc/default/atftpd &> /dev/null || cp $STATICTPLDIR/etc/default/atftpd /etc/default
-	grep "$LINBODIR" /etc/default/atftpd &> /dev/null || cp $STATICTPLDIR/etc/default/atftpd /etc/default
-	grep "$teststr" /etc/rsyncd.conf &> /dev/null || cp $STATICTPLDIR/etc/rsyncd.conf /etc
+ # patch path to wimport_data in dist.conf
+ backup_file /usr/share/linuxmuster/config/dist.conf
+ sed -e "s/^WIMPORTDATA=.*/WIMPORTDATA=\"\$SYSCONFDIR\/workstations\"/" -i /usr/share/linuxmuster/config/dist.conf
 
-	# check for pxelinux config dir
-	# obsolete
-	#[ -d "$LINBODIR/pxelinux.cfg" ] || mkdir -p $LINBODIR/pxelinux.cfg
+ # if no linbo password then grep rsync password from rembo.conf or if that fails take simply muster as password
+ if ! grep ^linbo: /etc/rsyncd.secrets &> /dev/null; then
+  linbopw=`grep ^NetPassword /etc/rembo/rembo.conf | awk -F\" '{ print $2 }'`
+  [ -z "$linbopw" ] && linbopw=muster
+  echo "linbo:$linbopw" >> /etc/rsyncd.secrets
+ fi
+ chmod 600 /etc/rsyncd.secrets
 
-	# link pxelinux.0 to linbo dir
-	[ -e "$LINBODIR/pxelinux.0" ] || ln -sf /usr/lib/syslinux/pxelinux.0 $LINBODIR/pxelinux.0
+ # check for initial rsync configuration and copy it if necessary
+ teststr="# automatically created by linuxmuster-setup"
+ grep "$teststr" /etc/rsyncd.conf &> /dev/null || cp $STATICTPLDIR/etc/rsyncd.conf /etc
 
-	# copy default files to $LINBODIR, if they are not there already
-	# obsolete, these files are now in linbo package
-	#for i in `find $STATICTPLDIR/var/linbo/ -type f` `find /usr/share/linuxmuster/registry-patches/LINBO/ -name \*.reg`; do
-	#	f=`basename $i`
-	#	[ -e "$LINBODIR/$f" ] || cp $i $LINBODIR
-	#done
+ # link pxelinux.0 to linbo dir
+ [ -e "$LINBODIR/pxelinux.0" ] || ln -sf /usr/lib/syslinux/pxelinux.0 $LINBODIR/pxelinux.0
 
-	# open internal firewall for multicasting and rsync
-	. /etc/default/linuxmuster-linbo
-	if ! grep ^udp $ALLOWEDPORTS | grep -q $PORTBASE:; then
-		backup_file $ALLOWEDPORTS
-		PORTMAX=$PORTBASE
-		let PORTMAX+=100
-		PORTS=`grep ^udp $ALLOWEDPORTS | awk '{ print $2 }'`
-		PORTS="$PORTS,$PORTBASE:$PORTMAX"
-		sed -e "s/^udp.*/udp $PORTS/" -i $ALLOWEDPORTS
-	fi
-	if ! grep ^tcp $BASEPORTS | grep -qw rsync; then
-		backup_file $BASEPORTS
-		PORTS=`grep ^tcp $BASEPORTS | awk '{ print $2 }'`
-		PORTS="$PORTS,rsync"
-		sed -e "s/^tcp.*/tcp $PORTS/" -i $BASEPORTS
-	fi
+ # open internal firewall for multicasting and rsync
+ . /etc/default/linuxmuster-linbo
+ if ! grep ^udp $ALLOWEDPORTS | grep -q $PORTBASE:; then
+  backup_file $ALLOWEDPORTS
+  PORTMAX=$PORTBASE
+  let PORTMAX+=100
+  PORTS=`grep ^udp $ALLOWEDPORTS | awk '{ print $2 }'`
+  PORTS="$PORTS,$PORTBASE:$PORTMAX"
+  sed -e "s/^udp.*/udp $PORTS/" -i $ALLOWEDPORTS
+ fi
+ if ! grep ^tcp $BASEPORTS | grep -qw rsync; then
+  backup_file $BASEPORTS
+  PORTS=`grep ^tcp $BASEPORTS | awk '{ print $2 }'`
+  PORTS="$PORTS,rsync"
+  sed -e "s/^tcp.*/tcp $PORTS/" -i $BASEPORTS
+ fi
 
-	# patch start.confs with serverip
-	for i in $LINBODEFAULTCONF `find $LINBODIR/ -type f -name 'start.conf*'`; do
-		backup_file $i
-		sed -e "s/^Server = \([0-9]\{1,3\}[.]\)\{3\}[0-9]\{1,3\}/Server = $serverip/" -i $i
-	done
+ # patch start.confs with serverip
+ for i in $LINBODEFAULTCONF `find $LINBODIR/ -type f -name 'start.conf*'`; do
+  backup_file $i
+  sed -e "s/^Server = \([0-9]\{1,3\}[.]\)\{3\}[0-9]\{1,3\}/Server = $serverip/" -i $i
+ done
 
-	# patch pxe confs with serverip (obsolete)
-	#for i in $PXEGRUBCFG $PXELINUXCFG `find $LINBODIR/ -type f -name 'pxegrub.lst.*'`; do
-	#	backup_file $i
-	#	sed -e "s/server=\([0-9]\{1,3\}[.]\)\{3\}[0-9]\{1,3\}/server=$serverip/g" -i $i
-	#done
+ # patch regs with workgroup
+ for i in `find $LINBODIR/ -type f -name '*.reg'`; do
+  backup_file $i
+  sed -e "s/^\"DefaultDomainName\"=.*/\"DefaultDomainName\"=\"$workgroup\"/
+          s/^\"Workgroup\"=.*/\"Workgroup\"=\"$workgroup\"/" -i $i
+ done
 
-	# patch regs with workgroup
-	for i in `find $LINBODIR/ -type f -name '*.reg'`; do
-		backup_file $i
-		sed -e "s/^\"DefaultDomainName\"=.*/\"DefaultDomainName\"=\"$workgroup\"/
-			s/^\"Workgroup\"=.*/\"Workgroup\"=\"$workgroup\"/" -i $i
-	done
+ # patch start variables of tftpd-hpa and rsync
+ sed -e "s/^RUN_DAEMON=.*/RUN_DAEMON=yes/" -i /etc/default/tftpd-hpa
+ sed -e "s/^RSYNC_ENABLE=.*/RSYNC_ENABLE=true/" -i /etc/default/rsync
 
-	# patch start variables of atftpd and rsync
-	sed -e "s/^USE_INETD=.*/USE_INETD=false/" -i /etc/default/atftpd
-	sed -e "s/^RSYNC_ENABLE=.*/RSYNC_ENABLE=true/" -i /etc/default/rsync
+ # check for images and start multicast
+ update-rc.d linbo-multicast defaults
+ res=`find $LINBODIR -name '*.cloop'`
+ if [ -n "$res" ]; then
+  sed -e "s/^START_MULTICAST=.*/START_MULTICAST=yes/" -i /etc/default/linuxmuster-linbo
+  /etc/init.d/linbo-multicast start
+ else
+  sed -e "s/^START_MULTICAST=.*/START_MULTICAST=no/" -i /etc/default/linuxmuster-linbo
+ fi
 
-	# check for images and start multicast
-	update-rc.d linbo-multicast defaults
-	res=`find $LINBODIR -name '*.cloop'`
-	if [ -n "$res" ]; then
-		sed -e "s/^START_MULTICAST=.*/START_MULTICAST=yes/" -i /etc/default/linuxmuster-linbo
-		/etc/init.d/linbo-multicast start
-	else
-		sed -e "s/^START_MULTICAST=.*/START_MULTICAST=no/" -i /etc/default/linuxmuster-linbo
-	fi
+ # linbo administrative user
+ if ! check_id linbo; then
+  linbopasswd=`grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }'`
+  if [ -n "$linbopasswd" ]; then
+   echo "Creating linbo user ..."
+   sophomorix-useradd --administrator linbo --unix-group $ADMINGROUP --shell /bin/false --gecos "LINBO Administrator" &> /dev/null || true
+   sophomorix-passwd --user linbo --pass $linbopasswd &> /dev/null || true
+   smbldap-usermod -H '[UX         ]' linbo || true
+  fi
+ fi
 
-	# linbo administrative user
-	if ! check_id linbo; then
-		linbopasswd=`grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }'`
-		if [ -n "$linbopasswd" ]; then
-			echo "Creating linbo user ..."
-			sophomorix-useradd --administrator linbo --unix-group $ADMINGROUP --shell /bin/false --gecos "LINBO Administrator" &> /dev/null || true
-			sophomorix-passwd --user linbo --pass $linbopasswd &> /dev/null || true
-			smbldap-usermod -H '[UX         ]' linbo || true
-		fi
-	fi
-
-	# check for linbo mail wrapper in /etc/aliases
-	if ! grep -q ^linbo: /etc/aliases; then
-		backup_file /etc/aliases
-		sed -e "/^root:/a\
+ # check for linbo mail wrapper in /etc/aliases
+ if ! grep -q ^linbo: /etc/aliases; then
+  backup_file /etc/aliases
+  sed -e "/^root:/a\
 linbo: \"\|\/usr\/share\/linuxmuster-linbo\/mail2log.sh\"" -i /etc/aliases
-		newaliases
-	fi
+  newaliases
+ fi
 
-	# change owner of logdir to nobody
-	[ -d "$LOGDIR/linbo" ] || mkdir -p $LOGDIR/linbo
-	chown nobody $LOGDIR/linbo
+ # change owner of logdir to nobody
+ [ -d "$LOGDIR/linbo" ] || mkdir -p $LOGDIR/linbo
+ chown nobody $LOGDIR/linbo
 
-	# start necessary services
-	/etc/init.d/atftpd start
-	/etc/init.d/rsync start
+ # start necessary services
+ /etc/init.d/tftpd-hpa start
+ /etc/init.d/rsync start
 	# don't start these on first install
 	if [ "$1" != "--first" ]; then
 	 /etc/init.d/bittorrent start
@@ -148,27 +158,31 @@ linbo: \"\|\/usr\/share\/linuxmuster-linbo\/mail2log.sh\"" -i /etc/aliases
 	 [ -e /etc/default/linuxmuster-linbo ] && sed -e 's|^START_MULTICAST=.*|START_MULTICAST=no|' -i /etc/default/linuxmuster-linbo
 	fi
 
-else
+ # don't start these on first install
+ if [ "$1" != "--first" ]; then
+  /etc/init.d/bittorrent start
+  /etc/init.d/linbo-bittorrent start
+  /etc/init.d/linbo-multicast start
+ else
+  [ -e /etc/default/bittorrent ] && sed -e 's|^START_BTTRACK=.*|START_BTTRACK=0|' -i /etc/default/bittorrent
+  [ -e /etc/default/linbo-bittorrent ] && sed -e 's|^START_BITTORRENT=.*|START_BITTORRENT=0|' -i /etc/default/linbo-bittorrent
+  [ -e /etc/default/linuxmuster-linbo ] && sed -e 's|^START_MULTICAST=.*|START_MULTICAST=no|' -i /etc/default/linuxmuster-linbo
+ fi
 
-	# patch start variables of atftpd and rsync
-	[ -e /etc/default/atftpd ] && backup_file /etc/default/atftpd ; sed -e "s/^USE_INETD=.*/USE_INETD=true/" -i /etc/default/atftpd
-	[ -e /etc/default/rsync ] && backup_file /etc/default/rsync ; sed -e "s/^RSYNC_ENABLE=.*/RSYNC_ENABLE=false/" -i /etc/default/rsync
-	[ -e /etc/default/linuxmuster-linbo ] && backup_file /etc/default/linuxmuster-linbo ; sed -e "s/^START_MULTICAST=.*/START_MULTICAST=no/" -i /etc/default/linuxmuster-linbo
+else # switch to rembo, deactivate linbo
 
-	# remove tftp from inetd.conf
-	if grep -q tftp /etc/inetd.conf; then
-		backup_file /etc/inetd.conf
-		grep -v tftp /etc/inetd.conf > /var/tmp/inetd.conf
-		mv /var/tmp/inetd.conf /etc
-	fi
+ # patch start variables of tftpd-hpa and rsync
+ [ -e /etc/default/tftpd-hpa ] && backup_file /etc/default/tftpd-hpa ; sed -e "s/^RUN_DAEMON=.*/RUN_DAEMON=no/" -i /etc/default/tftpd-hpa
+ [ -e /etc/default/rsync ] && backup_file /etc/default/rsync ; sed -e "s/^RSYNC_ENABLE=.*/RSYNC_ENABLE=false/" -i /etc/default/rsync
+ [ -e /etc/default/linuxmuster-linbo ] && backup_file /etc/default/linuxmuster-linbo ; sed -e "s/^START_MULTICAST=.*/START_MULTICAST=no/" -i /etc/default/linuxmuster-linbo
 
-	# remove linbo mail wrapper from /etc/aliases
-	if grep -q ^linbo: /etc/aliases; then
-		backup_file /etc/aliases
-		grep -v ^linbo: /etc/aliases > /var/tmp/aliases
-		mv /var/tmp/aliases /etc/aliases
-		newaliases
-	fi
+ # remove linbo mail wrapper from /etc/aliases
+ if grep -q ^linbo: /etc/aliases; then
+  backup_file /etc/aliases
+  grep -v ^linbo: /etc/aliases > /var/tmp/aliases
+  mv /var/tmp/aliases /etc/aliases
+  newaliases
+ fi
 
 fi
 

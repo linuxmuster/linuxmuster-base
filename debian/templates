@@ -135,6 +135,7 @@ Description: SMTP relay host?
 Template: linuxmuster-base/imaging
 Type: select
 Choices: ${img_choices}
+Default: linbo
 Description: Imaging-System:
  Waehlen Sie das zu verwendende Imaging-System.
  Sie haben die Wahl zwischen ${img_desc}

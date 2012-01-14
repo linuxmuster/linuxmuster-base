@@ -34,19 +34,6 @@ usage() {
   exit 1
 }
 
-# mount installation cdrom
-mount_cdrom() {
- local device=$1
- [ -n "$device" ] && device="/dev/$device"
- mount $device /cdrom &> /dev/null
- if grep -q "[op][pa][e][nd]ML Linux" /cdrom/.disk/info &> /dev/null; then
-  return 0
- else
-  umount /cdrom &> /dev/null
-  return 1
- fi
-}
-
 [[ "$opt" = "--first" || "$opt" = "--modify" ]] || usage
 
 # look if we were on first boot
@@ -98,10 +85,16 @@ case $opt in
 
   --first)
 
-    # copy apt configs if not on first boot
-    if [ -z "$firstboot" ]; then
-     cp /etc/apt/sources.list /etc/apt/sources.list.orig
-     cp -a $STATICTPLDIR/etc/apt/* /etc/apt
+    # create local package repository
+    if [ -n "$firstboot" ]; then
+     echo "Creating local repository ..." | tee -a $logfile
+     cd /var/cache/apt/archives
+     apt-ftparchive packages ./ > Packages | tee -a $logfile
+     cd ~
+     echo "deb file:///var/cache/apt/archives ./" > /etc/apt/sources.list | tee -a $logfile
+    else # renew complete apt configuration
+     echo "Resetting apt configuration." | tee -a $logfile
+     cp -a $STATICTPLDIR/etc/apt/* /etc/apt | tee -a $logfile
     fi
 
     # turn shadow passwords on
@@ -110,53 +103,36 @@ case $opt in
     # add cyrus user
     id cyrus &> /dev/null || useradd -c "Cyrus Mailsystem User" -d /var/spool/cyrus -g mail -m -r -s /bin/sh cyrus | tee -a $logfile
 
-    # mount cdrom
-    if grep -q ^"deb cdrom" /etc/apt/sources.list; then
-	eject -t &> /dev/null
-	for i in "" scd0 scd1 scd2; do
-	 if mount_cdrom "$i"; then
-	  if stringinstring scd "$i"; then
-	   rm -f /dev/cdrom /dev/dvd
-	   ln -s /dev/$i /dev/cdrom
-	   ln -s /dev/$i /dev/dvd
-	   cp /etc/fstab /etc/fstab.linuxmuster-setup.first
-	   grep -v cdrom /etc/fstab.linuxmuster-setup.first > /etc/fstab
-	   echo "/dev/$i /media/cdrom0 udf,iso9660 user,noauto 0 0" >> /etc/fstab
-	  fi
-	  cdrom_mounted=yes
-	  break
-	 fi
-	done
-	if [ -z "$cdrom_mounted" ]; then
-	 echo "Fatal: Cannot mount install cd!"
-	 exit 1
-	fi
+    # install paedml release key
+    relkey="$CACHEDIR/paedml-release.asc"
+    if [ -e "$relkey" ]; then
+     echo "Installing paedml release key." | tee -a $logfile
+     apt-key add "$relkey" | tee -a $logfile
     fi
 
-    # install paedml release key
-    [ -e /cdrom/paedml-release.asc ] && apt-key add /cdrom/paedml-release.asc
-
     # check tasks
-    for i in common server desktop imaging-linbo imaging-rembo; do
+    for i in common server imaging-linbo; do
       if [ ! -s "/usr/share/linuxmuster/tasks/$i" ]; then
-        echo "Error: Taskfile $i not found!"
+        echo "Error: Taskfile $i not found!" | tee -a $logfile
         exit 1
       fi
     done
 
     # force apt to do ugly things during upgrade
     echo 'DPkg::Options {"--force-confold";"--force-confdef";"--force-bad-verify";"--force-overwrite";};' > /etc/apt/apt.conf.d/99upgrade
+    echo 'aptitude::CmdLine::Ignore-Trust-Violations "true";' >> /etc/apt/apt.conf.d/99upgrade
 
     # check for installable non-free packages
     indexpage=`aptitude search linuxmuster-indexpage`
     templatespaedml=`aptitude search linuxmuster-schulkonsole-templates-paedml`
 
     # tweaking buggy sophomorix, install postgresql first
+    aptitude update | tee -a $logfile
     DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql | tee -a $logfile
     #DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql-8.1 | tee -a $logfile
 
     # installing depending task
-    for i in common server; do
+    for i in common server imaging-linbo; do
       task=`cat /usr/share/linuxmuster/tasks/$i`
       DEBIAN_FRONTEND=noninteractive aptitude -y install $task | tee -a $logfile
     done
@@ -178,7 +154,8 @@ case $opt in
     [ -n "$templatespaedml" ] && aptitude -y install linuxmuster-schulkonsole-templates-paedml | tee -a $logfile
 
     # remove upgrade cheat
-    rm /etc/apt/apt.conf.d/99upgrade
+    rm -f /etc/apt/apt.conf.d/99upgrade
+    rm -f /var/cache/apt/archives/Packages
 
     ;;
 

@@ -110,13 +110,19 @@ do_accessconf() {
 }
 
 create_account() {
- useradd -c "Remote Admin" -d $ADMINSHOME/$REMOTEADMIN -r -s /bin/bash $REMOTEADMIN
- mkdir -p $ADMINSHOME/$REMOTEADMIN
- chown $REMOTEADMIN:$REMOTEADMIN $ADMINSHOME/$REMOTEADMIN -R
- chmod 700 $ADMINSHOME/$REMOTEADMIN
- passwd $REMOTEADMIN
- add_to_sudoers
- do_accessconf add
+ delgroup $REMOTEADMIN &> /dev/null
+ if addgroup --system $REMOTEADMIN; then
+  useradd -c "Remote Admin" -g $REMOTEADMIN -d $ADMINSHOME/$REMOTEADMIN -r -s /bin/bash $REMOTEADMIN
+  mkdir -p $ADMINSHOME/$REMOTEADMIN
+  chown $REMOTEADMIN:$REMOTEADMIN $ADMINSHOME/$REMOTEADMIN -R
+  chmod 700 $ADMINSHOME/$REMOTEADMIN
+  [ "$NOPASSWD" = "yes" ] || passwd $REMOTEADMIN
+  add_to_sudoers
+  do_accessconf add
+ else
+  echo "Failed to create system group $REMOTEADMIN!"
+  return 1
+ fi
 }
 
 remove_account() {
@@ -129,6 +135,7 @@ remove_account() {
   remove_quota_entry
  else
   id $REMOTEADMIN &> /dev/null && deluser $REMOTEADMIN
+  delgroup $REMOTEADMIN &> /dev/null
  fi
  rm -rf $ADMINSHOME/$REMOTEADMIN
 }

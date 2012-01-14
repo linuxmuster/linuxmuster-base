@@ -28,15 +28,6 @@ for i in adminpw ipcoppw pgmadminpw wwwadminpw; do
   RET=`echo set linuxmuster-base/$i "" | debconf-communicate`
 done
 
-# installing apropriate imaging task
-if [[ "$imaging" = "linbo" || "$imaging" = "rembo" || "$imaging" = "tivoli" ]]; then
-	echo 'DPkg::Options {"--force-confold";"--force-confdef";"--force-bad-verify";"--force-overwrite";};' > /etc/apt/apt.conf.d/99upgrade
-	task=`cat /usr/share/linuxmuster/tasks/imaging-$imaging`
-	export DEBIAN_FRONTEND=noninteractive
-	echo -n "Ja\nJa\n" | aptitude -y install $task | tee -a $LOGDIR/setup.log
-	rm /etc/apt/apt.conf.d/99upgrade
-fi
-
 # escaping special characters in passwords
 esc_spec_chars "$adminpw"
 adminpw=$RET
@@ -50,11 +41,15 @@ ipcoppw=$RET
 # compute md5sum for adminpw
 adminpw_md5=`echo -n $adminpw | md5sum | cut -c -32`
 
-# reading old values
+# only in modify mode
 if [ "$1" != "--first" ]; then
-  echo "Checking for modified values ..."
-  . $OLDVALUES || exit 1
-  rm $OLDVALUES
+ # to be sure imaging packages are installed in case of imaging change
+ linuxmuster-task --unattended --install=imaging-$imaging
+
+ # reading old values
+ echo "Checking for modified values ..."
+ . $OLDVALUES || exit 1
+ rm $OLDVALUES
 fi
 
 # compute ip's

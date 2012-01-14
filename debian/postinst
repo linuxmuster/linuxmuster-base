@@ -68,7 +68,7 @@ case "$1" in
   chmod 600 $HELPERFUNCTIONS
 
   # check all necessary dirs and links and create them if needed
-  for i in $NETLOGONDIR $PROGSDIR $CDSDIR $BACKUPDIR $BACKUPMNTPOINT $LOGINCACHE $LOGDIR; do
+  for i in $NETLOGONDIR $PROGSDIR $PROGSRWDIR $CDSDIR $BACKUPDIR $BACKUPMNTPOINT $LOGINCACHE $LOGDIR; do
    [ -d "$i" ] || mkdir -p $i
   done
 
@@ -176,9 +176,9 @@ case "$1" in
 
    # update slapd.conf
    conf=/etc/ldap/slapd.conf
-   rev=873
-   id="$(basename $conf) $rev"
-   if ! grep -q "$id" $conf; then
+   minrev=873
+   currev="$(grep "# \$Id\:" "$conf" | awk '{ print $4 }')"
+   if [ $minrev -gt $currev ]; then
     confbak=${conf}.dpkg-old
     template=$DYNTPLDIR/15_ldap/$(basename $conf)
     ldappassword="$(cat /etc/ldap.secret)"
@@ -261,6 +261,10 @@ case "$1" in
    find $NETLOGONDIR/ -type f -exec chmod 664 '{}' \;
    find $NETLOGONDIR/ -type d -exec chmod 775 '{}' \;
    chown $ADMINISTRATOR:$DOMADMINS $NETLOGONDIR -R
+   # see #466
+   chown $ADMINISTRATOR:$DOMADMINS $SAMBAHOME
+   chown $ADMINISTRATOR:$DOMADMINS $SAMBAHOME/*
+   chmod 775 $SAMBAHOME/*
 
    # linking registry-patches to administrator's home (1.2-15)
    if [ ! -e "$ADMINSHOME/$ADMINISTRATOR/registry-patches" ]; then
@@ -402,22 +406,50 @@ case "$1" in
     fi
    fi
 
-   # nscd-patch for SophomorixBase.pm (#56 & #64)
-   sophover=2213
-   pkgver="$(dpkg -s sophomorix-base | grep Version | awk '{ print $2 }' | awk -F\- '{ print $1 }' | sed -e 's|\.||g')"
-   if [ "$pkgver" -le "$sophover" ]; then
-    conf=/usr/share/perl5/Sophomorix/SophomorixBase.pm
-    if grep -q "system(\"/usr/sbin/nscd -i passwd -i group -i hosts\")\;" $conf; then
-     echo "Patching SophomorixBase.pm ..."
-     cp $conf $conf.dpkg-bak
-     sed -e 's|system("/usr/sbin/nscd -i passwd -i group -i hosts");|system("/usr/sbin/nscd -i passwd");\
-	system("/usr/sbin/nscd -i group");\
-	system("/usr/sbin/nscd -i hosts");|' -i $conf
-     for i in passwd group hosts; do
-      nscd -i $i
-     done
-    fi
+   # add writable program share (#466)
+   searchstr="\[pgmw\]"
+   conf=/etc/samba/smb.conf.shares
+   if ! grep -q "$searchstr" $conf; then
+    echo "Adding example share to $conf."
+    cp $conf $conf.dpkg-bak
+    cp $STATICTPLDIR/$conf $conf
+    grep -v "# custom share definitions" $conf.dpkg-bak >> $conf
    fi
+   searchstr="M: pgmw"
+   conf=$NETLOGONDIR/login.bat
+   if ! grep -q "$searchstr" $conf; then
+    echo "Adding example mapping to $conf."
+    addstr="rem call \\\\\\\\$servername\\\netlogon\\\logon.bat H: %USERNAME% K: pgm M: pgmw R: cdrom"
+    cp $conf $conf.dpkg-bak
+    sed "/^:winnt/a\
+$addstr" -i $conf
+    chown $ADMINISTRATOR:$DOMADMINS ${conf}*
+    chmod 664 ${conf}*
+   fi
+
+   # remove local.list not removed by upgrade script
+   if [ -e /var/log/linuxmuster/paedml50-upgrade.log ]; then
+    grep -q /var/cache/apt/archives /etc/apt/sources.list.d/local.list &> /dev/null && rm /etc/apt/sources.list.d/local.list
+   fi
+
+   # remove old paedml50.list
+   conf="/etc/apt/sources.list.d/paedml50.list"
+   [ -e "$conf" ] && mv "$conf" "$conf.dpkg-bak"
+
+   # update backup.conf (#551, #499)
+   conf="$SYSCONFDIR/backup.conf"
+   searchstr="cupsys,cups atftpd,tftpd-hpa"
+   backup=false
+   for i in $searchstr; do
+    search="$(echo "$i" | awk -F\, '{ print $1 }')"
+    replace="$(echo "$i" | awk -F\, '{ print $2 }')"
+    if grep -qw "$search" "$conf"; then
+     echo "Replacing $search with $replace in $conf."
+     [ "$backup" = "false" ] && cp "$conf" "$conf.dpkg-bak"
+     backup=true
+     sed -e "s|$search|$replace|g" -i "$conf"
+    fi
+   done
 
    # updating release information
    echo "$(getdistname) $DISTFULLVERSION / Codename $CODENAME" > /etc/issue
