@@ -2,8 +2,9 @@ linuxmuster-base (6.0.0-0ubuntu0) lenny; urgency=low
 
   * initial modifications to be installable on Ubuntu 11.10.
   * removed rembo/myshn scripts and config templates.
+  * deactivated various ipcop stuff.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 14 Jan 2012 19:14:01 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 14 Jan 2012 19:34:20 +0100
 
 linuxmuster-base (5.1.0-3lenny0) lenny; urgency=low
 
