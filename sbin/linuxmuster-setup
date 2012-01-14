@@ -128,11 +128,11 @@ case $opt in
 
     # tweaking buggy sophomorix, install postgresql first
     aptitude update | tee -a $logfile
-    DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql-8.4 | tee -a $logfile
+    DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql-9.1 | tee -a $logfile
     #DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql-8.1 | tee -a $logfile
 
     # installing depending task
-    for i in common server imaging-linbo; do
+    for i in common server; do
       task=`cat /usr/share/linuxmuster/tasks/$i`
       DEBIAN_FRONTEND=noninteractive aptitude -y install $task | tee -a $logfile
     done

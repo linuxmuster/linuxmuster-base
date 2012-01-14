@@ -36,7 +36,6 @@ linux-image-server
 linux-firmware
 linux-firmware-nonfree
 linuxmuster-linbo
-linuxmuster-nagios-base
 linuxmuster-schulkonsole
 lzop
 mindi
@@ -76,7 +75,7 @@ php-xml-util
 pidentd
 portmap
 postfix
-postgresql-8.4
+postgresql-9.1
 rar
 razor
 samba
