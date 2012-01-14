@@ -43,9 +43,6 @@ adminpw_md5=`echo -n $adminpw | md5sum | cut -c -32`
 
 # only in modify mode
 if [ "$1" != "--first" ]; then
- # to be sure imaging packages are installed in case of imaging change
- linuxmuster-task --unattended --install=imaging-$imaging
-
  # reading old values
  echo "Checking for modified values ..."
  . $OLDVALUES || exit 1
@@ -203,6 +200,8 @@ else
  ldapadminpw="$(cat /etc/ldap.secret)"
 fi
 
+# check if sophomorix is installed
+SOPHOMORIX="$(dpkg -l sophomorix2 | grep -q ^i)"
 
 # patching conffiles
 for i in $DYNTPLDIR/*; do
@@ -256,6 +255,7 @@ for i in $DYNTPLDIR/*; do
               s/@@ipcoppw@@/${ipcopintpw}/g
               s/@@adminmac@@/${mac_intern}/g
               s/@@sambasid@@/${sambasid}/g
+              s/@@pgmadmin@@/${PGMADMIN}/g
               s/@@domadmin@@/${DOMADMIN}/g
               s/@@domadmins@@/${DOMADMINS}/g
               s/@@administrator@@/${ADMINISTRATOR}/g

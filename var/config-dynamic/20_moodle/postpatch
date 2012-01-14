@@ -1,4 +1,9 @@
-if [ "$1" = "--first" ]; then
+# $Id$
+
+# check if moodle is installed
+if dpkg -l | grep moodle | grep -q ^i; then
+
+ if [ "$1" = "--first" ]; then
 
   # create tables
   psql -U postgres -d moodle -f /var/tmp/moodle.psql
@@ -6,15 +11,17 @@ if [ "$1" = "--first" ]; then
   # delete temporary patch file
   rm -f /var/tmp/moodle.psql
 
-fi
+ fi
 
-# secure permissions of config.php
-chown root:www-data /etc/moodle/config.php
-chmod 440 /etc/moodle/config.php
+ # secure permissions of config.php
+ chown root:www-data /etc/moodle/config.php
+ chmod 440 /etc/moodle/config.php
 
 # check config.php link
-if [ ! -L /usr/share/moodle/config.php ]; then
+ if [ ! -L /usr/share/moodle/config.php ]; then
   [ -e /usr/share/moodle/config.php ] && rm -rf /usr/share/moodle/config.php
   ln -s /etc/moodle/config.php /usr/share/moodle/config.php
-fi
+ fi
+
+fi # installed
 

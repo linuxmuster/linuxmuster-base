@@ -62,56 +62,19 @@ fi
 
 RC=0
 
-case "$imaging" in
+# backing up workstation data file
+echo -n "Backing up $WIMPORTDATA ... " | tee -a $TMPLOG
+if backup_file $WIMPORTDATA &> /dev/null; then
+ echo "Ok!" | tee -a $TMPLOG
+else
+ echo "failed!" | tee -a $TMPLOG
+fi
 
-	linbo)
-		# backing up workstation data file
-		echo -n "Backing up $WIMPORTDATA ... " | tee -a $TMPLOG
-		if backup_file $WIMPORTDATA &> /dev/null; then
-			echo "Ok!" | tee -a $TMPLOG
-		else
-			echo "failed!" | tee -a $TMPLOG
-		fi
-
-		echo | tee -a $TMPLOG
-		. $SCRIPTSDIR/wimport.sh | tee -a $TMPLOG
-		RC_ML=${PIPESTATUS[0]}
-		[ $RC_ML -ne 0 ] && RC=$RC_ML
-		;;
-
-	rembo)
-		echo -n "Writing Rembo/mySHN configuration ... "
-		if myadmin -i "$REMBOFILES/files/global/wimport_data" --rembo-path "$REMBOFILES" \
-			--rembo-conf "$REMBOCONF" --myshn-path "$MYSHNDIR" --dhcp-conf "$DHCPDCONF" \
-			--hostgroup-conf "$HOSTGROUPCONF" --plugin "$SCRIPTSDIR/wimport_lml.rb" 2>> $TMPLOG 1>> $TMPLOG; then
-			echo "Ok!"
-			RC=0
-		else
-			echo "failed!"
-			RC=1
-		fi
-
-		echo | tee -a $TMPLOG
-		. $SCRIPTSDIR/wimport.sh | tee -a $TMPLOG
-		RC_ML=${PIPESTATUS[0]}
-		[ $RC_ML -ne 0 ] && RC=$RC_ML
-
-		# run this script for the package mlscripts (alternative to myshn)
-		if [ -e "/usr/sbin/mlscripts-wsimport" ]
-		then
-			echo "  * running  /usr/sbin/mlscripts-wsimport" | tee -a $TMPLOG
-			/usr/sbin/mlscripts-wsimport | tee -a $TMPLOG
-			RC_ML=${PIPESTATUS[0]}
-			[ $RC_ML -ne 0 ] && RC=$RC_ML
-		fi
-		;;
-
-	*)
-		echo "No imaging system defined! Doing nothing!" | tee -a $TMPLOG
-		RC=1
-		;;
-
-esac
+# source import script
+echo | tee -a $TMPLOG
+. $SCRIPTSDIR/wimport.sh | tee -a $TMPLOG
+RC_ML=${PIPESTATUS[0]}
+[ $RC_ML -ne 0 ] && RC=$RC_ML
 
 # restart nscd service
 /etc/init.d/nscd restart | tee -a $TMPLOG

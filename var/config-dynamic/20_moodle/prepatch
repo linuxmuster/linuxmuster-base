@@ -1,5 +1,7 @@
-# do this only if moodle is installed
-if dpkg -L moodle &> /dev/null; then
+# $Id$
+
+# check if moodle is installed
+if dpkg -l | grep moodle | grep -q ^i; then
 
   if [ "$1" = "--first" ]; then
     # first time or fresh install

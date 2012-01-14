@@ -1,0 +1,443 @@
+dn: @@basedn@@
+objectClass: dcObject
+objectClass: organization
+o: linuxmuster
+dc: paedml-linux
+structuralObjectClass: organization
+entryUUID: b74928aa-d314-1030-98de-bd3e6f095251
+creatorsName: cn=admin,@@basedn@@
+createTimestamp: 20120114160108Z
+entryCSN: 20120114160108.494083Z#000000#000#000000
+modifiersName: cn=admin,@@basedn@@
+modifyTimestamp: 20120114160108Z
+
+dn: ou=accounts,@@basedn@@
+objectClass: organizationalUnit
+ou: accounts
+structuralObjectClass: organizationalUnit
+entryUUID: b74cf1b0-d314-1030-98df-bd3e6f095251
+creatorsName: cn=admin,@@basedn@@
+createTimestamp: 20120114160108Z
+entryCSN: 20120114160108.519118Z#000000#000#000000
+modifiersName: cn=admin,@@basedn@@
+modifyTimestamp: 20120114160108Z
+
+dn: ou=groups,@@basedn@@
+objectClass: organizationalUnit
+ou: groups
+structuralObjectClass: organizationalUnit
+entryUUID: b74d14ec-d314-1030-98e0-bd3e6f095251
+creatorsName: cn=admin,@@basedn@@
+createTimestamp: 20120114160108Z
+entryCSN: 20120114160108.520023Z#000000#000#000000
+modifiersName: cn=admin,@@basedn@@
+modifyTimestamp: 20120114160108Z
+
+dn: ou=machines,@@basedn@@
+objectClass: organizationalUnit
+ou: machines
+structuralObjectClass: organizationalUnit
+entryUUID: b74d26c6-d314-1030-98e1-bd3e6f095251
+creatorsName: cn=admin,@@basedn@@
+createTimestamp: 20120114160108Z
+entryCSN: 20120114160108.520479Z#000000#000#000000
+modifiersName: cn=admin,@@basedn@@
+modifyTimestamp: 20120114160108Z
+
+dn: sambaDomainName=@@workgroup@@,@@basedn@@
+objectClass: sambaDomain
+objectClass: sambaUnixIdPool
+sambaDomainName: @@workgroup@@
+sambaSID: @@sambasid@@
+uidNumber: 1000
+gidNumber: 1000
+structuralObjectClass: sambaDomain
+entryUUID: b74d3c74-d314-1030-98e2-bd3e6f095251
+creatorsName: cn=admin,@@basedn@@
+createTimestamp: 20120114160108Z
+entryCSN: 20120114160108.521035Z#000000#000#000000
+modifiersName: cn=admin,@@basedn@@
+modifyTimestamp: 20120114160108Z
+
+dn: uid=@@domadmin@@,ou=accounts,@@basedn@@
+sambaHomePath: \\@@servername@@\@@domadmin@@
+sambaHomeDrive: H:
+mail: @@domadmin@@@@@domainname@@
+structuralObjectClass: inetOrgPerson
+entryUUID: b7f18130-d314-1030-866c-71d4b97fd687
+creatorsName: cn=admin,@@basedn@@
+createTimestamp: 20120114160109Z
+cn: Domain Admin
+uidNumber: 996
+sambaPrimaryGroupSID: @@sambasid@@-512
+sambaAcctFlags: [UX]
+gecos: Domain Admin
+sambaPwdLastSet: 1230770904
+userPassword:: e1NTSEF9Y2V5T3ZBYjIyQnJvSG03TCtSMlRTc3JPdVN4TGJHNUhZMDFyTkdKdll
+ VeERhRFZVV0d4Sk1IRnFaVkJFYWxKTVVERTNRZz09
+displayName: Domain Admin
+sambaLMPassword: F2E1862E051C1C9FAAD3B435B51404EE
+uid: @@domadmin@@
+sambaPwdCanChange: 0
+homeDirectory: /dev/null
+sambaLogoffTime: 2147483647
+description: Domain Admin
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+objectClass: top
+objectClass: sambaSamAccount
+sambaLogonTime: 0
+gidNumber: 512
+sambaNTPassword: 20615C640669625A26E7D7AF9CEA2CDB
+sambaSID: @@sambasid@@-996
+sambaKickoffTime: 2147483647
+sn: Admin
+sambaPwdMustChange: 2147483647
+givenName: Domain
+loginShell: /bin/false
+entryCSN: 20120114160148.328761Z#000000#000#000000
+modifiersName: cn=admin,@@basedn@@
+modifyTimestamp: 20120114160148Z
+
+dn: uid=@@administrator@@,ou=accounts,@@basedn@@
+structuralObjectClass: inetOrgPerson
+entryUUID: b806d5f8-d314-1030-866d-71d4b97fd687
+creatorsName: cn=admin,@@basedn@@
+createTimestamp: 20120114160109Z
+cn: Administrator
+uidNumber: 998
+sambaPrimaryGroupSID: @@sambasid@@-512
+sambaAcctFlags: [UX]
+gecos: Administrator
+sambaPwdLastSet: 1230770898
+mail: @@administrator@@@@@domainname@@
+userPassword:: e1NTSEF9R3RWRVl0LzNsdlR0YjI5TGxCY1dxVHFwV1g1d09UQktlbWwwWjFGb1R
+ 6QXhTMnBOYzNWNlZsTkVUemhoZGpGb0x6Sm1NZz09
+displayName: Administrator
+sambaLMPassword: F2E1862E051C1C9FAAD3B435B51404EE
+uid: @@administrator@@
+sambaPwdCanChange: 0
+sambaHomePath: \\@@servername@@\@@administrator@@
+homeDirectory: /home/@@admingroup@@/administrator
+sambaLogoffTime: 2147483647
+description: Administrator
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+objectClass: top
+objectClass: sambaSamAccount
+sambaLogonTime: 0
+gidNumber: 512
+sambaSID: @@sambasid@@-998
+sambaNTPassword: 20615C640669625A26E7D7AF9CEA2CDB
+sambaHomeDrive: H:
+sambaKickoffTime: 2147483647
+sn: Admin
+sambaPwdMustChange: 2147483647
+givenName: Main
+loginShell: /bin/bash
+entryCSN: 20120114160155.578388Z#000000#000#000000
+modifiersName: cn=admin,@@basedn@@
+modifyTimestamp: 20120114160155Z
+
+dn: uid=@@pgmadmin@@,ou=accounts,@@basedn@@
+structuralObjectClass: inetOrgPerson
+entryUUID: b8077396-d314-1030-866e-71d4b97fd687
+creatorsName: cn=admin,@@basedn@@
+createTimestamp: 20120114160109Z
+cn: Programm Administrator
+uidNumber: 999
+sambaPrimaryGroupSID: @@sambasid@@-512
+sambaAcctFlags: [UX]
+gecos: Programm Administrator
+sambaPwdLastSet: 1230770901
+mail: @@pgmadmin@@@@@domainname@@
+userPassword:: e1NTSEF9NUt4SWhNNERVemtEcFIrVS9hVlErcE9MZDN0dVptNHhabWx1YmtGSWF
+ uSjNMekZXYmxCaFJYVkRXWHBRYjBoYU5sUnBVUT09
+displayName: Programm Administrator
+sambaLMPassword: F2E1862E051C1C9FAAD3B435B51404EE
+uid: @@pgmadmin@@
+sambaPwdCanChange: 0
+sambaHomePath: \\@@servername@@\@@pgmadmin@@
+homeDirectory: /home/@@admingroup@@/@@pgmadmin@@
+sambaLogoffTime: 2147483647
+description: Programm Administrator
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+objectClass: top
+objectClass: sambaSamAccount
+sambaLogonTime: 0
+gidNumber: 512
+sambaSID: @@sambasid@@-999
+sambaNTPassword: 20615C640669625A26E7D7AF9CEA2CDB
+sambaHomeDrive: H:
+sambaKickoffTime: 2147483647
+sn: Admin
+sambaPwdMustChange: 2147483647
+givenName: Program
+loginShell: /bin/false
+entryCSN: 20120114160155.829282Z#000000#000#000000
+modifiersName: cn=admin,@@basedn@@
+modifyTimestamp: 20120114160155Z
+
+dn: uid=@@wwwadmin@@,ou=accounts,@@basedn@@
+structuralObjectClass: inetOrgPerson
+entryUUID: b8081152-d314-1030-866f-71d4b97fd687
+creatorsName: cn=admin,@@basedn@@
+createTimestamp: 20120114160109Z
+cn: Web Administrator
+uidNumber: 997
+sambaPrimaryGroupSID: @@sambasid@@-544
+sambaAcctFlags: [DUX]
+gecos: Web Administrator
+sambaPwdLastSet: 1230770903
+mail: @@wwwadmin@@@@@domainname@@
+userPassword:: e1NTSEF9WkVHa1JHUmFMVENIT3lKb3pLZW45aWtVQ21OTFRUbG1URmxOVDJKU1Z
+ YVm5TMHhOVm1oNGQybEhTM0k1YzNGT2VHRktVUT09
+displayName: Web Administrator
+sambaLMPassword: F2E1862E051C1C9FAAD3B435B51404EE
+uid: @@wwwadmin@@
+sambaPwdCanChange: 0
+sambaHomePath: \\@@servername@@\@@wwwadmin@@
+homeDirectory: /home/@@admingroup@@/@@wwwadmin@@
+sambaLogoffTime: 2147483647
+description: Web Administrator
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+objectClass: top
+objectClass: sambaSamAccount
+sambaLogonTime: 0
+gidNumber: 544
+sambaSID: @@sambasid@@-997
+sambaNTPassword: 20615C640669625A26E7D7AF9CEA2CDB
+sambaHomeDrive: H:
+sambaKickoffTime: 2147483647
+sn: Admin
+sambaPwdMustChange: 2147483647
+givenName: Web
+loginShell: /bin/false
+entryCSN: 20120114160155.984068Z#000000#000#000000
+modifiersName: cn=admin,@@basedn@@
+modifyTimestamp: 20120114160155Z
+
+dn: cn=@@domadmin@@s,ou=groups,@@basedn@@
+objectClass: posixGroup
+objectClass: sambaGroupMapping
+gidNumber: 512
+cn: @@domadmin@@s
+memberUid: @@pgmadmin@@
+memberUid: @@administrator@@
+memberUid: @@domadmin@@
+sambaSID: @@sambasid@@-512
+sambaGroupType: 2
+displayName: Domain Admins
+description: Domain Unix group
+structuralObjectClass: posixGroup
+entryUUID: b808aefa-d314-1030-8670-71d4b97fd687
+creatorsName: cn=admin,@@basedn@@
+createTimestamp: 20120114160109Z
+entryCSN: 20120114160109.749473Z#000000#000#000000
+modifiersName: cn=admin,@@basedn@@
+modifyTimestamp: 20120114160109Z
+
+dn: cn=domusers,ou=groups,@@basedn@@
+objectClass: posixGroup
+objectClass: sambaGroupMapping
+gidNumber: 513
+cn: domusers
+sambaSID: @@sambasid@@-513
+sambaGroupType: 2
+displayName: Domain Users
+description: Domain Unix group
+structuralObjectClass: posixGroup
+entryUUID: b809e248-d314-1030-8671-71d4b97fd687
+creatorsName: cn=admin,@@basedn@@
+createTimestamp: 20120114160109Z
+entryCSN: 20120114160109.757339Z#000000#000#000000
+modifiersName: cn=admin,@@basedn@@
+modifyTimestamp: 20120114160109Z
+
+dn: cn=domguests,ou=groups,@@basedn@@
+objectClass: posixGroup
+objectClass: sambaGroupMapping
+gidNumber: 514
+cn: domguests
+sambaSID: @@sambasid@@-514
+sambaGroupType: 2
+displayName: Domain Guests
+description: Domain Unix group
+structuralObjectClass: posixGroup
+entryUUID: b80a33c4-d314-1030-8672-71d4b97fd687
+creatorsName: cn=admin,@@basedn@@
+createTimestamp: 20120114160109Z
+entryCSN: 20120114160109.759427Z#000000#000#000000
+modifiersName: cn=admin,@@basedn@@
+modifyTimestamp: 20120114160109Z
+
+dn: cn=domcomputers,ou=groups,@@basedn@@
+objectClass: posixGroup
+objectClass: sambaGroupMapping
+gidNumber: 515
+cn: domcomputers
+sambaSID: @@sambasid@@-515
+sambaGroupType: 2
+displayName: Domain Computers
+description: Domain Unix group
+structuralObjectClass: posixGroup
+entryUUID: b80a8f86-d314-1030-8673-71d4b97fd687
+creatorsName: cn=admin,@@basedn@@
+createTimestamp: 20120114160109Z
+entryCSN: 20120114160109.761776Z#000000#000#000000
+modifiersName: cn=admin,@@basedn@@
+modifyTimestamp: 20120114160109Z
+
+dn: cn=printoperators,ou=groups,@@basedn@@
+objectClass: posixGroup
+objectClass: sambaGroupMapping
+gidNumber: 550
+cn: printoperators
+memberUid: @@administrator@@
+sambaSID: S-1-5-32-550
+sambaGroupType: 4
+displayName: Print Operators
+description: Local Unix group
+structuralObjectClass: posixGroup
+entryUUID: b80ae7f6-d314-1030-8674-71d4b97fd687
+creatorsName: cn=admin,@@basedn@@
+createTimestamp: 20120114160109Z
+entryCSN: 20120114160109.764039Z#000000#000#000000
+modifiersName: cn=admin,@@basedn@@
+modifyTimestamp: 20120114160109Z
+
+dn: cn=replicators,ou=groups,@@basedn@@
+objectClass: posixGroup
+objectClass: sambaGroupMapping
+gidNumber: 552
+cn: replicators
+sambaSID: S-1-5-32-552
+sambaGroupType: 4
+displayName: Replicators
+description: Local Unix group
+structuralObjectClass: posixGroup
+entryUUID: b80b412e-d314-1030-8675-71d4b97fd687
+creatorsName: cn=admin,@@basedn@@
+createTimestamp: 20120114160109Z
+entryCSN: 20120114160109.766323Z#000000#000#000000
+modifiersName: cn=admin,@@basedn@@
+modifyTimestamp: 20120114160109Z
+
+dn: cn=@@admingroup@@,ou=groups,@@basedn@@
+description: Local Unix group
+structuralObjectClass: posixGroup
+entryUUID: b80b9f2a-d314-1030-8676-71d4b97fd687
+creatorsName: cn=admin,@@basedn@@
+createTimestamp: 20120114160109Z
+gidNumber: 544
+sambaSID: S-1-5-32-544
+cn: @@admingroup@@
+sambaGroupType: 4
+memberUid: @@administrator@@
+memberUid: @@wwwadmin@@
+objectClass: posixGroup
+objectClass: top
+objectClass: sambaGroupMapping
+displayName: @@admingroup@@
+entryCSN: 20120114160228.875146Z#000000#000#000000
+modifiersName: cn=admin,@@basedn@@
+modifyTimestamp: 20120114160228Z
+
+dn: cn=accountoperators,ou=groups,@@basedn@@
+objectClass: posixGroup
+objectClass: sambaGroupMapping
+gidNumber: 548
+cn: accountoperators
+sambaSID: S-1-5-32-548
+sambaGroupType: 4
+displayName: Account Operators
+description: Local Unix group
+structuralObjectClass: posixGroup
+entryUUID: b80bf77c-d314-1030-8677-71d4b97fd687
+creatorsName: cn=admin,@@basedn@@
+createTimestamp: 20120114160109Z
+entryCSN: 20120114160109.770990Z#000000#000#000000
+modifiersName: cn=admin,@@basedn@@
+modifyTimestamp: 20120114160109Z
+
+dn: cn=backupoperators,ou=groups,@@basedn@@
+objectClass: posixGroup
+objectClass: sambaGroupMapping
+gidNumber: 551
+cn: backupoperators
+sambaSID: S-1-5-32-551
+sambaGroupType: 4
+displayName: Backup Operators
+description: Local Unix group
+structuralObjectClass: posixGroup
+entryUUID: b80c5c30-d314-1030-8678-71d4b97fd687
+creatorsName: cn=admin,@@basedn@@
+createTimestamp: 20120114160109Z
+entryCSN: 20120114160109.773568Z#000000#000#000000
+modifiersName: cn=admin,@@basedn@@
+modifyTimestamp: 20120114160109Z
+
+dn: cn=@@teachersgroup@@,ou=groups,@@basedn@@
+objectClass: posixGroup
+objectClass: sambaGroupMapping
+gidNumber: 10000
+cn: @@teachersgroup@@
+memberUid: @@administrator@@
+sambaSID: @@sambasid@@-21001
+sambaGroupType: 2
+displayName: @@teachersgroup@@
+structuralObjectClass: posixGroup
+entryUUID: b80cb5a4-d314-1030-8679-71d4b97fd687
+creatorsName: cn=admin,@@basedn@@
+createTimestamp: 20120114160109Z
+entryCSN: 20120114160109.775859Z#000000#000#000000
+modifiersName: cn=admin,@@basedn@@
+modifyTimestamp: 20120114160109Z
+
+dn: uid=linbo,ou=accounts,@@basedn@@
+structuralObjectClass: inetOrgPerson
+entryUUID: e7b7f91c-d314-1030-8c4b-f5f22e6d4270
+creatorsName: cn=admin,@@basedn@@
+createTimestamp: 20120114160229Z
+cn: LINBO Administrator
+uidNumber: 10018
+sambaPrimaryGroupSID: @@sambasid@@-2089
+gecos: LINBO Administrator
+sambaPwdLastSet: 1326556948
+mail: linbo@@@domainname@@
+userPassword:: e1NTSEF9bEhSempXdlNQM2dZQlM3OGVLK3RDdS9lYUxzdlJIRXpaRmxTV25Wbk1
+ uRnlOME5HZVVSMUxsY3VSMGRsVUVwSVNYbFBhZz09
+displayName: LINBO Administrator
+sambaLMPassword: F2E1862E051C1C9FAAD3B435B51404EE
+uid: linbo
+sambaPwdCanChange: 0
+sambaHomePath: \\@@servername@@.@@domainname@@\linbo
+homeDirectory: /home/@@admingroup@@/linbo
+sambaLogoffTime: 2147483647
+description: LINBO Administrator
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+objectClass: top
+objectClass: sambaSamAccount
+sambaLogonTime: 0
+gidNumber: 544
+sambaSID: @@sambasid@@-21036
+sambaNTPassword: 20615C640669625A26E7D7AF9CEA2CDB
+sambaHomeDrive: H:
+sambaKickoffTime: 2147483647
+sn: Doe
+sambaPwdMustChange: 2147483647
+givenName: John
+loginShell: /bin/false
+sambaAcctFlags: [UX         ]
+entryCSN: 20120114160231.239660Z#000000#000#000000
+modifiersName: cn=admin,@@basedn@@
+modifyTimestamp: 20120114160231Z
+

@@ -1,16 +1,23 @@
-# necessary to trick sophomorix
-if [ "$1" = "--first" ]; then
-	pg_dropcluster 8.3 main &> /dev/null
-	pg_createcluster 8.3 main
-	cp $STATICTPLDIR/etc/postgresql/8.3/main/* /etc/postgresql/8.3/main
-fi
-/etc/init.d/postgresql-8.3 start
+# $Id$
 
+if [ "$1" = "--first" ]; then
+
+ # necessary to trick sophomorix
+ pg_dropcluster 8.4 main &> /dev/null
+ pg_createcluster 8.4 main
+ cp $STATICTPLDIR/etc/postgresql/8.4/main/* /etc/postgresql/8.4/main
+
+else
+
+ # don't patch database templates
+ for i in ldap.ldif ldap.pgsql; do
+  mv $i.target $i.target.nopatch
+ done
+
+fi
+
+/etc/init.d/postgresql-8.4 start
 
 # clear samba browse cache
 rm -f /var/lib/samba/wins.dat
-
-
-# copy imaging related template
-cp smb.conf.$imaging smb.conf
 
