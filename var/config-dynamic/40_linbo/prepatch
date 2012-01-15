@@ -1,29 +1,7 @@
 # $Id$
 #
 
-# create tftpd-hpa configs if necessary
-tpldir="/usr/share/linuxmuster-linbo/templates"
-tpl="$tpldir/tftpd-hpa.default"
-conf="/etc/default/tftpd-hpa"
-if ! grep -q "$LINBODIR" "$conf"; then
- echo "Patching $conf."
- backup_file "$conf"
- sed -e "s|@@linbodir@@|$LINBODIR|" "$tpl" > "$conf"
-fi
-conf="/etc/tftp_remap.conf"
-tpl="$tpldir/$(basename $conf)"
-if [ ! -e "$conf" ]; then
- echo "Providing $conf."
- cp "$tpl" "$conf"
-fi
-
-# check for tftp in inetd.conf
-conf=/etc/inetd.conf
-if grep -q ^tftp "$conf"; then
- echo "Deactivating tftp in $conf."
- backup_file "$conf"
- sed -e 's|^tftp|#tftp|' -i "$conf"
-fi
+dpkg-reconfigure linuxmuster-linbo
 
 # stuff to do on first time install
 if [ "$1" = "--first" ]; then
@@ -38,25 +16,9 @@ if [ "$1" = "--first" ]; then
   # provide empty workstations data
  rm -rf $SYSCONFDIR/workstations
 
-else # modify
-
- # restore workstations file from link if coming from rembo
- if [ "$imaging_old" = "rembo" ]; then
-  if [ -L "$SYSCONFDIR/workstations" ]; then
-   rm $SYSCONFDIR/workstations
-  else
-   backup_file $SYSCONFDIR/workstations
-  fi
-  cp $REMBOFILES/files/global/wimport_data $SYSCONFDIR/workstations
- fi
-
 fi
 
 touch $SYSCONFDIR/workstations
-
-# patch path to wimport_data in dist.conf
-backup_file /usr/share/linuxmuster/config/dist.conf
-sed -e "s/^WIMPORTDATA=.*/WIMPORTDATA=\"\$SYSCONFDIR\/workstations\"/" -i /usr/share/linuxmuster/config/dist.conf
 
 # if no linbo password then grep rsync password from rembo.conf or if that fails take simply muster as password
 if ! grep ^linbo: /etc/rsyncd.secrets &> /dev/null; then
@@ -90,12 +52,6 @@ if ! grep ^tcp $BASEPORTS | grep -qw rsync; then
  sed -e "s/^tcp.*/tcp $PORTS/" -i $BASEPORTS
 fi
 
-# patch start.confs with serverip
-for i in $LINBODEFAULTCONF `find $LINBODIR/ -type f -name 'start.conf*'`; do
- backup_file $i
- sed -e "s/^Server = \([0-9]\{1,3\}[.]\)\{3\}[0-9]\{1,3\}/Server = $serverip/" -i $i
-done
-
 # patch regs with workgroup
 for i in `find $LINBODIR/ -type f -name '*.reg'`; do
  backup_file $i
@@ -103,13 +59,12 @@ for i in `find $LINBODIR/ -type f -name '*.reg'`; do
          s/^\"Workgroup\"=.*/\"Workgroup\"=\"$workgroup\"/" -i $i
 done
 
-# patch start variables of tftpd-hpa and rsync
-sed -e "s/^RUN_DAEMON=.*/RUN_DAEMON=yes/" -i /etc/default/tftpd-hpa
+# patch rsync start variable
 sed -e "s/^RSYNC_ENABLE=.*/RSYNC_ENABLE=true/" -i /etc/default/rsync
 
 # check for images and start multicast
 update-rc.d linbo-multicast defaults
-res=`find $LINBODIR -name '*.cloop'`
+res="$(find $LINBODIR -name \*.cloop)"
 if [ -n "$res" ]; then
  sed -e "s/^START_MULTICAST=.*/START_MULTICAST=yes/" -i /etc/default/linuxmuster-linbo
  /etc/init.d/linbo-multicast start
@@ -146,7 +101,7 @@ fi
 chown nobody $LOGDIR/linbo
 
 # start necessary services
-/etc/init.d/tftpd-hpa start
+start tftpd-hpa
 /etc/init.d/rsync start
 
 # don't start these on first install
