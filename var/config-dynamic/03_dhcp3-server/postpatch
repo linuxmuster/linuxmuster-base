@@ -2,7 +2,7 @@
 
 # patch internal interface
 [ "$1" = "--modfify" ] && backup_file /etc/isc-dhcp-server
-sed -e "s/^INTERFACES=.*/INTERFACES=\"$intern\"/" -i /etc/isc-dhcp-server
+sed -e "s/^INTERFACES=.*/INTERFACES=\"$intern\"/" -i /etc/default/isc-dhcp-server
 
 # simply start the service
 /etc/init.d/isc-dhcp-server start

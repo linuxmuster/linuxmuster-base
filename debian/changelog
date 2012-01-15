@@ -4,7 +4,7 @@ linuxmuster-base (6.0.0-0ubuntu0) lenny; urgency=low
   * removed rembo/myshn scripts and config templates.
   * deactivated various ipcop stuff.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 15 Jan 2012 11:38:31 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 15 Jan 2012 11:40:32 +0100
 
 linuxmuster-base (5.1.0-3lenny0) lenny; urgency=low
 
