@@ -11,20 +11,6 @@ fi
 smbpasswd -w $ldapadminpw
 
 
-# patch libnss-ldap.conf with basedn
-template=/etc/libnss-ldap.conf
-[ "$1" = "--modify" ] && backup_file $template
-sed -e "s/^base.*/base $basedn/
-        s/^rootbinddn.*/rootbinddn cn=admin,$basedn/" -i $template
-
-
-# patch pam_ldap.conf with basedn
-template=/etc/pam_ldap.conf
-[ "$1" = "--modify" ] && backup_file $template
-sed -e "s/^base.*/base $basedn/
-        s/^rootbinddn.*/rootbinddn cn=admin,$basedn/" -i $template
-
-
 # check if sophomorix is installed
 if [ -n "$SOPHOMORIX" ]; then
 
