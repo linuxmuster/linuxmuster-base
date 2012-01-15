@@ -66,10 +66,10 @@ done
 touch $INSTALLED
 
 # reconfigure linuxmuster-base to fix what has been not yet fixed, deprecated?
-#dpkg-reconfigure linuxmuster-base
+dpkg-reconfigure linuxmuster-base
 
 # repair linbo stuff, if necessary, deprecated?
-#[ "$imaging" = "linbo" ] && dpkg-reconfigure linuxmuster-linbo
+dpkg-reconfigure linuxmuster-linbo
 
 # apply workstation data if internal net has changed
 if [[ "$1" = "--modify" && "$internsub" != "$internsub_old" ]]; then
