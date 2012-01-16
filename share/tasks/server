@@ -15,7 +15,6 @@ cyrus-admin-2.2
 cyrus-imapd-2.2
 cyrus-pop3d-2.2
 dhcp3-server
-foomatic-filters-ppds
 gollem
 horde3
 hpijs
@@ -49,10 +48,10 @@ openntpd
 openssh-server
 php5
 php5-auth-pam
+php5-common
 php5-imap
 php5-ldap
 php5-mcrypt
-php5-mhash
 php5-mysql
 php5-pgsql
 php5-ps
@@ -73,11 +72,11 @@ php-soap
 php-xml-serializer
 php-xml-util
 pidentd
-portmap
 postfix
 postgresql-9.1
 rar
 razor
+rpcbind
 samba
 samba-common-bin
 sasl2-bin

@@ -3,8 +3,9 @@ linuxmuster-base (6.0.0-1ubuntu0) lenny; urgency=low
   * linuxmuster-setup:
     * removed shadowconfig on first time installation.
     * removed moodle configuration.
+  * server task updates.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 16 Jan 2012 20:01:07 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 16 Jan 2012 20:02:50 +0100
 
 linuxmuster-base (6.0.0-0ubuntu0) lenny; urgency=low
 
