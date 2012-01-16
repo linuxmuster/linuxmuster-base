@@ -97,8 +97,8 @@ case $opt in
      cp -a $STATICTPLDIR/etc/apt/* /etc/apt | tee -a $logfile
     fi
 
-    # turn shadow passwords on
-    shadowconfig on | tee -a $logfile
+    # turn shadow passwords on, deprecated?
+    #shadowconfig on | tee -a $logfile
 
     # add cyrus user
     id cyrus &> /dev/null || useradd -c "Cyrus Mailsystem User" -d /var/spool/cyrus -g mail -m -r -s /bin/sh cyrus | tee -a $logfile

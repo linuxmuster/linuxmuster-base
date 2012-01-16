@@ -1,10 +1,18 @@
+linuxmuster-base (6.0.0-1ubuntu0) lenny; urgency=low
+
+  * linuxmuster-setup:
+    * removed shadowconfig on first time installation.
+    * removed moodle configuration.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 16 Jan 2012 20:01:07 +0100
+
 linuxmuster-base (6.0.0-0ubuntu0) lenny; urgency=low
 
   * initial modifications to be installable on Ubuntu 11.10.
   * removed rembo/myshn scripts and config templates.
   * deactivated various ipcop stuff.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 15 Jan 2012 12:20:05 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 15 Jan 2012 12:45:42 +0100
 
 linuxmuster-base (5.1.0-3lenny0) lenny; urgency=low
 
