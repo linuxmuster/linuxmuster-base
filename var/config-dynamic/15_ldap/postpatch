@@ -152,7 +152,7 @@ chmod 644 /etc/ldap/ldap.conf
 chown openldap:openldap /var/lib/ldap -R
 chmod 700 /var/lib/ldap
 chmod 600 /var/lib/ldap/*
-rm /etc/pam_ldap.secret
+rm -f /etc/pam_ldap.secret
 ln -sf ldap.secret /etc/pam_ldap.secret
 
 

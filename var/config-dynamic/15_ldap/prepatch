@@ -18,7 +18,7 @@ else
 
 fi
 
-/etc/init.d/postgresql-9.1 start
+/etc/init.d/postgresql start
 
 # clear samba browse cache
 rm -f /var/lib/samba/wins.dat

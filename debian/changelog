@@ -1,3 +1,12 @@
+linuxmuster-base (6.0.0-2ubuntu0) lenny; urgency=low
+
+  * linuxmuster-setup:
+    * using adduser instead of useradd to create system users.
+    * corrects uid of vboxadd user.
+    * fixed postgresql init skript name.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 16 Jan 2012 22:08:23 +0100
+
 linuxmuster-base (6.0.0-1ubuntu0) lenny; urgency=low
 
   * linuxmuster-setup:
@@ -7,7 +16,7 @@ linuxmuster-base (6.0.0-1ubuntu0) lenny; urgency=low
     * increased logging.
   * server task updates.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 16 Jan 2012 20:14:08 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 16 Jan 2012 20:42:31 +0100
 
 linuxmuster-base (6.0.0-0ubuntu0) lenny; urgency=low
 

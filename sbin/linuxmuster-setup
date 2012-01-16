@@ -97,11 +97,19 @@ case $opt in
      cp -a $STATICTPLDIR/etc/apt/* /etc/apt | tee -a $logfile
     fi
 
-    # turn shadow passwords on, deprecated?
+    # turn shadow passwords on
     #shadowconfig on | tee -a $logfile
+    
+    # correct vboxadd
+    id vboxadd &> /dev/null && userdel vboxadd
+    adduser --ingroup daemon --gecos "VirtualBox guest additions user" --system --home /var/run/vboxadd --shell /bin/false vboxadd
+    mkdir -p /var/run/vboxadd
+    chown vboxadd:daemon /var/run/vboxadd
 
     # add cyrus user
-    id cyrus &> /dev/null || useradd -c "Cyrus Mailsystem User" -d /var/spool/cyrus -g mail -m -r -s /bin/sh cyrus | tee -a $logfile
+    id cyrus &> /dev/null || adduser --gecos "Cyrus Mailsystem User" --home /var/spool/cyrus -ingroup mail --system --shell /bin/sh cyrus | tee -a $logfile
+    mkdir -p /var/spool/cyrus
+    chown cyrus:mail /var/spool/cyrus
 
     # install paedml release key
     relkey="$CACHEDIR/paedml-release.asc"
