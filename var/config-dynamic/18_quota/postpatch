@@ -1,3 +1,7 @@
+# $Id$
+
+echo "### 18_quota postpatch"
+
 # start service
 /etc/init.d/quota start
 

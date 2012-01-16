@@ -1,3 +1,7 @@
+# $Id$
+
+echo "### 01_network postpatch"
+
 # delete interfaces template after patching
 [ -e interfaces ] && rm interfaces
 

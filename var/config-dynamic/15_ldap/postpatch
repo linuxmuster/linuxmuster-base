@@ -1,5 +1,7 @@
 # $Id$
 
+echo "### 15_ldap postpatch"
+
 # set samba sid
 if [ -n "$sambasid" ]; then
  net setlocalsid $sambasid

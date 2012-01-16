@@ -1,3 +1,7 @@
+# $Id$
+
+echo "### 05_mysql prepatch"
+
 /etc/init.d/mysql start
 
 if [ "$1" = "--first" ]; then

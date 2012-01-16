@@ -1,3 +1,7 @@
+# $Id$
+
+echo "### 99_start-services prepatch"
+
 if [ "$1" != "--first" ]; then
 	if [ "$serverip" != "$serverip_old" ]; then
 		backup_file /etc/openntpd/ntpd.conf

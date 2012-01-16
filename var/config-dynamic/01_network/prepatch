@@ -1,3 +1,7 @@
+# "$Id"
+
+echo "### 01_network prepatch"
+
 # stop networking at all
 /etc/rcS.d/S40networking stop 1>> $LOGDIR/setup.log 2>> $LOGDIR/setup.log
 

@@ -1,3 +1,7 @@
+# $Id$
+
+echo "### 04_bind9 postpatch"
+
 # fix permissions
 chown root:bind /etc/bind
 chmod 775 /etc/bind

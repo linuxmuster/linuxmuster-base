@@ -1,3 +1,7 @@
+# $Id$
+
+echo "### 02_certificates postpatch"
+
 # make script executable
 chmod 744 $SCRIPTSDIR/create-ssl-cert.sh
 

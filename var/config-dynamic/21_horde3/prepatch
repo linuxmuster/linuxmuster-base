@@ -1,3 +1,7 @@
+# $Id$
+
+echo "### 21_horde3 prepatch"
+
 # do this only if horde3 is installed
 if dpkg -L horde3 &> /dev/null; then
 

@@ -1,3 +1,7 @@
+# $Id$
+
+echo "### 16_mail postpatch"
+
 # activate mail aliases for teachers
 sophomorix-class --class teachers --mailalias
 

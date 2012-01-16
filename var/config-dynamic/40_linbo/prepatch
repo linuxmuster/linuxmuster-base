@@ -1,5 +1,6 @@
 # $Id$
-#
+
+echo "### 40_linbo prepatch"
 
 dpkg-reconfigure linuxmuster-linbo
 
@@ -83,6 +84,8 @@ if ! check_id linbo; then
   else
    smbldap-useradd -a -c "LINBO Administrator" -N LINBO -S Administrator -s /bin/false -g $ADMINGROUP -d $ADMINSHOME/linbo -m linbo
    echo -e "$linbopasswd\n$linbopasswd\n" | smbldap-passwd -s linbo
+   mkdir -p $ADMINSHOME/linbo
+   chown linbo:$ADMINGROUP $ADMINSHOME/linbo
   fi
   smbldap-usermod -H '[UX         ]' linbo || true
  fi

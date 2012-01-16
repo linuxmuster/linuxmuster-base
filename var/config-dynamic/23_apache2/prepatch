@@ -1,3 +1,7 @@
+# $Id$
+
+echo "### 23_apache2 prepatch"
+
 # enable necessary modules
 if [ -d /etc/apache2/mods-available ] &&  [ -d /etc/apache2/mods-enabled ]; then
   cd /etc/apache2/mods-available

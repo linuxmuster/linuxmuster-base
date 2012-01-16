@@ -1,3 +1,7 @@
+# $Id$
+
+echo "### 17_admins postpatch"
+
 # permissions of samba folders
 for i in $NETLOGONDIR $PROGSDIR $CDSDIR; do
   chown $ADMINISTRATOR:$DOMADMINS $i

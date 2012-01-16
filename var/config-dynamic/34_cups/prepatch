@@ -1,3 +1,7 @@
+# $Id$
+
+echo "### 34_cups prepatch"
+
 if [ "$1" = "--modify" ]; then
 
 	# prevent cupsd.conf from being patched

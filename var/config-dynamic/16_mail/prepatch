@@ -1,3 +1,7 @@
+# $Id$
+
+echo "### 16_mail prepatch"
+
 # repair permissions and group memberships
 dpkg-statoverride --force --update --add cyrus postfix 750 /var/run/cyrus/socket &> /dev/null
 usermod -G mail,sasl,ssl-cert postfix

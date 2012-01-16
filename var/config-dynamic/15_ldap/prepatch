@@ -1,5 +1,7 @@
 # $Id$
 
+echo "### 15_ldap prepatch"
+
 if [ "$1" = "--first" ]; then
 
  # necessary to trick sophomorix

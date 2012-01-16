@@ -1,5 +1,7 @@
 # $Id$
 
+echo "### 03_dhcp3-server postpatch"
+
 # patch internal interface
 [ "$1" = "--modfify" ] && backup_file /etc/isc-dhcp-server
 sed -e "s/^INTERFACES=.*/INTERFACES=\"$intern\"/" -i /etc/default/isc-dhcp-server

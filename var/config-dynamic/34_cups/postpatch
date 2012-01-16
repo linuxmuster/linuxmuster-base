@@ -1,3 +1,7 @@
+# $Id$
+
+echo "### 34_cups postpatch"
+
 # start service
 /etc/init.d/cups start
 

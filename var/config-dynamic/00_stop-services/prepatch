@@ -2,6 +2,8 @@
 #
 # stop all relevant services
 
+echo "### 00_stop-services prepatch"
+
 services="linuxmuster-base tftpd-hpa bittorrent rsync linbo-bittorrent \
           linbo-multicast nagios3 atd cron rembo quota apache2 cups \
           clamav-freshclam clamav-daemon cyrus2.2 postfix saslauthd amavis \
