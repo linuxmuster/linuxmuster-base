@@ -35,6 +35,7 @@ linux-image-server
 linux-firmware
 linux-firmware-nonfree
 linuxmuster-linbo
+linuxmuster-nagios-base
 linuxmuster-schulkonsole
 lzop
 mindi

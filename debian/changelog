@@ -4,8 +4,9 @@ linuxmuster-base (6.0.0-4ubuntu0) lenny; urgency=low
   * reworked nic-setup scripts and functions in helperfunctions.sh.
   * removed mac_* package templates, added iface_lan to templates.
   * linuxmuster-setup: fixed postgresql's pg_hba.conf template.
+  * added linuxmuster-nagios-base to server task again.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 17 Jan 2012 22:04:12 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 17 Jan 2012 22:13:12 +0100
 
 linuxmuster-base (6.0.0-3ubuntu0) lenny; urgency=low
 
