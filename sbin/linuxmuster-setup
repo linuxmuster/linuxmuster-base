@@ -145,17 +145,17 @@ case $opt in
       DEBIAN_FRONTEND=noninteractive aptitude -y install $task | tee -a $logfile
     done
 
-    # reconfigure locale settings
-    for i in locale.gen timezone; do
-     conf=/etc/$i
-     cp $STATICTPLDIR/$conf $conf
-    done
-    DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales
-    DEBIAN_FRONTEND=noninteractive dpkg-reconfigure tzdata
-    install-keymap /usr/share/keymaps/i386/qwertz/de-latin1-nodeadkeys.kmap.gz
-    kmapmd5=`md5sum /etc/console-setup/boottime.kmap.gz | awk '{ print $1 }' 2> /dev/null`
-    sed -e "s/^BOOTTIME_KMAP_MD5=.*/BOOTTIME_KMAP_MD5=\"$kmapmd5\"/" $STATICTPLDIR/etc/default/console-setup > /etc/default/console-setup
-    /etc/init.d/console-setup restart
+    # reconfigure locale settings, deprecated?
+    #for i in locale.gen timezone; do
+    # conf=/etc/$i
+    # cp $STATICTPLDIR/$conf $conf
+    #done
+    #DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales
+    #DEBIAN_FRONTEND=noninteractive dpkg-reconfigure tzdata
+    #install-keymap /usr/share/keymaps/i386/qwertz/de-latin1-nodeadkeys.kmap.gz
+    #kmapmd5=`md5sum /etc/console-setup/boottime.kmap.gz | awk '{ print $1 }' 2> /dev/null`
+    #sed -e "s/^BOOTTIME_KMAP_MD5=.*/BOOTTIME_KMAP_MD5=\"$kmapmd5\"/" $STATICTPLDIR/etc/default/console-setup > /etc/default/console-setup
+    #/etc/init.d/console-setup restart
 
     # install indexpage if available
     [ -n "$indexpage" ] && aptitude -y install linuxmuster-indexpage | tee -a $logfile
