@@ -194,31 +194,9 @@ while ! validdomain "$SMTPRELAY"; do
 done
 
 
-
-# check whether rembo is available
-rembo=`aptitude search myshn`
-[ "$1" = "--first" ] && rembo=""
-
 # imaging system
 imaging="linbo"
-if [ -n "$rembo" ]; then
-
-	IMG_CHOICES="linbo, rembo"
-	IMG_DESC="LINBO [linbo] und Rembo/mySHN (tm) [rembo]."
-
-fi
-
-if [ -n "$IMG_CHOICES" ]; then
-	db_fset linuxmuster-base/imaging seen false
-	db_subst linuxmuster-base/imaging img_choices $IMG_CHOICES
-	db_subst linuxmuster-base/imaging img_desc $IMG_DESC
-	db_input $PRIORITY linuxmuster-base/imaging || true
-	db_go
-	db_get linuxmuster-base/imaging || true
-	imaging=$RET
-else
-	db_set linuxmuster-base/imaging "$imaging" || true
-fi
+db_set linuxmuster-base/imaging "$imaging" || true
 
 
 # admin passwords

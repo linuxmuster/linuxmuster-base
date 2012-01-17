@@ -19,15 +19,3 @@ for service in $services; do
  [ -e "/etc/init/$service.conf" ] && stop $service
 done
 
-# fix run directory
-if [ ! -d /run/lock ]; then
- echo "fix run directory"
- ls -l /var/run >> $logfile
- ls -l /var/lock >> $logfile
- mkdir -p /run/lock
- rm -rf /var/run
- rm -rf /var/lock
- ln -s /run /var/run
- ln -s /run/lock /var/lock
-fi
-

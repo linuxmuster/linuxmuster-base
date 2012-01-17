@@ -74,7 +74,6 @@ case "$1" in
 
   # add startup scripts to runlevels
   update-rc.d linuxmuster-base defaults
-  update-rc.d linuxmuster-nic-setup start 40 S .
 
   # create and correct dirs and files
   [ -d /etc/skel/windows ] && rm -rf /etc/skel/windows

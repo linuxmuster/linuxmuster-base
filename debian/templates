@@ -228,32 +228,12 @@ Description: Interner Adressbereich?
 Template: linuxmuster-base/nicmenu
 Type: select
 Choices: ${nic_choices}
-Description: Zuordnung der Netzwerkkarten
+Description: Zuordnung der Netzwerkkarte
  ${nic_desc}
 
-Template: linuxmuster-base/ifmenu
-Type: select
-Choices: ${if_choices}
-Description: ${if_desc}
- Waehlen Sie die zutreffende Zuordnung fuer diese Netzwerkkarte mit den Pfeiltasten aus. Bestaetigen Sie die Auswahl wiederum mit ENTER.
-
-Template: linuxmuster-base/mac_extern
+Template: linuxmuster-base/iface_lan
 Type: string
-Description: extern MAC
- Keine Eingabe.
-
-Template: linuxmuster-base/mac_intern
-Type: string
-Description: intern MAC
- Keine Eingabe.
-
-Template: linuxmuster-base/mac_wlan
-Type: string
-Description: wlan MAC
- Keine Eingabe.
-
-Template: linuxmuster-base/mac_dmz
-Type: string
-Description: dmz MAC
+Default: eth0
+Description: lan interface
  Keine Eingabe.
 

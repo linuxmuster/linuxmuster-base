@@ -1,11 +1,20 @@
+linuxmuster-base (6.0.0-4ubuntu0) lenny; urgency=low
+
+  * changed to udev based nic management, nic name will now be used as is.
+  * reworked nic-setup scripts and functions in helperfunctions.sh.
+  * removed mac_* package templates, added iface_lan to templates.
+  * linuxmuster-setup: fixed postgresql's pg_hba.conf template.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 17 Jan 2012 22:04:12 +0100
+
 linuxmuster-base (6.0.0-3ubuntu0) lenny; urgency=low
 
   * linuxmuster-setup:
     * service stop and start fixes.
-    * fix: move /var/run and /var/lock to /run and substitute old dirs with links to new dirs.
     * /etc/network/interfaces: removed dns entries for intern interface.
+    * removed imaging choice, setting imaging per default to "linbo".
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 17 Jan 2012 08:53:42 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 17 Jan 2012 08:59:13 +0100
 
 linuxmuster-base (6.0.0-2ubuntu0) lenny; urgency=low
 

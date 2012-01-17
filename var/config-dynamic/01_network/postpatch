@@ -2,14 +2,8 @@
 
 echo "### 01_network postpatch"
 
-# delete interfaces template after patching
-[ -e interfaces ] && rm interfaces
-
 # start networking
-/etc/init.d/linuxmuster-nic-setup assign
 start networking
-ifconfig intern up
-route add default gw $ipcopip
 
 # set host and domain name
 hostname $servername.$domainname
