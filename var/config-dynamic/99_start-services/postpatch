@@ -60,9 +60,10 @@ if ping -c 2 heise.de &> /dev/null; then
 fi
 
 # start services not yet started
-services="openbsd-inetd atd cron openntpd linuxmuster-base"
+services="dbus openbsd-inetd atd cron openntpd linuxmuster-base"
 for service in $services; do
- [ -e "$service" ] && /etc/init.d/$service start
+ [ -e "/etc/init.d/$service" ] && /etc/init.d/$service start
+ [ -e "/etc/init/$service.conf" ] && start $service
 done
 
 # set installed flag

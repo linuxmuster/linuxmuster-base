@@ -1,3 +1,12 @@
+linuxmuster-base (6.0.0-3ubuntu0) lenny; urgency=low
+
+  * linuxmuster-setup:
+    * service stop and start fixes.
+    * fix: move /var/run and /var/lock to /run and substitute old dirs with links to new dirs.
+    * /etc/network/interfaces: removed dns entries for intern interface.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 17 Jan 2012 08:53:42 +0100
+
 linuxmuster-base (6.0.0-2ubuntu0) lenny; urgency=low
 
   * linuxmuster-setup:
@@ -5,7 +14,7 @@ linuxmuster-base (6.0.0-2ubuntu0) lenny; urgency=low
     * corrects uid of vboxadd user.
     * fixed postgresql init skript name.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 16 Jan 2012 22:08:23 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 16 Jan 2012 22:10:42 +0100
 
 linuxmuster-base (6.0.0-1ubuntu0) lenny; urgency=low
 
