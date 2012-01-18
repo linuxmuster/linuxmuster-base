@@ -5,7 +5,7 @@ linuxmuster-base (6.0.0-5ubuntu0) lenny; urgency=low
     * network: fixed interface name.
     * ldap: using ldif instead of sophomorix-dump-pg2ldap.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 18 Jan 2012 17:10:16 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 18 Jan 2012 17:17:23 +0100
 
 linuxmuster-base (6.0.0-4ubuntu0) lenny; urgency=low
 

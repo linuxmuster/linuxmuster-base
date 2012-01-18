@@ -78,7 +78,7 @@ if [ "$1" = "--first" ]; then
         chattr +i /var/lib/ldap/DB_CONFIG
         rm -f /var/lib/ldap/*
         chattr -i /var/lib/ldap/DB_CONFIG
-        sed -e "s|^dc:.*|${domainname%.*}|" -i /var/tmp/ldap.ldif
+        sed -e "s|^dc:.*|dc: ${domainname%.*}|" -i /var/tmp/ldap.ldif
         slapadd < /var/tmp/ldap.ldif
         chown openldap:openldap /var/lib/ldap -R
         slaptest -f /etc/ldap/slapd.conf -F /etc/ldap/slapd.d
