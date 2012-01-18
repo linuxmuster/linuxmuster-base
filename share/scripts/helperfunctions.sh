@@ -472,10 +472,12 @@ assign_nics() {
  db_go
 
  # write iface to network.settings
- if grep -q ^iface_lan $NETWORKSETTINGS; then
-  sed -e "s|^iface_lan=.*|iface_lan=$iface_lan|" -i $NETWORKSETTINGS
- else
-  echo "iface_lan=$iface_lan" >> $NETWORKSETTINGS
+ if [ -e "$NETWORKSETTINGS" ]; then
+  if grep -q ^iface_lan $NETWORKSETTINGS; then
+   sed -e "s|^iface_lan=.*|iface_lan=$iface_lan|" -i $NETWORKSETTINGS
+  else
+   echo "iface_lan=$iface_lan" >> $NETWORKSETTINGS
+  fi
  fi
 
 } # assign_nics

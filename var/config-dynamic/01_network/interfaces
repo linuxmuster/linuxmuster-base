@@ -8,7 +8,7 @@ iface lo inet loopback
 
 # These interfaces are brought up automatically
 auto intern
-iface intern inet static
+iface @@iface_lan@@ inet static
 	address @@serverip@@
 	netmask @@internmask@@
 	network @@internalnet@@

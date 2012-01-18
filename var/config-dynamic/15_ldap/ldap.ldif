@@ -2,7 +2,7 @@ dn: @@basedn@@
 objectClass: dcObject
 objectClass: organization
 o: linuxmuster
-dc: paedml-linux
+dc: linuxmuster
 structuralObjectClass: organization
 entryUUID: b74928aa-d314-1030-98de-bd3e6f095251
 creatorsName: cn=admin,@@basedn@@

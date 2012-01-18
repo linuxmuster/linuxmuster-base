@@ -215,6 +215,7 @@ for i in $DYNTPLDIR/*; do
               s/@@ipcopblue@@/${ipcopblue}/g
               s/@@ipcoporange@@/${ipcoporange}/g
               s/@@ipcopovpn@@/${ipcopovpn}/g
+              s/@@iface_lan@@/${iface_lan}/g
               s/@@broadcast@@/${broadcast}/g
               s/@@internsub@@/${internsub}/g
               s/@@internalnet@@/${internalnet}/g

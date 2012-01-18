@@ -1,3 +1,12 @@
+linuxmuster-base (6.0.0-5ubuntu0) lenny; urgency=low
+
+  * helperfunctions.sh, assign_nics(): checks existance of network.settings before iface_lan is written.
+  * linuxmuster-setup: 
+    * network: fixed interface name.
+    * ldap: using ldif instead of sophomorix-dump-pg2ldap.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 18 Jan 2012 17:10:16 +0100
+
 linuxmuster-base (6.0.0-4ubuntu0) lenny; urgency=low
 
   * changed to udev based nic management, nic name will now be used as is.
@@ -7,7 +16,7 @@ linuxmuster-base (6.0.0-4ubuntu0) lenny; urgency=low
   * linuxmuster-setup: fixed postgresql's pg_hba.conf template.
   * added linuxmuster-nagios-base to server task again.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 17 Jan 2012 23:19:23 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 17 Jan 2012 23:21:41 +0100
 
 linuxmuster-base (6.0.0-3ubuntu0) lenny; urgency=low
 

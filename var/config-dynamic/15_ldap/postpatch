@@ -73,15 +73,16 @@ if [ "$1" = "--first" ]; then
 	psql -U postgres ldap < /var/tmp/ldap.pgsql
 
         # create new ldap tree
-        #rm -rf /etc/ldap/slapd.d
-        #mkdir -p /etc/ldap/slapd.d
-        #chattr +i /var/lib/ldap/DB_CONFIG
-        #rm -f /var/lib/ldap/*
-        #chattr -i /var/lib/ldap/DB_CONFIG
-        #slapadd < /var/tmp/ldap.ldif
-        #chown openldap:openldap /var/lib/ldap -R
-        #slaptest -f /etc/ldap/slapd.conf -F /etc/ldap/slapd.d
-        #chown -R openldap:openldap /etc/ldap/slapd.d
+        rm -rf /etc/ldap/slapd.d
+        mkdir -p /etc/ldap/slapd.d
+        chattr +i /var/lib/ldap/DB_CONFIG
+        rm -f /var/lib/ldap/*
+        chattr -i /var/lib/ldap/DB_CONFIG
+        sed -e "s|^dc:.*|${domainname%.*}|" -i /var/tmp/ldap.ldif
+        slapadd < /var/tmp/ldap.ldif
+        chown openldap:openldap /var/lib/ldap -R
+        slaptest -f /etc/ldap/slapd.conf -F /etc/ldap/slapd.d
+        chown -R openldap:openldap /etc/ldap/slapd.d
 
 	# changing user's default shell to /bin/bash
 	[ -n "$SOPHOMORIX" ] && sed -e 's/^\$schueler_per_ssh=.*/\$schueler_per_ssh=\"yes\"\;/
@@ -157,7 +158,7 @@ ln -sf ldap.secret /etc/pam_ldap.secret
 
 
 # recreate ldap tree
-sophomorix-dump-pg2ldap
+#sophomorix-dump-pg2ldap
 
 rm -f /var/tmp/ldap.*
 
