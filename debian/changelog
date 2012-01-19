@@ -4,9 +4,11 @@ linuxmuster-base (6.0.0-6ubuntu0) lenny; urgency=low
     - changed shebang to /bin/bash.
     - removed rembo reload.
     - updated dhcp server reload invokation.
-  * linuxmuster-setup: added SLAPD_CONF="/etc/ldap/slapd.conf" in /etc/default/slapd.
+  * linuxmuster-setup:
+    - added SLAPD_CONF="/etc/ldap/slapd.conf" in /etc/default/slapd.
+    - ldap: more improvements according to sophomorix.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 19 Jan 2012 19:08:04 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 19 Jan 2012 21:51:04 +0100
 
 linuxmuster-base (6.0.0-5ubuntu0) lenny; urgency=low
 

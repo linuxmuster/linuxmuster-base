@@ -25,10 +25,6 @@ if [ "$1" = "--first" ]; then
    sophomorix-passwd --user $WWWADMIN --pass $wwwadminpw
    sophomorix-usermod -I wwwadmin
   else
-   for i in $ADMINISTRATOR $PGMADMIN $WWWADMIN; do
-    mkdir -p $ADMINSHOME/$i
-    chown $i:$ADMINGROUP $ADMINSHOME/$i
-   done
    echo -e "$adminpw\n$adminpw\n" | smbldap-passwd -s $DOMADMIN
    echo -e "$adminpw\n$adminpw\n" | smbldap-passwd -s $ADMINISTRATOR
    echo -e "$pgmadminpw\n$pgmadminpw\n" | smbldap-passwd -s $PGMADMIN

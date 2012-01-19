@@ -72,17 +72,17 @@ if [ "$1" = "--first" ]; then
 	createdb -U postgres -O ldap ldap
 	psql -U postgres ldap < /var/tmp/ldap.pgsql
 
-        # create new ldap tree
-#        rm -rf /etc/ldap/slapd.d
-#        mkdir -p /etc/ldap/slapd.d
-#        chattr +i /var/lib/ldap/DB_CONFIG
-#        rm -f /var/lib/ldap/*
-#        chattr -i /var/lib/ldap/DB_CONFIG
+        # clean ldap tree
+        rm -rf /etc/ldap/slapd.d
+        mkdir -p /etc/ldap/slapd.d
+        chattr +i /var/lib/ldap/DB_CONFIG
+        rm -f /var/lib/ldap/*
+        chattr -i /var/lib/ldap/DB_CONFIG
 #        sed -e "s|^dc:.*|dc: ${domainname%.*}|" -i /var/tmp/ldap.ldif
 #        slapadd < /var/tmp/ldap.ldif
-#        chown openldap:openldap /var/lib/ldap -R
-#        slaptest -f /etc/ldap/slapd.conf -F /etc/ldap/slapd.d
-#        chown -R openldap:openldap /etc/ldap/slapd.d
+        chown openldap:openldap /var/lib/ldap -R
+        slaptest -f /etc/ldap/slapd.conf -F /etc/ldap/slapd.d
+        chown -R openldap:openldap /etc/ldap/slapd.d
 
 	# changing user's default shell to /bin/bash
 	[ -n "$SOPHOMORIX" ] && sed -e 's/^\$schueler_per_ssh=.*/\$schueler_per_ssh=\"yes\"\;/
@@ -170,11 +170,13 @@ rm -f /var/tmp/ldap.*
 # recreate ldap tree
 sophomorix-setup-pgldap
 sophomorix-dump-pg2ldap
+sophomorix-setup-pgldap
 
 
-# finally create homes on first install
-if [ "$1" = "--first" -a -n "$SOPHOMORIX" ]; then
- sophomorix-repair --permissions
- sophomorix-repair --repairhome
-fi
+# finally create homes
+for i in $ADMINISTRATOR $PGMADMIN $WWWADMIN; do
+ mkdir -p $ADMINSHOME/$i
+ chown $i:$ADMINGROUP $ADMINSHOME/$i
+done
+chmod 700 $ADMINSHOME -R
 
