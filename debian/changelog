@@ -3,8 +3,9 @@ linuxmuster-base (6.0.0-5ubuntu0) lenny; urgency=low
   * helperfunctions.sh, assign_nics(): checks existance of network.settings before iface_lan is written.
   * linuxmuster-setup: 
     * network: fixed interface name.
+    * ldap: using ldif instead of sophomorix-dump-pg2ldap to create initial ldap tree.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 19 Jan 2012 09:18:40 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 19 Jan 2012 09:56:11 +0100
 
 linuxmuster-base (6.0.0-4ubuntu0) lenny; urgency=low
 
