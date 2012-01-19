@@ -1,3 +1,13 @@
+linuxmuster-base (6.0.0-6ubuntu0) lenny; urgency=low
+
+  * import_workstations:
+    - changed shebang to /bin/bash.
+    - removed rembo reload.
+    - updated dhcp server reload invokation.
+  * linuxmuster-setup: added SLAPD_CONF="/etc/ldap/slapd.conf" in /etc/default/slapd.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 19 Jan 2012 19:08:04 +0100
+
 linuxmuster-base (6.0.0-5ubuntu0) lenny; urgency=low
 
   * helperfunctions.sh, assign_nics(): checks existance of network.settings before iface_lan is written.
