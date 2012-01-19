@@ -3,7 +3,7 @@
 # default (/etc/ldap/slapd.conf). If using the cn=config backend to store
 # configuration in LDIF, set this variable to the directory containing the
 # cn=config data.
-SLAPD_CONF=
+SLAPD_CONF="/etc/ldap/slapd.conf"
 
 # System account to run the slapd server under. If empty the server
 # will run as root.
