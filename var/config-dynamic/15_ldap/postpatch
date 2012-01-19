@@ -156,11 +156,6 @@ chmod 600 /var/lib/ldap/*
 rm -f /etc/pam_ldap.secret
 ln -sf ldap.secret /etc/pam_ldap.secret
 
-
-# recreate ldap tree
-sophomorix-setup-pgldap
-sophomorix-dump-pg2ldap
-
 rm -f /var/tmp/ldap.*
 
 # start services again
@@ -170,6 +165,11 @@ rm -f /var/tmp/ldap.*
 /etc/init.d/slapd start
 /etc/init.d/smbd start
 /etc/init.d/nscd start
+
+
+# recreate ldap tree
+sophomorix-setup-pgldap
+sophomorix-dump-pg2ldap
 
 
 # finally create homes on first install
