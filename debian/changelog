@@ -8,7 +8,7 @@ linuxmuster-base (6.0.0-6ubuntu0) lenny; urgency=low
     - added SLAPD_CONF="/etc/ldap/slapd.conf" in /etc/default/slapd.
     - ldap: more improvements according to sophomorix.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 19 Jan 2012 21:51:04 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 20 Jan 2012 09:46:30 +0100
 
 linuxmuster-base (6.0.0-5ubuntu0) lenny; urgency=low
 

@@ -170,8 +170,6 @@ rm -f /var/tmp/ldap.*
 # recreate ldap tree
 sophomorix-setup-pgldap
 sophomorix-dump-pg2ldap
-sophomorix-setup-pgldap
-
 
 # finally create homes
 for i in $ADMINISTRATOR $PGMADMIN $WWWADMIN; do
@@ -179,4 +177,7 @@ for i in $ADMINISTRATOR $PGMADMIN $WWWADMIN; do
  chown $i:$ADMINGROUP $ADMINSHOME/$i
 done
 chmod 700 $ADMINSHOME -R
+sleep 3
+sophomorix-setup-pgldap
+
 
