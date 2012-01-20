@@ -75,6 +75,9 @@ dpkg-reconfigure linuxmuster-base
 # repair linbo stuff, if necessary, deprecated?
 dpkg-reconfigure linuxmuster-linbo
 
+# reconfigure sophomorix
+sophomorix-setup-pgldap
+
 # apply workstation data if internal net has changed
 if [[ "$1" = "--modify" && "$internsub" != "$internsub_old" ]]; then
 	if [ "$imaging" = "rembo" ]; then

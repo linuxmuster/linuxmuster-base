@@ -177,7 +177,4 @@ for i in $ADMINISTRATOR $PGMADMIN $WWWADMIN; do
  chown $i:$ADMINGROUP $ADMINSHOME/$i
 done
 chmod 700 $ADMINSHOME -R
-sleep 3
-sophomorix-setup-pgldap
-
 
