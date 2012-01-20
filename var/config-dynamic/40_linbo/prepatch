@@ -78,16 +78,17 @@ if ! check_id linbo; then
  linbopasswd=`grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }'`
  if [ -n "$linbopasswd" ]; then
   echo "Creating linbo user ..."
-  if [ -n "$SOPHOMORIX" ]; then
+#  if [ -n "$SOPHOMORIX" ]; then
    sophomorix-useradd --administrator linbo --unix-group $ADMINGROUP --shell /bin/false --gecos "LINBO Administrator" &> /dev/null || true
    sophomorix-passwd --user linbo --pass $linbopasswd &> /dev/null || true
-  else
-   smbldap-useradd -a -c "LINBO Administrator" -N LINBO -S Administrator -s /bin/false -g $ADMINGROUP -d $ADMINSHOME/linbo -m linbo
-   echo -e "$linbopasswd\n$linbopasswd\n" | smbldap-passwd -s linbo
+#  else
+#   smbldap-useradd -a -c "LINBO Administrator" -N LINBO -S Administrator -s /bin/false -g $ADMINGROUP -d $ADMINSHOME/linbo -m linbo
+#   echo -e "$linbopasswd\n$linbopasswd\n" | smbldap-passwd -s linbo
    mkdir -p $ADMINSHOME/linbo
    chown linbo:$ADMINGROUP $ADMINSHOME/linbo
-  fi
-  smbldap-usermod -H '[UX         ]' linbo || true
+   chmod 700 $ADMINSHOME/linbo
+#  fi
+#  smbldap-usermod -H '[UX         ]' linbo || true
  fi
 fi
 
