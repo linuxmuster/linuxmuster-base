@@ -144,6 +144,14 @@ linbo: \"\|\/usr\/share\/linuxmuster-linbo\/mail2log.sh\"" -i /etc/aliases
  [ -d "$LOGDIR/linbo" ] || mkdir -p $LOGDIR/linbo
  chown nobody $LOGDIR/linbo
 
+ # update .macct files
+ maccts="$(ls "$LINBODIR"/*.macct 2> /dev/null)"
+ if [ -n "$maccts" ]; then
+  for i in $maccts; do
+   grep -q "$basedn" $i || sed -e "s|ou=machines,.*|ou=machines,$basedn|" -i $i
+  done
+ fi
+
  # start necessary services
  /etc/init.d/tftpd-hpa start
  /etc/init.d/rsync start
