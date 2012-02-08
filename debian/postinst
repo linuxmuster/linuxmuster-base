@@ -299,10 +299,15 @@ case "$1" in
    chmod 700 /etc/*.secret
 
    # repairing openntpd
-   if ! grep -q ^"listen on $serverip" /etc/openntpd/ntpd.conf; then
-    cp /etc/openntpd/ntpd.conf /etc/openntpd/ntpd.conf.dpkg-old
-    sed -e "s/@@serverip@@/$serverip/" $DYNTPLDIR/99_start-services/ntpd.conf > /etc/openntpd/ntpd.conf
-    /etc/init.d/openntpd restart
+   conf=/etc/openntpd/ntpd.conf
+   if [ -e "$conf" ]; then
+    if ! grep -q ^"listen on $serverip" "$conf"; then
+     cp "$conf" "$conf".dpkg-old
+     sed -e "s/@@serverip@@/$serverip/" $DYNTPLDIR/99_start-services/$(basename "$conf") > "$conf"
+     /etc/init.d/openntpd restart
+    fi
+   else
+    echo "Fatal: $conf not found! Your system is incomplete!"
    fi
 
    # repairing webmin
