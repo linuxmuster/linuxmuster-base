@@ -54,19 +54,18 @@ download(){
   echo "Überspringe Download. $FREECDNAME ist bereits in $DLDIR vorhanden." | tee -a $LOGFILE
  fi
  cd $DLDIR
- RC=0
  echo "Überpruefe MD5-Summe der IS0-Datei ..." | tee -a $LOGFILE
  if ! md5sum -c ${FREECDNAME}.md5; then
   echo "Prüfsummenfehler!" | tee -a $LOGFILE
-  RC=1
+  exit 1
  fi
- RC="0" && checked=yes
  cd ~
  # mount iso
- if [ "$RC" = "0" ]; then
-  mount -o loop "$DLDIR/$FREECDNAME" "$CDROOT" || RC=1
+ if ! mount -o loop "$DLDIR/$FREECDNAME" "$CDROOT"; then
+  echo "Kann $FREECDNAME nicht einhängen!" | tee -a $LOGFILE
+  exit 1
  fi
- return "$RC"
+ checked=yes
 }
 
 
@@ -97,13 +96,6 @@ fi
 APTARCHIVE="$(which apt-ftparchive)"
 if [ -z "$APTARCHIVE" ]; then
  echo "apt-ftparchive nicht gefunden!"
- exit 1
-fi
-
-
-# first check for enough space on /var
-if ! check_free_space /var 1500000; then
- echo "Zuwenig Speicherplatz unter /var. Stellen Sie sicher, dass dort 1,5GB freier Platz zur Verfügung steht." | tee -a $LOGFILE
  exit 1
 fi
 
@@ -148,7 +140,7 @@ if [ -z "$CDROOT" ]; then
  elif [ -s "$ISOFILE" ]; then
   mount -o loop "$ISOFILE" "$CDROOT" || exit 1
  else
-  download || exit 1
+  download
  fi
 
 fi
@@ -221,6 +213,35 @@ if [ -z "$checked" ]; then
 fi
 
 
+# check if newer linuxmuster-base package is on cdrom and install it
+cd "$CDROOT/pool/main/l/linuxmuster" || exit 1
+curver="$(dpkg -s linuxmuster-base | grep ^Version | awk '{ print $2 }')"
+cdpkg="$(ls linuxmuster-base_*.deb | tail -1)"
+if [ -z "$cdpkg" ]; then
+ echo "Fehler! Kein linuxmuster-base-Paket gefunden!" | tee -a $LOGFILE
+ cd ~
+ umount "$CDROOT" &> /dev/null
+ eject "$CDROOT" &> /dev/null
+ exit 1
+fi
+cdver="$(echo "$cdpkg" | awk -F \_ '{ print $2 }')"
+if [ "$cdver" \> "$curver" ]; then
+ echo "Aktualisiere linuxmuster-base: $curver -> $cdver." | tee -a $LOGFILE
+ dpkg --force-all -i "$cdpkg" | tee -a $LOGFILE
+ # reread paedml environment
+ . /usr/share/linuxmuster/config/dist.conf
+ . $HELPERFUNCTIONS
+fi
+cd ~
+
+
+# check for enough space on /var
+if ! check_free_space /var 1500000; then
+ echo "Zuwenig Speicherplatz unter /var. Stellen Sie sicher, dass dort mind. 1,5GB freier Platz zur Verfügung steht." | tee -a $LOGFILE
+ exit 1
+fi
+
+
 # copy packages from cdrom to cache and create local repo
 find "$CDROOT/pool" -name \*.deb -exec cp -v '{}' /var/cache/apt/archives \; | tee -a $LOGFILE
 echo "Erstelle lokales Paket-Repository ..." | tee -a $LOGFILE
@@ -229,20 +250,6 @@ cd /var/cache/apt/archives
 if [ ! -s Packages ]; then
  echo " fehlgeschlagen!" | tee -a $LOGFILE
  exit 1
-fi
-
-
-# check if newer linuxmuster-base package is on cdrom and install it
-curver="$(dpkg -s linuxmuster-base | grep ^Version | awk '{ print $2 }')"
-cdpkg="$(ls linuxmuster-base_*.deb | tail -1)"
-if [ -z "$cdpkg" ]; then
- echo "Fehler! Kein linuxmuster-base-Paket gefunden!" | tee -a $LOGFILE
- exit 1
-fi
-cdver="$(echo "$cdpkg" | awk -F \_ '{ print $2 }')"
-if [ "$cdver" \> "$curver" ]; then
- echo "Aktualisiere linuxmuster-base: $curver -> $cdver." | tee -a $LOGFILE
- dpkg --force-all -i "$cdpkg" | tee -a $LOGFILE
 fi
 
 

@@ -123,7 +123,7 @@ check_free_space(){
 	local cpath=$1
 	local csize=$2
 	echo -n "Pruefe freien Platz unter $cpath: " | tee -a $LOGFILE
-	local available=`LANG=C df -P $cpath | grep -v Filesystem | awk '{ print $4 }'`
+	local available=`LANG=C df -P $cpath | grep -v Filesystem | awk '{ print $4 }' | tail -1`
 	echo -n "${available}kb sind verfuegbar ... " | tee -a $LOGFILE
 	if [ $available -ge $csize ]; then
 		echo "Ok!" | tee -a $LOGFILE
