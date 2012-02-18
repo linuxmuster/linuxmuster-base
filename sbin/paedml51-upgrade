@@ -7,7 +7,7 @@
 # downloads openML iso if no iso file is given on cmdline
 # invokes at least upgrade script
 #
-# $Id: paedml50-upgrade 1185 2011-12-05 17:34:14Z tschmitt $
+# $Id$
 # 
 # Thomas Schmitt
 # <schmitt@lmz-bw.de>
