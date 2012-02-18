@@ -205,8 +205,8 @@ if [ -z "$checked" ]; then
  fi
  if [ "$RC" != "0" ]; then
   cd ~
-  umount "$CDROOT" 2>&1 >> $LOGFILE
-  eject "$CDROOT" 2>&1 >> $LOGFILE
+  umount "$CDROOT" 2>> $LOGFILE 1>> $LOGFILE
+  eject "$CDROOT" 2>> $LOGFILE 1>> $LOGFILE
   exit 1
  fi
 fi
@@ -219,8 +219,8 @@ cdpkg="$(ls linuxmuster-base_*.deb | tail -1)"
 if [ -z "$cdpkg" ]; then
  echo "Fehler! Kein linuxmuster-base-Paket gefunden!"
  cd ~
- umount "$CDROOT" 2>&1 >> $LOGFILE
- eject "$CDROOT" 2>&1 >> $LOGFILE
+ umount "$CDROOT" 2>> $LOGFILE 1>> $LOGFILE
+ eject "$CDROOT" 2>> $LOGFILE 1>> $LOGFILE
  exit 1
 fi
 cdver="$(echo "$cdpkg" | awk -F \_ '{ print $2 }')"
@@ -259,8 +259,8 @@ cp $DATADIR/upgrade/paedml51-upgrade.sh /tmp || exit 1
 
 
 # umount and eject cdrom if possible
-umount "$CDROOT" 2>&1 >> $LOGFILE
-eject "$CDROOT" 2>&1 >> $LOGFILE
+umount "$CDROOT" 2>> $LOGFILE 1>> $LOGFILE
+eject "$CDROOT" 2>> $LOGFILE 1>> $LOGFILE
 
 
 echo
