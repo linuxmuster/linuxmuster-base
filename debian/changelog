@@ -3,7 +3,7 @@ linuxmuster-base (5.1.0-5lenny0) lenny; urgency=low
   * paedml51-upgrade: fixed checksum test of downloaded iso file (closes #580).
   * helperfunctions.sh, check_free_space(): fixed computation of available free space.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 17 Feb 2012 13:17:00 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 18 Feb 2012 12:15:00 +0100
 
 linuxmuster-base (5.1.0-4lenny0) lenny; urgency=low
 

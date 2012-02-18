@@ -45,24 +45,24 @@ download(){
  DLDIR=$ADMINSHOME/$ADMINISTRATOR/iso
  mkdir -p $DLDIR
  if [ ! -s "$DLDIR/$FREECDNAME" -a ! -s "$DLDIR/${FREECDNAME}.md5" ]; then
-  echo "Lade $FREECDNAME herunter ..." | tee -a $LOGFILE
+  echo "Lade $FREECDNAME herunter ..."
   rm -f $DLDIR/${FREECDNAME}*
-  wget $ISOURL/$FREECDNAME -O $DLDIR/$FREECDNAME | tee -a $LOGFILE
-  wget $ISOURL/${FREECDNAME}.md5 -O $DLDIR/${FREECDNAME}.md5 | tee -a $LOGFILE
+  wget $ISOURL/$FREECDNAME -O $DLDIR/$FREECDNAME
+  wget $ISOURL/${FREECDNAME}.md5 -O $DLDIR/${FREECDNAME}.md5
   chown $ADMINISTRATOR $DLDIR -R
  else
-  echo "Überspringe Download. $FREECDNAME ist bereits in $DLDIR vorhanden." | tee -a $LOGFILE
+  echo "Überspringe Download. $FREECDNAME ist bereits in $DLDIR vorhanden."
  fi
  cd $DLDIR
- echo "Überpruefe MD5-Summe der IS0-Datei ..." | tee -a $LOGFILE
+ echo "Überpruefe MD5-Summe der IS0-Datei ..."
  if ! md5sum -c ${FREECDNAME}.md5; then
-  echo "Prüfsummenfehler!" | tee -a $LOGFILE
+  echo "Prüfsummenfehler!"
   exit 1
  fi
  cd ~
  # mount iso
  if ! mount -o loop "$DLDIR/$FREECDNAME" "$CDROOT"; then
-  echo "Kann $FREECDNAME nicht einhängen!" | tee -a $LOGFILE
+  echo "Kann $FREECDNAME nicht einhängen!"
   exit 1
  fi
  checked=yes
@@ -133,14 +133,14 @@ if [ -z "$CDROOT" ]; then
  fi
 
  CDROOT=/cdrom
- mount | grep -q "$CDROOT" && umount "$CDROOT"
+ mount | grep -q "$CDROOT" && umount "$CDROOT" 2>&1 >> $LOGFILE
 
  if [ -n "$CDROM" ]; then
   mount "$CDROOT" || exit 1
  elif [ -s "$ISOFILE" ]; then
   mount -o loop "$ISOFILE" "$CDROOT" || exit 1
  else
-  download
+  download | tee -a $LOGFILE
  fi
 
 fi
@@ -206,8 +206,8 @@ if [ -z "$checked" ]; then
  fi
  if [ "$RC" != "0" ]; then
   cd ~
-  umount "$CDROOT" &> /dev/null
-  eject "$CDROOT" &> /dev/null
+  umount "$CDROOT" 2>&1 >> $LOGFILE
+  eject "$CDROOT" 2>&1 >> $LOGFILE
   exit 1
  fi
 fi
@@ -220,8 +220,8 @@ cdpkg="$(ls linuxmuster-base_*.deb | tail -1)"
 if [ -z "$cdpkg" ]; then
  echo "Fehler! Kein linuxmuster-base-Paket gefunden!" | tee -a $LOGFILE
  cd ~
- umount "$CDROOT" &> /dev/null
- eject "$CDROOT" &> /dev/null
+ umount "$CDROOT" 2>&1 >> $LOGFILE
+ eject "$CDROOT" 2>&1 >> $LOGFILE
  exit 1
 fi
 cdver="$(echo "$cdpkg" | awk -F \_ '{ print $2 }')"
