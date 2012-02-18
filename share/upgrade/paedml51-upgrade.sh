@@ -861,12 +861,3 @@ if [ -s "$WIMPORTDATA" ]; then
  echo
 fi
 
-eject "$CDROOT"
-echo
-
-echo "#############################################"
-echo "# Beendet um `date`. #"
-echo "# Starten Sie den Server neu!               #"
-echo "#############################################"
-echo
-

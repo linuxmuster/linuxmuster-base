@@ -16,9 +16,9 @@
 
 . /usr/share/linuxmuster/config/dist.conf
 . $HELPERFUNCTIONS
-LOGFILE="$LOGDIR/paedml51-upgrade.log"
 # logging
-exec | tee -a $LOGFILE 2>&1
+LOGFILE="$LOGDIR/paedml51-upgrade.log"
+exec > >(tee -a $LOGFILE)
 
 NOW=`date`
 
@@ -69,10 +69,10 @@ download(){
 
 
 echo
-echo "####################################################################"
-echo "# paedML/openML Linux Distributions-Upgrade auf Debian 5.0.3 Lenny #"
-echo "# Startzeit: $NOW                         #"
-echo "####################################################################"
+echo "####"
+echo "#### paedML/openML Linux Distributions-Upgrade auf Debian 5.0.3 Lenny"
+echo "#### Startzeit: $NOW"
+echo "####"
 echo
 
 
@@ -261,4 +261,12 @@ cp $DATADIR/upgrade/paedml51-upgrade.sh /tmp || exit 1
 # umount and eject cdrom if possible
 umount "$CDROOT" 2>&1 >> $LOGFILE
 eject "$CDROOT" 2>&1 >> $LOGFILE
+
+
+echo
+echo "####"
+echo "#### Beendet um `date`."
+echo "#### Starten Sie den Server neu!"
+echo "####"
+echo
 
