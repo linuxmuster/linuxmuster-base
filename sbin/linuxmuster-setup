@@ -123,8 +123,8 @@ case $opt in
     echo 'aptitude::CmdLine::Ignore-Trust-Violations "true";' >> /etc/apt/apt.conf.d/99upgrade
 
     # check for installable non-free packages
-    indexpage=`aptitude search linuxmuster-indexpage`
-    templatespaedml=`aptitude search linuxmuster-schulkonsole-templates-paedml`
+    [ -e /var/cache/apt/archives/linuxmuster-indexpage*.deb ] && indexpage=yes
+    [ -e /var/cache/apt/archives/linuxmuster-schulkonsole-templates-paedml*.deb ] && templatespaedml=yes
 
     # tweaking buggy sophomorix, install postgresql first
     aptitude update | tee -a $logfile
@@ -142,12 +142,12 @@ case $opt in
      conf=/etc/$i
      cp $STATICTPLDIR/$conf $conf
     done
-    DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales
-    DEBIAN_FRONTEND=noninteractive dpkg-reconfigure tzdata
-    install-keymap /usr/share/keymaps/i386/qwertz/de-latin1-nodeadkeys.kmap.gz
+    DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales | tee -a $logfile
+    DEBIAN_FRONTEND=noninteractive dpkg-reconfigure tzdata | tee -a $logfile
+    install-keymap /usr/share/keymaps/i386/qwertz/de-latin1-nodeadkeys.kmap.gz | tee -a $logfile
     kmapmd5=`md5sum /etc/console-setup/boottime.kmap.gz | awk '{ print $1 }' 2> /dev/null`
     sed -e "s/^BOOTTIME_KMAP_MD5=.*/BOOTTIME_KMAP_MD5=\"$kmapmd5\"/" $STATICTPLDIR/etc/default/console-setup > /etc/default/console-setup
-    /etc/init.d/console-setup restart
+    /etc/init.d/console-setup restart | tee -a $logfile
 
     # install indexpage if available
     [ -n "$indexpage" ] && aptitude -y install linuxmuster-indexpage | tee -a $logfile
