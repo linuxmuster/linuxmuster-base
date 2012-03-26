@@ -1,3 +1,10 @@
+linuxmuster-base (5.1.0-7lenny0) lenny; urgency=low
+
+  * sources.list update: Lenny repo has been moved to archive.debian.org
+    (closes #586).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 26 Mar 2012 14:43:00 +0100
+
 linuxmuster-base (5.1.0-6lenny0) lenny; urgency=low
 
   * linuxmuster-setup: fixed installation of nonfree pkgs.

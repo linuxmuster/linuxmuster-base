@@ -441,6 +441,14 @@ $addstr" -i $conf
    conf="/etc/apt/sources.list.d/paedml50.list"
    [ -e "$conf" ] && mv "$conf" "$conf.dpkg-bak"
 
+   # update sources.list (#586)
+   conf="/etc/apt/sources.list"
+   if ! grep -q "archive.debian.org" $conf; then
+    echo "Updating $conf."
+    cp $conf $conf.dpkg-bak
+    cp $STATICTPLDIR/$conf $conf
+   fi
+
    # update backup.conf (#551, #499)
    conf="$SYSCONFDIR/backup.conf"
    searchstr="cupsys,cups atftpd,tftpd-hpa"
