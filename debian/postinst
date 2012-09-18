@@ -147,7 +147,7 @@ case "$1" in
    ipcoprev_short=254.1.$internsub
 
    # patch samba
-   sed -e "s/@@message1@@/${message1}/g
+   [ -s "$SMBCONFTEMPLATE" ] && sed -e "s/@@message1@@/${message1}/g
            s/@@message2@@/${message2}/g
            s/@@message3@@/${message3}/g
            s/@@serverip@@/${serverip}/g
@@ -157,11 +157,11 @@ case "$1" in
            s/@@administrator@@/${ADMINISTRATOR}/g
            s/@@domadmins@@/${DOMADMINS}/g
            s/@@teachersgroup@@/${TEACHERSGROUP}/g
-           s/@@basedn@@/${basedn}/g" $SMBCONFTEMPLATE.$imaging > /etc/samba/smb.conf
+           s/@@basedn@@/${basedn}/g" $SMBCONFTEMPLATE > /etc/samba/smb.conf
    # samba reload only if postgres and/or samba are running
    if ps ax | grep slapd | grep -v grep &> /dev/null; then
     if ps ax | grep smbd | grep -v grep &> /dev/null; then
-     /etc/init.d/samba reload
+     restart smbd
      # restore samba ldap admin password
      which smbpasswd &> /dev/null && smbpasswd -w `cat /etc/ldap.secret`
     else

@@ -3,8 +3,11 @@ linuxmuster-base (6.0.0-7ubuntu0) precise; urgency=low
   * linuxmuster-setup:
     - fixed user db/ldap creation.
     - fixed lan interface and dns configuration in interfaces template.
+  * postinst:
+    - fixed smb.conf template name.
+    - fixed smbd restart command.
 
- -- Thomas Schmitt <tschmitt@linuxmuster.de>  Tue, 18 Jul 2012 19:35:00 +0200
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Tue, 18 Jul 2012 19:54:00 +0200
 
 linuxmuster-base (6.0.0-6ubuntu0) precise; urgency=low
 
