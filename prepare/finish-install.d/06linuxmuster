@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id$
+# $Id: 06linuxmuster 1199 2011-12-17 19:07:20Z tschmitt $
 
 # copy cdrom content to hd 
 mkdir -p /target/var/cache/apt/archives

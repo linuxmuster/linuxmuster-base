@@ -1,5 +1,5 @@
 REM Windows 7 example.
-REM $Id$
+REM $Id: common.bat.win7 1081 2011-05-31 09:25:11Z tschmitt $
 
 :winnt
 

@@ -3,7 +3,7 @@
 # blocking web access on ipcop
 #
 # Thomas Schmitt <schmitt@lmz-bw.de>
-# $Id$
+# $Id: internet_on_off.sh 1288 2012-02-18 13:52:16Z tschmitt $
 # GPL v3
 #
 

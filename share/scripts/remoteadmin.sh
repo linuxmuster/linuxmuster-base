@@ -6,7 +6,7 @@
 # <schmitt@lmz-bw.de>
 # GPL v3
 # 
-# $Id$
+# $Id: remoteadmin.sh 1288 2012-02-18 13:52:16Z tschmitt $
 #
 
 # source linxmuster environment

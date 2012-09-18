@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id$
+# $Id: linuxmuster-config 1202 2011-12-17 21:37:43Z tschmitt $
 #
 
 # Source debconf library.

@@ -1,4 +1,4 @@
-# $Id$
+# $Id: sources.list 1311 2012-03-26 13:02:33Z tschmitt $
 deb http://archive.debian.org/debian/ lenny main contrib non-free
 deb-src http://archive.debian.org/debian/ lenny main contrib non-free
 

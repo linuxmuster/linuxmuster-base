@@ -1,6 +1,6 @@
 'VB-Script to replace string in text file.
 'Thanks to http://www.motobit.com/tips/detpg_replfile/.
-'$Id$
+'$Id: replace.vbs 1081 2011-05-31 09:25:11Z tschmitt $
 
 Dim FileName, Find, ReplaceWith, FileContents, dFileContents
 Find         = WScript.Arguments(0)

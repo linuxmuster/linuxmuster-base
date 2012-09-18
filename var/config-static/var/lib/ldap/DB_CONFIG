@@ -1,7 +1,7 @@
 ##### @@message1@@
 ##### @@message2@@
 ##### @@message3@@
-# $Id$
+# $Id: DB_CONFIG 1081 2011-05-31 09:25:11Z tschmitt $
 # Example DB_CONFIG file for use with slapd(8) BDB/HDB databases.
 #
 # See Sleepycat Berkeley DB documentation

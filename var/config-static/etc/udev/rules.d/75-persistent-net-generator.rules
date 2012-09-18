@@ -10,7 +10,7 @@
 #   INTERFACE_NAME	requested name supplied by external tool
 #   INTERFACE_NEW	new interface name returned by rule writer
 
-# $Id$
+# $Id: 75-persistent-net-generator.rules 1081 2011-05-31 09:25:11Z tschmitt $
 
 # tschmitt: do not set rules
 GOTO="persistent_net_generator_end"

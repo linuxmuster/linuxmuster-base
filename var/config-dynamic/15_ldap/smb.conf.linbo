@@ -2,7 +2,7 @@
 ##### @@message2@@
 ##### @@message3@@
 #
-# $Id$
+# $Id: smb.conf.linbo 1081 2011-05-31 09:25:11Z tschmitt $
 ############################################################
 #  Include your own stuff in the following files:
 #  global stuff:      /etc/samba/smb.conf.global

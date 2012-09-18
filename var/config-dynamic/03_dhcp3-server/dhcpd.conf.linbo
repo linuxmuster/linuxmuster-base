@@ -1,7 +1,7 @@
 #
 # Sample configuration file for ISC dhcpd for Debian
 #
-# $Id$
+# $Id: dhcpd.conf.linbo 1081 2011-05-31 09:25:11Z tschmitt $
 #
 
 # The ddns-updates-style parameter controls whether or not the server will

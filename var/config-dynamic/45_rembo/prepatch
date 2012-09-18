@@ -1,4 +1,4 @@
-# $Id$
+# $Id: prepatch 1081 2011-05-31 09:25:11Z tschmitt $
 if  [ "$imaging" = "rembo" ]; then
 
  if [ "$1" = "--first" ]; then

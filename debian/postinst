@@ -2,7 +2,7 @@
 #
 # postinst script for paedML/openML
 #
-# $Id$
+# $Id: postinst 1311 2012-03-26 13:02:33Z tschmitt $
 # 
 # Thomas Schmitt
 # <schmitt@lmz-bw.de>

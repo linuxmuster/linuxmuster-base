@@ -4,7 +4,7 @@
 # GPL v3
 # Thomas Schmitt <schmitt@lmz-bw.de>
 #
-# $Id$
+# $Id: update-logins.sh 1288 2012-02-18 13:52:16Z tschmitt $
 #
 
 # print help message

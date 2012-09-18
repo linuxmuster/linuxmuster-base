@@ -1,4 +1,4 @@
-# $Id$
+# $Id: paedml51.list 1176 2011-11-28 11:36:16Z tschmitt $
 # paedML Linux package sources
 deb http://pkg.lml.support-netz.de/paedml51-updates ./
 deb-src http://pkg.lml.support-netz.de/paedml51-updates ./

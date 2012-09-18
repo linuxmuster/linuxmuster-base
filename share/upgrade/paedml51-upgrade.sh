@@ -6,7 +6,7 @@
 # <schmitt@lmz-bw.de>
 # GPL V3
 #
-# $Id$ 
+# $Id: paedml51-upgrade.sh 1328 2012-04-25 09:04:29Z tschmitt $ 
 #
 
 # environment variables
@@ -42,9 +42,7 @@ PKGSTOREMOVE="linuxmuster-freeradius linux-image-server phpmyadmin phppgadmin \
               python-egenix-mxtools python-egenix-mxdatetime \
               linuxmuster-pykota linuxmuster-pk linuxmuster-linbo sophomorix2 \
               sophomorix-base sophomorix-pgldap"
-PKGREPOS="ftp.de.debian.org/debian/ \
-          ftp.de.debian.org/debian-volatile/ \
-          security.debian.org \
+PKGREPOS="archive.debian.org/debian/ \
           pkg.lml.support-netz.de/paedml51-updates/"
 
 # check for remoteadmin account and save password hash

@@ -1,4 +1,4 @@
-# $Id$
+# $Id: mailquota.txt 1081 2011-05-31 09:25:11Z tschmitt $
 ##############################################################################
 # This is a comment                                                          #
 # sophomorix configuration file mailquota.txt                                #

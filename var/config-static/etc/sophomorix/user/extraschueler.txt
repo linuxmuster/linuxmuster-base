@@ -1,4 +1,4 @@
-# $Id$
+# $Id: extraschueler.txt 1081 2011-05-31 09:25:11Z tschmitt $
 # sophomorix-Konfigurationsdatei
 # Dies ist ein Kommentar
 # Das Datum muss standardm‰ﬂig im Bereich 1900 bis 2100 liegen

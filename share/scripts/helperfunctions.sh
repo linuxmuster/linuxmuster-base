@@ -4,7 +4,7 @@
 # <schmitt@lmz-bw.de>
 # GPL v3
 #
-# $Id$
+# $Id: helperfunctions.sh 1287 2012-02-18 13:50:18Z tschmitt $
 #
 
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin

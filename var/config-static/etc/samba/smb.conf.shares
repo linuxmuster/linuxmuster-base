@@ -1,5 +1,5 @@
 # custom share definitions
-# $Id$
+# $Id: smb.conf.shares 1099 2011-07-16 10:40:45Z tschmitt $
 
 # program share with write permissions
 ;[pgmw]
