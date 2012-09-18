@@ -244,23 +244,20 @@ case "$1" in
     ln -sf /usr/share/linuxmuster/registry-patches $ADMINSHOME/$ADMINISTRATOR/registry-patches
    fi
 
-   # linbo related update stuff
-   if [ "$imaging" = "linbo" ]; then
-    # linbo administrative user
-    if ps ax | grep -v grep | grep -q slapd && ps ax | grep -v grep | grep -q postgresql; then
-     if ! check_id linbo &>/dev/null; then
-      linbopasswd=`grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }'`
-      if [ -n "$linbopasswd" ]; then
-       echo "Creating linbo user ..."
-       sophomorix-useradd --administrator linbo --unix-group $ADMINGROUP --shell /bin/false --gecos "LINBO Administrator" &> /dev/null || true
-       sophomorix-passwd --user linbo --pass $linbopasswd &> /dev/null || true
-       smbldap-usermod -H '[UX         ]' linbo || true
-      fi
+   # linbo administrative user
+   if ps ax | grep -v grep | grep -q slapd && ps ax | grep -v grep | grep -q postgresql; then
+    if ! check_id linbo &>/dev/null; then
+     linbopasswd=`grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }'`
+     if [ -n "$linbopasswd" ]; then
+      echo "Creating linbo user ..."
+      sophomorix-useradd --administrator linbo --unix-group $ADMINGROUP --shell /bin/false --gecos "LINBO Administrator" &> /dev/null || true
+      sophomorix-passwd --user linbo --pass $linbopasswd &> /dev/null || true
+      smbldap-usermod -H '[UX         ]' linbo || true
      fi
-    else
-     echo "slapd and/or postgresql not running! Skipping linbo user check!"
     fi
-   fi # linbo
+   else
+    echo "slapd and/or postgresql not running! Skipping linbo user check!"
+   fi
 
    # creating ldap.secret links
    [ -s /etc/ldap.secret ] || echo $(grep ^rootpw /etc/ldap/slapd.conf | awk '{ print $2 }') > /etc/ldap.secret

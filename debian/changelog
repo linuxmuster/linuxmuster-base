@@ -6,8 +6,9 @@ linuxmuster-base (6.0.0-7ubuntu0) precise; urgency=low
   * postinst:
     - fixed smb.conf template name.
     - fixed smbd restart command.
+    - removed obsolet imaging method check in linbo user check.
 
- -- Thomas Schmitt <tschmitt@linuxmuster.de>  Tue, 18 Jul 2012 19:54:00 +0200
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Tue, 18 Jul 2012 20:07:00 +0200
 
 linuxmuster-base (6.0.0-6ubuntu0) precise; urgency=low
 
