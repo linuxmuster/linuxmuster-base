@@ -3,7 +3,7 @@
 # sets a new random password for cyrus user
 #
 # Thomas Schmitt
-# <schmitt@lmz-bw.de>
+# <tschmitt@linuxmuster.de>
 #
 
 cyradmpw=`pwgen -s 8 1`

@@ -1,9 +1,9 @@
-# $Id: slapd 1081 2011-05-31 09:25:11Z tschmitt $
+# $Id: slapd 1243 2012-01-19 17:45:57Z tschmitt $
 # Default location of the slapd.conf file. If empty, use the compiled-in
 # default (/etc/ldap/slapd.conf). If using the cn=config backend to store
 # configuration in LDIF, set this variable to the directory containing the
 # cn=config data.
-SLAPD_CONF=
+SLAPD_CONF="/etc/ldap/slapd.conf"
 
 # System account to run the slapd server under. If empty the server
 # will run as root.

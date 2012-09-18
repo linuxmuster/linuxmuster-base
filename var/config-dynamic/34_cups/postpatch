@@ -1,3 +1,7 @@
+# $Id: postpatch 1223 2012-01-16 19:42:26Z tschmitt $
+
+echo "### 34_cups postpatch"
+
 # start service
 /etc/init.d/cups start
 

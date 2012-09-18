@@ -2,9 +2,9 @@
 #
 # creates /etc/cups/access.conf for printer access definitions
 # GPL v3
-# Thomas Schmitt <schmitt@lmz-bw.de>
+# Thomas Schmitt <tschmitt@linuxmuster.de>
 #
-# $Id: import_printers 1081 2011-05-31 09:25:11Z tschmitt $
+# $Id: import_printers 1334 2012-07-20 12:03:39Z tschmitt $
 #
 
 # source linuxmuster defaults

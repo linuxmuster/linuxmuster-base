@@ -3,10 +3,10 @@
 # create and remove a remote administrator
 #
 # Thomas Schmitt
-# <schmitt@lmz-bw.de>
+# <tschmitt@linuxmuster.de>
 # GPL v3
 # 
-# $Id: remoteadmin.sh 1288 2012-02-18 13:52:16Z tschmitt $
+# $Id: remoteadmin.sh 1334 2012-07-20 12:03:39Z tschmitt $
 #
 
 # source linxmuster environment

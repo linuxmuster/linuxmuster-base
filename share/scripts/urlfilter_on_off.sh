@@ -2,7 +2,7 @@
 #
 # add|remove ips to|from urlfilter
 #
-# Thomas Schmitt <schmitt@lmz-bw.de>
+# Thomas Schmitt <tschmitt@linuxmuster.de>
 # 24.11.2008
 #
 

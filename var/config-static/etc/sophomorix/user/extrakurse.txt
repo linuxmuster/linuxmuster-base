@@ -1,4 +1,4 @@
-# $Id: extrakurse.txt 1081 2011-05-31 09:25:11Z tschmitt $
+# $Id: extrakurse.txt 787 2010-07-08 18:15:43Z tschmitt $
 # sophomorix-Konfigurationsdatei
 # Mit einer Zeile Dieser Datei wird ein Kurs/eine Klasse angelegt.
 #

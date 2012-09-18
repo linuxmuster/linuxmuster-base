@@ -2,7 +2,7 @@
 #
 # Restarting all printer queues
 #
-# Thomas Schmitt <schmitt@lmz-bw.de>
+# Thomas Schmitt <tschmitt@linuxmuster.de>
 # 19.04.2010
 
 LPSTAT=/usr/bin/lpstat

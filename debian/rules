@@ -10,7 +10,7 @@
 #export DH_VERBOSE=1
 
 # This is the debhelper compatibility version to use.
-export DH_COMPAT=4
+export DH_COMPAT=5
 
 ifneq (,$(findstring debug,$(DEB_BUILD_OPTIONS)))
 	CFLAGS += -g
@@ -71,9 +71,7 @@ install: build
 	dh_install
 	# remove unnecessary dirs
 	rm -rf `find debian/linuxmuster-base -name .svn`
-	rm -rf `find debian/linuxmuster-prepare -name .svn`
 	rm -f `find debian/linuxmuster-base -name .directory`
-	rm -f `find debian/linuxmuster-prepare -name .directory`
 	# fixing default not being installed
 	mkdir debian/linuxmuster-base/etc/default
 	cp debian/default debian/linuxmuster-base/etc/default/linuxmuster-base

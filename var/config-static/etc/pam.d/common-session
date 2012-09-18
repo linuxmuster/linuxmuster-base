@@ -1,4 +1,4 @@
-# $Id: common-session 1081 2011-05-31 09:25:11Z tschmitt $
+# $Id: common-session 787 2010-07-08 18:15:43Z tschmitt $
 #
 # /etc/pam.d/common-session - session-related modules common to all services
 #

@@ -1,39 +1,98 @@
-linuxmuster-base (5.1.0-8lenny0) lenny; urgency=low
-
-  * paedml51-upgrade: fixed debian repository address check (closes #598).
-
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 25 Apr 2012 11:02:00 +0100
-
-linuxmuster-base (5.1.0-7lenny0) lenny; urgency=low
-
-  * sources.list update: Lenny repo has been moved to archive.debian.org
-    (closes #586).
-
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 26 Mar 2012 14:43:00 +0100
-
-linuxmuster-base (5.1.0-6lenny0) lenny; urgency=low
-
-  * linuxmuster-setup: fixed installation of nonfree pkgs.
-
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 22 Mar 2012 17:11:00 +0100
-
-linuxmuster-base (5.1.0-5lenny0) lenny; urgency=low
-
-  * paedml51-upgrade:
-    - fixed checksum test of downloaded iso file (closes #580).
-    - improved logging.
-  * helperfunctions.sh, check_free_space(): fixed computation of available free space.
-
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 18 Feb 2012 14:07:00 +0100
-
-linuxmuster-base (5.1.0-4lenny0) lenny; urgency=low
+linuxmuster-base (6.0.0-7ubuntu0) precise; urgency=low
 
   * linuxmuster-setup:
-    - updates linbo's .macct files if necessary (see #576).
-    - rsyncd.conf template removed (is now shipped with linuxmuster-linbo).
-  * postinst: minor fix.
+    - fixed user db/ldap creation.
+    - fixed lan interface in interfaces template.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 08 Feb 2012 15:25:21 +0100
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Tue, 18 Jul 2012 19:35:00 +0200
+
+linuxmuster-base (6.0.0-6ubuntu0) precise; urgency=low
+
+  * removed linuxmuster-prepare package.
+  * removed package dependencies: dpkg-dev, gcc, perl, libsysadm-install-perl, libenv-bash-perl.
+  * added bash to package dependencies.
+  * removed deprecated sources.list handling.
+  * removed deprecated upgrade and rembo scripts.
+  * changed DISTNAME to linuxmuster.net in configs and scripts.
+  * added linuxmuster-ipcop to server task again.
+  * added linuxmuster-schulkonsole-template to server task.
+  * postinst:
+    - removed cups start number correction.
+    - removed adjustment of wimport data path.
+    - removed kdm greeting string fix.
+    - added check for missing ntpd.conf.
+    - removed deprecated update fixes.
+  * linuxmuster-setup:
+    - updates linbo's .macct files if necessary.
+    - rsyncd.conf template removed (is now shipped with linuxmuster-linbo).
+    - activated dedicated ipcop configuration during setup again.
+    - changed ping test address to www.linuxmuster.net on end of setup.
+    - removed installation of nonfree pkgs.
+    - removed deprecated index.html handling.
+    - removed handling of first boot.
+    - removed obsolete integrated code for ipcop.
+  * helperfunctions.sh
+    - check_free_space(): fixed computation of available free space.
+    - getdistname() removed.
+
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Thu, 19 Jul 2012 19:57:00 +0200
+
+linuxmuster-base (6.0.0-5ubuntu0) lenny; urgency=low
+
+  * helperfunctions.sh, assign_nics(): checks existance of network.settings before iface_lan is written.
+  * linuxmuster-setup: 
+    * network: fixed interface name.
+    * ldap: using sophomorix-dump-pg2ldap instead of ldif file to create initial ldap tree.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 19 Jan 2012 10:06:18 +0100
+
+linuxmuster-base (6.0.0-4ubuntu0) lenny; urgency=low
+
+  * changed to udev based nic management, nic name will now be used as is.
+  * reworked nic-setup scripts and functions in helperfunctions.sh.
+  * removed mac_* package templates, added iface_lan to templates.
+  * removed more obsolete configuration stuff (according to locale settings and network).
+  * linuxmuster-setup: fixed postgresql's pg_hba.conf template.
+  * added linuxmuster-nagios-base to server task again.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 17 Jan 2012 23:21:41 +0100
+
+linuxmuster-base (6.0.0-3ubuntu0) lenny; urgency=low
+
+  * linuxmuster-setup:
+    * service stop and start fixes.
+    * /etc/network/interfaces: removed dns entries for intern interface.
+    * removed imaging choice, setting imaging per default to "linbo".
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 17 Jan 2012 08:59:13 +0100
+
+linuxmuster-base (6.0.0-2ubuntu0) lenny; urgency=low
+
+  * linuxmuster-setup:
+    * using adduser instead of useradd to create system users.
+    * corrects uid of vboxadd user.
+    * fixed postgresql init skript name.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 16 Jan 2012 22:10:42 +0100
+
+linuxmuster-base (6.0.0-1ubuntu0) lenny; urgency=low
+
+  * linuxmuster-setup:
+    * removed shadowconfig on first time installation.
+    * removed moodle configuration.
+    * removed webmin configuration.
+    * increased logging.
+  * server task updates.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 16 Jan 2012 20:42:31 +0100
+
+linuxmuster-base (6.0.0-0ubuntu0) lenny; urgency=low
+
+  * initial modifications to be installable on Ubuntu 11.10.
+  * removed rembo/myshn scripts and config templates.
+  * deactivated various ipcop stuff.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 15 Jan 2012 12:45:42 +0100
 
 linuxmuster-base (5.1.0-3lenny0) lenny; urgency=low
 
@@ -704,7 +763,7 @@ linuxmuster-base (1.5.9-2) lenny; urgency=low
 
   * paedml41-upgrade: added linuxmuster-nagios-setup.
   * linuxmuster-setup: debian version check updated.
-  * added $Id: changelog 1328 2012-04-25 09:04:29Z tschmitt $ to several script headers.
+  * added $Id: changelog 1334 2012-07-20 12:03:39Z tschmitt $ to several script headers.
 
  -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 20 Mar 2010 11:20:28 +0100
 

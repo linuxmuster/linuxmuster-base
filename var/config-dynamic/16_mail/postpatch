@@ -1,3 +1,7 @@
+# $Id: postpatch 1223 2012-01-16 19:42:26Z tschmitt $
+
+echo "### 16_mail postpatch"
+
 # activate mail aliases for teachers
 sophomorix-class --class teachers --mailalias
 

@@ -1,3 +1,7 @@
+# $Id: prepatch 1223 2012-01-16 19:42:26Z tschmitt $
+
+echo "### 04_bind9 prepatch"
+
 if [ "$1" = "--modify" ]; then
 
 	# prevent bind configuration from being patched

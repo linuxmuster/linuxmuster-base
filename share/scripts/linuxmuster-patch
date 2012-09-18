@@ -1,7 +1,7 @@
 #!/bin/bash
 # config script for Linux-Musterloesung
 #
-# Thomas Schmitt <schmitt@lmz-bw.de>
+# $Id: linuxmuster-patch 1334 2012-07-20 12:03:39Z tschmitt $
 # GPL-2
 
 # read dist.conf
@@ -15,7 +15,7 @@ echo "Reading debconf database ..."
 for i in country state location servername domainname schoolname dsluser dslpasswd \
          internmask internmask_short internsubrange fwconfig externtype externip externmask \
          gatewayip dnsforwarders smtprelay sambasid adminpw pgmadminpw wwwadminpw \
-         ipcoppw workgroup mac_extern mac_intern mac_wlan mac_dmz imaging; do
+         ipcoppw workgroup iface_lan imaging; do
   RET=`echo get linuxmuster-base/$i | debconf-communicate`
   RET=${RET#[0-9] }
   esc_spec_chars "$RET"
@@ -43,9 +43,6 @@ adminpw_md5=`echo -n $adminpw | md5sum | cut -c -32`
 
 # only in modify mode
 if [ "$1" != "--first" ]; then
- # to be sure imaging packages are installed in case of imaging change
- linuxmuster-task --unattended --install=imaging-$imaging
-
  # reading old values
  echo "Checking for modified values ..."
  . $OLDVALUES || exit 1
@@ -95,7 +92,6 @@ if [ "$1" != "--first" ]; then
   [ "$externmask" = "$externmask_old" ] || update_extern=yes
   [ "$gatewayip" = "$gatewayip_old" ] || update_extern=yes
   [ "$dnsforwarders" = "$dnsforwarders_old" ] || update_extern=yes
-  [ "$fwconfig" = "$fwconfig_old" ] || update_fw=yes
   [ "$smptrelay" = "$smtprelay_old" ] || update_smtp=yes
   [ "$ipcopip" = "$ipcopip_old" ] || update_ssh=yes
 fi
@@ -117,26 +113,9 @@ echo "ipcoporange=\"$ipcoporange\"" >> $NETWORKSETTINGS
 echo "ipcopovpn=\"$ipcopovpn\"" >> $NETWORKSETTINGS
 echo "basedn=\"$basedn\"" >> $NETWORKSETTINGS
 echo "smtprelay=\"$smtprelay\"" >> $NETWORKSETTINGS
-echo "mac_extern=$mac_extern" >> $NETWORKSETTINGS
-echo "mac_intern=$mac_intern" >> $NETWORKSETTINGS
-echo "mac_wlan=$mac_wlan" >> $NETWORKSETTINGS
-echo "mac_dmz=$mac_dmz" >> $NETWORKSETTINGS
+echo "iface_lan=$iface_lan" >> $NETWORKSETTINGS
 echo "imaging=$imaging" >> $NETWORKSETTINGS
 chmod 755 $NETWORKSETTINGS
-
-# define intern device
-if [ "$fwconfig" = "integrated" ]; then
-
-  intern=br_intern
-
-  # activate password patch for integrated ipcop
-  ipcopintpw=$ipcoppw
-
-else
-
-  intern=intern
-
-fi
 
 # compute server's amount of ram
 memtotal=`cat /proc/meminfo | grep MemTotal | awk -F" " '{ print $2 }' -`
@@ -165,7 +144,7 @@ fi
 # substitute spaces in schoolname, location and distro
 schoolname=${schoolname// /_}
 location=${location// /_}
-distro="$(getdistname)"
+distro="$DISTNAME"
 distro=${distro// /-}
 
 # escaping /
@@ -203,6 +182,8 @@ else
  ldapadminpw="$(cat /etc/ldap.secret)"
 fi
 
+# check if sophomorix is installed
+SOPHOMORIX="$(dpkg -l sophomorix2 | grep -q ^i)"
 
 # patching conffiles
 for i in $DYNTPLDIR/*; do
@@ -233,6 +214,7 @@ for i in $DYNTPLDIR/*; do
               s/@@ipcopblue@@/${ipcopblue}/g
               s/@@ipcoporange@@/${ipcoporange}/g
               s/@@ipcopovpn@@/${ipcopovpn}/g
+              s/@@iface_lan@@/${iface_lan}/g
               s/@@broadcast@@/${broadcast}/g
               s/@@internsub@@/${internsub}/g
               s/@@internalnet@@/${internalnet}/g
@@ -254,8 +236,8 @@ for i in $DYNTPLDIR/*; do
               s/@@adminpw_md5@@/${adminpw_md5}/g
               s/@@cyradmpw@@/${cyradmpw}/g
               s/@@ipcoppw@@/${ipcopintpw}/g
-              s/@@adminmac@@/${mac_intern}/g
               s/@@sambasid@@/${sambasid}/g
+              s/@@pgmadmin@@/${PGMADMIN}/g
               s/@@domadmin@@/${DOMADMIN}/g
               s/@@domadmins@@/${DOMADMINS}/g
               s/@@administrator@@/${ADMINISTRATOR}/g

@@ -9,6 +9,6 @@
 # $hostname -> the host from which the user disconnects
 #
 # Thomas Schmitt
-# <schmitt@lmz-bw.de>
+# <tschmitt@linuxmuster.de>
 # 02.10.2007
 #

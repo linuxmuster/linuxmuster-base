@@ -1,9 +1,9 @@
-# delete interfaces template after patching
-[ -e interfaces ] && rm interfaces
+# $Id: postpatch 1230 2012-01-17 21:10:47Z tschmitt $
+
+echo "### 01_network postpatch"
 
 # start networking
-/etc/init.d/linuxmuster-nic-setup assign
-/etc/init.d/networking restart
+start networking
 
 # set host and domain name
 hostname $servername.$domainname

@@ -2,9 +2,9 @@
 #
 # update cached user logins
 # GPL v3
-# Thomas Schmitt <schmitt@lmz-bw.de>
+# Thomas Schmitt <tschmitt@linuxmuster.de>
 #
-# $Id: update-logins.sh 1288 2012-02-18 13:52:16Z tschmitt $
+# $Id: update-logins.sh 1334 2012-07-20 12:03:39Z tschmitt $
 #
 
 # print help message

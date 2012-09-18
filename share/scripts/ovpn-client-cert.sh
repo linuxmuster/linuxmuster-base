@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # handling of ipcop's openvpn client certificates
-# Thomas Schmitt <schmitt@lmz-bw.de>
+# Thomas Schmitt <tschmitt@linuxmuster.de>
 #
 # 02.07.2008
 

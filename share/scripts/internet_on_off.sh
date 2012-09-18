@@ -2,8 +2,8 @@
 #
 # blocking web access on ipcop
 #
-# Thomas Schmitt <schmitt@lmz-bw.de>
-# $Id: internet_on_off.sh 1288 2012-02-18 13:52:16Z tschmitt $
+# Thomas Schmitt <tschmitt@linuxmuster.de>
+# $Id: internet_on_off.sh 1334 2012-07-20 12:03:39Z tschmitt $
 # GPL v3
 #
 

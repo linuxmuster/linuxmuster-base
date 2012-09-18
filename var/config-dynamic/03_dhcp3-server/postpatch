@@ -1,9 +1,10 @@
-# delete temporary tepmplate
-[ -e dhcpd.conf ] && rm dhcpd.conf
+# $Id: postpatch 1230 2012-01-17 21:10:47Z tschmitt $
+
+echo "### 03_dhcp3-server postpatch"
 
 # patch internal interface
-[ "$1" = "--modfify" ] && backup_file /etc/default/dhcp3-server
-sed -e "s/^INTERFACES=.*/INTERFACES=\"$intern\"/" -i /etc/default/dhcp3-server
+[ "$1" = "--modfify" ] && backup_file /etc/isc-dhcp-server
+sed -e "s/^INTERFACES=.*/INTERFACES=\"$iface_lan\"/" -i /etc/default/isc-dhcp-server
 
 # simply start the service
-/etc/init.d/dhcp3-server start
+/etc/init.d/isc-dhcp-server start

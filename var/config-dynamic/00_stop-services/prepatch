@@ -1,22 +1,21 @@
-# $Id: prepatch 1176 2011-11-28 11:36:16Z tschmitt $
+# $Id: prepatch 1230 2012-01-17 21:10:47Z tschmitt $
 #
 # stop all relevant services
+
+echo "### 00_stop-services prepatch"
 
 services="linuxmuster-base tftpd-hpa bittorrent rsync linbo-bittorrent \
           linbo-multicast nagios3 atd cron rembo quota apache2 cups \
           clamav-freshclam clamav-daemon cyrus2.2 postfix saslauthd amavis \
-          mysql openntpd ssh samba slapd postgresql-8.3 postgresql-8.1 \
-          postgresql-7.4 nscd linuxmuster-ipcop uml-utilities portmap \
-          openbsd-inetd bind9 dhcp3-server avahi-daemon webmin"
+          mysql openntpd ssh samba slapd postgresql nscd portmap \
+          openbsd-inetd bind9 isc-dhcp-server dbus"
 
 # make sure they are enabled to be able to shut them down
 [ -e /etc/default/tftpd-hpa ] && sed -e 's/^RUN_DAEMON=.*/RUN_DAEMON=yes/' -i /etc/default/tftpd-hpa
 [ -e /etc/default/rsync ] && sed -e 's/^RSYNC_ENABLE=.*/RSYNC_ENABLE=true/' -i /etc/default/rsync
-[ -e /etc/default/rembo ] && sed -e 's/^START_REMBO=.*/START_REMBO=yes/' -i /etc/default/rembo
 
 for service in $services; do
-
-	[ -e "/etc/init.d/$service" ] && /etc/init.d/$service stop
-
+ [ -e "/etc/init.d/$service" ] && /etc/init.d/$service stop
+ [ -e "/etc/init/$service.conf" ] && stop $service
 done
 

@@ -1,7 +1,7 @@
 #!/bin/sh
 # create ssl certificate script
-# for paedML Linux 4.0
-# 04.11.08 Thomas Schmitt <schmitt@lmz-bw.de>
+# for linuxmuster.net
+# 04.11.08 Thomas Schmitt <tschmitt@linuxmuster.de>
 
 # modify this to your needs
 days=3650

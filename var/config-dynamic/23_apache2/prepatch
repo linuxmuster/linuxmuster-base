@@ -1,3 +1,7 @@
+# $Id: prepatch 1334 2012-07-20 12:03:39Z tschmitt $
+
+echo "### 23_apache2 prepatch"
+
 # enable necessary modules
 if [ -d /etc/apache2/mods-available ] &&  [ -d /etc/apache2/mods-enabled ]; then
   cd /etc/apache2/mods-available
@@ -13,18 +17,6 @@ ln -sf ../sites-available/default /etc/apache2/sites-enabled/000-default
 
 # no more needed
 #usermod -G shadow www-data
-
-# patch index.html
-indexhtml="/var/www/paedml-default/index.html"
-indextpl="$indexhtml.tpl"
-if [ -s "$indextpl" ]; then
-      sed -e "s/@@servername@@.@@domainname@@/$servername.$domainname/g" $indextpl > $indexhtml
-      # patch apache's default site
-      if grep -q /apache2-default/ /etc/apache2/sites-available/default; then
-	[ "$1" = "--first" ] || backup_file /etc/apache2/sites-available/default
-	sed -e 's/\/apache2-default\//\/paedml-default\//g' -i /etc/apache2/sites-available/default
-      fi
-fi
 
 /etc/init.d/apache2 start
 

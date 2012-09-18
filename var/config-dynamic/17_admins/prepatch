@@ -1,3 +1,7 @@
+# $Id: prepatch 1334 2012-07-20 12:03:39Z tschmitt $
+
+echo "### 17_admins prepatch"
+
 # create admin users & groups
 
 if [ "$1" = "--first" ]; then
@@ -14,11 +18,23 @@ if [ "$1" = "--first" ]; then
   fi
 
   # set passwords for admins
-  sophomorix-passwd --force --user $DOMADMIN --pass $adminpw
-  sophomorix-passwd --user $ADMINISTRATOR --pass $adminpw
-  sophomorix-passwd --user $PGMADMIN --pass $pgmadminpw
-  sophomorix-passwd --user $WWWADMIN --pass $wwwadminpw
-  sophomorix-usermod -I wwwadmin
+  if [ -n "$SOPHOMORIX" ]; then
+   sophomorix-passwd --force --user $DOMADMIN --pass $adminpw
+   sophomorix-passwd --user $ADMINISTRATOR --pass $adminpw
+   sophomorix-passwd --user $PGMADMIN --pass $pgmadminpw
+   sophomorix-passwd --user $WWWADMIN --pass $wwwadminpw
+   sophomorix-usermod -I wwwadmin
+  else
+   for i in $ADMINISTRATOR $PGMADMIN $WWWADMIN; do
+    mkdir -p $ADMINSHOME/$i
+    chown $i:$ADMINGROUP $ADMINSHOME/$i
+   done
+   echo -e "$adminpw\n$adminpw\n" | smbldap-passwd -s $DOMADMIN
+   echo -e "$adminpw\n$adminpw\n" | smbldap-passwd -s $ADMINISTRATOR
+   echo -e "$pgmadminpw\n$pgmadminpw\n" | smbldap-passwd -s $PGMADMIN
+   echo -e "$wwwadminpw\n$wwwadminpw\n" | smbldap-passwd -s $WWWADMIN
+   smbldap-usermod -I $WWWADMIN
+  fi
 
   # create mailboxes again
   mailquota=`grep ^$ADMINISTRATOR $MAILQUOTACONF | awk -F: '{ print $2 }'`

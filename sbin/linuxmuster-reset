@@ -4,10 +4,10 @@
 # resets the internet, intranet, webfilter, lession state of rooms/hosts
 #
 # Thomas Schmitt
-# <schmitt@lmz-bw.de>
+# <tschmitt@linuxmuster.de>
 # GPL V3
 #
-# $Id: linuxmuster-reset 1081 2011-05-31 09:25:11Z tschmitt $
+# $Id: linuxmuster-reset 1334 2012-07-20 12:03:39Z tschmitt $
 #
 
 

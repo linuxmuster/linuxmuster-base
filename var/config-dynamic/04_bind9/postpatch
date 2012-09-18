@@ -1,3 +1,7 @@
+# $Id: postpatch 1223 2012-01-16 19:42:26Z tschmitt $
+
+echo "### 04_bind9 postpatch"
+
 # fix permissions
 chown root:bind /etc/bind
 chmod 775 /etc/bind

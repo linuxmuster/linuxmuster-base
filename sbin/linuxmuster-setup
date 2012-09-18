@@ -1,17 +1,17 @@
-#!/bin/sh
+#!/bin/bash
 # setup for Linux-Musterloesung
 #
-# Thomas Schmitt <schmitt@lmz-bw.de>
+# Thomas Schmitt <tschmitt@linuxmuster.de>
 # GPL-2
 #
-# $Id: linuxmuster-setup 1310 2012-03-22 17:36:30Z tschmitt $
+# $Id: linuxmuster-setup 1334 2012-07-20 12:03:39Z tschmitt $
 #
 
 # check debian version
-if ! grep -q 5\.0\.[1-9] /etc/debian_version; then
-	echo "This is not Debian 5.0.x Lenny. Please upgrade your system!"
-	exit 1
-fi
+#if ! grep -q 5\.0\.[1-9] /etc/debian_version; then
+#	echo "This is not Debian 5.0.x Lenny. Please upgrade your system!"
+#	exit 1
+#fi
 
 # read dist.conf
 . /usr/share/linuxmuster/config/dist.conf || exit 1
@@ -36,34 +36,21 @@ usage() {
 
 [[ "$opt" = "--first" || "$opt" = "--modify" ]] || usage
 
-# look if we were on first boot
-if [ -e /etc/inittab.real ]; then
-
-  firstboot=yes
-
-  # reread inittab
-  mv /etc/inittab.real /etc/inittab
-  telinit q
-
-else
-
-  # warning
-  echo
-  echo "You have called $0 with parameter $opt."
-  [ "$opt" = "--first" ] && echo "Doing a fresh installation. You will lose all your user and workstation data!"
-  [ "$opt" = "--modify" ] && echo "Modified configuration files will be backed up to $BACKUPDIR!"
-  echo "The process will start in 5 seconds. Press CRTL-C to cancel."
-  n=0
-  while [ $n -lt 5 ]; do
-    echo -n .
-    sleep 1
-    let n=n+1
-  done
-  echo
-  echo "Let's go! :-)"
-  echo
-
-fi
+# warning
+echo
+echo "You have called $0 with parameter $opt."
+[ "$opt" = "--first" ] && echo "Doing a fresh installation. You will lose all your user and workstation data!"
+[ "$opt" = "--modify" ] && echo "Modified configuration files will be backed up to $BACKUPDIR!"
+echo "The process will start in 5 seconds. Press CRTL-C to cancel."
+n=0
+while [ $n -lt 5 ]; do
+  echo -n .
+  sleep 1
+  let n=n+1
+done
+echo
+echo "Let's go! :-)"
+echo
 
 # logfile
 logfile=$LOGDIR/setup.log
@@ -85,33 +72,23 @@ case $opt in
 
   --first)
 
-    # create local package repository
-    if [ -n "$firstboot" ]; then
-     echo "Creating local repository ..." | tee -a $logfile
-     cd /var/cache/apt/archives
-     apt-ftparchive packages ./ > Packages | tee -a $logfile
-     cd ~
-     echo "deb file:///var/cache/apt/archives ./" > /etc/apt/sources.list | tee -a $logfile
-    else # renew complete apt configuration
-     echo "Resetting apt configuration." | tee -a $logfile
-     cp -a $STATICTPLDIR/etc/apt/* /etc/apt | tee -a $logfile
-    fi
-
-    # turn shadow passwords on
-    shadowconfig on | tee -a $logfile
+    # renew complete apt configuration
+    echo "Resetting apt configuration." | tee -a $logfile
+    cp -a $STATICTPLDIR/etc/apt/* /etc/apt | tee -a $logfile
+    
+    # correct vboxadd
+    id vboxadd &> /dev/null && userdel vboxadd
+    adduser --ingroup daemon --gecos "VirtualBox guest additions user" --system --home /var/run/vboxadd --shell /bin/false vboxadd
+    mkdir -p /var/run/vboxadd
+    chown vboxadd:daemon /var/run/vboxadd
 
     # add cyrus user
-    id cyrus &> /dev/null || useradd -c "Cyrus Mailsystem User" -d /var/spool/cyrus -g mail -m -r -s /bin/sh cyrus | tee -a $logfile
-
-    # install paedml release key
-    relkey="$CACHEDIR/paedml-release.asc"
-    if [ -e "$relkey" ]; then
-     echo "Installing paedml release key." | tee -a $logfile
-     apt-key add "$relkey" | tee -a $logfile
-    fi
+    id cyrus &> /dev/null || adduser --gecos "Cyrus Mailsystem User" --home /var/spool/cyrus -ingroup mail --system --shell /bin/sh cyrus | tee -a $logfile
+    mkdir -p /var/spool/cyrus
+    chown cyrus:mail /var/spool/cyrus
 
     # check tasks
-    for i in common server imaging-linbo; do
+    for i in common server; do
       if [ ! -s "/usr/share/linuxmuster/tasks/$i" ]; then
         echo "Error: Taskfile $i not found!" | tee -a $logfile
         exit 1
@@ -122,36 +99,18 @@ case $opt in
     echo 'DPkg::Options {"--force-confold";"--force-confdef";"--force-bad-verify";"--force-overwrite";};' > /etc/apt/apt.conf.d/99upgrade
     echo 'aptitude::CmdLine::Ignore-Trust-Violations "true";' >> /etc/apt/apt.conf.d/99upgrade
 
-    # check for installable non-free packages
-    [ -e /var/cache/apt/archives/linuxmuster-indexpage*.deb ] && indexpage=yes
-    [ -e /var/cache/apt/archives/linuxmuster-schulkonsole-templates-paedml*.deb ] && templatespaedml=yes
-
-    # tweaking buggy sophomorix, install postgresql first
+    # tweaking buggy sophomorix, install postgresql & libdigest-sha-perl first
     aptitude update | tee -a $logfile
-    DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql | tee -a $logfile
-    #DEBIAN_FRONTEND=noninteractive aptitude -y install postgresql-8.1 | tee -a $logfile
+    for i in postgresql-9.1 libdigest-sha-perl; do
+     DEBIAN_FRONTEND=noninteractive aptitude -y install $i | tee -a $logfile
+    done
+    [ -s /usr/lib/perl5/Digest/SHA.pm ] && ln -sf SHA.pm /usr/lib/perl5/Digest/SHA1.pm | tee -a $logfile
 
     # installing depending task
-    for i in common server imaging-linbo; do
+    for i in common server; do
       task=`cat /usr/share/linuxmuster/tasks/$i`
       DEBIAN_FRONTEND=noninteractive aptitude -y install $task | tee -a $logfile
     done
-
-    # reconfigure locale settings
-    for i in locale.gen timezone; do
-     conf=/etc/$i
-     cp $STATICTPLDIR/$conf $conf
-    done
-    DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales | tee -a $logfile
-    DEBIAN_FRONTEND=noninteractive dpkg-reconfigure tzdata | tee -a $logfile
-    install-keymap /usr/share/keymaps/i386/qwertz/de-latin1-nodeadkeys.kmap.gz | tee -a $logfile
-    kmapmd5=`md5sum /etc/console-setup/boottime.kmap.gz | awk '{ print $1 }' 2> /dev/null`
-    sed -e "s/^BOOTTIME_KMAP_MD5=.*/BOOTTIME_KMAP_MD5=\"$kmapmd5\"/" $STATICTPLDIR/etc/default/console-setup > /etc/default/console-setup
-    /etc/init.d/console-setup restart | tee -a $logfile
-
-    # install indexpage if available
-    [ -n "$indexpage" ] && aptitude -y install linuxmuster-indexpage | tee -a $logfile
-    [ -n "$templatespaedml" ] && aptitude -y install linuxmuster-schulkonsole-templates-paedml | tee -a $logfile
 
     # remove upgrade cheat
     rm -f /etc/apt/apt.conf.d/99upgrade
@@ -160,6 +119,9 @@ case $opt in
     ;;
 
   --modify)
+
+    # disabled
+    exit 0
 
     # check for installed flag
     if [ ! -e "$INSTALLED" ]; then

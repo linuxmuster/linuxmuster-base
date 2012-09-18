@@ -1,4 +1,4 @@
-# $Id: entfernen.txt 1081 2011-05-31 09:25:11Z tschmitt $
+# $Id: entfernen.txt 787 2010-07-08 18:15:43Z tschmitt $
 # sophomorix-Konfigurationsdatei
 # Klassen deren Entfern-Datum nicht erreicht ist, werden entfernt,
 # AUCH WENN sie schon im System(=angelegt) sind !!! 

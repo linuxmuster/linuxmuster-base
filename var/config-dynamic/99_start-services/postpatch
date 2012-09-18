@@ -1,4 +1,7 @@
-# $Id: postpatch 1151 2011-10-16 09:21:54Z tschmitt $
+# $Id: postpatch 1334 2012-07-20 12:03:39Z tschmitt $
+
+echo "### 99_start-services postpatch"
+
 # repair permissions for root's scheduled cron jobs
 chown root:crontab /var/spool/cron/crontabs/root
 chmod 600 /var/spool/cron/crontabs/root
@@ -25,15 +28,15 @@ while [ $c -lt $maxwait ]; do
 		fi
 
 		# test ssh connection to intregated ipcop
-		if [[ -z "$ipcoptest" && ! -e /root/.ssh/known_hosts ]]; then
-			echo "Testing ssh connection to IPCop ..."
-			$SCRIPTSDIR/ipcop-test-ssh.exp $ipcopip
-		fi
+		#if [[ -z "$ipcoptest" && ! -e /root/.ssh/known_hosts ]]; then
+		#	echo "Testing ssh connection to IPCop ..."
+		#	$SCRIPTSDIR/ipcop-test-ssh.exp $ipcopip
+		#fi
 
 		# restart ipcop's proxy
-		echo "Restarting ipcop's squid ..."
-		exec_ipcop /usr/bin/find "/var/ipcop/urlfilter -name \*.db -exec chmod 666 '{}' \;"
-		exec_ipcop /usr/local/bin/restartsquid
+		#echo "Restarting ipcop's squid ..."
+		#exec_ipcop /usr/bin/find "/var/ipfire/urlfilter -name \*.db -exec chmod 666 '{}' \;"
+		#exec_ipcop /usr/local/bin/restartsquid
 
 		success=yes
 		break
@@ -50,26 +53,27 @@ if [ "$success" != "yes" ]; then
 fi
 
 # only if internet connection
-if ping -c 2 heise.de &> /dev/null; then
+if ping -c 2 www.linuxmuster.net &> /dev/null; then
 	# set time
 	ntpdate pool.ntp.org
 	hwclock --utc
 fi
 
 # start services not yet started
-services="openbsd-inetd atd cron openntpd linuxmuster-base"
+services="dbus openbsd-inetd atd cron openntpd linuxmuster-base"
 for service in $services; do
-	/etc/init.d/$service start
+ [ -e "/etc/init.d/$service" ] && /etc/init.d/$service start
+ [ -e "/etc/init/$service.conf" ] && start $service
 done
 
 # set installed flag
 touch $INSTALLED
 
-# reconfigure linuxmuster-base to fix what has been not yet fixed
+# reconfigure linuxmuster-base to fix what has been not yet fixed, deprecated?
 dpkg-reconfigure linuxmuster-base
 
-# repair linbo stuff, if necessary
-[ "$imaging" = "linbo" ] && dpkg-reconfigure linuxmuster-linbo
+# repair linbo stuff, if necessary, deprecated?
+dpkg-reconfigure linuxmuster-linbo
 
 # apply workstation data if internal net has changed
 if [[ "$1" = "--modify" && "$internsub" != "$internsub_old" ]]; then
@@ -91,13 +95,13 @@ if [[ "$1" = "--modify" && "$internsub" != "$internsub_old" ]]; then
 	import_printers
 fi
 
-# apply workstation data if imaging has changed
-if [[ "$1" = "--modify" && -z "$wsimport" && "$imaging" != "$imaging_old" && -s "$WIMPORTDATA" ]]; then
-	import_workstations
-fi
+# apply workstation data if imaging has changed, deprecated
+#if [[ "$1" = "--modify" && -z "$wsimport" && "$imaging" != "$imaging_old" && -s "$WIMPORTDATA" ]]; then
+#	import_workstations
+#fi
 
-# remove obsolete cron jobs
-for i in kronolith2 php4 uucp; do
-	[ -e "/etc/cron.d/$i" ] && rm /etc/cron.d/$i
-done
+# remove obsolete cron jobs, deprecated?
+#for i in kronolith2 php4 uucp; do
+#	[ -e "/etc/cron.d/$i" ] && rm /etc/cron.d/$i
+#done
 

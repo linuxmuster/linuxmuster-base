@@ -1,20 +1,13 @@
 Source: linuxmuster-base
 Section: debian-linuxmuster
 Priority: optional
-Maintainer: Thomas Schmitt <schmitt@lmz-bw.de>
+Maintainer: Thomas Schmitt <tschmitt@linuxmuster.de>
 Build-Depends: debhelper (>= 4.0.0)
 Standards-Version: 3.6.0
 
 Package: linuxmuster-base
 Architecture: all
-Depends: ${misc:Depends}, dialog, dpkg, dpkg-dev, eject, expect, gcc, pciutils, pwgen, hostname, perl, procmail, ruby, libsysadm-install-perl, libenv-bash-perl, libimap-admin-perl, libpgsql-ruby1.8, libterm-readkey-perl, sed, iptables, samba-common-bin | samba-common
-Description: paedML Linux configuration scripts
- This package provides configuration scripts for paedML Linux
+Depends: ${misc:Depends}, bash, dialog, dpkg, eject, expect, pciutils, pwgen, hostname, procmail, libimap-admin-perl, libterm-readkey-perl, sed, iptables, samba-common-bin
+Description: linuxmuster.net configuration scripts
+ This package provides configuration scripts for linuxmuster.net
 
-Package: linuxmuster-prepare
-Priority: optional
-Section: debian-installer
-Architecture: all
-Depends: mounted-partitions, fdisk-udeb, localechooser, cdrom-detect, hw-detect, mdcfg-utils, finish-install
-Description: Konfiguration der paedML Linux
-XC-Package-Type: udeb

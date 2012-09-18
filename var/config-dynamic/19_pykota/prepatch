@@ -1,3 +1,7 @@
+# $Id: prepatch 1223 2012-01-16 19:42:26Z tschmitt $
+
+echo "### 19_pykota prepatch"
+
 if [ "$1" = "--first" ]; then
  if dpkg -l | grep linuxmuster-pk | grep -q ^i; then
   dpkg-reconfigure linuxmuster-pk
