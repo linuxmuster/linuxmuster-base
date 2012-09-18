@@ -14,4 +14,6 @@ iface @@iface_lan@@ inet static
 	network @@internalnet@@
 	broadcast @@broadcast@@
 	gateway @@ipcopip@@
-
+	# dns-* options are implemented by the resolvconf package, if installed
+	dns-nameservers @@serverip@@
+	dns-search @@domainname@@

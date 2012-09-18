@@ -2,7 +2,7 @@ linuxmuster-base (6.0.0-7ubuntu0) precise; urgency=low
 
   * linuxmuster-setup:
     - fixed user db/ldap creation.
-    - fixed lan interface in interfaces template.
+    - fixed lan interface and dns configuration in interfaces template.
 
  -- Thomas Schmitt <tschmitt@linuxmuster.de>  Tue, 18 Jul 2012 19:35:00 +0200
 
