@@ -634,9 +634,10 @@ done
 # reload necessary services
 echo
 /etc/init.d/linuxmuster-base reload
-/etc/init.d/dhcp3-server force-reload
+echo " * Reloading DHCP service... isc-dhcp-server"
+reload isc-dhcp-server
+echo "   ...done."
 /etc/init.d/bind9 force-reload
-[ "$imaging" = "rembo" ] && /etc/init.d/rembo reload
 [ -n "$update_printers" ] && import_printers
 
 # delete tmp files
