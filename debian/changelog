@@ -2,10 +2,11 @@ linuxmuster-base (6.0.0-8ubuntu0) precise; urgency=low
 
   * linuxmuster-setup:
     - fixed missing sophomorix.schema in slapd.conf template.
+    - removed deprecated "enabled privileges" from smb.conf template.
   * import_workstations:
     - fixed reload command for isc-dhcp-server.
 
- -- Thomas Schmitt <tschmitt@linuxmuster.de>  Wed, 19 Jul 2012 16:28:00 +0200
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Wed, 19 Jul 2012 17:22:00 +0200
 
 linuxmuster-base (6.0.0-7ubuntu0) precise; urgency=low
 
