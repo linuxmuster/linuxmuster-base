@@ -7,8 +7,9 @@ linuxmuster-base (6.0.0-8ubuntu0) precise; urgency=low
     - fixed test for installed sophomorix in 17_admins/prepatch.
   * import_workstations:
     - fixed reload command for isc-dhcp-server.
+  * postinst: changing default shell to /bin/bash.
 
- -- Thomas Schmitt <tschmitt@linuxmuster.de>  Wed, 19 Jul 2012 18:31:00 +0200
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Wed, 19 Jul 2012 18:55:00 +0200
 
 linuxmuster-base (6.0.0-7ubuntu0) precise; urgency=low
 
