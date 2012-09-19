@@ -6,7 +6,7 @@ echo "### 00_stop-services prepatch"
 
 services="linuxmuster-base tftpd-hpa bittorrent rsync linbo-bittorrent \
           linbo-multicast nagios3 atd cron rembo quota apache2 cups \
-          clamav-freshclam clamav-daemon cyrus2.2 postfix saslauthd amavis \
+          clamav-freshclam clamav-daemon cyrus-imapd postfix saslauthd amavis \
           mysql openntpd ssh samba slapd postgresql nscd portmap \
           openbsd-inetd bind9 isc-dhcp-server dbus"
 

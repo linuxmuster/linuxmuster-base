@@ -3,10 +3,12 @@ linuxmuster-base (6.0.0-8ubuntu0) precise; urgency=low
   * linuxmuster-setup:
     - fixed missing sophomorix.schema in slapd.conf template.
     - removed deprecated "enabled privileges" from smb.conf template.
+    - fixed cyrus-imapd start/stop command.
+    - fixed test for installed sophomorix in 17_admins/prepatch.
   * import_workstations:
     - fixed reload command for isc-dhcp-server.
 
- -- Thomas Schmitt <tschmitt@linuxmuster.de>  Wed, 19 Jul 2012 17:22:00 +0200
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Wed, 19 Jul 2012 18:31:00 +0200
 
 linuxmuster-base (6.0.0-7ubuntu0) precise; urgency=low
 

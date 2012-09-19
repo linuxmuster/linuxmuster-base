@@ -18,7 +18,7 @@ if [ "$1" = "--first" ]; then
   fi
 
   # set passwords for admins
-  if [ -n "$SOPHOMORIX" ]; then
+  if which sophomorix-passwd &> /dev/null; then
    sophomorix-passwd --force --user $DOMADMIN --pass $adminpw
    sophomorix-passwd --user $ADMINISTRATOR --pass $adminpw
    sophomorix-passwd --user $PGMADMIN --pass $pgmadminpw
