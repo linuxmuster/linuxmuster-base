@@ -1,3 +1,10 @@
+linuxmuster-base (6.0.0-8ubuntu0) precise; urgency=low
+
+  * linuxmuster-setup:
+    - fixed missing sophomorix.schema in slapd.conf template.
+
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Wed, 19 Jul 2012 15:37:00 +0200
+
 linuxmuster-base (6.0.0-7ubuntu0) precise; urgency=low
 
   * linuxmuster-setup:
