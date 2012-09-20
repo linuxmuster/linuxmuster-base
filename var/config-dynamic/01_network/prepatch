@@ -1,5 +1,3 @@
-# "$Id"
-
 echo "### 01_network prepatch"
 
 # stop networking at all
@@ -15,41 +13,42 @@ sed -e "s/^IFACE=.*/IFACE=$iface_lan/" -i /etc/default/linuxmuster-base
 
 if [[ "$1" = "--first" || "$update_fw" = "yes" ]]; then
 
-	# start internal firewall on boot
-	[ "$1" = "--first" ] && sed -e "s/^START_LINUXMUSTER=.*/START_LINUXMUSTER=yes/" -i /etc/default/linuxmuster-base
+ # start internal firewall on boot
+ [ "$1" = "--first" ] && sed -e "s/^START_LINUXMUSTER=.*/START_LINUXMUSTER=yes/" -i /etc/default/linuxmuster-base
 
 else
 
-	# prevent interfaces from being patched
-	mv interfaces.target interfaces.target.nopatch
+ # prevent interfaces from being patched
+ mv interfaces.target interfaces.target.nopatch
 
-	backup_file /etc/network/interfaces
+ backup_file /etc/network/interfaces
 
-	# patch interfaces
-	sed -e "s/address ${serverip_old}.*/address $serverip/g
-		s/network ${internalnet_old}.*/network $internalnet/g
-		s/broadcast ${broadcast_old}.*/broadcast $broadcast/g
-		s/gateway ${ipcopip_old}.*/gateway $ipcopip/g
+ # patch interfaces
+ sed -e "s/address ${serverip_old}.*/address $serverip/g
+         s/network ${internalnet_old}.*/network $internalnet/g
+         s/broadcast ${broadcast_old}.*/broadcast $broadcast/g
+         s/gateway ${ipcopip_old}.*/gateway $ipcopip/g" -i /etc/network/interfaces
 
-	# prevent /etc/hosts from being patched
-	mv hosts.target hosts.target.nopatch
+ # prevent /etc/hosts from being patched
+ mv hosts.target hosts.target.nopatch
 
-	if [ "$serverip" != "$serverip_old" ]; then
-		backup_file /etc/hosts
-		sed -e "s/^$serverip_old/$serverip/g" -i /etc/hosts
-	fi
-	if [[ "$servername" != "$servername_old" || "$domainname" != "$domainname_old" ]]; then
-		[ -e "$BACKUPDIR/etc/hosts-$DATETIME.gz" ] || backup_file /etc/hosts
-		sed -e "s/^$serverip.*/$serverip $servername.$domainname $servername/g" -i /etc/hosts
-	fi
+ if [ "$serverip" != "$serverip_old" ]; then
+  backup_file /etc/hosts
+  sed -e "s/^$serverip_old/$serverip/g" -i /etc/hosts
+ fi
 
-	# prevent /etc/hosts from being patched
-	mv resolv.conf.target resolv.conf.target.nopatch
+ if [[ "$servername" != "$servername_old" || "$domainname" != "$domainname_old" ]]; then
+  [ -e "$BACKUPDIR/etc/hosts-$DATETIME.gz" ] || backup_file /etc/hosts
+  sed -e "s/^$serverip.*/$serverip $servername.$domainname $servername/g" -i /etc/hosts
+ fi
 
-	if [[ "$serverip" != "$serverip_old" || "$domainname" != "$domainname_old" ]]; then
-		backup_file /etc/resolv.conf
-		sed -e "s/$serverip_old/$serverip/g
-			s/$domainname_old/$domainname/g" -i /etc/resolv.conf
-	fi
+ # prevent /etc/hosts from being patched
+ mv resolv.conf.target resolv.conf.target.nopatch
+
+ if [[ "$serverip" != "$serverip_old" || "$domainname" != "$domainname_old" ]]; then
+  backup_file /etc/resolv.conf
+  sed -e "s/$serverip_old/$serverip/g
+          s/$domainname_old/$domainname/g" -i /etc/resolv.conf
+ fi
 
 fi
