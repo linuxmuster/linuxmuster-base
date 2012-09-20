@@ -72,8 +72,11 @@ touch $INSTALLED
 # reconfigure linuxmuster-base to fix what has been not yet fixed, deprecated?
 dpkg-reconfigure linuxmuster-base
 
-# repair linbo stuff, if necessary, deprecated?
+# repair linbo stuff
 dpkg-reconfigure linuxmuster-linbo
+status tftp-hpa | grep -q start && stop tftp-hpa
+start tftp-hpa
+/etc/init.d/rsync restart
 
 # apply workstation data if internal net has changed
 if [[ "$1" = "--modify" && "$internsub" != "$internsub_old" ]]; then

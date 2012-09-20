@@ -14,24 +14,21 @@ if [ "$1" = "--first" ]; then
  else
   echo "linbo:$adminpw" >> /etc/rsyncd.secrets
  fi
-  # provide empty workstations data
+
+ # provide empty workstations data
  rm -rf $SYSCONFDIR/workstations
 
 fi
 
 touch $SYSCONFDIR/workstations
 
-# if no linbo password then grep rsync password from rembo.conf or if that fails take simply muster as password
+# if there is no linbo password use "muster"
 if ! grep ^linbo: /etc/rsyncd.secrets &> /dev/null; then
- linbopw=`grep ^NetPassword /etc/rembo/rembo.conf | awk -F\" '{ print $2 }'`
- [ -z "$linbopw" ] && linbopw=muster
+ echo "### WARNING: Using muster as linbo password. Please change this ASAP!"
+ linbopw=muster
  echo "linbo:$linbopw" >> /etc/rsyncd.secrets
 fi
 chmod 600 /etc/rsyncd.secrets
-
-# check for initial rsync configuration and copy it if necessary
-teststr="# automatically created by linuxmuster-setup"
-grep "$teststr" /etc/rsyncd.conf &> /dev/null || cp $STATICTPLDIR/etc/rsyncd.conf /etc
 
 # link pxelinux.0 to linbo dir
 [ -e "$LINBODIR/pxelinux.0" ] || ln -sf /usr/lib/syslinux/pxelinux.0 $LINBODIR/pxelinux.0
@@ -112,8 +109,8 @@ if [ -n "$maccts" ]; then
 fi
 
 # start necessary services
-start tftpd-hpa
-/etc/init.d/rsync start
+[ -e /etc/default/tftpd-hpa -a -e /etc/tftp_remap.conf ] && start tftpd-hpa
+[ -e /etc/rsyncd.conf ] && /etc/init.d/rsync start
 
 # don't start these on first install
 if [ "$1" != "--first" ]; then
