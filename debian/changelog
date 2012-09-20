@@ -3,6 +3,7 @@ linuxmuster-base (6.0.0-9ubuntu0) precise; urgency=low
   * linuxmuster-setup:
     - removed deprecated rembo stuff from linbo setup and fixed config template
       handling which has moved to linuxmuster-linbo package.
+    - fixed test for installed sophomorix in linbo setup.
     - fixed syntax error in sed patch for /etc/network/interfaces.
   * fixed syntax error in init script.
 

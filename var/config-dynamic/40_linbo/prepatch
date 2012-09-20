@@ -75,7 +75,7 @@ if ! check_id linbo; then
  linbopasswd=`grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }'`
  if [ -n "$linbopasswd" ]; then
   echo "Creating linbo user ..."
-  if [ -n "$SOPHOMORIX" ]; then
+  if which sophomorix-passwd &> /dev/null; then
    sophomorix-useradd --administrator linbo --unix-group $ADMINGROUP --shell /bin/false --gecos "LINBO Administrator" &> /dev/null || true
    sophomorix-passwd --user linbo --pass $linbopasswd &> /dev/null || true
   else
