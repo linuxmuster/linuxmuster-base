@@ -13,7 +13,7 @@
 ### END INIT INFO
 
 # Thomas Schmitt <tschmitt@linuxmuster.de>
-# 13.02.2007
+# 20.09.2012
 
 # source default settings
 [ -f /etc/default/linuxmuster-base ] && . /etc/default/linuxmuster-base
@@ -64,11 +64,11 @@ start_firewall() {
       # accept stated connections
       iptables -A IN-$IFACE -m state --state RELATED,ESTABLISHED -j ACCEPT
 
-      # accept ipcop
+      # accept from ipcop
       iptables -A IN-$IFACE -s $ipcopip/32 -j ACCEPT
 
-      # accept from internet
-      iptables -A IN-$IFACE -s ! $internalnet/$internmask_short -j ACCEPT
+      # accept from anywhere except lan
+      iptables -A IN-$IFACE ! -s $internalnet/$internmask_short -j ACCEPT
 
       # read mandatory open ports
       if [ -f "$BASEPORTS" ]; then
