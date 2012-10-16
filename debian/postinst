@@ -59,6 +59,9 @@ case "$1" in
   # read linuxmuster defaults
   . /usr/share/linuxmuster/config/dist.conf
 
+  # ensure all german locales are configured
+  locale-gen de_DE.UTF-8 de_DE de_DE@euro
+
   # make configs executable so that perl scripts can source it
   chmod 755 /usr/share/linuxmuster/config/dist.conf
   chmod 755 /etc/linuxmuster/backup.conf

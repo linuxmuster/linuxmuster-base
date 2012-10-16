@@ -1,8 +1,18 @@
-linuxmuster-base (6.0.1-0ubuntu0) precise; urgency=low
+linuxmuster-base (6.0.0-11ubuntu0) precise; urgency=low
+
+  * added locales to pkg's pre depends.
+  * postinst: added locale generation for german locales (some are
+    needed by Horde): de_DE.UTF-8 de_DE de_DE@euro.
+  * linuxmuster-setup: fixed apache2's sites-available template.
+
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Tue, 16 Oct 2012 15:07:00 +0200
+
+linuxmuster-base (6.0.0-10ubuntu0) precise; urgency=low
 
   * changed version to 6.0.0.
+  * Fixed unpatched adminmac in ipcop settings file (closes #12).
 
- -- Thomas Schmitt <tschmitt@linuxmuster.de>  Wed, 10 Oct 2012 15:34:00 +0200
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Sat, 13 Oct 2012 14:51:00 +0200
 
 linuxmuster-base (6.0.0-9ubuntu0) precise; urgency=low
 

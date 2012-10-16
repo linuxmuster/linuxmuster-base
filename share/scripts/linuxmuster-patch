@@ -117,6 +117,9 @@ echo "iface_lan=$iface_lan" >> $NETWORKSETTINGS
 echo "imaging=$imaging" >> $NETWORKSETTINGS
 chmod 755 $NETWORKSETTINGS
 
+# compute iface_lan's macaddress
+adminmac="$(ifconfig $iface_lan | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}' | tr a-z A-Z)"
+
 # compute server's amount of ram
 memtotal=`cat /proc/meminfo | grep MemTotal | awk -F" " '{ print $2 }' -`
 
@@ -229,6 +232,7 @@ for i in $DYNTPLDIR/*; do
               s/@@dnsforwarder1@@/${dnsforwarder[1]}/g
               s/@@dnsforwarder2@@/${dnsforwarder[2]}/g
               s/@@smtprelay@@/${smtprelay}/g
+              s/@@adminmac@@/${adminmac}/g
               s/@@workgroup@@/${workgroup}/g
               s/@@basedn@@/${basedn}/g
               s/@@ldappassword@@/${ldapadminpw}/g
