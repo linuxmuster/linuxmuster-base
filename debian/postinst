@@ -464,6 +464,17 @@ $addstr" -i $conf
     fi
    done
 
+   # expand allow-query list in named.conf.options (#18)
+   conf=/etc/bind/named.conf.options
+   searchstr="allow-query { $internalnet/$internmask_short; $ipcopblue.0/24; $ipcoporange.0/24; $ipcopovpn.0/24; };"
+   if ! grep -q $conf; then
+     echo "Backing up $conf to $conf.dpkg-bak!"
+     cp $conf $conf.dpkg-bak
+     echo "Expanding allow-query list in $conf (#18)."
+     sed -e "s|\tallow-query.*|\t$searchstr|" -i $conf
+     bind_reload=yes
+   fi
+
    # updating release information
    echo "$(getdistname) $DISTFULLVERSION / Codename $CODENAME" > /etc/issue
    cp /etc/issue /etc/issue.net
@@ -471,10 +482,11 @@ $addstr" -i $conf
    # reload services
    apache2ctl graceful || true
    [ -n "$nagios_reload" ] && /etc/init.d/nagios2 restart
+   [ -n "$bind_reload" ] && /etc/init.d/bind9 force-reload
    [ -n "$dhcp_reload" ] && /etc/init.d/dhcp3-server force-reload
    [ -n "$slapd_reload" ] && /etc/init.d/slapd restart
    [ -n "$postgres_reload" ] && /etc/init.d/postgresql-8.1 reload
-	
+
    # notify if upgrade is necessary
    if [ -n "$upgrade" ]; then
     echo "NOTE!"

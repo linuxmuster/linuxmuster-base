@@ -1,8 +1,8 @@
 linuxmuster-base (5.1.0-8lenny0) lenny; urgency=low
 
-  * paedml51-upgrade: fixed debian repository address check (closes #598).
+  * Fix: expanding allow-query list in named.conf.options (closes #18).
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 25 Apr 2012 11:02:00 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 20 Oct 2012 14:16:00 +0100
 
 linuxmuster-base (5.1.0-7lenny0) lenny; urgency=low
 
