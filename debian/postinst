@@ -468,7 +468,7 @@ $addstr" -i $conf
    conf=/etc/bind/named.conf.options
    searchstr="allow-query { $internalnet/$internmask_short; $ipcopblue.0/24; $ipcoporange.0/24; $ipcopovpn.0/24; };"
    if ! grep -q "$searchstr" $conf; then
-     echo "Backing up $conf to $conf.dpkg-bak!"
+     echo "Backing up $conf to $conf.dpkg-bak."
      cp $conf $conf.dpkg-bak
      echo "Expanding allow-query list in $conf (#18)."
      sed -e "s|\tallow-query.*|\t$searchstr|" -i $conf
