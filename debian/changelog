@@ -1,3 +1,9 @@
+linuxmuster-base (6.0.0-12ubuntu0) precise; urgency=low
+
+  * rebuild.
+
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Wed, 17 Oct 2012 21:26:00 +0200
+
 linuxmuster-base (6.0.0-11ubuntu0) precise; urgency=low
 
   * added locales to pkg's pre depends.
