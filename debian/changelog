@@ -1,4 +1,4 @@
-linuxmuster-base (5.1.0-8lenny0) lenny; urgency=low
+linuxmuster-base (5.1.0-8lenny0) openml5-stable; urgency=low
 
   * Fix: expanding allow-query list in named.conf.options (closes #18).
 
