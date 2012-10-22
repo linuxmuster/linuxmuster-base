@@ -1,3 +1,17 @@
+linuxmuster-base (6.0.0-13ubuntu0) precise; urgency=low
+
+  * linuxmuster-setup, postinst: Fixed allow-query list in named.conf.options
+    (closes #18).
+  * linuxmuster-setup:
+    * Fixed wrong processing of domainname in ldap configuration (closes #16).
+    * removed obsolete clamav/freshclam.conf configuration template.
+  * postinst:
+    * Fixed service restart commands in postinst.
+    * Code cleanup.
+  * rules: dh_prep instead of dh_clean -k.
+
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Mon, 22 Oct 2012 14:14:00 +0200
+
 linuxmuster-base (6.0.0-12ubuntu0) precise; urgency=low
 
   * rebuild.

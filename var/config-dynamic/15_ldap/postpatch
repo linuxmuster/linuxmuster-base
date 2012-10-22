@@ -1,4 +1,5 @@
-# $Id: postpatch 1246 2012-01-19 20:54:49Z tschmitt $
+# linuxmuster.net: ldap configuration script
+# tschmitt 20121022
 
 echo "### 15_ldap postpatch"
 
@@ -78,7 +79,7 @@ if [ "$1" = "--first" ]; then
         chattr +i /var/lib/ldap/DB_CONFIG
         rm -f /var/lib/ldap/*
         chattr -i /var/lib/ldap/DB_CONFIG
-        sed -e "s|^dc:.*|dc: ${domainname%.*}|" -i /var/tmp/ldap.ldif
+	sed -e "s|^dc:.*|dc: ${domainname%%.*}|" -i /var/tmp/ldap.ldif
         slapadd < /var/tmp/ldap.ldif
         chown openldap:openldap /var/lib/ldap -R
         slaptest -f /etc/ldap/slapd.conf -F /etc/ldap/slapd.d

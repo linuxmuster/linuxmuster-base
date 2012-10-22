@@ -1,12 +1,7 @@
 #!/bin/bash
 #
-# postinst script for linuxmuster.net
-#
-# $Id: postinst 1334 2012-07-20 12:03:39Z tschmitt $
-# 
-# Thomas Schmitt
-# <tschmitt@linuxmuster.de>
-# GPL V3
+# linuxmuster.net: postinst script for linuxmuster-base
+# tschmitt 20121022
 #
 
 # see: dh_installdeb(1)
@@ -287,62 +282,6 @@ case "$1" in
     echo "Fatal: $conf not found! Your system is incomplete!"
    fi
 
-   # repairing webmin
-   #if [ ! -d /var/log/webmin ]; then
-   # mkdir -p /var/log/webmin
-   # /etc/init.d/webmin restart
-   #fi
-
-   # repairing moodle
-   #if psql -U postgres -qtl | grep -q moodle; then
-   # if [ -e /etc/moodle/config.php ]; then
-   #  if ! grep -q "\$CFG->wwwroot = '/moodle';" /etc/moodle/config.php; then
-   #   cp /etc/moodle/config.php /etc/moodle/config.php.dpkg-old
-   #   sed -e "s/\$CFG->wwwroot =.*/\$CFG->wwwroot = \'\/moodle\';/g" -i /etc/moodle/config.php
-   #  fi
-   # fi
-   # if [ -d /usr/share/moodle ]; then
-   #  [[ -e /usr/share/moodle/moodle && ! -L /usr/share/moodle/moodle ]] && mv /usr/share/moodle/moodle /usr/share/moodle/moodle.dpkg-old
-   #  [ -L /usr/share/moodle/moodle ] || ln -s . /usr/share/moodle/moodle
-   # fi
-    # repairing ldap host url (#284)
-   # hosturl="$(psql -U postgres -d moodle -qtc "SELECT value FROM mdl_config_plugins WHERE name = 'host_url'")"
-   # if [ "$hosturl" != " ldap://localhost" ]; then
-   #  echo "Repairing moodle's ldap host url ..."
-   #  psql -U postgres -d moodle -qc "UPDATE mdl_config_plugins SET value = 'ldap://localhost' WHERE name = 'host_url';"
-   # fi
-   #fi
-
-   # repair ssl-cert permissions (1.4.37-paedml1 & 1.4.38-paedml1)
-   #chgrp ssl-cert /etc/ssl/private -R
-   #if grep -q root:sasl $SCRIPTSDIR/create-ssl-cert.sh; then
-   # sed -e 's/root:sasl/root:ssl-cert/g' -i $SCRIPTSDIR/create-ssl-cert.sh
-   # chmod 744 $SCRIPTSDIR/create-ssl-cert.sh
-   #fi
-
-   # ldap db user needs password (1.4.44-1)
-   #dbconf=/etc/linuxmuster/schulkonsole/db.conf
-   #dbuser=`grep ^Username $dbconf | awk -F\= '{ print $2 }'`
-   #dbpwd=`grep ^Password $dbconf | awk -F\= '{ print $2 }'`
-   #if [ "$dbuser" != "ldap" -o -z "$dbpwd" ]; then
-   # echo "Providing a random password for postgresql user ldap."
-   # echo "Warning: Backing up /etc/linuxmuster/schulkonsole/db.conf to db.conf.dpkg-old!"
-   # cp /etc/linuxmuster/schulkonsole/db.conf /etc/linuxmuster/schulkonsole/db.conf.dpkg-old
-   # ldapdbpw=`pwgen -s 8 1`
-   # psql -U postgres -d template1 -qc "ALTER USER ldap WITH PASSWORD '"$ldapdbpw"';"
-   # sed -e "s/^Password=.*/Password=$ldapdbpw/" $STATICTPLDIR/etc/linuxmuster/schulkonsole/db.conf > /etc/linuxmuster/schulkonsole/db.conf
-   # chown www-data:www-data /etc/linuxmuster/schulkonsole/db.conf*
-   # chmod 400 /etc/linuxmuster/schulkonsole/db.conf*
-   #fi
-
-   # update udev rules
-   #conf=/etc/udev/rules.d/75-persistent-net-generator.rules
-   #if ! grep -qw ^"# \$Id" $conf; then
-   # echo "Deactivating net rules creation in $conf."
-   # cp $conf $conf.dpkg-bak
-   # cp $STATICTPLDIR/$conf $conf
-   #fi
-
    # adjust value for max open files (#397)
    conf=/etc/security/limits.conf
    if [ -s "$conf" ]; then
@@ -363,56 +302,16 @@ case "$1" in
     reboot=yes
    fi
 
-   # removing obsolete apache modules
-   #rm -f /etc/apache2/mods-enabled/mime_magic.*
-
-   # add clamav-freshclam startlinks
-   #[[ ! -e /etc/rc2.d/S20clamav-freshclam && -e /etc/init.d/clamav-freshclam ]] && update-rc.d clamav-freshclam defaults
-
-   # fixes pam.d's sshd config file (closes #410)
-   #[ -e /etc/pam.d/ssh ] && rm /etc/pam.d/ssh
-   #conf=/etc/pam.d/sshd
-   #if ! grep ^account $conf | grep required | grep -q pam_access.so; then
-   # echo "Fixing pam's sshd config file."
-   # mv $conf $conf.dpkg-bak
-   # cp $STATICTPLDIR/$conf $conf
-   #fi
-
-   # add writable program share (#466)
-   #searchstr="\[pgmw\]"
-   #conf=/etc/samba/smb.conf.shares
-   #if ! grep -q "$searchstr" $conf; then
-   # echo "Adding example share to $conf."
-   # cp $conf $conf.dpkg-bak
-   # cp $STATICTPLDIR/$conf $conf
-   # grep -v "# custom share definitions" $conf.dpkg-bak >> $conf
-   #fi
-   #searchstr="M: pgmw"
-   #conf=$NETLOGONDIR/login.bat
-   #if ! grep -q "$searchstr" $conf; then
-   # echo "Adding example mapping to $conf."
-   # addstr="rem call \\\\\\\\$servername\\\netlogon\\\logon.bat H: %USERNAME% K: pgm M: pgmw R: cdrom"
-   # cp $conf $conf.dpkg-bak
-   # sed "/^:winnt/a\
-#$addstr" -i $conf
-   # chown $ADMINISTRATOR:$DOMADMINS ${conf}*
-   # chmod 664 ${conf}*
-   #fi
-
-   # update backup.conf (#551, #499)
-   #conf="$SYSCONFDIR/backup.conf"
-   #searchstr="cupsys,cups atftpd,tftpd-hpa"
-   #backup=false
-   #for i in $searchstr; do
-   # search="$(echo "$i" | awk -F\, '{ print $1 }')"
-   # replace="$(echo "$i" | awk -F\, '{ print $2 }')"
-   # if grep -qw "$search" "$conf"; then
-   #  echo "Replacing $search with $replace in $conf."
-   #  [ "$backup" = "false" ] && cp "$conf" "$conf.dpkg-bak"
-   #  backup=true
-   #  sed -e "s|$search|$replace|g" -i "$conf"
-   # fi
-   #done
+   # expand allow-query list in named.conf.options (#18)
+   conf=/etc/bind/named.conf.options
+   searchstr="allow-query { $internalnet/$internmask_short; $ipcopblue.0/24; $ipcoporange.0/24; $ipcopovpn.0/24; };"
+   if ! grep -q "$searchstr" $conf; then
+     echo "Backing up $conf to $conf.dpkg-bak."
+     cp $conf $conf.dpkg-bak
+     echo "Expanding allow-query list in $conf (#18)."
+     sed -e "s|\tallow-query.*|\t$searchstr|" -i $conf
+     bind_reload=yes
+   fi
 
    # updating release information
    echo "$DISTNAME $DISTFULLVERSION / Codename $CODENAME" > /etc/issue
@@ -420,11 +319,12 @@ case "$1" in
 
    # reload services
    apache2ctl graceful || true
-   [ -n "$nagios_reload" ] && /etc/init.d/nagios2 restart
-   [ -n "$dhcp_reload" ] && /etc/init.d/dhcp3-server force-reload
+   [ -n "$nagios_reload" ] && /etc/init.d/nagios3 restart
+   [ -n "$bind_reload" ] && /etc/init.d/bind9 force-reload
+   [ -n "$dhcp_reload" ] && restart isc-dhcp-server
    [ -n "$slapd_reload" ] && /etc/init.d/slapd restart
-   [ -n "$postgres_reload" ] && /etc/init.d/postgresql-8.1 reload
-	
+   [ -n "$postgres_reload" ] && /etc/init.d/postgresql reload
+
    # notify if upgrade is necessary
    if [ -n "$upgrade" ]; then
     echo "NOTE!"

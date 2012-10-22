@@ -1,3 +1,6 @@
+# linuxmuster.net: named.conf.options configuration template
+# tschmitt 20121022
+
 options {
 	directory "/var/cache/bind";
 
@@ -49,7 +52,7 @@ options {
 	# default is to allow queries from all hosts.
 
 	#allow-query { 127.0.0.1; };
-	allow-query { @@internalnet@@/@@internmask_short@@; };
+	allow-query { @@internalnet@@/@@internmask_short@@; @@ipcopblue@@.0/24; @@ipcoporange@@.0/24; @@ipcopovpn@@.0/24; };
 
 	# If notify is set to yes (default), notify messages are
 	# sent to other name servers when the the zone data is
