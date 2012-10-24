@@ -143,7 +143,7 @@ internet_default=on
 intranet_default=on
 webfilter_default=on
 
-roomfile_prefix="/var/run/schulkonsole/room_"
+roomfile_prefix="/var/lib/schulkonsole/room_"
 
 
 # read default values from $ROOMDEFAULTS_TEMP if set

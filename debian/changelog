@@ -1,3 +1,9 @@
+linuxmuster-base (6.0.0-14ubuntu0) precise; urgency=low
+
+  * linuxmuster-reset: Fixed path to schulkonsole's room session files (due to #11).
+
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Wed, 24 Oct 2012 17:06:00 +0200
+
 linuxmuster-base (6.0.0-13ubuntu0) precise; urgency=low
 
   * linuxmuster-setup, postinst: Fixed allow-query list in named.conf.options
