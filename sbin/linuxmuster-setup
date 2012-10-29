@@ -176,7 +176,8 @@ case $opt in
     # reading current debconf values
     echo "Reading current configuration values ..." | tee -a $logfile
     for i in country state location workgroup servername domainname schoolname dsluser dslpasswd smtprelay \
-             internsubrange fwconfig externtype externip externmask gatewayip dnsforwarders imaging; do
+             internsubrange fwconfig externtype externip externmask gatewayip dnsforwarders imaging \
+             serverexternname; do
       RET=`echo get linuxmuster-base/$i | debconf-communicate`
       RET=${RET#[0-9] }
       oldvalue="${i}_old"
