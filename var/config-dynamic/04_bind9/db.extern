@@ -1,0 +1,15 @@
+;
+; BIND data file for @@serverexternname@@
+;
+$TTL	3600
+@	IN	SOA	@@serverexternname@@. root.@@serverexternname@@. (
+			      1		; Serial
+			  10800		; Refresh
+			   3600		; Retry
+			 432000		; Expire
+			  38400 )	; Negative Cache TTL
+;
+@	IN	NS	@@serverexternname@@.
+@	IN	MX	10    @@serverexternname@@.
+@@serverexternname@@.	IN	A	@@serverip@@
+
