@@ -1,0 +1,9 @@
+//
+// Configuration for resolving extern server name intern
+//
+zone "@@serverexternname@@" in {
+    type master;
+    file "/etc/bind/db.extern";
+};
+
+

@@ -199,6 +199,16 @@ imaging="linbo"
 db_set linuxmuster-base/imaging "$imaging" || true
 
 
+# extern server name
+while ! validdomain "$SERVEREXTERNNAME"; do
+	db_fset linuxmuster-base/serverexternname seen false
+	db_input $PRIORITY linuxmuster-base/serverexternname || true
+	db_go
+	db_get linuxmuster-base/serverexternname || true
+	SERVEREXTERNNAME=$RET
+	if [ "$SERVEREXTERNNAME" = "" ]; then break; fi
+done
+
 # admin passwords
 if [ "$1" = "--first" ]; then
 

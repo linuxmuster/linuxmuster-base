@@ -9,6 +9,25 @@ if [ "$1" = "--modify" ]; then
 		mv $i $i.nopatch
 	done
 
+	# do patching for extern name if it is used for the first time
+	if [[ -z "$serverexternname_old" && -n "$serverexternname" ]]; then
+		mv named.conf.extern.target.nopatch named.conf.extern.target
+		mv db.extern.target.nopatch db.extern.target
+	elif [ -z "$serverexternname" ]; then
+                [ -e /etc/bind/named.conf.extern ] && backup_file /etc/bind/named.conf.extern
+		rm -f /etc/bind/named.conf.extern
+                [ -e /etc/bind/db.extern ] && backup_file /etc/bind/db.extern
+		rm -f /etc/bind/db.extern
+	elif [[ "$serverexternname" != "$serverexternname_old" ]]; then
+
+		backup_file /etc/bind/named.conf.extern
+		sed -e "s/$serverexternname_old./$serverexternname./g" -i /etc/bind/named.conf.extern
+
+		backup_file /etc/bind/db.extern
+		sed -e "s/$serverexternname_old./$serverexternname./g" -i /etc/bind/db.extern
+
+	fi
+
 	if [[ "$servername" != "$servername_old" || "$domainname" != "$domainname_old" ]]; then
 
 		backup_file /etc/bind/db.linuxmuster
@@ -35,6 +54,10 @@ if [ "$1" = "--modify" ]; then
 
 		[ -e "$BACKUPDIR/etc/bind/db.linuxmuster-$DATETIME.gz" ] || backup_file /etc/bind/db.linuxmuster
 		[ -e "$BACKUPDIR/etc/bind/db.10-$DATETIME.gz" ] || backup_file /etc/bind/db.10
+		if [ -e /etc/bind/db.extern ]; then
+			[ -e "$BACKUPDIR/etc/bind/db.extern-$DATETIME.gz" ] || backup_file /etc/bind/db.extern
+			sed -e "s/$serverip_old/$serverip/g" -i /etc/bind/db.extern
+		fi
 		backup_file /etc/bind/named.conf.options
 
 		n=$internsub; o=$internsub_old
@@ -54,5 +77,11 @@ if [ "$1" = "--modify" ]; then
 		sed -e "s/10.$internsub_old./10.$internsub./g" -i /etc/bind/named.conf.options
 
 	fi
-
+else
+	if [ -z "$serverexternname" ]; then
+		mv db.extern.target db.extern.target.nopatch
+		mv named.conf.extern.target named.conf.extern.target.nopatch
+		rm -f /etc/bind/db.extern
+		rm -f /etc/bind/named.conf.extern
+	fi
 fi

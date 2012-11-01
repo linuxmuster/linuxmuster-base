@@ -1,4 +1,7 @@
 # configure linuxmuster-nagios
+
+echo "### 22_nagios prepatch"
+
 if [ "$1" = "--first" ]; then
   linuxmuster-nagios-setup --first --force
 else
