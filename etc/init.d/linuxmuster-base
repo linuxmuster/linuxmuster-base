@@ -125,6 +125,10 @@ start_firewall() {
       done <$BLOCKEDPORTS
     fi
 
+    if [ -r /etc/linuxmuster/local-fwrules ]; then
+	. /etc/linuxmuster/local-fwrules
+    fi
+
     # don't do this when reloading
     if [ -z "$reload" ]; then
 
