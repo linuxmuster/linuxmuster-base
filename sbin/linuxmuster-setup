@@ -1,10 +1,8 @@
 #!/bin/bash
-# setup for Linux-Musterloesung
+# setup for linuxmuster.net
 #
-# Thomas Schmitt <tschmitt@linuxmuster.de>
-# GPL-2
-#
-# $Id: linuxmuster-setup 1334 2012-07-20 12:03:39Z tschmitt $
+# tschmitt 20121120
+# GPL v3
 #
 
 # check debian version

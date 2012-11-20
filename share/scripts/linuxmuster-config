@@ -1,6 +1,7 @@
 #!/bin/bash
 #
-# $Id: linuxmuster-config 1334 2012-07-20 12:03:39Z tschmitt $
+# tschmitt 20121120
+# GPL v3
 #
 
 # Source debconf library.
@@ -202,46 +203,6 @@ db_set linuxmuster-base/imaging "$imaging" || true
 # admin passwords
 if [ "$1" = "--first" ]; then
 
-	# root
-	STATE=1
-	while [ "$STATE"  != 0 ]; do
-
-		case "$STATE" in
-
-			1)
-				db_fset linuxmuster-base/rootpw seen false
-				db_input $PRIORITY linuxmuster-base/rootpw || true
-				db_go
-				db_get linuxmuster-base/rootpw || true
-				[ -n "$RET" ] && STATE=2
-				unset RET
-			;;
-
-			2)
-				db_fset linuxmuster-base/rootpw_confirm seen false
-				db_input $PRIORITY linuxmuster-base/rootpw_confirm || true
-				db_go
-				db_get linuxmuster-base/rootpw_confirm || true
-				if [ -n "$RET" ]; then
-					CONFIRM=$RET
-					db_get linuxmuster-base/rootpw || true
-					if [ "$RET" = "$CONFIRM" ]; then
-						STATE=0
-						rootpw="$RET"
-					else
-						STATE=1
-					fi
-					unset RET
-					unset CONFIRM
-					db_set linuxmuster-base/rootpw "" || true
-					db_set linuxmuster-base/rootpw_confirm "" || true
-				fi
-			;;
-
-		esac
-
-	done
-
 	# administrator
 	STATE=1
 	while [ "$STATE"  != 0 ]; do
@@ -412,14 +373,5 @@ status=$?
 
 # important: close debconf database
 db_stop
-
-# check status
-if [ "$status" = "0" ]; then
-	if [ "$1" = "--first" ]; then
-		echo "root:$rootpw" | chpasswd
-	fi
-fi
-
-unset rootpw
 
 exit $status

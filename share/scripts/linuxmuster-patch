@@ -1,8 +1,8 @@
 #!/bin/bash
-# config script for Linux-Musterloesung
+# config script for linuxmuster.net
 #
-# $Id: linuxmuster-patch 1334 2012-07-20 12:03:39Z tschmitt $
-# GPL-2
+# tschmitt 20121120
+# GPL v3
 
 # read dist.conf
 . /usr/share/linuxmuster/config/dist.conf

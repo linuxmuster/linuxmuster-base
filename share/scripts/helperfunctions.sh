@@ -439,7 +439,7 @@ assign_nics() {
 
  # substitute nicmenu descritpion
  NIC_DESC="Welche Netzwerkkarte ist mit dem internen Netz verbunden? \
-           Waehlen Sie die entsprechende Karte mit den Pfeiltasten aus \
+           Wählen Sie die entsprechende Karte mit den Pfeiltasten aus \
            und starten Sie dann die Serverkonfiguration mit ENTER."
  db_subst linuxmuster-base/nicmenu nic_desc $NIC_DESC
 

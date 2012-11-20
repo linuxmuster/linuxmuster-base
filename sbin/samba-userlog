@@ -1,5 +1,8 @@
-#!/bin/sh
+#!/bin/bash
+#
 # logs when users login and logout
+# tschmitt 20121120
+#
 
 #set -x
 

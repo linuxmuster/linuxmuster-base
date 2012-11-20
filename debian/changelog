@@ -1,3 +1,22 @@
+linuxmuster-base (6.0.0-16ubuntu0) precise; urgency=low
+
+  * linuxmuster-setup:
+    - removed root password question (closes #37).
+    - implemented german umlauts.
+    - renamed php5's paedml.ini to linuxmuster.ini.
+
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Tue, 20 Nov 2012 19:48:00 +0100
+
+linuxmuster-base (6.0.0-15ubuntu0) precise; urgency=low
+
+  * import_workstations: removes old start.conf links (closes #36).
+  * linuxmuster-setup:
+    - removed php5's static templates curl.ini and pgsql.ini (closes #26 & #29).
+    - added hint for not allowed chars in passwords (closes #34).
+  * added aptitude to pkg dependencies.
+
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Tue, 20 Nov 2012 18:34:00 +0100
+
 linuxmuster-base (6.0.0-14ubuntu0) precise; urgency=low
 
   * linuxmuster-reset: Fixed path to schulkonsole's room session files (due to #11).

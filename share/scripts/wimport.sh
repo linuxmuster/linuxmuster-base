@@ -1,7 +1,6 @@
 # workstation import for linuxmuster.net
 #
-# Thomas Schmitt <tschmitt@linuxmuster.de>
-# $Id: wimport.sh 1334 2012-07-20 12:03:39Z tschmitt $
+# tschmitt 20121113
 # GPL v3
 #
 
@@ -407,6 +406,12 @@ rooms=`ls $WSHOME/`
 # only if workstation data file is filled
 if [ -s "$WDATATMP" ]; then
 
+ # remove old links
+ echo -n "Removing old start.conf links ... "
+ find "$LINBODIR" -name "start.conf-*" -type l -exec rm '{}' \;
+ echo "Done!"
+ echo
+
  # write configuration files and create host accounts
  while read line; do
 
@@ -465,16 +470,7 @@ if [ -s "$WDATATMP" ]; then
    fi
 
    echo -n "  * LINBO: Linking $ip to group $hostgroup ... "
-
-   # remove start.conf links but preserve start.conf file for this ip
-   if [[ -e "$LINBODIR/start.conf-$ip" && -L "$LINBODIR/start.conf-$ip" ]]; then
-    rm $LINBODIR/start.conf-$ip
-   fi
-
-   # create start.conf link if there is no file for this ip
-   if [ ! -e "$LINBODIR/start.conf-$ip" ]; then
-    ln -sf start.conf.$hostgroup $LINBODIR/start.conf-$ip
-   fi
+   ln -sf start.conf.$hostgroup $LINBODIR/start.conf-$ip
 
    # if there is no pxelinux boot file for the group
    if [ ! -s "$LINBODIR/pxelinux.cfg/$hostgroup" ]; then

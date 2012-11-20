@@ -313,6 +313,13 @@ case "$1" in
      bind_reload=yes
    fi
 
+   # rename old shit
+   conf_old=/etc/php5/conf.d/paedml.ini
+   if [ -e "$conf_old" ]; then
+    conf=/etc/php5/conf.d/linuxmuster.ini
+    mv "$conf_old" "$conf"
+   fi
+
    # updating release information
    echo "$DISTNAME $DISTFULLVERSION / Codename $CODENAME" > /etc/issue
    cp /etc/issue /etc/issue.net
