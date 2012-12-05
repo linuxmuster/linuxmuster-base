@@ -3,11 +3,8 @@
 # linuxmuster-reset-rooms
 # resets the internet, intranet, webfilter, lession state of rooms/hosts
 #
-# Thomas Schmitt
-# <tschmitt@linuxmuster.de>
+# tschmitt 20121205
 # GPL V3
-#
-# $Id: linuxmuster-reset 1334 2012-07-20 12:03:39Z tschmitt $
 #
 
 
@@ -25,8 +22,13 @@ chmod 400 $locker
 
 
 exit_script() {
-	rm -f $locker
-	exit 1
+ local RC=1
+ [ -n "$1" ] && RC="$1"
+ echo | tee -a $LOGFILE
+ echo "Ending linuxmuster-reset session at `date`" | tee -a $LOGFILE
+ echo "#####################################################################" | tee -a $LOGFILE
+ rm -f $locker $ROOMDEFAULTS_TEMP $WIMPORTDATA_TEMP
+ exit "$RC"
 }
 
 # source linuxmuster defaults
@@ -49,12 +51,12 @@ usage() {
   echo
   echo "--room : reset all hosts of this room."
   echo "--host : reset only this specific host."
-  echo "--all  : reset all rooms and hosts defined in $ROOMDEFAULTS_TEMP."
+  echo "--all  : reset all rooms and hosts defined in $ROOMDEFAULTS."
   echo "--kill : kill the room's active lession, if there is one (optional)."
   echo "         Use this with care!"
   echo
   echo "Note: --room and --host are using default values if room/host is not"
-  echo "      defined in $ROOMDEFAULTS_TEMP."
+  echo "      defined in $ROOMDEFAULTS."
   exit_script
 }
 
@@ -68,7 +70,7 @@ usage() {
 
 # check if $ROOMDEFAULTS exists
 if [ ! -e "$ROOMDEFAULTS" ]; then
-	echo "Fatal: File $ROOMDEFAULTS_TEMP not found!"
+	echo "Fatal: File $ROOMDEFAULTS not found!"
 	exit_script
 fi
 
@@ -115,7 +117,7 @@ for r in $resetlist; do
 
 	# check if room/host is defined in $WIMPORTDATA_TEMP
 	if ! grep -qw $r $WIMPORTDATA_TEMP; then
-		echo "Room or host $r is not defined in $WIMPORTDATA_TEMP! Skipping $r!" | tee -a $LOGFILE
+		echo "Skipping room or host $r which is not defined in $WIMPORTDATA!" | tee -a $LOGFILE
 		continue
 	fi
 
@@ -131,10 +133,10 @@ done
 
 # exit if list is emtpy
 if [ -z "$tmplist" ]; then
-	echo "Found no valid rooms or hosts to reset!" | tee -a $LOGFILE
-	exit_script
+ echo "There are no valid rooms or hosts to reset!" | tee -a $LOGFILE
+ exit_script 0
 else
-	resetlist=$tmplist
+ resetlist=$tmplist
 fi
 
 
@@ -281,9 +283,5 @@ if ! ps ax | grep nscd | grep -v grep &> /dev/null; then
 	/etc/init.d/nscd start | tee -a $LOGFILE
 fi
 
-echo | tee -a $LOGFILE
-echo "Ending linuxmuster-reset session at `date`" | tee -a $LOGFILE
-echo "#####################################################################" | tee -a $LOGFILE
-
-rm -f $locker $ROOMDEFAULTS_TEMP $WIMPORTDATA_TEMP
+exit_script 0
 

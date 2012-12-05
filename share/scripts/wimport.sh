@@ -1,6 +1,6 @@
 # workstation import for linuxmuster.net
 #
-# tschmitt 20121113
+# tschmitt 20121205
 # GPL v3
 #
 
@@ -176,7 +176,7 @@ remove_printeraccess() {
  local toremove=$1
  local PRINTERSTMP=/var/tmp/printers.$$
  [ -e "$PRINTERSTMP" ] && rm -rf $PRINTERSTMP
- echo "  * Removing $toremove from $PRINTERS ..."
+ echo -n "  * Removing $toremove from $PRINTERS ... "
  while read line; do
   if [ "${line:0:1}" = "#" ]; then
    echo "$line" >> $PRINTERSTMP
@@ -205,17 +205,18 @@ remove_printeraccess() {
  done <$PRINTERS
  mv $PRINTERSTMP $PRINTERS
  update_printers="yes"
+ echo "Ok!"
 }
 
 # remove deleted rooms or hosts from $ROOMDEFAULTS
 remove_defaults() {
  local toremove=$1
- local RC_REMOVE=0
+ local RC=0
  echo -n "  * Removing $toremove from $ROOMDEFAULTS ... "
  backup_roomdefaults=yes
- grep -v ^$toremove[[:space:]] $ROOMDEFAULTS > $ROOMDEFAULTS.tmp; RC_REMOVE=$?
- mv $ROOMDEFAULTS.tmp $ROOMDEFAULTS; RC_REMOVE=$?
- if [ $RC_REMOVE -ne 0 ]; then
+ grep -v ^$toremove[[:space:]] $ROOMDEFAULTS > $ROOMDEFAULTS.tmp; RC=$?
+ mv $ROOMDEFAULTS.tmp $ROOMDEFAULTS; RC=$?
+ if [ $RC -ne 0 ]; then
   echo "Error!"
   return 1
  else
@@ -225,20 +226,18 @@ remove_defaults() {
 }
 
 
-if [ "$imaging" = "linbo" ]; then
- # adding new host entries from LINBO's registration
- if ls $LINBODIR/*.new &> /dev/null; then
-  for i in $LINBODIR/*.new; do
-   if [ -s "$i" ]; then
-    hostname="$(basename "$i" | sed 's|.new||')"
-    echo "Adding new data for $hostname:"
-    cat $i
-    echo
-    cat $i >> $WIMPORTDATA
-   fi
-   rm -f $i
-  done
- fi
+# adding new host entries from LINBO's registration
+if ls $LINBODIR/*.new &> /dev/null; then
+ for i in $LINBODIR/*.new; do
+  if [ -s "$i" ]; then
+   hostname="$(basename "$i" | sed 's|.new||')"
+   echo "Adding new data for $hostname:"
+   cat $i
+   echo
+   cat $i >> $WIMPORTDATA
+  fi
+  rm -f $i
+ done
 fi
 
 
@@ -403,110 +402,126 @@ echo ";$BEGINSTR" > $DBREVTMP
 rooms=`ls $WSHOME/`
 
 
-# only if workstation data file is filled
+# if there are any workstation data
 if [ -s "$WDATATMP" ]; then
 
- # remove old links
- echo -n "Removing old start.conf links ... "
- find "$LINBODIR" -name "start.conf-*" -type l -exec rm '{}' \;
- echo "Done!"
- echo
-
- # write configuration files and create host accounts
- while read line; do
-
-  RC_LINE=0
-
-  # read in host data
-  room=`echo $line | awk -F\; '{ print $1 }'`
-  tolower $room
-  room=$RET
-  hostname=`echo $line | awk -F\; '{ print $2 }'`
-  hostgroup=`echo $line | awk -F\; '{ print $3 }'`
-  [ "$imaging" = "rembo" ] || hostgroup=`echo $hostgroup | awk -F\, '{ print $1 }'`
-  mac=`echo $line | awk -F\; '{ print $4 }'`
-  ip=`echo $line | awk -F\; '{ print $5 }'`
-  pxe=`echo $line | awk -F\; '{ print $11 }'`
-  echo "Processing host $hostname:"
-
-  # create workstation and machine accounts
-  if check_host_account; then
-   get_pgroup $hostname
-   strip_spaces $RET
-   pgroup=$RET
-   if [ "$pgroup" != "$room" ]; then
-    echo "  * Host $hostname is moving from room $pgroup to $room!"
-    remove_account; RC_LINE=$?
-    if [ $RC_LINE -eq 0 ]; then
-     create_account; RC_LINE=$?
-    fi
-   fi
-  else
-   create_account; RC_LINE=$?
-  fi
-
-  if [ $RC_LINE -ne 0 ]; then
-   echo
-   RC=$RC_LINE
-   continue
-  fi
-
-  # linbo stuff, only if pxe host
-  if [[ "$pxe" != "0" && "$imaging" = "linbo" ]]; then
-
-   # use the default start.conf if there is none for this group
-   if [ ! -e "$LINBODIR/start.conf.$hostgroup" ]; then
-    echo -n "  * LINBO: Creating new start.conf.$hostgroup in $LINBODIR ... "
-    if cp $LINBODEFAULTCONF $LINBODIR/start.conf.$hostgroup; then
-     sed -e "s/^Server.*/Server = $serverip/
-             s/^Description.*/Description = Windows XP/
-             s/^Image.*/Image =/
-             s/^BaseImage.*/BaseImage = winxp-$hostgroup.cloop/" -i $LINBODIR/start.conf.$hostgroup
-     echo "Ok!"
-    else
-     echo "Error!"
-     RC=1
-    fi
-   fi
-
-   echo -n "  * LINBO: Linking $ip to group $hostgroup ... "
-   ln -sf start.conf.$hostgroup $LINBODIR/start.conf-$ip
-
-   # if there is no pxelinux boot file for the group
-   if [ ! -s "$LINBODIR/pxelinux.cfg/$hostgroup" ]; then
-    # create one
-    sed -e "s/initrd=linbofs.gz/initrd=linbofs.$hostgroup.gz/g" $PXELINUXCFG > $LINBODIR/pxelinux.cfg/$hostgroup
-   fi
-
-   echo "Ok!"
-
-  fi
-
-  # write dhcpd.conf entry
-  echo -n "  * DHCP/BIND: Writing config ... "
-  echo "host $hostname {" >> $DHCPDCONF
-  echo "  hardware ethernet $mac;" >> $DHCPDCONF
-  echo "  fixed-address $ip;" >> $DHCPDCONF
-  echo "  option host-name \"$hostname\";" >> $DHCPDCONF
-  if [[ "$pxe" != "0" && "$imaging" = "linbo" ]]; then
-   # assign group specific pxelinux config
-   echo "  option pxelinux.configfile \"pxelinux.cfg/$hostgroup\";" >> $DHCPDCONF
-  fi
-  echo "}" >> $DHCPDCONF
-		
-  # write bind config
-  okt2="$(echo $ip | awk -F. '{ print $2 }')"
-  okt3="$(echo $ip | awk -F. '{ print $3 }')"
-  okt4="$(echo $ip | awk -F. '{ print $4 }')"
-  echo "$okt4.$okt3.$okt2 PTR $hostname.`dnsdomainname`." >> $DB10TMP
-  echo "$hostname A $ip" >> $DBREVTMP
+ # sync host accounts
+ echo -n "Syncing host accounts ... "
+ if sophomorix-workstation --sync-accounts 2>> $TMPLOG 1>> $TMPLOG ; then
 
   echo "Ok!"
   echo
 
- done <$WDATATMP
+  # remove old links
+  echo -n "Removing old start.conf links ... "
+  find "$LINBODIR" -name "start.conf-*" -type l -exec rm '{}' \;
+  echo "Done!"
+  echo
 
-fi
+  # write configuration files
+  while read line; do
+
+#  RC_LINE=0
+
+   # read in host data
+   room=`echo $line | awk -F\; '{ print $1 }'`
+   tolower $room
+   room=$RET
+   hostname=`echo $line | awk -F\; '{ print $2 }'`
+   hostgroup=`echo $line | awk -F\; '{ print $3 }'`
+   hostgroup=`echo $hostgroup | awk -F\, '{ print $1 }'`
+   mac=`echo $line | awk -F\; '{ print $4 }'`
+   ip=`echo $line | awk -F\; '{ print $5 }'`
+   pxe=`echo $line | awk -F\; '{ print $11 }'`
+   echo "Processing host $hostname:"
+
+   # deprecated because of sophomorix-workstations
+   # create workstation and machine accounts
+#  if check_host_account; then
+#   get_pgroup $hostname
+#   strip_spaces $RET
+#   pgroup=$RET
+#   if [ "$pgroup" != "$room" ]; then
+#    echo "  * Host $hostname is moving from room $pgroup to $room!"
+#    remove_account; RC_LINE=$?
+#    if [ $RC_LINE -eq 0 ]; then
+#     create_account; RC_LINE=$?
+#    fi
+#   fi
+#  else
+#   create_account; RC_LINE=$?
+#  fi
+
+#  if [ $RC_LINE -ne 0 ]; then
+#   echo
+#   RC=$RC_LINE
+#   continue
+#  fi
+
+   # only if pxe host
+   if [[ "$pxe" != "0" ]]; then
+
+    # use the default start.conf if there is none for this group
+    if [ ! -e "$LINBODIR/start.conf.$hostgroup" ]; then
+     echo -n "  * LINBO: Creating new start.conf.$hostgroup in $LINBODIR ... "
+     if cp $LINBODEFAULTCONF $LINBODIR/start.conf.$hostgroup; then
+      sed -e "s/^Server.*/Server = $serverip/
+              s/^Description.*/Description = Windows XP/
+              s/^Image.*/Image =/
+              s/^BaseImage.*/BaseImage = winxp-$hostgroup.cloop/" -i $LINBODIR/start.conf.$hostgroup
+      echo "Ok!"
+     else
+      echo "Error!"
+      RC=1
+     fi
+    fi
+
+    echo -n "  * LINBO: Linking $ip to group $hostgroup ... "
+    ln -sf start.conf.$hostgroup $LINBODIR/start.conf-$ip
+
+    # if there is no pxelinux boot file for the group
+    if [ ! -s "$LINBODIR/pxelinux.cfg/$hostgroup" ]; then
+     # create one
+     sed -e "s/initrd=linbofs.gz/initrd=linbofs.$hostgroup.gz/g" $PXELINUXCFG > $LINBODIR/pxelinux.cfg/$hostgroup
+    fi
+
+    echo "Ok!"
+
+   fi # only if pxe host
+
+   # write dhcpd.conf entry
+   echo -n "  * DHCP/BIND: Writing config ... "
+   echo "host $hostname {" >> $DHCPDCONF
+   echo "  hardware ethernet $mac;" >> $DHCPDCONF
+   echo "  fixed-address $ip;" >> $DHCPDCONF
+   echo "  option host-name \"$hostname\";" >> $DHCPDCONF
+   if [[ "$pxe" != "0" && "$imaging" = "linbo" ]]; then
+    # assign group specific pxelinux config
+    echo "  option pxelinux.configfile \"pxelinux.cfg/$hostgroup\";" >> $DHCPDCONF
+   fi
+   echo "}" >> $DHCPDCONF
+		
+   # write bind config
+   okt2="$(echo $ip | awk -F. '{ print $2 }')"
+   okt3="$(echo $ip | awk -F. '{ print $3 }')"
+   okt4="$(echo $ip | awk -F. '{ print $4 }')"
+   echo "$okt4.$okt3.$okt2 PTR $hostname.`dnsdomainname`." >> $DB10TMP
+   echo "$hostname A $ip" >> $DBREVTMP
+
+   echo "Ok!"
+   echo
+
+  done <$WDATATMP
+
+ else
+
+  echo "Error!"
+  echo
+  RC=1
+
+ fi # sync host accounts
+
+fi # if there are any workstation data
 
 # finalize bind config
 echo ";$ENDSTR" >> $DB10TMP
@@ -516,112 +531,83 @@ addto_file "$DBREV" "$DBREVTMP" "ipcop"
 rm $DB10TMP
 rm $DBREVTMP
 
+
 # creating/updating group specific linbofs
-if [ "$imaging" = "linbo" -a -e "$LINBOUPDATE" ]; then
+if [ -e "$LINBOUPDATE" ]; then
  $LINBOUPDATE; RC_LINE=$?
  [ $RC_LINE -ne 0 ] && RC=1
 fi
 
 
-# myshn groups
-if [ "$imaging" = "rembo" ]; then
- echo "Processing mySHN groups:"
- FOUND=0
- for i in `awk -F\; '{ print $3 " " $11 }' $WDATATMP | grep -v -w 0 | awk '{ print $1 }' | sort -u`; do
-  OIFS="$IFS"
-  IFS=","
-  for g in $i; do
-   if [ ! -e "$MYSHNDIR/groups/$g/config" ]; then
-    echo -n "  * Copying default config for group $g ... "
-    FOUND=1; RC_LINE=0
-    if [ ! -d "$MYSHNDIR/groups/$g" ]; then
-     mkdir -p $MYSHNDIR/groups/$g 2>> $TMPLOG 1>> $TMPLOG
-    fi
-    cp $MYSHNCONFIG $MYSHNDIR/groups/$g/config 2>> $TMPLOG 1>> $TMPLOG; RC_LINE="$?"
-    if [ $RC_LINE -eq 0 ]; then
-     echo "Ok!"
-    else
-     echo "failed!"
-     RC=1
-    fi
-   fi
-  done
-  IFS="$OIFS"
- done
- [ "$FOUND" = "0" ] && echo "  * Nothing to do!"
-fi
-
+# backup config files to be modified
 echo
 backup_file $PRINTERS &> /dev/null
 backup_file $CLASSROOMS &> /dev/null
 backup_file $ROOMDEFAULTS &> /dev/null
 
 
-# check for non-existing hosts
-FOUND=0
-echo "Checking for obsolete hosts:"
-if ls $WSHOME/*/* &> /dev/null; then
-
- for i in $WSHOME/*/*; do
-
-  hostdir=$i
-  hostname=${i##*/}
-  if ! awk -F\; '{ print "X"$2"X" }' $WDATATMP | grep -q X${hostname}X; then
-   FOUND=1
-   remove_account ; RC_LINE="$?"
-   [ $RC_LINE -eq 0 ] || RC=1
-
-   if grep -v ^# $PRINTERS | grep -qw $hostname; then
-    remove_printeraccess $hostname ; RC_LINE="$?"
-    [ $RC_LINE -eq 0 ] || RC=1
-   fi
-
-   if grep -q ^$hostname[[:space:]] $ROOMDEFAULTS; then
-    remove_defaults $hostname ; RC_LINE="$?"
-    [ $RC_LINE -eq 0 ] || RC=1
-   fi
-  fi
-
- done
-
-fi
-[ "$FOUND" = "0" ] && echo "  * Nothing to do!"
-
-# check for obsolete rooms
+# remove hosts which are no more defined in workstations file
 FOUND=0
 echo
-echo "Checking for obsolete rooms:"
-for room in $rooms; do
-
- if ! awk -F\; '{ print "X"$1"X" }' $WDATATMP | grep -q X${room}X; then
+echo "Checking for obsolete hosts:"
+# room_defaults
+hosts="$(grep ^[a-z0-9] $ROOMDEFAULTS | awk '{ print $1 }' | tr A-Z a-z)"
+for hostname in $hosts; do
+ [ "$hostname" = "default" ] && continue
+ if ! awk -F\; '{ print $2 }' $WDATATMP | sort -u | grep -qw $hostname; then
   FOUND=1
-  echo -n "  * Removing room: $room ... "
-  if sophomorix-groupdel --room $room 2>> $TMPLOG 1>> $TMPLOG; then
-   echo "Ok!"
-  else
-   echo "sophomorix error!"
-   RC=1
-  fi
-
-  if grep -qw ^$room $CLASSROOMS; then
-   echo -n "  * Removing $room from $CLASSROOMS ... "
-   backup_classrooms=yes
-   grep -wv ^$room $CLASSROOMS > $CLASSROOMS.tmp
-   mv $CLASSROOMS.tmp $CLASSROOMS
-   echo "Ok!"
-  fi
-
-  grep -q ^$room[[:space:]] $ROOMDEFAULTS && remove_defaults $room
-
-  if grep -v ^# $PRINTERS | grep -qw $room; then
-   remove_printeraccess $room ; RC_LINE="$?"
-   [ $RC_LINE -eq 0 ] || RC=1
-  fi
+  remove_defaults $hostname ; RC_LINE="$?"
+  [ $RC_LINE -eq 0 ] || RC=1
  fi
-
+done
+# printers
+hosts="$(grep ^[a-zA-Z0-9] $PRINTERS | awk '{ print $3 }' | grep ^[a-z0-9] | sed -e 's|,| |g')"
+for hostname in $hosts; do
+ if ! awk -F\; '{ print $2 }' $WDATATMP | sort -u | grep -qw $hostname; then
+  FOUND=1
+  remove_printeraccess $hostname
+ fi
 done
 [ "$FOUND" = "0" ] && echo "  * Nothing to do!"
 
+# remove rooms which are no more defined in workstations file
+FOUND=0
+echo
+echo "Checking for obsolete rooms:"
+# classrooms
+rooms="$(grep ^[a-z0-9] $CLASSROOMS | awk '{ print $1 }' | tr A-Z a-z)"
+for room in $rooms; do
+ if ! grep -q ^${room}\; $WDATATMP; then
+  FOUND=1
+  echo -n "  * Removing $room from $CLASSROOMS ... "
+  backup_classrooms=yes
+  grep -wv ^$room $CLASSROOMS > $CLASSROOMS.tmp
+  mv $CLASSROOMS.tmp $CLASSROOMS
+  echo "Ok!"
+ fi
+done
+# room_defaults
+rooms="$(grep ^[a-z0-9] $ROOMDEFAULTS | awk '{ print $1 }' | tr A-Z a-z)"
+for room in $rooms; do
+ [ "$room" = "default" ] && continue
+ if ! awk -F\; '{ print $1 }' $WDATATMP | sort -u | grep -qw $room; then
+  FOUND=1
+  remove_defaults $room ; RC_LINE="$?"
+  [ $RC_LINE -eq 0 ] || RC=1
+ fi
+done
+# printers
+rooms="$(grep ^[a-zA-Z0-9] $PRINTERS | awk '{ print $2 }' | grep ^[a-z0-9] | sed -e 's|,| |g')"
+for room in $rooms; do
+ if ! awk -F\; '{ print $1 }' $WDATATMP | sort -u | grep -qw $room; then
+  FOUND=1
+  remove_printeraccess $room
+ fi
+done
+[ "$FOUND" = "0" ] && echo "  * Nothing to do!"
+
+
+# remove backup files if nothing was changed
 [ -z "$backup_classrooms" ] && rm ${BACKUPDIR}${CLASSROOMS}-${DATETIME}.gz
 [ -z "$backup_roomdefaults" ] && rm ${BACKUPDIR}${ROOMDEFAULTS}-${DATETIME}.gz
 [ -z "$update_printers" ] && rm ${BACKUPDIR}${PRINTERS}-${DATETIME}.gz

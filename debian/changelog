@@ -1,3 +1,17 @@
+linuxmuster-base (6.0.0-17ubuntu0) precise; urgency=low
+
+  * import_workstations:
+    - calls now "sophomorix-workstation --sync-accounts" to manage computer
+      accounts.
+    - reworked config file handling 
+    - removed deprecated imaging stuff (however, it's LINBO only).
+  * linuxmuster-reset:
+    - exits now with 0 if nothing has to be done.
+    - minor fixes due to console output.
+  * import_printers: fixed cups restart.
+
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Wed, 05 Dec 2012 20:44:00 +0100
+
 linuxmuster-base (6.0.0-16ubuntu0) precise; urgency=low
 
   * linuxmuster-setup:
