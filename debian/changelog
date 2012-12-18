@@ -3,7 +3,7 @@ linuxmuster-base (5.1.0-10lenny0) openml5-stable; urgency=low
   * Added linuxmuster-freefork to package dependency.
   * import_workstations: removes old start.conf links (closes #36).
 
- -- Thomas Schmitt <tschmitt@linuxmuster.de>  Tue, 18 Dez 2012 14:59:00 +0100
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Tue, 18 Dec 2012 14:59:00 +0100
 
 linuxmuster-base (5.1.0-9lenny0) openml5-stable; urgency=low
 
