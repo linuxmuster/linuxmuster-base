@@ -39,7 +39,6 @@ usage() {
 #  fi
 #fi
 
-
 #  test if hostname is an ip address
 if validip $hostname; then
   get_hostname $hostname
@@ -165,12 +164,19 @@ pgroup=${RET# }
 locker=/tmp/.samba-userlog.lock
 lockfile -l 5 $locker
 echo "$DATETIME: $realname ($username, $pgroup) logs $log $prep $hostname ($ip)" >> $USERLOG
-rm -f $locker
 
 echo "log$log of user $username $prep host $hostname successfully logged!"
 
-
 # source custom login and logout scripts
-[ -e "$NETLOGONDIR/custom-log$log.sh" ] && . $NETLOGONDIR/custom-log$log.sh
+export USERNAME="$username"
+export HOMEDIR="$homedir"
+export HOSTNAME="$hostname"
+case $log in
+ in) run-parts "$PREEXECD" ;;
+ out) run-parts "$POSTEXECD" ;;
+ *) ;;
+esac
+
+rm -f $locker
 
 exit 0

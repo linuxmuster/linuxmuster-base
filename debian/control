@@ -8,7 +8,7 @@ Standards-Version: 3.6.0
 Package: linuxmuster-base
 Architecture: all
 Pre-Depends: locales
-Depends: ${misc:Depends}, aptitude, bash, dialog, dpkg, eject, expect, pciutils, pwgen, hostname, procmail, libimap-admin-perl, libterm-readkey-perl, sed, iptables, samba-common-bin
+Depends: ${misc:Depends}, aptitude, bash, debianutils, dialog, dpkg, eject, expect, pciutils, pwgen, hostname, procmail, libimap-admin-perl, libterm-readkey-perl, sed, iptables, samba-common-bin
 Description: linuxmuster.net configuration scripts
  This package provides configuration scripts for linuxmuster.net
 

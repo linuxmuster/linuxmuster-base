@@ -1,3 +1,15 @@
+linuxmuster-base (6.0.0-18ubuntu0) precise; urgency=low
+
+  * samba-userlog: implemented use of login/logout user scripts via run-parts
+    using the directories root-postexec.d and root-preexec.d below
+    /etc/linuxmuster/samba (according to #41).
+    The old solution using custom-login.sh and custom-logout.sh scripts in
+    /home/samba/netlogon is no more supported.
+  * Disabling wide links in home share on package upgrade (via smb.conf).
+  * Added debianutils to package dependencies.
+
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Tue, 18 Dec 2012 17:55:00 +0100
+
 linuxmuster-base (6.0.0-17ubuntu0) precise; urgency=low
 
   * import_workstations:
