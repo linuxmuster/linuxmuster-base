@@ -407,6 +407,12 @@ rooms=`ls $WSHOME/`
 # only if workstation data file is filled
 if [ -s "$WDATATMP" ]; then
 
+ # remove old links
+ echo -n "Removing old start.conf links ... "
+ find "$LINBODIR" -name "start.conf-*" -type l -exec rm '{}' \;
+ echo "Done!"
+ echo
+
  # write configuration files and create host accounts
  while read line; do
 
