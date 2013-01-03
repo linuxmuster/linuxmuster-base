@@ -40,7 +40,7 @@
 }
 /var/log/linuxmuster/userlogins {
      rotate 30
-     weekly
+     daily
      compress
      size 50k
      missingok

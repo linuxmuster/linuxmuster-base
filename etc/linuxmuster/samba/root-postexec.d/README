@@ -1,0 +1,12 @@
+/etc/linuxmuster/samba/root-postexec.d
+
+Shell scripts placed in this directory will be executed by
+/usr/sbin/samba-userlog via run-parts when user logs out of samba.
+
+Variables which are available during runtime:
+* USERNAME : login name of user logging out.
+* HOMEDIR  : path to user's homedir.
+* HOSTNAME : name of host from which user logs in.
+
+Thomas Schmitt
+18.12.2012

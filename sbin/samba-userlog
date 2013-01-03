@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # logs when users login and logout
-# tschmitt 20121120
+# tschmitt 20130103
 #
 
 #set -x
@@ -17,10 +17,10 @@ getopt $*
 
 usage() {
   echo
-  echo "Usage: samba-userlog.sh --log=<in|out>"
-  echo "                        --username=<userlogin>"
-  echo "                        --hostname=<hostname or ip address>"
-  echo "                        --homedir=<homedirectory>"
+  echo "Usage: samba-userlog --log=<in|out>"
+  echo "                     --username=<userlogin>"
+  echo "                     --hostname=<hostname or ip address>"
+  echo "                     --homedir=<homedirectory>"
   echo
   exit 1
 }

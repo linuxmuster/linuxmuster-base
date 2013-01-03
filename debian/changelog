@@ -1,3 +1,11 @@
+linuxmuster-base (6.0.0-19ubuntu0) precise; urgency=low
+
+  * logrotate: changed weekly to daily for userlogins.
+  * samba-userlog: fixed script name in help output.
+  * wimport.sh: removed deprecated account checks.
+
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Wed, 3 Jan 2013 16:36:00 +0100
+
 linuxmuster-base (6.0.0-18ubuntu0) precise; urgency=low
 
   * samba-userlog: implemented use of login/logout user scripts via run-parts

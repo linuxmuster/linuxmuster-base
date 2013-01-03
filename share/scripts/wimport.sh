@@ -1,6 +1,6 @@
 # workstation import for linuxmuster.net
 #
-# tschmitt 20121205
+# tschmitt 20130103
 # GPL v3
 #
 
@@ -10,25 +10,26 @@ WDATATMP=/var/tmp/workstations.$$
 DB10TMP=/var/tmp/db10.$$
 DBREVTMP=/var/tmp/dbrev.$$
 
-MACHINE_PASSWORD=12345678
-HOST_PASSWORD=`pwgen -s 8 1`
-QUOTA=`grep ^'\$use_quota' $SOPHOMORIXCONF | awk -F\" '{ print $2 }' | tr A-Z a-z`
+# deprecated
+#MACHINE_PASSWORD=12345678
+#HOST_PASSWORD=`pwgen -s 8 1`
+#QUOTA=`grep ^'\$use_quota' $SOPHOMORIXCONF | awk -F\" '{ print $2 }' | tr A-Z a-z`
 
 # get host and machine accounts
-echo -n "Reading account data ."
-HOSTS_DB="$(hosts_db)"
-echo -n .
-HOSTS_LDAP="$(hosts_ldap)"
-echo -n .
-MACHINES_DB="$(machines_db)"
-echo -n .
-MACHINES_LDAP="$(machines_ldap)"
-echo -n .
-ACCOUNTS_DB="$(accounts_db)"
-echo -n .
-ACCOUNTS_LDAP="$(accounts_ldap)"
-echo " Done!"
-echo
+#echo -n "Reading account data ."
+#HOSTS_DB="$(hosts_db)"
+#echo -n .
+#HOSTS_LDAP="$(hosts_ldap)"
+#echo -n .
+#MACHINES_DB="$(machines_db)"
+#echo -n .
+#MACHINES_LDAP="$(machines_ldap)"
+#echo -n .
+#ACCOUNTS_DB="$(accounts_db)"
+#echo -n .
+#ACCOUNTS_LDAP="$(accounts_ldap)"
+#echo " Done!"
+#echo
 
 RC=0
 
@@ -60,116 +61,116 @@ exitmsg() {
 }
 
 # checking for valid host/machine account, returns 0 if no account exists
-check_host_account() {
- echo "$HOSTS_LDAP" | grep -qw "$hostname" || return 1
- echo "$MACHINES_LDAP" | grep -qw "${hostname}\\$" || return 1
- echo "$HOSTS_DB" | grep -qw "$hostname" || return 1
- echo "$MACHINES_DB" | grep -qw "${hostname}\\$" || return 1
- return 0
-}
+#check_host_account() {
+# echo "$HOSTS_LDAP" | grep -qw "$hostname" || return 1
+# echo "$MACHINES_LDAP" | grep -qw "${hostname}\\$" || return 1
+# echo "$HOSTS_DB" | grep -qw "$hostname" || return 1
+# echo "$MACHINES_DB" | grep -qw "${hostname}\\$" || return 1
+# return 0
+#}
 
 # checking for valid user account, returns 0 if no account exists
-check_user_account() {
- if echo "$ACCOUNTS_LDAP" | grep -qw "$hostname"; then
-  RET=ldap
-  return 1
- fi
- if echo "$ACCOUNTS_DB" | grep -qw "$hostname"; then
-  RET=postgresql
-  return 1
- fi
- if grep -q ^"${hostname}"\: /etc/passwd; then
-  RET=system
-  return 1
- fi
- RET=""
- return 0
-}
+#check_user_account() {
+# if echo "$ACCOUNTS_LDAP" | grep -qw "$hostname"; then
+#  RET=ldap
+#  return 1
+# fi
+# if echo "$ACCOUNTS_DB" | grep -qw "$hostname"; then
+#  RET=postgresql
+#  return 1
+# fi
+# if grep -q ^"${hostname}"\: /etc/passwd; then
+#  RET=system
+#  return 1
+# fi
+# RET=""
+# return 0
+#}
 
 # create workstation and machine accounts
-create_account() {
- if [ -e "$SOPHOMORIXLOCK" ]; then
-  echo "  > Error: Sophomorix lockfile $SOPHOMORIXLOCK detected!"
-  return 1
- fi
- echo -n "  * Creating exam account $hostname ... "
- if sophomorix-useradd --examaccount $hostname --unix-group $room 2>> $TMPLOG 1>> $TMPLOG; then
-  echo "Ok!"
- else
-  echo "sophomorix error!"
-  return 1
- fi
- echo -n "  * Setting exam account password for ${hostname} ... "
- if sophomorix-passwd -u $hostname --pass $HOST_PASSWORD 2>> $TMPLOG 1>> $TMPLOG; then
-  echo "Ok!"
- else
-  echo "sophomorix error!"
-  return 1
- fi
- local homedir="$WSHOME/$room/$hostname"
- if [ ! -d "$homedir" ]; then
-  mkdir -p "$homedir"
-  chown ${hostname}:${TEACHERSGROUP} "$homedir"
-  chmod 775 "$homedir"
- fi
- if [ "$QUOTA" = "yes" ]; then
-  echo -n "  * Setting quota for $hostname ... "
-  if sophomorix-quota -u $hostname 2>> $TMPLOG 1>> $TMPLOG; then
-   echo "Ok!"
-  else
-   echo "sophomorix error!"
-   return 1
-  fi
- fi
- echo -n "  * Creating machine account ${hostname}$ ... "
- if sophomorix-useradd --computer ${hostname}$ 2>> $TMPLOG 1>> $TMPLOG; then
-  echo "Ok!"
- else
-  echo "sophomorix error!"
-  return 1
- fi
- echo -n "  * Setting machine account password for ${hostname}$ ... "
- if sophomorix-passwd --force -u ${hostname}$ --pass $MACHINE_PASSWORD 2>> $TMPLOG 1>> $TMPLOG; then
-  echo "Ok!"
- else
-  echo "sophomorix error!"
-  return 1
- fi
+#create_account() {
+# if [ -e "$SOPHOMORIXLOCK" ]; then
+#  echo "  > Error: Sophomorix lockfile $SOPHOMORIXLOCK detected!"
+#  return 1
+# fi
+# echo -n "  * Creating exam account $hostname ... "
+# if sophomorix-useradd --examaccount $hostname --unix-group $room 2>> $TMPLOG 1>> $TMPLOG; then
+#  echo "Ok!"
+# else
+#  echo "sophomorix error!"
+#  return 1
+# fi
+# echo -n "  * Setting exam account password for ${hostname} ... "
+# if sophomorix-passwd -u $hostname --pass $HOST_PASSWORD 2>> $TMPLOG 1>> $TMPLOG; then
+#  echo "Ok!"
+# else
+#  echo "sophomorix error!"
+#  return 1
+# fi
+# local homedir="$WSHOME/$room/$hostname"
+# if [ ! -d "$homedir" ]; then
+#  mkdir -p "$homedir"
+#  chown ${hostname}:${TEACHERSGROUP} "$homedir"
+#  chmod 775 "$homedir"
+# fi
+# if [ "$QUOTA" = "yes" ]; then
+#  echo -n "  * Setting quota for $hostname ... "
+#  if sophomorix-quota -u $hostname 2>> $TMPLOG 1>> $TMPLOG; then
+#   echo "Ok!"
+#  else
+#   echo "sophomorix error!"
+#   return 1
+#  fi
+# fi
+# echo -n "  * Creating machine account ${hostname}$ ... "
+# if sophomorix-useradd --computer ${hostname}$ 2>> $TMPLOG 1>> $TMPLOG; then
+#  echo "Ok!"
+# else
+#  echo "sophomorix error!"
+#  return 1
+# fi
+# echo -n "  * Setting machine account password for ${hostname}$ ... "
+# if sophomorix-passwd --force -u ${hostname}$ --pass $MACHINE_PASSWORD 2>> $TMPLOG 1>> $TMPLOG; then
+#  echo "Ok!"
+# else
+#  echo "sophomorix error!"
+#  return 1
+# fi
  # disable password change
- smbldap-usermod -A0 -B0 ${hostname}$ 2>> $TMPLOG 1>> $TMPLOG
-}
+# smbldap-usermod -A0 -B0 ${hostname}$ 2>> $TMPLOG 1>> $TMPLOG
+#}
 
 # remove workstation and machine accounts
-remove_account() {
- if ! check_host_account $hostname; then
-  if check_user_account; then
-   echo "  * Removing orphaned computer account home directory: $hostdir."
-   rm -rf $hostdir
-   return 0
-  fi
-  echo "  > Error: $hostname is an existing $RET user account! Not removing!"
-  return 1
- fi
- if [ -e "$SOPHOMORIXLOCK" ]; then
-  echo "  > Error: Sophomorix lockfile $SOPHOMORIXLOCK detected!"
-  return 1
- fi
- echo -n "  * Removing exam account $hostname ... "
- if sophomorix-kill --killuser $hostname 2>> $TMPLOG 1>> $TMPLOG; then
-  [ -d "$i" ] && rm -rf $i 2>> $TMPLOG 1>> $TMPLOG
-  echo "Ok!"
- else
-  echo "sophomorix error!"
-  return 1
- fi
- echo -n "  * Removing machine account ${hostname}$ ... "
- if sophomorix-kill --killuser ${hostname}$ 2>> $TMPLOG 1>> $TMPLOG; then
-  echo "Ok!"
- else
-  echo "sophomorix error!"
-  return 1
- fi
-}
+#remove_account() {
+# if ! check_host_account $hostname; then
+#  if check_user_account; then
+#   echo "  * Removing orphaned computer account home directory: $hostdir."
+#   rm -rf $hostdir
+#   return 0
+#  fi
+#  echo "  > Error: $hostname is an existing $RET user account! Not removing!"
+#  return 1
+# fi
+# if [ -e "$SOPHOMORIXLOCK" ]; then
+#  echo "  > Error: Sophomorix lockfile $SOPHOMORIXLOCK detected!"
+#  return 1
+# fi
+# echo -n "  * Removing exam account $hostname ... "
+# if sophomorix-kill --killuser $hostname 2>> $TMPLOG 1>> $TMPLOG; then
+#  [ -d "$i" ] && rm -rf $i 2>> $TMPLOG 1>> $TMPLOG
+#  echo "Ok!"
+# else
+#  echo "sophomorix error!"
+#  return 1
+# fi
+# echo -n "  * Removing machine account ${hostname}$ ... "
+# if sophomorix-kill --killuser ${hostname}$ 2>> $TMPLOG 1>> $TMPLOG; then
+#  echo "Ok!"
+# else
+#  echo "sophomorix error!"
+#  return 1
+# fi
+#}
 
 # remove room or host from $PRINTERS
 remove_printeraccess() {
@@ -277,9 +278,9 @@ if [ -s "$WIMPORTDATA" ]; then
    exitmsg "$hostname is no valid hostname!"
   fi
   # check if hostname exists already as a user account
-  if ! check_user_account; then
-   exitmsg "Hostname $hostname exists already as a $RET user account!"
-  fi
+  #if ! check_user_account; then
+  # exitmsg "Hostname $hostname exists already as a $RET user account!"
+  #fi
   # check for uppercase hostnames
   if [ "$hostname_orig" != "$hostname" ]; then
    hostnames_to_be_converted="$hostnames_to_be_converted $hostname_orig"
@@ -399,7 +400,7 @@ echo ";$BEGINSTR" > $DB10TMP
 echo ";$BEGINSTR" > $DBREVTMP
 
 # read in rooms
-rooms=`ls $WSHOME/`
+#rooms=`ls $WSHOME/`
 
 
 # if there are any workstation data
