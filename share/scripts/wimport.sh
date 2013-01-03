@@ -400,7 +400,7 @@ echo ";$BEGINSTR" > $DB10TMP
 echo ";$BEGINSTR" > $DBREVTMP
 
 # read in rooms
-#rooms=`ls $WSHOME/`
+# rooms=`ls $WSHOME/`
 
 
 # if there are any workstation data
@@ -541,7 +541,7 @@ fi
 
 
 # backup config files to be modified
-echo
+#echo
 backup_file $PRINTERS &> /dev/null
 backup_file $CLASSROOMS &> /dev/null
 backup_file $ROOMDEFAULTS &> /dev/null
@@ -616,6 +616,7 @@ done
 
 # reload necessary services
 echo
+echo -n " * "
 /etc/init.d/linuxmuster-base reload
 echo " * Reloading DHCP service... isc-dhcp-server"
 reload isc-dhcp-server

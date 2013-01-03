@@ -1,3 +1,9 @@
+linuxmuster-base (6.0.0-19ubuntu1) precise; urgency=low
+
+  * wimport.sh: improved console output.
+
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Wed, 3 Jan 2013 17:10:00 +0100
+
 linuxmuster-base (6.0.0-19ubuntu0) precise; urgency=low
 
   * logrotate: changed weekly to daily for userlogins.
