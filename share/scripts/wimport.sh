@@ -394,6 +394,7 @@ touch $DHCPDCONF 2>> $TMPLOG 1>> $TMPLOG || exitmsg "Unable to create $DHCPDCONF
 # remove host entries from bind config
 backup_file $DB10 2>> $TMPLOG 1>> $TMPLOG || exitmsg "Unable to backup $DB10!"
 backup_file $DBREV 2>> $TMPLOG 1>> $TMPLOG || exitmsg "Unable to backup $DBREV!"
+echo >> $TMPLOG
 removefrom_file $DB10 "/\;$BEGINSTR/,/\;$ENDSTR/"
 removefrom_file $DBREV "/\;$BEGINSTR/,/\;$ENDSTR/"
 echo ";$BEGINSTR" > $DB10TMP
@@ -407,10 +408,10 @@ echo ";$BEGINSTR" > $DBREVTMP
 if [ -s "$WDATATMP" ]; then
 
  # sync host accounts
- echo -n "Syncing host accounts ... "
- if sophomorix-workstation --sync-accounts 2>> $TMPLOG 1>> $TMPLOG ; then
+ echo "Sophomorix syncs accounts (may take a while):"
+ if sophomorix-workstation --sync-accounts | grep ^[KA][id][ld] | tee -a $TMPLOG 2>> $TMPLOG; then
 
-  echo "Ok!"
+  echo "Done!"
   echo
 
   # remove old links

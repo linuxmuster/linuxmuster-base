@@ -1,3 +1,13 @@
+linuxmuster-base (6.0.0-20ubuntu1) precise; urgency=low
+
+  * wimport.sh: improved sophomorix console output.
+  * firewall init script:
+    - completeley reworked for major performance improvements,
+    - rules were saved on shutdown to /var/cache/linuxmuster/iptables
+    - and loaded from this file on boot which shortens boot time significantly.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 5 Jan 2013 20:36:00 +0100
+
 linuxmuster-base (6.0.0-19ubuntu1) precise; urgency=low
 
   * wimport.sh: improved console output.
