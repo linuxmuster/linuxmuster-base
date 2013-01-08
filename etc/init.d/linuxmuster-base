@@ -13,7 +13,7 @@
 ### END INIT INFO
 
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 07.01.2013
+# 08.01.2013
 # GPL v3
 
 # source default settings
@@ -151,7 +151,7 @@ EOF
    [[ -z "$portrange" || -z "$proto" ]] && continue
    portrange=${portrange//,/ }
    for p in $portrange; do
-    echo "-A IN-$IFACE -p tcp -m tcp --dport $p -j ACCEPT" >> "$IPTRULES"
+    echo "-A IN-$IFACE -p $proto -m $proto --dport $p -j ACCEPT" >> "$IPTRULES"
    done
   done <$BASEPORTS
  fi
