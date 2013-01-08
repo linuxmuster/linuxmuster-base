@@ -1,3 +1,16 @@
+linuxmuster-base (6.0.0-21ubuntu0) precise; urgency=low
+
+  * wimport.sh:
+    - more improvements concerning to console output and program flow,
+      stops if invalid mac address is detected.
+    - removed deprecated code.
+  * firewall init script, reload_firewall(): minor improvements
+    concerning to error handling and iptables file manipulation.
+  * blocked_ports: removed deprecated webmin port, changed port sequence
+    "ftp-data,ftp,ssh" to port range "ftp-data:ssh" which saves rules.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 8 Jan 2013 16:14:00 +0100
+
 linuxmuster-base (6.0.0-20ubuntu1) precise; urgency=low
 
   * wimport.sh: improved sophomorix console output.

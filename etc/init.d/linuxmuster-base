@@ -12,8 +12,9 @@
 # Description:       starts and stops internal firewall
 ### END INIT INFO
 
-# Thomas Schmitt <tschmitt@linuxmuster.de>
-# 05.01.2013
+# Thomas Schmitt <thomas@linuxmuster.net>
+# 07.01.2013
+# GPL v3
 
 # source default settings
 [ -f /etc/default/linuxmuster-base ] && . /etc/default/linuxmuster-base
@@ -211,8 +212,7 @@ reload_firewall() {
  for m in $active_macs; do
   stringinstring $m "$macs" && continue
   active_macs=${active_macs/$m/}
-  grep -v "$m" "$IPTRULES" > "$IPTRULES.tmp"
-  mv "$IPTRULES.tmp" "$IPTRULES"
+  sed "/$m/d" -i "$IPTRULES"
  done
  strip_spaces "$active_macs"
  active_macs="$RET"
@@ -234,14 +234,14 @@ reload_firewall() {
   if [ -n "$INSERT_NR" ]; then
    create_mac_rules
   else
-   echo " ... error in $IPTRULES!"
+   echo " ... error in $IPTRULES! Copied to $IPTRULES.failed!"
    echo
    [ -e "$IPTRULES" ] && mv "$IPTRULES" "$IPTRULES.failed"
    exit 1
   fi
  fi
 
- # load fw rules files
+ # load fw rules file
  if ! iptables-restore < "$IPTRULES"; then
   echo " ... failed to load $IPTRULES!"
   echo
