@@ -1,3 +1,10 @@
+linuxmuster-base (6.0.0-22ubuntu0) precise; urgency=low
+
+  * Bugfix: ubuntu user has no permission to login after linuxmuster-setup,
+    group adm added to /etc/security/access.conf (closes #54).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 12 Jan 2013 16:38:00 +0100
+
 linuxmuster-base (6.0.0-21ubuntu0) precise; urgency=low
 
   * wimport.sh:
