@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 07.01.2013
+# 20.01.2013
 # GPL v3
 #
 
@@ -174,19 +174,19 @@ if [ -s "$WIMPORTDATA" ]; then
  done <$WIMPORTDATA
 
  # check hostnames
- hostnames=`awk -F\; '{ print $2 }' $WIMPORTDATA`
+ hostnames="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $2 }' | tr A-Z a-z)"
  for i in $hostnames; do
   check_unique "$i" "$hostnames" || exitmsg "Hostname $i is not unique!"
  done
 
  # check macs
- macs=`awk -F\; '{ print $4 }' $WIMPORTDATA`
+ macs="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $4 }' | tr a-z A-Z)"
  for i in $macs; do
   check_unique "$i" "$macs" || exitmsg "MAC address $i is not unique!"
  done
  
  # check ips
- ips=`awk -F\; '{ print $5 }' $WIMPORTDATA`
+ ips="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $5 }')"
  for i in $ips; do
   check_unique "$i" "$ips" || exitmsg "IP address $i is not unique!"
  done
@@ -326,7 +326,7 @@ if [ -s "$WIMPORTDATA" ]; then
   echo "  hardware ethernet $mac;" >> $DHCPDCONF
   echo "  fixed-address $ip;" >> $DHCPDCONF
   echo "  option host-name \"$hostname\";" >> $DHCPDCONF
-  if [ "$pxe" != "0" -a "$imaging" = "linbo" ]; then
+  if [ "$pxe" != "0" ]; then
    # assign group specific pxelinux config
    echo "  option pxelinux.configfile \"pxelinux.cfg/$hostgroup\";" >> $DHCPDCONF
   fi
