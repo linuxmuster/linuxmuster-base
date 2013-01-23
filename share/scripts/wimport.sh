@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 20.01.2013
+# 23.01.2013
 # GPL v3
 #
 
@@ -350,8 +350,8 @@ fi # if there are any workstation data
 # finalize bind config
 echo ";$ENDSTR" >> $DB10TMP
 echo ";$ENDSTR" >> $DBREVTMP
-addto_file "$DB10" "$DB10TMP" "ipcop"
-addto_file "$DBREV" "$DBREVTMP" "ipcop"
+addto_file "$DB10" "$DB10TMP" "$fwconfig"
+addto_file "$DBREV" "$DBREVTMP" "$fwconfig"
 rm $DB10TMP
 rm $DBREVTMP
 
