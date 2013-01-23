@@ -22,16 +22,17 @@ linuxmuster-base (6.0.24-0ubuntu0) precise; urgency=low
       /etc/linuxmuster/workstations, returns a list of macaddresses.
   * added sshaskpass.sh script for automating ssh connections.
   * added support for IPFire to various scripts, fixed naming and so on.
+  * added suport for Setup without IPFire/IPCop firewall (closes #24).
   * moved init script to debian/init.
   * linuxmuster-setup:
     - template cleanup.
     - removed linuxmuster-ipcop from server task.
-    - added firewall choice.
+    - added firewall choice for ipfire, ipcop and custom.
     - removed setup for external network connection.
     - added support for ipfire setup.
     - modify mode enabled again.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 23 Jan 2013 14:24:32 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 23 Jan 2013 14:34:15 +0100
 
 linuxmuster-base (6.0.0-23ubuntu0) precise; urgency=low
 
