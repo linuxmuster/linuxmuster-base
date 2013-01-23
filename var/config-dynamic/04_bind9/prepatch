@@ -1,58 +1,72 @@
-# $Id: prepatch 1223 2012-01-16 19:42:26Z tschmitt $
+#
+# thomas@linuxmuster.net
+# 21.01.2013
+# GPL v3
+#
 
 echo "### 04_bind9 prepatch"
 
 if [ "$1" = "--modify" ]; then
 
-	# prevent bind configuration from being patched
-	for i in *.target; do
-		mv $i $i.nopatch
-	done
+ # prevent bind configuration from being patched
+ for i in *.target; do
+  mv $i $i.nopatch
+ done
 
-	if [[ "$servername" != "$servername_old" || "$domainname" != "$domainname_old" ]]; then
+ if [ "$servername" != "$servername_old" -o "$domainname" != "$domainname_old" ]; then
 
-		backup_file /etc/bind/db.linuxmuster
-		sed -e "s/^$domainname_old.*/$domainname\tIN SOA\t$servername.$domainname. postmaster.$domainname. \(/
-			s/NS.*/NS\t$servername.$domainname./
-			s/MX.*/MX\t10 $servername.$domainname./
-			s/^\$ORIGIN $domainname_old./\$ORIGIN $domainname./
-			s/^$servername_old\t/$servername\t/" -i /etc/bind/db.linuxmuster
+  backup_file /etc/bind/db.linuxmuster
+  sed -e "s/^$domainname_old.*/$domainname\tIN SOA\t$servername.$domainname. postmaster.$domainname. \(/
+          s/NS.*/NS\t$servername.$domainname./
+          s/MX.*/MX\t10 $servername.$domainname./
+          s/^\$ORIGIN $domainname_old./\$ORIGIN $domainname./
+          s/^$servername_old\t/$servername\t/" -i /etc/bind/db.linuxmuster
 
-		backup_file /etc/bind/db.10
-		sed -e "s/$servername_old.$domainname_old./$servername.$domainname./g
-			s/$domainname_old./$domainname./g" -i /etc/bind/db.10
+          backup_file /etc/bind/db.10
+          sed -e "s/$servername_old.$domainname_old./$servername.$domainname./g
+                  s/$domainname_old./$domainname./g" -i /etc/bind/db.10
 
-	fi
+ fi
 
-	if [ "$domainname" != "$domainname_old" ]; then
+ if [ "$domainname" != "$domainname_old" ]; then
 
-		backup_file /etc/bind/named.conf.linuxmuster
-		sed -e "s/^zone \"$domainname_old.*/zone \"$domainname\" \{/" -i /etc/bind/named.conf.linuxmuster
+  backup_file /etc/bind/named.conf.linuxmuster
+  sed -e "s/^zone \"$domainname_old.*/zone \"$domainname\" \{/" -i /etc/bind/named.conf.linuxmuster
 
-	fi
+ fi
 
-	if [ "$internsub" != "$internsub_old" ]; then
+ if [ "$internsub" != "$internsub_old" ]; then
 
-		[ -e "$BACKUPDIR/etc/bind/db.linuxmuster-$DATETIME.gz" ] || backup_file /etc/bind/db.linuxmuster
-		[ -e "$BACKUPDIR/etc/bind/db.10-$DATETIME.gz" ] || backup_file /etc/bind/db.10
-		backup_file /etc/bind/named.conf.options
+  [ -e "$BACKUPDIR/etc/bind/db.linuxmuster-$DATETIME.gz" ] || backup_file /etc/bind/db.linuxmuster
+  [ -e "$BACKUPDIR/etc/bind/db.10-$DATETIME.gz" ] || backup_file /etc/bind/db.10
+  backup_file /etc/bind/named.conf.options
 
-		n=$internsub; o=$internsub_old
-		while [ $n -lt $maxsub ]; do
+  n=$internsub; o=$internsub_old
+  while [ $n -lt $maxsub ]; do
 
-			sed -e "s/10.$o./10.$n./g" -i /etc/bind/db.linuxmuster
+   sed -e "s/10.$o./10.$n./g" -i /etc/bind/db.linuxmuster
 
-			oldvalue="$o.10.in-addr.arpa."
-			newvalue="$n.10.in-addr.arpa."
-			sed -e "s/$oldvalue/$newvalue/g" -i /etc/bind/db.10
+   oldvalue="$o.10.in-addr.arpa."
+   newvalue="$n.10.in-addr.arpa."
+   sed -e "s/$oldvalue/$newvalue/g" -i /etc/bind/db.10
 
-			let n+=1
-			let o+=1
+   let n+=1
+   let o+=1
 
-		done
+  done
 
-		sed -e "s/10.$internsub_old./10.$internsub./g" -i /etc/bind/named.conf.options
+  sed -e "s/10.$internsub_old./10.$internsub./g" -i /etc/bind/named.conf.options
 
-	fi
+ fi
+ 
+ if [ -n "$update_fwconfig" ]; then
+ 
+  backup_file /etc/bind/db.10
+  backup_file /etc/bind/db.linuxmuster
+  
+  sed -e "s|${fwconfig_old}.${domainname}.|${fwconfig}.${domainname}.|g" -i /etc/bind/db.10
+  sed -e "s|^${fwconfig_old} |${fwconfig} |g" -i /etc/bind/db.linuxmuster
+ 
+ fi
 
 fi

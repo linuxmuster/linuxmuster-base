@@ -34,7 +34,6 @@ linux-headers-server
 linux-image-server
 linux-firmware
 linux-firmware-nonfree
-linuxmuster-ipcop
 linuxmuster-linbo
 linuxmuster-nagios-base
 linuxmuster-schulkonsole

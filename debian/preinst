@@ -1,12 +1,16 @@
-#! /bin/sh -e
+#!/bin/sh -e
 # preinst script for linuxmuster-base
+#
+# thomas@linuxmuster.net
+# 17.01.2013
+# GPL v3
+#
 
 case "$1" in
-	upgrade)
-		# backup workstations data file
-		if [ -s /etc/linuxmuster/workstations ]; then
-			[ -L /etc/linuxmuster/workstations ] || cp /etc/linuxmuster/workstations /etc/linuxmuster/workstations.dpkg-old
-		fi
+
+upgrade)
+		# save workstations data file
+		[ -f /etc/linuxmuster/workstations ] && cp /etc/linuxmuster/workstations /etc/linuxmuster/workstations.dpkg-bak
 		;;
 
 	*)

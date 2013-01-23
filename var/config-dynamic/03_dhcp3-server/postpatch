@@ -1,4 +1,8 @@
-# $Id: postpatch 1230 2012-01-17 21:10:47Z tschmitt $
+#
+# thomas@linuxmuster.net
+# 20.01.2013
+# GPL v3
+#
 
 echo "### 03_dhcp3-server postpatch"
 
@@ -7,4 +11,4 @@ echo "### 03_dhcp3-server postpatch"
 sed -e "s/^INTERFACES=.*/INTERFACES=\"$iface_lan\"/" -i /etc/default/isc-dhcp-server
 
 # simply start the service
-/etc/init.d/isc-dhcp-server start
+start isc-dhcp-server

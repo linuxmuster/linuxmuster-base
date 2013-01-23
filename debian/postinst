@@ -1,7 +1,9 @@
 #!/bin/bash
 #
-# linuxmuster.net: postinst script for linuxmuster-base
-# tschmitt 20121022
+# postinst script for linuxmuster-base
+# thomas@linuxmuster.net
+# 21.01.2013
+# GPL v3
 #
 
 # see: dh_installdeb(1)
@@ -20,32 +22,59 @@ set -e
 # the debian-policy package
 #
 
-# Source debconf library.
-. /usr/share/debconf/confmodule
+# read setup values from debconf
+read_values(){
 
-db_version 2.0
+ echo "Reading values from debconf ..."
 
-# check if all templates present
-for i in linuxmuster-base/intro linuxmuster-base/country linuxmuster-base/state \
-         linuxmuster-base/location linuxmuster-base/schoolname shared/organization \
-         linuxmuster-base/servername linuxmuster-base/domainname linuxmuster-base/workgroup \
-         linuxmuster-base/fwconfig linuxmuster-base/externtype linuxmuster-base/externip \
-         linuxmuster-base/externmask linuxmuster-base/gatewayip linuxmuster-base/dnsforwarders \
-         linuxmuster-base/dsluser linuxmuster-base/dslpasswd linuxmuster-base/smtprelay \
-         linuxmuster-base/rootpw linuxmuster-base/rootpw_confirm linuxmuster-base/adminpw \
-         linuxmuster-base/adminpw_confirm linuxmuster-base/pgmadminpw linuxmuster-base/pgmadminpw_confirm \
-         linuxmuster-base/wwwadminpw linuxmuster-base/wwwadminpw_confirm linuxmuster-base/ipcoppw \
-         linuxmuster-base/ipcoppw_confirm linuxmuster-base/sambasid linuxmuster-base/internmask \
-         linuxmuster-base/internmask_short linuxmuster-base/internsubrange linuxmuster-base/nicmenu \
-         linuxmuster-base/ifmenu linuxmuster-base/mac_extern linuxmuster-base/mac_intern \
-         linuxmuster-base/mac_wlan linuxmuster-base/mac_dmz linuxmuster-base/imaging; do
+ for i in country state location schoolname servername domainname workgroup fwconfig \
+          smtprelay sambasid internmask internmask_short internsubrange iface_lan; do
+  eval $i="$(echo "get linuxmuster-base/$i" | debconf-communicate | awk '{ print $2 }')"
+ done
+ 
+ # compute additional values
+ internsub=`echo $serverip | awk -F. '{ print $2 }'`
+ serverrev_short=1.1.$internsub
+ ipcoprev_short=254.1.$internsub
+ basedn="dc=`echo $domainname|sed 's/\./,dc=/g'`"
 
- if ! db_get linuxmuster-base/$i; then
-  db_set linuxmuster-base/$i "" || true
-  db_go
- fi
+} # read_values
 
-done
+# write new network.settings file
+write_networksettings(){
+
+ echo "Updating $NETWORKSETTINGS ..."
+
+ (
+ cat <<EOF
+# linuxmuster.net settings
+servername="$servername"
+serverip="$serverip"
+ipcopip="$ipcopip"
+domainname="$domainname"
+fwconfig="$fwconfig"
+internmask="$internmask"
+internmask_short="$internmask_short"
+internalnet="$internalnet"
+broadcast="$broadcast"
+ipcopblue="$ipcopblue"
+ipcoporange="$ipcoporange"
+ipcopovpn="$ipcopovpn"
+basedn="$basedn"
+smtprelay="$smtprelay"
+iface_lan="$iface_lan"
+admin="$ADMINISTRATOR"
+schoolname="$schoolname"
+location="$location"
+state="$state"
+country="$country"
+imaging="linbo"
+EOF
+ ) > "$NETWORKSETTINGS"
+ chmod 755 "$NETWORKSETTINGS"
+
+} # write_networksettings
+
 
 case "$1" in
 
@@ -58,28 +87,22 @@ case "$1" in
   locale-gen de_DE.UTF-8 de_DE de_DE@euro
 
   # make configs executable so that perl scripts can source it
-  chmod 755 /usr/share/linuxmuster/config/dist.conf
-  chmod 755 /etc/linuxmuster/backup.conf
-  [ -e /etc/default/linuxmuster-base ] && chmod 755 /etc/default/linuxmuster-base
+  for i in $DISTCONF $BACKUPCONF $DEFAULTCONF; do
+   [ -e "$i" ] && chmod 755 "$i"
+  done
 
   # only root may use helperfunctions.sh
   chmod 600 $HELPERFUNCTIONS
 
-  # check all necessary dirs and links and create them if needed
+  # check all necessary dirs and create them if needed
   for i in $NETLOGONDIR $PROGSDIR $PROGSRWDIR $CDSDIR $BACKUPDIR $BACKUPMNTPOINT $LOGINCACHE $LOGDIR; do
    [ -d "$i" ] || mkdir -p $i
   done
 
-  # add startup scripts to runlevels
-  update-rc.d linuxmuster-base defaults
-
-  # create and correct dirs and files
-  [ -d /etc/skel/windows ] && rm -rf /etc/skel/windows
-  [ -d /etc/skel/cups-pdf ] && rm -rf /etc/skel/cups-pdf
-  [ -e /etc/linuxmuster/workstations ] || touch /etc/linuxmuster/workstations
-  [ -e "$BLOCKEDHOSTSINTERNET" ] || touch $BLOCKEDHOSTSINTERNET
-  [ -e "$BLOCKEDHOSTSINTRANET" ] || touch $BLOCKEDHOSTSINTRANET
-  [ -e "$UNFILTEREDHOSTS" ] || touch $UNFILTEREDHOSTS
+  # create necessary files
+  for i in $WIMPORTDATA $BLOCKEDHOSTSINTERNET $BLOCKEDHOSTSINTRANET $UNFILTEREDHOSTS; do
+   [ -e "$i" ] || touch "$i"
+  done
 
   # dummy dhcpd.conf
   if [ ! -f "$DHCPDCONF" ]; then
@@ -87,21 +110,17 @@ case "$1" in
    touch $DHCPDCONF
   fi
 
-  # system groups and users which are needed by udevd
-  for i in fuse kvm nvram rdma scanner tss; do
-   if ! grep -q ^${i}: /etc/group; then
-    addgroup --system $i
-   fi
-  done
-  if ! grep -q ^tss: /etc/passwd; then
-   adduser --system --no-create-home --ingroup tss --disabled-login tss
-  fi
+  # add startup scripts to runlevels
+  update-rc.d linuxmuster-base defaults
 
-  # check debian_version
-  #DEBIANVERSION=`cat /etc/debian_version`
-  #if ! echo "$DEBIANVERSION" | grep -q "5.0"; then
-  # echo "Please upgrade your system!"
-  # exit 0
+  # system groups and users which are needed by udevd
+  #for i in fuse kvm nvram rdma scanner tss; do
+  # if ! grep -q ^${i}: /etc/group; then
+  #  addgroup --system $i
+  # fi
+  #done
+  #if ! grep -q ^tss: /etc/passwd; then
+  # adduser --system --no-create-home --ingroup tss --disabled-login tss
   #fi
 
   # change default shell to /bin/bash
@@ -109,241 +128,165 @@ case "$1" in
   ln -sf bash /bin/sh
   chsh -s /bin/bash
 
-  # upgrade tasks
-  if [ -e "$INSTALLED" ]; then
+  # exit if linuxmuster.net is not configured yet
+  [ -e "$INSTALLED" ] || exit 0
 
-   if ! . $HELPERFUNCTIONS; then
-    echo "Cannot read $HELPERFUNCTIONS!"
-    exit 1
-   fi
+  if ! . $HELPERFUNCTIONS; then
+   echo "Cannot read $HELPERFUNCTIONS!"
+   exit 1
+  fi
 
-   if ! id $ADMINISTRATOR &> /dev/null; then
-    echo "LDAP-Service is not running! Skipping package configuration."
-    echo "Please do this manually by invoking"
-    echo "# dpkg-reconfigure linuxmuster-base"
-    echo "after you have fixed this issue."
-    exit 0
-   fi
+  if ! id $ADMINISTRATOR &> /dev/null; then
+   echo "LDAP-Service is not running! Skipping package configuration."
+   echo "Please do this manually by invoking"
+   echo "# dpkg-reconfigure linuxmuster-base"
+   echo "after you have fixed this issue."
+   exit 0
+  fi
 
-   # messages for config file headers
-   message1="Do not change this file! It will be overwritten!"
-   message2="This configuration file was automatically created by linuxmuster-base!"
-   message3="Last Modification: `date`"
+  # messages for config file headers
+  message1="Do not change this file! It will be overwritten!"
+  message2="This configuration file was automatically created by linuxmuster-base!"
+  message3="Last Modification: `date`"
 
-   # some variables we need for patching
-   # added imaging (1.2-6)
-   servername=`hostname -s`
-   domainname=`dnsdomainname`
-   db_get linuxmuster-base/country || true
-   country=$RET
-   db_get linuxmuster-base/state || true
-   state=$RET
-   db_get linuxmuster-base/location || true
-   location=$RET
-   db_get linuxmuster-base/schoolname || true
-   schoolname=$RET
-   db_get linuxmuster-base/workgroup || true
-   workgroup=$RET
-   workgroup=${workgroup#[0-9] }
-   internsub=`echo $serverip | awk -F. '{ print $2 }'`
-   serverrev_short=1.1.$internsub
-   ipcoprev_short=254.1.$internsub
+  # read setup values from debconf
+  read_values
+  
+  # test if fwconfig is valid
+  case $fwconfig in
+   ipfire|ipcop|custom) ;;
+   *) fwconfig=ipcop
+      echo "set linuxmuster-base/fwconfig $fwconfig" | debconf-communicate
+      ;;
+  esac
+  
+  # update network.settings
+  grep -q ^"# linuxmuster.net settings" "$NETWORKSETTINGS" || write_networksettings
 
-   # patch samba
-   [ -s "$SMBCONFTEMPLATE" ] && sed -e "s/@@message1@@/${message1}/g
-           s/@@message2@@/${message2}/g
-           s/@@message3@@/${message3}/g
-           s/@@serverip@@/${serverip}/g
-           s/@@internmask@@/${internmask}/g
-           s/@@workgroup@@/${workgroup}/g
-           s/@@domadmin@@/${DOMADMIN}/g
-           s/@@administrator@@/${ADMINISTRATOR}/g
-           s/@@domadmins@@/${DOMADMINS}/g
-           s/@@teachersgroup@@/${TEACHERSGROUP}/g
-           s/@@basedn@@/${basedn}/g" $SMBCONFTEMPLATE > /etc/samba/smb.conf
-   # samba reload only if postgres and/or samba are running
-   if ps ax | grep slapd | grep -v grep &> /dev/null; then
-    if ps ax | grep smbd | grep -v grep &> /dev/null; then
-     restart smbd
-     # restore samba ldap admin password
-     which smbpasswd &> /dev/null && smbpasswd -w `cat /etc/ldap.secret`
-    else
-     echo "Samba is not running! Skipping samba reload!"
-     echo "You have to restart samba after package update!"
-    fi
-   else
-    echo "The LDAP daemon (slapd) is not running! Skipping samba reload!"
-    echo "You have to reload samba after package update!"
-   fi
+  # patch samba
+  [ -s "$SMBCONFTEMPLATE" ] && sed -e "s/@@message1@@/${message1}/g
+          s/@@message2@@/${message2}/g
+          s/@@message3@@/${message3}/g
+          s/@@serverip@@/${serverip}/g
+          s/@@internmask@@/${internmask}/g
+          s/@@workgroup@@/${workgroup}/g
+          s/@@domadmin@@/${DOMADMIN}/g
+          s/@@administrator@@/${ADMINISTRATOR}/g
+          s/@@domadmins@@/${DOMADMINS}/g
+          s/@@teachersgroup@@/${TEACHERSGROUP}/g
+          s/@@basedn@@/${basedn}/g" $SMBCONFTEMPLATE > /etc/samba/smb.conf
 
-   # update slapd.conf
-   conf=/etc/ldap/slapd.conf
-   minrev=873
-   currev="$(grep "# \$Id\:" "$conf" | awk '{ print $4 }')"
-   if [ $minrev -gt $currev ]; then
-    confbak=${conf}.dpkg-old
-    template=$DYNTPLDIR/15_ldap/$(basename $conf)
-    ldappassword="$(cat /etc/ldap.secret)"
-    echo "Updating $(basename $conf)! Original file will be backed up to $(basename $confbak)."
-    cp $conf $confbak
-    sed -e "s|@@message1@@|${message1}|
-            s|@@message2@@|${message2}|
-            s|@@message3@@|${message3}|
-            s|@@basedn@@|$basedn|g
-            s|@@ldappassword@@|$ldappassword|
-            s|@@serverip@@|$serverip|
-            s|@@ipcopip@@|$ipcopip|" $template > $conf
-    slapd_reload=yes
-   fi
-   # openldap permissions
-   chown root:openldap ${conf}*
-   chmod 640 ${conf}*
-   # repair ldaps
-   conf=/etc/default/slapd ; backup=false
-   if ! grep ^SLAPD_SERVICES $conf | grep -q ldaps; then
-    echo "Fixing ldaps in $conf."
-    cp $conf $conf.dpkg-old
-    cp $STATICTPLDIR/$conf $conf
-    slapd_reload=yes
-   fi
-   if ! grep -q ^"SLAPD_OPTIONS=\"\-4\"" $conf; then
-    echo "Disabling IPv6 support in $conf."
-    [ "$backup" = "false" ] && cp $conf $conf.dpkg-old
-    cp $STATICTPLDIR/$conf $conf
-    slapd_reload=yes
-   fi
+  # openldap permissions
+  conf=/etc/ldap/slapd.conf
+  chown root:openldap ${conf}*
+  chmod 640 ${conf}*
+  # repair ldaps
+  conf=/etc/default/slapd ; backup=false
+  if ! grep ^SLAPD_SERVICES $conf | grep -q ldaps; then
+   echo "Fixing ldaps in $conf."
+   cp $conf $conf.dpkg-old
+   backup=true
+   cp $STATICTPLDIR/$conf $conf
+   slapd_reload=yes
+  fi
+  if ! grep -q ^"SLAPD_OPTIONS=\"\-4\"" $conf; then
+   echo "Disabling IPv6 support in $conf."
+   [ "$backup" = "false" ] && cp $conf $conf.dpkg-old
+   cp $STATICTPLDIR/$conf $conf
+   slapd_reload=yes
+  fi
 
-   # extraschueler.txt, extrakurse.txt
-   for i in extraschueler.txt extrakurse.txt entfernen.txt sperrklassen.txt; do
-    [ -e "/etc/sophomorix/user/$i" ] || cp $STATICTPLDIR/etc/sophomorix/user/$i /etc/sophomorix/user
-   done
+  # extraschueler.txt, extrakurse.txt
+  for i in extraschueler.txt extrakurse.txt entfernen.txt sperrklassen.txt; do
+   [ -e "/etc/sophomorix/user/$i" ] || cp $STATICTPLDIR/etc/sophomorix/user/$i /etc/sophomorix/user
+  done
 
-   # restoring internal firewall
-   . /etc/default/linuxmuster-base
-   if [ "$START_LINUXMUSTER" = "yes" ]; then
-    if ! iptables -L | grep -q "$FIREWALLTEST"; then
-     /etc/init.d/linuxmuster-base start
+  # adding win7 netlogon example files.
+  for i in common.bat.win7 replace.vbs; do
+   [ -s "$NETLOGONDIR/$i" ] || cp $STATICTPLDIR/$NETLOGONDIR/$i $NETLOGONDIR
+  done
+
+  # reparing permissions in netlogondir (1.5.3-1)
+  echo "Repairing permissions in $NETLOGONDIR ..."
+  find $NETLOGONDIR/ -type f -exec chmod 664 '{}' \;
+  find $NETLOGONDIR/ -type d -exec chmod 775 '{}' \;
+  chown $ADMINISTRATOR:$DOMADMINS $NETLOGONDIR -R
+  # see #466
+  chown $ADMINISTRATOR:$DOMADMINS $SAMBAHOME
+  chown $ADMINISTRATOR:$DOMADMINS $SAMBAHOME/*
+  chmod 775 $SAMBAHOME/*
+
+  # linking registry-patches to administrator's home (1.2-15)
+  if [ ! -e "$ADMINSHOME/$ADMINISTRATOR/registry-patches" ]; then
+   echo "Linking registry-patches to administrator's home ..."
+   ln -sf /usr/share/linuxmuster/registry-patches $ADMINSHOME/$ADMINISTRATOR/registry-patches
+  fi
+
+  # linbo administrative user
+  if ps ax | grep -v grep | grep -q slapd && ps ax | grep -v grep | grep -q postgresql; then
+   if ! check_id linbo &>/dev/null; then
+    linbopasswd=`grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }'`
+    if [ -n "$linbopasswd" ]; then
+     echo "Creating linbo user ..."
+     sophomorix-useradd --administrator linbo --unix-group $ADMINGROUP --shell /bin/false --gecos "LINBO Administrator" &> /dev/null || true
+     sophomorix-passwd --user linbo --pass $linbopasswd &> /dev/null || true
+     smbldap-usermod -H '[UX         ]' linbo || true
     fi
    fi
+  else
+   echo "slapd and/or postgresql not running! Skipping linbo user check!"
+  fi
 
-   # adding win7 netlogon example files.
-   for i in common.bat.win7 replace.vbs; do
-    [ -s "$NETLOGONDIR/$i" ] || cp $STATICTPLDIR/$NETLOGONDIR/$i $NETLOGONDIR
-   done
+  # creating ldap.secret links
+  [ -s /etc/ldap.secret ] || echo $(grep ^rootpw /etc/ldap/slapd.conf | awk '{ print $2 }') > /etc/ldap.secret
+  for i in pam_ldap libnss-ldap; do
+   rm -f /etc/$i.secret
+   ln -s ldap.secret /etc/$i.secret
+  done
+  chmod 600 /etc/*.secret
 
-   # reparing permissions in netlogondir (1.5.3-1)
-   echo "Repairing permissions in $NETLOGONDIR ..."
-   find $NETLOGONDIR/ -type f -exec chmod 664 '{}' \;
-   find $NETLOGONDIR/ -type d -exec chmod 775 '{}' \;
-   chown $ADMINISTRATOR:$DOMADMINS $NETLOGONDIR -R
-   # see #466
-   chown $ADMINISTRATOR:$DOMADMINS $SAMBAHOME
-   chown $ADMINISTRATOR:$DOMADMINS $SAMBAHOME/*
-   chmod 775 $SAMBAHOME/*
+  # expand allow-query list in named.conf.options (#18)
+  conf=/etc/bind/named.conf.options
+  searchstr="allow-query { $internalnet/$internmask_short; $ipcopblue.0/24; $ipcoporange.0/24; $ipcopovpn.0/24; };"
+  if ! grep -q "$searchstr" $conf; then
+    echo "Backing up $conf to $conf.dpkg-bak."
+    cp $conf $conf.dpkg-bak
+    echo "Expanding allow-query list in $conf (#18)."
+    sed -e "s|\tallow-query.*|\t$searchstr|" -i $conf
+    bind_reload=yes
+  fi
 
-   # linking registry-patches to administrator's home (1.2-15)
-   if [ ! -e "$ADMINSHOME/$ADMINISTRATOR/registry-patches" ]; then
-    echo "Linking registry-patches to administrator's home ..."
-    ln -sf /usr/share/linuxmuster/registry-patches $ADMINSHOME/$ADMINISTRATOR/registry-patches
-   fi
+  # rename old shit
+  conf_old=/etc/php5/conf.d/paedml.ini
+  if [ -e "$conf_old" ]; then
+   conf=/etc/php5/conf.d/linuxmuster.ini
+   mv "$conf_old" "$conf"
+  fi
 
-   # linbo administrative user
-   if ps ax | grep -v grep | grep -q slapd && ps ax | grep -v grep | grep -q postgresql; then
-    if ! check_id linbo &>/dev/null; then
-     linbopasswd=`grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }'`
-     if [ -n "$linbopasswd" ]; then
-      echo "Creating linbo user ..."
-      sophomorix-useradd --administrator linbo --unix-group $ADMINGROUP --shell /bin/false --gecos "LINBO Administrator" &> /dev/null || true
-      sophomorix-passwd --user linbo --pass $linbopasswd &> /dev/null || true
-      smbldap-usermod -H '[UX         ]' linbo || true
-     fi
-    fi
-   else
-    echo "slapd and/or postgresql not running! Skipping linbo user check!"
-   fi
+  # updating release information
+  echo "$DISTNAME $DISTFULLVERSION / Codename $CODENAME" > /etc/issue
+  cp /etc/issue /etc/issue.net
 
-   # creating ldap.secret links
-   [ -s /etc/ldap.secret ] || echo $(grep ^rootpw /etc/ldap/slapd.conf | awk '{ print $2 }') > /etc/ldap.secret
-   for i in pam_ldap libnss-ldap; do
-    rm -f /etc/$i.secret
-    ln -s ldap.secret /etc/$i.secret
-   done
-   chmod 700 /etc/*.secret
+  # reload services
+  apache2ctl graceful || true
+  reload smbd || true
+  reload nmbd || true
+  [ -n "$nagios_reload" ] && /etc/init.d/nagios3 restart
+  [ -n "$bind_reload" ] && /etc/init.d/bind9 force-reload
+  [ -n "$dhcp_reload" ] && restart isc-dhcp-server
+  [ -n "$slapd_reload" ] && /etc/init.d/slapd restart
+  [ -n "$postgres_reload" ] && /etc/init.d/postgresql reload
 
-   # repairing openntpd
-   conf=/etc/openntpd/ntpd.conf
-   if [ -e "$conf" ]; then
-    if ! grep -q ^"listen on $serverip" "$conf"; then
-     cp "$conf" "$conf".dpkg-old
-     sed -e "s/@@serverip@@/$serverip/" $DYNTPLDIR/99_start-services/$(basename "$conf") > "$conf"
-     /etc/init.d/openntpd restart
-    fi
-   else
-    echo "Fatal: $conf not found! Your system is incomplete!"
-   fi
-
-   # adjust value for max open files (#397)
-   conf=/etc/security/limits.conf
-   if [ -s "$conf" ]; then
-    rev="$(grep "Id: limits.conf" $conf | awk '{ print $4 }')"
-    [ -z "$rev" ] && rev=0
-    minrev=1073
-    if [ $rev -lt $minrev ]; then
-     echo "Backing up $conf to $conf.dpkg-bak!"
-     cp $conf $conf.dpkg-bak
-     newlimit=yes
-    fi
-   else
-    newlimit=yes
-   fi
-   if [ -n "$newlimit" ]; then
-    echo "Updating $conf!"
-    cp $STATICTPLDIR/$conf $conf
-    reboot=yes
-   fi
-
-   # expand allow-query list in named.conf.options (#18)
-   conf=/etc/bind/named.conf.options
-   searchstr="allow-query { $internalnet/$internmask_short; $ipcopblue.0/24; $ipcoporange.0/24; $ipcopovpn.0/24; };"
-   if ! grep -q "$searchstr" $conf; then
-     echo "Backing up $conf to $conf.dpkg-bak."
-     cp $conf $conf.dpkg-bak
-     echo "Expanding allow-query list in $conf (#18)."
-     sed -e "s|\tallow-query.*|\t$searchstr|" -i $conf
-     bind_reload=yes
-   fi
-
-   # rename old shit
-   conf_old=/etc/php5/conf.d/paedml.ini
-   if [ -e "$conf_old" ]; then
-    conf=/etc/php5/conf.d/linuxmuster.ini
-    mv "$conf_old" "$conf"
-   fi
-
-   # updating release information
-   echo "$DISTNAME $DISTFULLVERSION / Codename $CODENAME" > /etc/issue
-   cp /etc/issue /etc/issue.net
-
-   # reload services
-   apache2ctl graceful || true
-   [ -n "$nagios_reload" ] && /etc/init.d/nagios3 restart
-   [ -n "$bind_reload" ] && /etc/init.d/bind9 force-reload
-   [ -n "$dhcp_reload" ] && restart isc-dhcp-server
-   [ -n "$slapd_reload" ] && /etc/init.d/slapd restart
-   [ -n "$postgres_reload" ] && /etc/init.d/postgresql reload
-
-   # notify if upgrade is necessary
-   if [ -n "$upgrade" ]; then
-    echo "NOTE!"
-    echo "Be sure to make a dist-upgrade very soon!"
-   fi
-   # notify if reboot is necessary
-   if [ -n "$reboot" ]; then
-    echo "IMPORTANT!"
-    echo "You have to REBOOT the server to make the changes effective!"
-   fi
-
-  fi # upgrade tasks
+  # notify if upgrade is necessary
+  if [ -n "$upgrade" ]; then
+   echo "NOTE!"
+   echo "Be sure to make a dist-upgrade very soon!"
+  fi
+  # notify if reboot is necessary
+  if [ -n "$reboot" ]; then
+   echo "IMPORTANT!"
+   echo "You have to REBOOT the server to make the changes effective!"
+  fi
  ;;
 
  abort-upgrade|abort-remove|abort-deconfigure)
@@ -360,8 +303,6 @@ esac
 # generated by other debhelper scripts.
 
 #DEBHELPER#
-
-db_stop
 
 exit 0
 

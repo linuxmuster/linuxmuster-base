@@ -1,10 +1,8 @@
 # linuxmuster shell helperfunctions
 #
-# Thomas Schmitt
-# <tschmitt@linuxmuster.de>
+# thomas@linuxmuster.net
+# 23.01.2013
 # GPL v3
-#
-# $Id: helperfunctions.sh 1334 2012-07-20 12:03:39Z tschmitt $
 #
 
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
@@ -281,86 +279,95 @@ get_room() {
 }
 
 # needed by internet & intranet on off scripts
-get_maclist() {
-  # parse maclist
-  if [ -n "$maclist" ]; then
-
-    n=0
-    OIFS=$IFS
-    IFS=","
-    for i in $maclist; do
-      if validmac $i; then
-        mac[$n]="$(echo $i | tr a-z A-Z)"
-      else
-        continue
-      fi
-      let n+=1
-    done
-    IFS=$OIFS
-    nr_of_macs=$n
-    [[ $nr_of_macs -eq 0 ]] && cancel "No valid mac addresses found!"
-
-  else # parse hostlist
-
-    n=0
-    OIFS=$IFS
-    IFS=","
-    for i in $hostlist; do
-      host[$n]="$(echo $i | tr A-Z a-z)"
-      let n+=1
-    done
-    IFS=$OIFS
-    nr_of_hosts=$n
-    [[ $nr_of_hosts -eq 0 ]] && cancel "No hostnames found!"
-
-    n=0; m=0
-    while [[ $n -lt $nr_of_hosts ]]; do
-      get_mac ${host[$n]} || cancel "Read failure! Cannot determine mac address!"
-      if validmac $RET; then
-        mac[$m]=$RET
-        let m+=1
-      fi
-      let n+=1
-    done
-    nr_of_macs=$m
-    [[ $nr_of_macs -eq 0 ]] && cancel "No mac addresses found!"
-
+# test valid mac, change hostname to mac, returns space separated list of macs
+test_maclist() {
+ local maclist="$1"
+ local maclist_tested
+ local mac_tested
+ local m
+ [ -z "$maclist" ] && return 1
+ # parse maclist, change kommas to spaces
+ maclist="$(echo $maclist | sed 's|,| |g')"
+ for m in $maclist; do
+  mac_tested=""
+  # test if it is a macaddress otherwise assume it is a hostname
+  if validmac "$m"; then
+   mac_tested="$m"
+  else
+   get_mac "$m"
+   [ -n "$RET" ] && mac_tested="$RET"
   fi
-
-  return 0
+  if [ -n "$mac_tested" ]; then
+   mac_tested="$(echo $mac_tested | tr a-z A-Z)"
+   if [ -z "$maclist_tested" ]; then
+    maclist_tested="$mac_tested"
+   else
+    maclist_tested="$maclist_tested $mac_tested"
+   fi
+  fi
+ done
+ 
+ echo "$maclist_tested"
+ return 0
 }
 
 
 #######################
-# IPCop communication #
+# Firewall communication #
 #######################
+
+# test if firewall can be connected passwordless
+test_pwless_fw(){
+ if ! ssh -oNumberOfPasswordPrompts=0 -oStrictHostKeyChecking=no -p222 $ipcopip "echo 'Passwordless ssh connection to Firewall is available. :-)'"; then
+  echo "Cannot establish ssh connection to Firewall!"
+  return 1
+ else
+  return 0
+ fi
+}
+
+# returns ipfire, ipcop or none
+get_fwtype(){
+ local fwtype="custom"
+ if ssh -p 222 root@$ipcopip /bin/ls /var/ipfire &> /dev/null; then
+  fwtype="ipfire"
+ else
+  ssh -p 222 root@$ipcopip /bin/ls /var/ipcop &> /dev/null && fwtype="ipcop"
+ fi
+ echo "$fwtype"
+}
 
 # check if urlfilter is active
 check_urlfilter() {
-  # get advanced proxy settings
-  get_ipcop /var/ipcop/proxy/advanced/settings $CACHEDIR/proxy.advanced.settings || cancel "Cannot download proxy advanced settings!"
-  . $CACHEDIR/proxy.advanced.settings || cancel "Cannot read $CACHEDIR/proxy.advanced.settings!"
-  rm -f $CACHEDIR/proxy.advanced.settings
-  [ "$ENABLE_FILTER" = "on" ] || return 1
-  return 0
+ # get advanced proxy settings
+ local fwtype="$(get_fwtype)"
+ [ "$fwtype" != "ipfire" -a "$fwtype" != "ipcop" ] && cancel "None or custom firewall!"
+ get_ipcop /var/$fwtype/proxy/advanced/settings $CACHEDIR/proxy.advanced.settings || cancel "Cannot download proxy advanced settings!"
+ . $CACHEDIR/proxy.advanced.settings || cancel "Cannot read $CACHEDIR/proxy.advanced.settings!"
+ rm -f $CACHEDIR/proxy.advanced.settings
+ [ "$ENABLE_FILTER" = "on" ] || return 1
+ return 0
 }
 
 # execute a command on ipcop
 exec_ipcop() {
-  ssh -p 222 root@$ipcopip $* &> /dev/null || return 1
-  return 0
+ # test connection
+ ssh -p 222 root@$ipcopip $* &> /dev/null || return 1
+ return 0
 }
 
 # fetch file from ipcop
 get_ipcop() {
-  scp -P 222 root@$ipcopip:$1 $2 &> /dev/null || return 1
-  return 0
+ # test connection
+ scp -r -P 222 root@$ipcopip:$1 $2 &> /dev/null || return 1
+ return 0
 }
 
 # upload file to ipcop
 put_ipcop() {
-  scp -P 222 $1 root@$ipcopip:$2 &> /dev/null || return 1
-  return 0
+ # test connection
+ scp -r -P 222 $1 root@$ipcopip:$2 &> /dev/null || return 1
+ return 0
 }
 
 

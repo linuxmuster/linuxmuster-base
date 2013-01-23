@@ -1,3 +1,38 @@
+linuxmuster-base (6.0.24-0ubuntu0) precise; urgency=low
+
+  * changed versioning scheme.
+  * internal firewall init script:
+    - more performance optimations.
+    - created chains for base, allowed and block rules.
+    - added multiport support.
+    - added support for custom rules in iptables-save format
+      (see /var/cache/iptables for saved firewall rules).
+      Two user created files were read if present on firewall restart:
+      /etc/linuxmuster/custom-rules.before for rules before all other host rules,
+      /etc/linuxmuster/custom-rules.after for rules after all other host rules.
+  * expanded networksettings file with values needed by IPFire setup.
+  * postinst: removed obsolete code, reads debconf values and updates networksettings file.
+  * intranet_on_off.sh: optimized according to new internal firewall init script.
+  * helperfunctions.sh:
+    - added test_pwless_fw(), tests passwordless ssh connection to firewall.
+    - added get_fwtype(), returns firewall type (ipfire, ipcop or custom).
+    - check_urlfilter(), behaviour depends on fwtype. 
+    - get_ipcop(), put_ipcop(): added recursive parameter.
+    - added test_maclist(): tests, changes hostnames to macs according to
+      /etc/linuxmuster/workstations, returns a list of macaddresses.
+  * added sshaskpass.sh script for automating ssh connections.
+  * added support for IPFire to various scripts, fixed naming and so on.
+  * moved init script to debian/init.
+  * linuxmuster-setup:
+    - template cleanup.
+    - removed linuxmuster-ipcop from server task.
+    - added firewall choice.
+    - removed setup for external network connection.
+    - added support for ipfire setup.
+    - modify mode enabled again.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 23 Jan 2013 14:24:32 +0100
+
 linuxmuster-base (6.0.0-23ubuntu0) precise; urgency=low
 
   * wimport.sh: fixed unique check (closes #58).

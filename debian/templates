@@ -7,14 +7,7 @@ Description: Hinweise zur Installation
  - der Name des Servers (z.B. server)\n
  - die Internet-Domäne des Schulnetzes (z.B linuxmuster.local)\n
  - die interne IP-Struktur Ihres Schulnetzes\n
- - Haben Sie einen Internetzugang? Wenn ja:\n
- - Zugang über Router oder DSL?\n
- - die externe IP-Adresse des Servers (entfällt bei DSL)\n
- - die Subnetzmaske der externen IP-Adresse (entfällt bei DSL)\n
- - die IP-Adresse des Default-Gateways (Routers) (entfällt bei DSL)\n
- - die IP-Adresse(n) des/der DNS-Forwarders\n
- - ggf. die Adresse des Mailservers beim Provider (z.B.: mail.belwue.de)\n
- - ggf. die DSL-Zugangsdaten\n
+ - ggf. die Adresse des Mailservers beim Provider (z.B.: mbox1.belwue.de)\n
  - Passwörter der administrativen User
 
 Template: linuxmuster-base/country
@@ -72,58 +65,13 @@ Description: Samba-Domäne des Schulnetzes?
 
 Template: linuxmuster-base/fwconfig
 Type: select
-Choices: dedicated, integrated
-Default: dedicated
-Description: Ein- oder Zwei-Server-Installation?
+Choices: ipfire, ipcop, custom
+Default: custom
+Description: Welche Firewall wird verwendet?
  Wählen Sie den Typ der Firewall:\n
- 'dedicated' für die Zwei-Server-Installation mit dediziertem IPCop.\n
- 'integrated' für die Ein-Server-Installation mit integriertem IPCop.
-
-Template: linuxmuster-base/externtype
-Type: select
-Choices: static, dhcp, pppoe
-Default: static
-Description: Externe Internetanbindung?
- Wählen Sie aus, wie Ihr Server an das Internet angebunden ist.\n
- static: Statische IP-Adresse\n
- dhcp:   Per DHCP bezogene IP-Adresse\n
- pppoe:  Internet per DSL
-
-Template: linuxmuster-base/externip
-Type: string
-Description: Externe IP-Adresse des Servers?
- Geben Sie die externe IP-Adresse des Servers ein.
-
-Template: linuxmuster-base/externmask
-Type: string
-Description: Externe Netzmaske?
- Geben Sie die externe Netzmaske für die Anbindung an das Internet ein.
-
-Template: linuxmuster-base/gatewayip
-Type: string
-Description: IP-Adresse des Gateways/Routers?
- Geben Sie die IP-Adresse des Gateways/Routers ein.
-
-Template: linuxmuster-base/dnsforwarders
-Type: string
-Description: IP-Adresse der/des DNS-Server/s?
- Geben Sie die IP-Adresse(n) der/des DNS-Server/s ein.\n
- Es können zwei Adressen getrennt durch Leerzeichen
- eingegeben werden.\n
- Die Adressen der BelWue-DNS-Server sind z. Bsp. 129.143.2.1 129.143.2.4
-
-Template: linuxmuster-base/dsluser
-Type: string
-Description: DSL-Benutzerkennung?
- Die Benutzerkennung ist bei T-Online so aufgebaut:\n
- Anschlusskennung+T-Onlinenummer+#+Suffix+@t-online.de\n
- z.B.: 000123456789520012345678#0001@t-online.de
-
-Template: linuxmuster-base/dslpasswd
-Type: password
-Description: DSL-Kennwort?
- Bei einem T-Online-Zugang ist hier das persönliche
- Kennwort einzutragen.
+ 'ipfire' für die Installation mit IPFire.\n
+ 'ipcop'  für die Installation mit IPCop.\n
+ 'custom' wenn keine der oben genannten verwendet wird.
 
 Template: linuxmuster-base/smtprelay
 Type: string
@@ -131,14 +79,6 @@ Description: SMTP relay host?
  Geben Sie ein, über welchen Mailserver E-Mail
  verschickt und empfangen werden soll.\n
  Bsp.: mbox1.belwue.de
-
-Template: linuxmuster-base/imaging
-Type: select
-Choices: ${img_choices}
-Default: linbo
-Description: Imaging-System:
- Wählen Sie das zu verwendende Imaging-System.
- Sie haben die Wahl zwischen ${img_desc}
 
 Template: linuxmuster-base/adminpw
 Type: password
@@ -179,17 +119,15 @@ Description: Bestätigen Sie das Web-Administrator-Passwort:
 
 Template: linuxmuster-base/ipcoppw
 Type: password
-Description: IPCop-Root-Passwort:
- Geben Sie das IPCop-Root-Passwort ein.\n
- Bei der integrierten Variante wird dieses Passwort zusätzlich für den\n
- User admin zum Einloggen in das Webinterface verwendet.\n
- Wurde IPCop dediziert installiert, ist hier das Root-Passwort\n
- einzugeben, dass Sie bei der IPCop-Installation vergeben haben.
+Description: Firewall-Root-Passwort:
+ Geben Sie das Firewall-Root-Passwort ein.\n
+ Hier das Root-Passwort einzugeben, \n
+ dass Sie bei der Firewall-Installation vergeben haben.
 
 Template: linuxmuster-base/ipcoppw_confirm
 Type: password
-Description: Bestätigen Sie das IPCop-Root-Passwort:
- Geben Sie das Root-Passwort für den IPCop nochmals zur Bestätigung ein.
+Description: Bestätigen Sie das Firewall-Root-Passwort:
+ Geben Sie das Root-Passwort für die Firewall nochmals zur Bestätigung ein.
 
 Template: linuxmuster-base/sambasid
 Type: string

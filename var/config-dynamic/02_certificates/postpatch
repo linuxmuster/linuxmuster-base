@@ -1,4 +1,8 @@
-# $Id: postpatch 1223 2012-01-16 19:42:26Z tschmitt $
+#
+# thomas@linuxmuster.net
+# 19.01.2013
+# GPL v3
+#
 
 echo "### 02_certificates postpatch"
 
@@ -20,7 +24,7 @@ if [ "$1" = "--first" -o "$update_certs" = "yes" ]; then
 fi
 
 # start ssh
-/etc/init.d/ssh start
+start ssh
 
 if [ "$1" = "--first" -o "$update_certs" = "yes" ]; then
 

@@ -1,8 +1,10 @@
 #!/bin/bash
 # config script for linuxmuster.net
 #
-# tschmitt 20121120
+# thomas@linuxmuster.net
+# 21.01.2013
 # GPL v3
+#
 
 # read dist.conf
 . /usr/share/linuxmuster/config/dist.conf
@@ -12,15 +14,11 @@
 
 # read debconf database
 echo "Reading debconf database ..."
-for i in country state location servername domainname schoolname dsluser dslpasswd \
-         internmask internmask_short internsubrange fwconfig externtype externip externmask \
-         gatewayip dnsforwarders smtprelay sambasid adminpw pgmadminpw wwwadminpw \
-         ipcoppw workgroup iface_lan imaging; do
-  RET=`echo get linuxmuster-base/$i | debconf-communicate`
-  RET=${RET#[0-9] }
-  esc_spec_chars "$RET"
-  eval $i=$RET
-  unset RET
+for i in country state location servername domainname schoolname \
+         internmask internmask_short internsubrange fwconfig \
+         smtprelay sambasid adminpw pgmadminpw wwwadminpw \
+         ipcoppw workgroup iface_lan; do
+  eval $i="$(echo get linuxmuster-base/$i | debconf-communicate | awk '{ print $2 }')"
 done
 
 # clear admin user passwords from debconf db
@@ -49,6 +47,18 @@ if [ "$1" != "--first" ]; then
  rm $OLDVALUES
 fi
 
+# install firewall pkgs
+echo 'DPkg::Options {"--force-confold";"--force-confdef";"--force-bad-verify";"--force-overwrite";};' > /etc/apt/apt.conf.d/99upgrade
+echo 'apt-get::CmdLine::Ignore-Trust-Violations "true";' >> /etc/apt/apt.conf.d/99upgrade
+if [ "$fwconfig" = "custom" ]; then
+ for i in ipfire ipcop; do
+  dpkg -l | grep linuxmuster-$i | grep -q ^i && apt-get -y remove linuxmuster-$i
+ done
+else
+ DEBIAN_FRONTEND=noninteractive apt-get -y install linuxmuster-$fwconfig
+fi
+rm -f /etc/apt/apt.conf.d/99upgrade
+
 # compute ip's
 maxsub=`echo $internsubrange | awk -F\- '{ print $2 }'`
 let maxsub+=1
@@ -73,27 +83,22 @@ ipcopovpn=172.16.$ovpnsub
 
 # check for modified values
 if [ "$1" != "--first" ]; then
-  [ "$country" = "$country_old" ] || update_certs=yes
-  [ "$state" = "$state_old" ] || update_certs=yes
-  [ "$location" = "$location_old" ] || update_certs=yes
-  [ "$schoolname" = "$schoolname_old" ] || update_certs=yes
-  [ "$workgroup" = "$workgroup_old" ] || update_ldap=yes
-  if [ "$servername" != "$servername_old" ]; then
-    update_certs=yes && update_ldap=yes
-  fi
-  if [ "$domainname" != "$domainname_old" ]; then
-    update_certs=yes && update_ipcop_cert=yes && update_ldap=yes
-  fi
-  [ "$internsubrange" = "$internsubrange_old" ] || update_extern=yes
-  [ "$dsluser" = "$dsluser_old" ] || update_extern=yes
-  [ "$dslpasswd" = "$dslpasswd_old" ] || update_extern=yes
-  [ "$externtype" = "$externtype_old" ] || update_extern=yes
-  [ "$externip" = "$externip_old" ] || update_extern=yes
-  [ "$externmask" = "$externmask_old" ] || update_extern=yes
-  [ "$gatewayip" = "$gatewayip_old" ] || update_extern=yes
-  [ "$dnsforwarders" = "$dnsforwarders_old" ] || update_extern=yes
-  [ "$smptrelay" = "$smtprelay_old" ] || update_smtp=yes
-  [ "$ipcopip" = "$ipcopip_old" ] || update_ssh=yes
+ [ "$country" = "$country_old" ] || update_certs=yes
+ [ "$state" = "$state_old" ] || update_certs=yes
+ [ "$location" = "$location_old" ] || update_certs=yes
+ [ "$schoolname" = "$schoolname_old" ] || update_certs=yes
+ [ "$workgroup" = "$workgroup_old" ] || update_ldap=yes
+ if [ "$servername" != "$servername_old" ]; then
+  update_certs=yes && update_ldap=yes
+ fi
+ if [ "$domainname" != "$domainname_old" ]; then
+  update_certs=yes && update_ldap=yes
+  [ "$fwconfig" = "ipfire" -o "$fwconfig" = "ipcop" ] && update_fw_cert=yes
+ fi
+ [ "$internsubrange" = "$internsubrange_old" ] || update_extern=yes
+ [ "$smptrelay" = "$smtprelay_old" ] || update_smtp=yes
+ [ "$ipcopip" = "$ipcopip_old" ] || update_ssh=yes
+ [ "$fwconfig" = "$fwconfig_old" ] || update_fwconfig=yes
 fi
 
 # compute basedn from domainname
@@ -101,34 +106,36 @@ basedn="dc=`echo $domainname|sed 's/\./,dc=/g'`"
 basedn_old="dc=`echo $domainname_old|sed 's/\./,dc=/g'`"
 
 # write network settings
-echo "# linuxmuster network settings" > $NETWORKSETTINGS
-echo "serverip=\"$serverip\"" >> $NETWORKSETTINGS
-echo "ipcopip=\"$ipcopip\"" >> $NETWORKSETTINGS
-echo "internmask=\"$internmask\"" >> $NETWORKSETTINGS
-echo "internmask_short=\"$internmask_short\"" >> $NETWORKSETTINGS
-echo "internalnet=\"$internalnet\"" >> $NETWORKSETTINGS
-echo "broadcast=\"$broadcast\"" >> $NETWORKSETTINGS
-echo "ipcopblue=\"$ipcopblue\"" >> $NETWORKSETTINGS
-echo "ipcoporange=\"$ipcoporange\"" >> $NETWORKSETTINGS
-echo "ipcopovpn=\"$ipcopovpn\"" >> $NETWORKSETTINGS
-echo "basedn=\"$basedn\"" >> $NETWORKSETTINGS
-echo "smtprelay=\"$smtprelay\"" >> $NETWORKSETTINGS
-echo "iface_lan=$iface_lan" >> $NETWORKSETTINGS
-echo "imaging=$imaging" >> $NETWORKSETTINGS
-chmod 755 $NETWORKSETTINGS
+(
+cat <<EOF
+# linuxmuster.net settings
+servername="$servername"
+serverip="$serverip"
+ipcopip="$ipcopip"
+domainname="$domainname"
+fwconfig="$fwconfig"
+internmask="$internmask"
+internmask_short="$internmask_short"
+internalnet="$internalnet"
+broadcast="$broadcast"
+ipcopblue="$ipcopblue"
+ipcoporange="$ipcoporange"
+ipcopovpn="$ipcopovpn"
+basedn="$basedn"
+smtprelay="$smtprelay"
+iface_lan="$iface_lan"
+admin="$ADMINISTRATOR"
+schoolname="$schoolname"
+location="$location"
+state="$state"
+country="$country"
+imaging="linbo"
+EOF
+) > "$NETWORKSETTINGS"
+chmod 755 "$NETWORKSETTINGS"
 
 # compute iface_lan's macaddress
 adminmac="$(ifconfig $iface_lan | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}' | tr a-z A-Z)"
-
-# compute server's amount of ram
-memtotal=`cat /proc/meminfo | grep MemTotal | awk -F" " '{ print $2 }' -`
-
-# split dnsforwarders
-c=1
-for i in $dnsforwarders; do
-  dnsforwarder[$c]=$i
-  let c+=1
-done
 
 # handle samba SID
 if [ -z "$sambasid" ]; then
@@ -151,7 +158,6 @@ distro="$DISTNAME"
 distro=${distro// /-}
 
 # escaping /
-REMBOSTARTPAGE=${REMBOSTARTPAGE//\//\\\/}
 dsluser=${dsluser//\//\\\/}
 
 # messages for config file headers
@@ -218,19 +224,12 @@ for i in $DYNTPLDIR/*; do
               s/@@ipcoporange@@/${ipcoporange}/g
               s/@@ipcopovpn@@/${ipcopovpn}/g
               s/@@iface_lan@@/${iface_lan}/g
+              s/@@fwconfig@@/${fwconfig}/g
               s/@@broadcast@@/${broadcast}/g
               s/@@internsub@@/${internsub}/g
               s/@@internalnet@@/${internalnet}/g
               s/@@internmask@@/${internmask}/g
               s/@@internmask_short@@/${internmask_short}/g
-              s/@@dsluser@@/${dsluser}/g
-              s/@@dslpasswd@@/${dslpasswd}/g
-              s/@@externtype@@/${externtype}/g
-              s/@@externip@@/${externip}/g
-              s/@@externmask@@/${externmask}/g
-              s/@@gatewayip@@/${gatewayip}/g
-              s/@@dnsforwarder1@@/${dnsforwarder[1]}/g
-              s/@@dnsforwarder2@@/${dnsforwarder[2]}/g
               s/@@smtprelay@@/${smtprelay}/g
               s/@@adminmac@@/${adminmac}/g
               s/@@workgroup@@/${workgroup}/g

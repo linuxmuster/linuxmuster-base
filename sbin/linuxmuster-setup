@@ -1,15 +1,10 @@
 #!/bin/bash
 # setup for linuxmuster.net
 #
-# tschmitt 20121120
+# thomas@linuxmuster.net
+# 19.01.2013
 # GPL v3
 #
-
-# check debian version
-#if ! grep -q 5\.0\.[1-9] /etc/debian_version; then
-#	echo "This is not Debian 5.0.x Lenny. Please upgrade your system!"
-#	exit 1
-#fi
 
 # read dist.conf
 . /usr/share/linuxmuster/config/dist.conf || exit 1
@@ -95,19 +90,19 @@ case $opt in
 
     # force apt to do ugly things during upgrade
     echo 'DPkg::Options {"--force-confold";"--force-confdef";"--force-bad-verify";"--force-overwrite";};' > /etc/apt/apt.conf.d/99upgrade
-    echo 'aptitude::CmdLine::Ignore-Trust-Violations "true";' >> /etc/apt/apt.conf.d/99upgrade
+    echo 'apt-get::CmdLine::Ignore-Trust-Violations "true";' >> /etc/apt/apt.conf.d/99upgrade
 
     # tweaking buggy sophomorix, install postgresql & libdigest-sha-perl first
-    aptitude update | tee -a $logfile
+    apt-get update | tee -a $logfile
     for i in postgresql-9.1 libdigest-sha-perl; do
-     DEBIAN_FRONTEND=noninteractive aptitude -y install $i | tee -a $logfile
+     DEBIAN_FRONTEND=noninteractive apt-get -y install $i | tee -a $logfile
     done
     [ -s /usr/lib/perl5/Digest/SHA.pm ] && ln -sf SHA.pm /usr/lib/perl5/Digest/SHA1.pm | tee -a $logfile
 
     # installing depending task
     for i in common server; do
       task=`cat /usr/share/linuxmuster/tasks/$i`
-      DEBIAN_FRONTEND=noninteractive aptitude -y install $task | tee -a $logfile
+      DEBIAN_FRONTEND=noninteractive apt-get -y install $task | tee -a $logfile
     done
 
     # remove upgrade cheat
@@ -118,9 +113,6 @@ case $opt in
 
   --modify)
 
-    # disabled
-    exit 0
-
     # check for installed flag
     if [ ! -e "$INSTALLED" ]; then
       echo "Linux-Musterloesung isn't installed yet!" | tee -a $logfile
@@ -128,61 +120,16 @@ case $opt in
       exit 1
     fi
 
-    [ -e $OLDVALUES ] && rm $OLDVALUES
-
-	# fetch external network configuration from ipcop
-	if ping -c 2 $ipcopip &> /dev/null; then
-		echo "Reading IPCop's external network configuration ..." | tee -a $logfile
-		tmpdir=/var/tmp/ipcop.$$
-		mkdir -p $tmpdir
-		get_ipcop /var/ipcop/ethernet/settings $tmpdir/settings
-		. $tmpdir/settings
-		tolower $RED_TYPE
-		RED_TYPE=$RET
-		RET=`echo set linuxmuster-base/externtype "$RED_TYPE" | debconf-communicate`
-		RET=`echo set linuxmuster-base/dsluser "" | debconf-communicate`
-		RET=`echo set linuxmuster-base/dslpasswd "" | debconf-communicate`
-		if [ "$RED_TYPE" = "static" ]; then
-			RET=`echo set linuxmuster-base/externip "$RED_ADDRESS" | debconf-communicate`
-			RET=`echo set linuxmuster-base/externmask "$RED_NETMASK" | debconf-communicate`
-			RET=`echo set linuxmuster-base/gatewayip "$DEFAULT_GATEWAY" | debconf-communicate`
-			dnsforwarders="$DNS1 $DNS2"
-			strip_spaces $dnsforwarders
-			dnsforwarders="$RET"
-			RET=`echo set linuxmuster-base/dnsforwarders "$dnsforwarders" | debconf-communicate`
-		else
-			RET=`echo set linuxmuster-base/externip "" | debconf-communicate`
-			RET=`echo set linuxmuster-base/externmask "" | debconf-communicate`
-			RET=`echo set linuxmuster-base/gatewayip "" | debconf-communicate`
-			RET=`echo set linuxmuster-base/dnsforwarders "" | debconf-communicate`
-			if [ "$RED_TYPE" = "pppoe" ]; then
-				get_ipcop /var/ipcop/ppp/settings $tmpdir/settings
-				. $tmpdir/settings
-				RET=`echo set linuxmuster-base/dsluser "$USERNAME" | debconf-communicate`
-				RET=`echo set linuxmuster-base/dslpasswd "$PASSWORD" | debconf-communicate`
-			fi
-		fi
-		rm -rf $tmpdir
-
-	else
-
-		echo "Cannot connect to IPCop!" | tee -a $logfile
-		exit 1
-
-	fi
-
     # reading current debconf values
     echo "Reading current configuration values ..." | tee -a $logfile
-    for i in country state location workgroup servername domainname schoolname dsluser dslpasswd smtprelay \
-             internsubrange fwconfig externtype externip externmask gatewayip dnsforwarders imaging; do
-      RET=`echo get linuxmuster-base/$i | debconf-communicate`
-      RET=${RET#[0-9] }
-      oldvalue="${i}_old"
-      echo "$oldvalue=\"$RET\"" >> $OLDVALUES
-      unset RET
-
+    rm -f $OLDVALUES
+    for i in country state location workgroup servername domainname \
+             schoolname smtprelay internsubrange fwconfig; do
+     RET="$(echo get linuxmuster-base/$i | debconf-communicate | awk '{ print $2 }')"
+     oldvalue="${i}_old"
+     echo "$oldvalue=\"$RET\"" >> $OLDVALUES
+     unset RET
     done
-
     chmod 600 $OLDVALUES
 
     ;;
@@ -202,17 +149,17 @@ chmod 600 $BACKUPDIR/var/cache/debconf/passwords.dat-$DATETIME.gz
 
 # ask questions
 $SCRIPTSDIR/linuxmuster-config $opt
-status=$?
+RC=$?
 
 # check status
-if [ "$status" != "0" ]; then
-	# restore debconf db if setup has been canceled
-	gunzip -c $BACKUPDIR/var/cache/debconf/config.dat-$DATETIME.gz > /var/cache/debconf/config.dat
-	gunzip -c $BACKUPDIR/var/cache/debconf/passwords.dat-$DATETIME.gz > /var/cache/debconf/passwords.dat
-	chmod 600 /var/cache/debconf/passwords.dat
-	rm $BACKUPDIR/var/cache/debconf/config.dat-$DATETIME.gz
-	rm $BACKUPDIR/var/cache/debconf/passwords.dat-$DATETIME.gz
-	exit 1
+if [ "$RC" != "0" ]; then
+ # restore debconf db if setup has been canceled
+ gunzip -c $BACKUPDIR/var/cache/debconf/config.dat-$DATETIME.gz > /var/cache/debconf/config.dat
+ gunzip -c $BACKUPDIR/var/cache/debconf/passwords.dat-$DATETIME.gz > /var/cache/debconf/passwords.dat
+ chmod 600 /var/cache/debconf/passwords.dat
+ rm $BACKUPDIR/var/cache/debconf/config.dat-$DATETIME.gz
+ rm $BACKUPDIR/var/cache/debconf/passwords.dat-$DATETIME.gz
+ exit "$RC"
 fi
 
 

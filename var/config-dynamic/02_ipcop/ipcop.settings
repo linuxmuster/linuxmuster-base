@@ -1,7 +1,8 @@
-# ipcop.settings
-# automagically created by linuxmuster-setup
-# used to create IPCop configuration
-# location: /etc/ipcop.settings
+#
+# thomas@linuxmuster.net
+# 19.01.2013
+# GPL v3
+#
 
 #########################################
 # Section I                             #
@@ -42,31 +43,6 @@ adminmac=@@adminmac@@
 
 #########################################
 # Section II                            #
-# only needed for uml-ipcop             #
-#########################################
-
-# extern connection type, may be static, dhcp or pppoe
-externtype=@@externtype@@
-
-# only if externtype is pppoe
-dsluser=@@dsluser@@
-dslpasswd=@@dslpasswd@@
-
-# only if externtype is static
-# second dnsforwarder is optional
-externip=@@externip@@
-externmask=@@externmask@@
-dnsforwarder1=@@dnsforwarder1@@
-dnsforwarder2=@@dnsforwarder2@@
-gatewayip=@@gatewayip@@
-
-# administrator passwords, used for root & admin (web gui)
-# it's recommended to change this later within IPCop
-adminpasswd=@@ipcoppw@@
-
-
-#########################################
-# Section III                           #
 # optional                              #
 #########################################
 

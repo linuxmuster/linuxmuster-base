@@ -1,4 +1,8 @@
-# $Id: postpatch 1230 2012-01-17 21:10:47Z tschmitt $
+#
+# thomas@linuxmuster.net
+# 19.01.2013
+# GPL v3
+#
 
 echo "### 01_network postpatch"
 
@@ -7,6 +11,3 @@ start networking
 
 # set host and domain name
 hostname $servername.$domainname
-
-# start portmapper
-/etc/init.d/portmap start

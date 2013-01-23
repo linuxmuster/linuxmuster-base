@@ -1,6 +1,7 @@
 #!/bin/bash
 #
-# tschmitt 20121120
+# thomas@linuxmuster.net
+# 21.01.2013
 # GPL v3
 #
 
@@ -27,65 +28,65 @@ if [ -e $OLDVALUES ]; then
 fi
 
 if [ "$1" = "--first" ]; then
-  # intro
-  db_fset linuxmuster-base/intro seen false
-  db_input $PRIORITY linuxmuster-base/intro || true
-  db_go
+ # intro
+ db_fset linuxmuster-base/intro seen false
+ db_input $PRIORITY linuxmuster-base/intro || true
+ db_go
 fi
 
 
 # data for certificates and workgroup
 for i in country state location schoolname workgroup; do
-  while [ -z "$INPUT" ]; do
-    db_fset linuxmuster-base/$i seen false
-    db_input $PRIORITY linuxmuster-base/$i || true
-    db_go
-    db_get linuxmuster-base/$i || true
-    INPUT="$RET"
-    if ! check_string "$INPUT"; then
-      unset INPUT
-      continue
-    fi
-    if [ "$i" = "country" ]; then
-      [ ${#RET} -ne 2 ] && unset INPUT && continue
-      INPUT=`echo $RET | tr a-z A-Z`
-      if ! (expr match "$INPUT" '\([ABCDEFGHIJKLMNOPQRSTUVWXYZ][ABCDEFGHIJKLMNOPQRSTUVWXYZ]\)'); then
-        unset INPUT
-        continue
-      fi
-    fi
-    [[ "$oldvalues" = "yes" && "$i" = "country"  && "$INPUT" != "$country_old" ]] && ask_ipcop=yes
-    [[ "$oldvalues" = "yes" && "$i" = "state" && "$INPUT" != "$state_old" ]] && ask_ipcop=yes
-    [[ "$oldvalues" = "yes" && "$i" = "location" && "$INPUT" != "$location_old" ]] && ask_ipcop=yes
-    [[ "$oldvalues" = "yes" && "$i" = "schoolname" && "$INPUT" != "$schoolname_old" ]] && ask_ipcop=yes
-    if [ "$i" = "schoolname" ]; then
-      db_set shared/organization $INPUT || true
-    fi
-  done
-  unset INPUT
+ while [ -z "$INPUT" ]; do
+  db_fset linuxmuster-base/$i seen false
+  db_input $PRIORITY linuxmuster-base/$i || true
+  db_go
+  db_get linuxmuster-base/$i || true
+  INPUT="$RET"
+  if ! check_string "$INPUT"; then
+   unset INPUT
+   continue
+  fi
+  if [ "$i" = "country" ]; then
+   [ ${#RET} -ne 2 ] && unset INPUT && continue
+   INPUT=`echo $RET | tr a-z A-Z`
+   if ! (expr match "$INPUT" '\([ABCDEFGHIJKLMNOPQRSTUVWXYZ][ABCDEFGHIJKLMNOPQRSTUVWXYZ]\)'); then
+    unset INPUT
+    continue
+   fi
+  fi
+  [ "$oldvalues" = "yes" -a "$i" = "country" -a "$INPUT" != "$country_old" ] && update_fw=yes
+  [ "$oldvalues" = "yes" -a "$i" = "state" -a "$INPUT" != "$state_old" ] && update_fw=yes
+  [ "$oldvalues" = "yes" -a "$i" = "location" -a "$INPUT" != "$location_old" ] && update_fw=yes
+  [ "$oldvalues" = "yes" -a "$i" = "schoolname" -a "$INPUT" != "$schoolname_old" ] && update_fw=yes
+  if [ "$i" = "schoolname" ]; then
+   db_set shared/organization $INPUT || true
+  fi
+ done
+ unset INPUT
 done
 
 
 # intern network configuration
 # servername
 while ! validhostname "$SERVERNAME"; do
-  db_fset linuxmuster-base/servername seen false
-  db_input $PRIORITY linuxmuster-base/servername || true
-  db_go
-  db_get linuxmuster-base/servername || true
-  SERVERNAME="$RET"
+ db_fset linuxmuster-base/servername seen false
+ db_input $PRIORITY linuxmuster-base/servername || true
+ db_go
+ db_get linuxmuster-base/servername || true
+ SERVERNAME="$RET"
 done
-[[ "$oldvalues" = "yes" && "$SERVERNAME" != "$servername_old" ]] && ask_ipcop=yes
+[ "$oldvalues" = "yes" -a "$SERVERNAME" != "$servername_old" ] && update_fw=yes
 
 # domainname
 while ! validdomain "$DOMAINNAME"; do
-  db_fset linuxmuster-base/domainname seen false
-  db_input $PRIORITY linuxmuster-base/domainname || true
-  db_go
-  db_get linuxmuster-base/domainname || true
-  DOMAINNAME=$RET
+ db_fset linuxmuster-base/domainname seen false
+ db_input $PRIORITY linuxmuster-base/domainname || true
+ db_go
+ db_get linuxmuster-base/domainname || true
+ DOMAINNAME=$RET
 done
-[[ "$oldvalues" = "yes" && "$DOMAINNAME" != "$domainname_old" ]] && ask_ipcop=yes
+[ "$oldvalues" = "yes" -a "$DOMAINNAME" != "$domainname_old" ] && update_fw=yes
 
 
 # intern subnet range
@@ -94,284 +95,199 @@ db_input $PRIORITY linuxmuster-base/internsubrange || true
 db_go
 
 
-# extern network configuration
-# dsl sub menu
-dslconfig() {
-  db_fset linuxmuster-base/dsluser seen false
-  db_input $PRIORITY linuxmuster-base/dsluser || true
-  db_go
-  db_fset linuxmuster-base/dslpasswd seen false
-  db_input $PRIORITY linuxmuster-base/dslpasswd || true
-  db_go
-}
-
-
-# dns forwarders
-dnsconfig() {
-  while true; do
-    db_fset linuxmuster-base/dnsforwarders seen false
-    db_input $PRIORITY linuxmuster-base/dnsforwarders || true
-    db_go
-    db_get linuxmuster-base/dnsforwarders || true
-    DNSFORWARDERS=$RET
-    BREAK=true
-    for i in $DNSFORWARDERS; do
-      if ! validip "$i"; then BREAK=false; fi
-    done
-    if [ "$BREAK" = "true" ]; then break; fi
-  done
-}
-
-
-# router sub menu
-routerconfig() {
-  for i in externip externmask gatewayip; do
-    IP=""
-    while ! validip "$IP"; do
-      db_fset linuxmuster-base/$i seen false
-      db_input $PRIORITY linuxmuster-base/$i || true
-      db_go
-      db_get linuxmuster-base/$i || true
-      IP=$RET
-      if [ "$i" = "externmask" ]; then break; fi
-    done
-  done
-  dnsconfig
-}
-
-
-# extern network sub menu
-externconfig() {
-	db_fset linuxmuster-base/externtype seen false
-	db_input $PRIORITY linuxmuster-base/externtype || true
-	db_go
-	db_get linuxmuster-base/externtype || true
-	case $RET in
-		static)
-			routerconfig
-			;;
-		pppoe)
-			dslconfig
-			;;
-		dhcp)
-			;;
-	esac
-}
-
-
-# firewall (obsolet)
-#db_fset linuxmuster-base/fwconfig seen false
-#db_input $PRIORITY linuxmuster-base/fwconfig || true
-#db_go
-#db_get linuxmuster-base/fwconfig || true
-#fwconfig=$RET
-# check if fwconfig has been modified
-#if [ "$oldvalues" = "yes" ]; then
-#	[ "$fwconfig" = "$fwconfig_old" ] || ask_ipcop=yes
-#fi
-# configure external network only if fwconfig is integrated or setup is in modify mode and fwconfig has not changed
-#if [ "$fwconfig" = "integrated" ]; then
-#	externconfig
-#else
-#	if [ "$1" = "--modify" ]; then
-#		[ "$fwconfig" = "$fwconfig_old" ] && externconfig
-#	fi
-#fi
-
-# firewall is always dedicated
-fwconfig=dedicated
-db_set linuxmuster-base/fwconfig $fwconfig || true
-[ "$1" = "--modify" ] && externconfig
+# firewall
+db_fset linuxmuster-base/fwconfig seen false
+db_input $PRIORITY linuxmuster-base/fwconfig || true
+db_go
+db_get linuxmuster-base/fwconfig || true
+fwconfig=$RET
+[ "$oldvalues" = "yes" -a "$fwconfig" != "$fwconfig_old" ] && update_fw=yes
 
 
 # smtp relay
 while ! validdomain "$SMTPRELAY"; do
-	db_fset linuxmuster-base/smtprelay seen false
-	db_input $PRIORITY linuxmuster-base/smtprelay || true
-	db_go
-	db_get linuxmuster-base/smtprelay || true
-	SMTPRELAY=$RET
-	if [ "$SMTPRELAY" = "" ]; then break; fi
+ db_fset linuxmuster-base/smtprelay seen false
+ db_input $PRIORITY linuxmuster-base/smtprelay || true
+ db_go
+ db_get linuxmuster-base/smtprelay || true
+ SMTPRELAY=$RET
+ if [ "$SMTPRELAY" = "" ]; then break; fi
 done
-
-
-# imaging system
-imaging="linbo"
-db_set linuxmuster-base/imaging "$imaging" || true
 
 
 # admin passwords
 if [ "$1" = "--first" ]; then
 
-	# administrator
-	STATE=1
-	while [ "$STATE"  != 0 ]; do
+ # administrator
+ STATE=1
+ while [ "$STATE"  != 0 ]; do
 
-		case "$STATE" in
+  case "$STATE" in
 
-			1)
-				db_fset linuxmuster-base/adminpw seen false
-				db_input $PRIORITY linuxmuster-base/adminpw || true
-				db_go
-				db_get linuxmuster-base/adminpw || true
-				[ -n "$RET" ] && STATE=2
-				unset RET
-			;;
+   1)
+    db_fset linuxmuster-base/adminpw seen false
+    db_input $PRIORITY linuxmuster-base/adminpw || true
+    db_go
+    db_get linuxmuster-base/adminpw || true
+    [ -n "$RET" ] && STATE=2
+    unset RET
+    ;;
 
-			2)
-				db_fset linuxmuster-base/adminpw_confirm seen false
-				db_input $PRIORITY linuxmuster-base/adminpw_confirm || true
-				db_go
-				db_get linuxmuster-base/adminpw_confirm || true
-				if [ -n "$RET" ]; then
-					CONFIRM=$RET
-					db_get linuxmuster-base/adminpw || true
-					if [ "$RET" = "$CONFIRM" ]; then
-						STATE=0
-					else
-						STATE=1
-						db_set linuxmuster-base/adminpw "" || true
-					fi
-					unset RET
-					unset CONFIRM
-					db_set linuxmuster-base/adminpw_confirm "" || true
-				fi
-			;;
+   2)
+    db_fset linuxmuster-base/adminpw_confirm seen false
+    db_input $PRIORITY linuxmuster-base/adminpw_confirm || true
+    db_go
+    db_get linuxmuster-base/adminpw_confirm || true
+    if [ -n "$RET" ]; then
+     CONFIRM=$RET
+     db_get linuxmuster-base/adminpw || true
+     if [ "$RET" = "$CONFIRM" ]; then
+      STATE=0
+     else
+      STATE=1
+      db_set linuxmuster-base/adminpw "" || true
+     fi
+     unset RET
+     unset CONFIRM
+     db_set linuxmuster-base/adminpw_confirm "" || true
+    fi
+    ;;
 
-		esac
+  esac
 
-	done
+ done
 
-	# pgmadmin
-	STATE=1
-	while [ "$STATE"  != 0 ]; do
+ # pgmadmin
+ STATE=1
+ while [ "$STATE"  != 0 ]; do
 
-		case "$STATE" in
+  case "$STATE" in
 
-			1)
-				db_fset linuxmuster-base/pgmadminpw seen false
-				db_input $PRIORITY linuxmuster-base/pgmadminpw || true
-				db_go
-				db_get linuxmuster-base/pgmadminpw || true
-				[ -n "$RET" ] && STATE=2
-				unset RET
-			;;
+   1)
+    db_fset linuxmuster-base/pgmadminpw seen false
+    db_input $PRIORITY linuxmuster-base/pgmadminpw || true
+    db_go
+    db_get linuxmuster-base/pgmadminpw || true
+    [ -n "$RET" ] && STATE=2
+    unset RET
+    ;;
 
-			2)
-				db_fset linuxmuster-base/pgmadminpw_confirm seen false
-				db_input $PRIORITY linuxmuster-base/pgmadminpw_confirm || true
-				db_go
-				db_get linuxmuster-base/pgmadminpw_confirm || true
-				if [ -n "$RET" ]; then
-					CONFIRM=$RET
-					db_get linuxmuster-base/pgmadminpw || true
-					if [ "$RET" = "$CONFIRM" ]; then
-						STATE=0
-					else
-						STATE=1
-						db_set linuxmuster-base/pgmadminpw "" || true
-					fi
-					unset RET
-					unset CONFIRM
-					db_set linuxmuster-base/pgmadminpw_confirm "" || true
-				fi
-			;;
+   2)
+    db_fset linuxmuster-base/pgmadminpw_confirm seen false
+    db_input $PRIORITY linuxmuster-base/pgmadminpw_confirm || true
+    db_go
+    db_get linuxmuster-base/pgmadminpw_confirm || true
+    if [ -n "$RET" ]; then
+     CONFIRM=$RET
+     db_get linuxmuster-base/pgmadminpw || true
+     if [ "$RET" = "$CONFIRM" ]; then
+      STATE=0
+     else
+      STATE=1
+      db_set linuxmuster-base/pgmadminpw "" || true
+     fi
+     unset RET
+     unset CONFIRM
+     db_set linuxmuster-base/pgmadminpw_confirm "" || true
+    fi
+    ;;
 
-		esac
+  esac
 
-	done
+ done
 
-	# wwwadmin
-	STATE=1
-	while [ "$STATE"  != 0 ]; do
+ # wwwadmin
+ STATE=1
+ while [ "$STATE"  != 0 ]; do
 
-		case "$STATE" in
+  case "$STATE" in
 
-			1)
-				db_fset linuxmuster-base/wwwadminpw seen false
-				db_input $PRIORITY linuxmuster-base/wwwadminpw || true
-				db_go
-				db_get linuxmuster-base/wwwadminpw || true
-				[ -n "$RET" ] && STATE=2
-				unset RET
-			;;
+   1)
+    db_fset linuxmuster-base/wwwadminpw seen false
+    db_input $PRIORITY linuxmuster-base/wwwadminpw || true
+    db_go
+    db_get linuxmuster-base/wwwadminpw || true
+    [ -n "$RET" ] && STATE=2
+    unset RET
+    ;;
 
-			2)
-				db_fset linuxmuster-base/wwwadminpw_confirm seen false
-				db_input $PRIORITY linuxmuster-base/wwwadminpw_confirm || true
-				db_go
-				db_get linuxmuster-base/wwwadminpw_confirm || true
-				if [ -n "$RET" ]; then
-					CONFIRM=$RET
-					db_get linuxmuster-base/wwwadminpw || true
-					if [ "$RET" = "$CONFIRM" ]; then
-						STATE=0
-					else
-						STATE=1
-						db_set linuxmuster-base/wwwadminpw "" || true
-					fi
-					unset RET
-					unset CONFIRM
-					db_set linuxmuster-base/wwwadminpw_confirm "" || true
-				fi
-			;;
+   2)
+    db_fset linuxmuster-base/wwwadminpw_confirm seen false
+    db_input $PRIORITY linuxmuster-base/wwwadminpw_confirm || true
+    db_go
+    db_get linuxmuster-base/wwwadminpw_confirm || true
+    if [ -n "$RET" ]; then
+     CONFIRM=$RET
+     db_get linuxmuster-base/wwwadminpw || true
+     if [ "$RET" = "$CONFIRM" ]; then
+      STATE=0
+     else
+      STATE=1
+      db_set linuxmuster-base/wwwadminpw "" || true
+     fi
+     unset RET
+     unset CONFIRM
+     db_set linuxmuster-base/wwwadminpw_confirm "" || true
+    fi
+    ;;
 
-		esac
+  esac
 
-	done
+ done
 
 fi # admin passwords
 
 
-# ipcop password
-if [[ "$1" = "--first" || "$ask_ipcop" = "yes" ]]; then
+# firewall password
+if [ "$1" = "--first" -o -n "$update_fw" ]; then
+ if [ "$fwconfig" != "custom" ]; then
 
-	STATE=1
-	while [ "$STATE"  != 0 ]; do
+  STATE=1
+  while [ "$STATE"  != 0 ]; do
 
-		case "$STATE" in
+   case "$STATE" in
 
-			1)
-				db_fset linuxmuster-base/ipcoppw seen false
-				db_input $PRIORITY linuxmuster-base/ipcoppw || true
-				db_go
-				db_get linuxmuster-base/ipcoppw || true
-				[ -n "$RET" ] && STATE=2
-				unset RET
-			;;
+    1)
+     db_fset linuxmuster-base/ipcoppw seen false
+     db_input $PRIORITY linuxmuster-base/ipcoppw || true
+     db_go
+     db_get linuxmuster-base/ipcoppw || true
+     [ -n "$RET" ] && STATE=2
+     unset RET
+     ;;
 
-			2)
-				db_fset linuxmuster-base/ipcoppw_confirm seen false
-				db_input $PRIORITY linuxmuster-base/ipcoppw_confirm || true
-				db_go
-				db_get linuxmuster-base/ipcoppw_confirm || true
-				if [ -n "$RET" ]; then
-					CONFIRM=$RET
-					db_get linuxmuster-base/ipcoppw || true
-					if [ "$RET" = "$CONFIRM" ]; then
-						STATE=0
-					else
-						STATE=1
-						db_set linuxmuster-base/ipcoppw "" || true
-					fi
-					unset RET
-					unset CONFIRM
-					db_set linuxmuster-base/ipcoppw_confirm "" || true
-				fi
-			;;
+    2)
+     db_fset linuxmuster-base/ipcoppw_confirm seen false
+     db_input $PRIORITY linuxmuster-base/ipcoppw_confirm || true
+     db_go
+     db_get linuxmuster-base/ipcoppw_confirm || true
+     if [ -n "$RET" ]; then
+      CONFIRM=$RET
+      db_get linuxmuster-base/ipcoppw || true
+      if [ "$RET" = "$CONFIRM" ]; then
+       STATE=0
+      else
+       STATE=1
+       db_set linuxmuster-base/ipcoppw "" || true
+      fi
+      unset RET
+      unset CONFIRM
+      db_set linuxmuster-base/ipcoppw_confirm "" || true
+     fi
+     ;;
 
-		esac
+   esac
 
-	done
+  done
 
-fi # ipcop password
+ fi
+fi # firewall password
 
 
-# assign nics with extern, intern, wlan, dmz interfaces
-assign_nics
-status=$?
+# assign nic to intern interface
+assign_nics ; RC="$?"
 
 # important: close debconf database
 db_stop
 
-exit $status
+exit "$RC"

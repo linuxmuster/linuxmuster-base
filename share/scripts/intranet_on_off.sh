@@ -1,6 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 #
 # blocking intranet access
+#
+# thomas@linuxmuster.net
+# 23.01.2013
+# GPL v3
+#
 
 #set -x
 
@@ -15,13 +20,8 @@
 
 # exit if internal firewall is not active
 if [ "$START_LINUXMUSTER" != "yes" ]; then
-	echo "Internal Firewall is deactivated! Aborting!"
-	exit 1
-else
-	if ! iptables -L | grep -q "$FIREWALLTEST"; then
-		echo "Internal Firewall is not running! Aborting!"
-		exit 1
-	fi
+ echo "Internal Firewall is deactivated! Aborting!"
+ exit 1
 fi
 
 # parsing parameters
@@ -41,109 +41,56 @@ usage() {
 }
 
 # test parameters
-[[ "$trigger" != "on" && "$trigger" != "off" ]] && usage
-[[ -z "$maclist" && -z "$hostlist" ]] && usage
+[ "$trigger" != "on" -a "$trigger" != "off" ] && usage
+[ -z "$maclist" -a -z "$hostlist" ] && usage
 
 # check if task is locked
 checklock || exit 1
 
-# get maclist
-get_maclist || cancel "Cannot get maclist!"
+# test valid macaddresses, change hosts to macs
+[ -z "$maclist" ] && maclist="$hostlist"
+MACS_TO_PROCESS="$(test_maclist "$maclist")"
+[ -n "$MACS_TO_PROCESS" ] || cancel "Maclist contains no valid macaddresses!"
 
-# cleaning cache
-rm -f $CACHEDIR/*.bak &> /dev/null
-rm -f $CACHEDIR/iptables-save &> /dev/null
-rm -f $BLOCKEDHOSTSINTRANET.new &> /dev/null
-
-# create blocked hosts file
+# create a blocked hosts file
 if [ ! -e "$BLOCKEDHOSTSINTRANET" ]; then
-  touch $BLOCKEDHOSTSINTRANET || cancel "Cannot create $BLOCKEDHOSTSINTRANET!"
+ touch $BLOCKEDHOSTSINTRANET || cancel "Cannot create $BLOCKEDHOSTSINTRANET!"
 fi
 
-# save settings
-cp -f $BLOCKEDHOSTSINTRANET $BLOCKEDHOSTSINTRANET.bak || cancel "Cannot backup $BLOCKEDHOSTSINTRANET!"
-iptables-save > $CACHEDIR/iptables-save || cancel "Execution of iptables-save failed!"
+# get blocked macs
+BLOCKED_MACS="$(cat $BLOCKEDHOSTSINTRANET)"
 
-# restore old settings by failure
-rollback() {
-  mv $BLOCKEDHOSTSINTRANET.bak $BLOCKEDHOSTSINTRANET || cancel "$1 Rollback of internal firewall rules failed!"
-  cat $CACHEDIR/iptables-save | iptables-restore || cancel "$1 Rollback of internal firewall rules failed!"
-  cancel "$1 Old firewall rules successfully restored!"
-}
-
-
-# delete rules for blocked mac
-delete_rules() {
-  [ -f "$BLOCKEDPORTS" ] || return
-  while read proto portrange; do
-    [ "${proto:0:1}" = "#" ] && continue
-    [[ -z "$portrange" || -z "$proto" ]] && continue
-    portrange=${portrange//,/ }
-    for p in $portrange; do
-      iptables -D IN-$IFACE -p $proto -m mac --mac-source ${mac[$n]} --dport $p -j ACCEPT
-    done
-  done <$BLOCKEDPORTS
-}
-
-# create rules for released macs
-insert_rules() {
-  [ -f "$BLOCKEDPORTS" ] || return
-  insert_nr=`iptables -L IN-$IFACE --line-numbers | grep -m1 MAC | awk '{ print $1 }'`
-  n=0
-  while [[ $n -lt $nr_of_macs  ]]; do
-    while read proto portrange; do
-      [ "${proto:0:1}" = "#" ] && continue
-      [[ -z "$portrange" || -z "$proto" ]] && continue
-      portrange=${portrange//,/ }
-      for p in $portrange; do
-        iptables -I IN-$IFACE $insert_nr -p $proto -m mac --mac-source ${mac[$n]} --dport $p -j ACCEPT
-      done
-    done <$BLOCKEDPORTS
-    let n+=1
-  done
-}
+# save blocked hosts file
+cp $BLOCKEDHOSTSINTRANET $BLOCKEDHOSTSINTRANET.new || cancel "Cannot create $BLOCKEDHOSTSINTRANET.new!"
 
 # add macs to blocked hosts file
 if [ "$trigger" = "off" ]; then
 
-  cp -f $BLOCKEDHOSTSINTRANET $BLOCKEDHOSTSINTRANET.new || rollback "Cannot create $BLOCKEDHOSTSINTRANET.new!"
-
-  n=0
-  while [[ $n -lt $nr_of_macs  ]]; do
-    if ! grep -q ${mac[$n]} $BLOCKEDHOSTSINTRANET; then
-      echo ${mac[$n]} >> $BLOCKEDHOSTSINTRANET.new || rollback "Cannot write $BLOCKEDHOSTSINTRANET.new!"
-      delete_rules
-    fi
-    let n+=1
-  done
+ # iterate over commandline given macs and write macs not already in blocked hosts file
+ for m in $MACS_TO_PROCESS; do
+  stringinstring "$m" "$BLOCKED_MACS" && continue
+  echo "$m" >> $BLOCKEDHOSTSINTRANET.new
+ done
 
 else # remove macs from blocked hosts file
 
-  if [ -e "$BLOCKEDHOSTSINTRANET.new" ]; then
-    rm -f $BLOCKEDHOSTSINTRANET.new || rollback "Cannot delete $BLOCKEDHOSTSINTRANET.new!"
-  fi
-  touch $BLOCKEDHOSTSINTRANET.new || rollback "Cannot create $BLOCKEDHOSTSINTRANET!"
-  while read line; do
-    found=0; n=0
-    while [[ $n -lt $nr_of_macs  ]]; do
-      [ "$line" = "${mac[$n]}" ] && found=1
-      let n+=1
-    done
-    if [[ $found -eq 0 ]]; then
-      echo $line >> $BLOCKEDHOSTSINTRANET.new || rollback "Cannot write $BLOCKEDHOSTSINTRANET!"
-    fi
-  done <$BLOCKEDHOSTSINTRANET
-  insert_rules
+ # iterate over macs given on commandline
+ for m in $MACS_TO_PROCESS; do
+  # remove mac from file
+  sed "/$m/d" -i $BLOCKEDHOSTSINTRANET.new
+ done
 
 fi
 
-mv $BLOCKEDHOSTSINTRANET.new $BLOCKEDHOSTSINTRANET || rollback "Cannot write $BLOCKEDHOSTSINTRANET!"
+# move new file in place
+mv $BLOCKEDHOSTSINTRANET.new $BLOCKEDHOSTSINTRANET || cancel "Cannot write $BLOCKEDHOSTSINTRANET!"
 
-# delete files
-rm -f $CACHEDIR/*.bak
-rm -f $CACHEDIR/iptables-save
-rm -f $lockflag || exit 1
+# restart interal firewall
+/etc/init.d/linuxmuster-base restart ; RC="$?"
 
-echo "Success!"
+# delete lock
+rm -f $lockflag || RC=1
 
-exit 0
+[ "$RC" = "0" ] && echo "Success!"
+
+exit "$RC"

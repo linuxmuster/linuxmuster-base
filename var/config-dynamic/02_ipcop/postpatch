@@ -1,21 +1,37 @@
-# only root may have access
-chmod 600 /etc/ipcop.settings
+#
+# thomas@linuxmuster.net
+# 21.01.2013
+# GPL v3
+#
 
 # delete root's ssh known hosts
-if [[ "$1" = "--first" || "$update_ssh" = "yes" || "$update_certs" = "yes" || "$update_ipcop_cert" = "yes" ]]; then
-
-	[ -e /root/.ssh/known_hosts ] && rm /root/.ssh/known_hosts
-
+if [ "$1" = "--first" -o "$update_ssh" = "yes" -o "$update_certs" = "yes" -o "$update_fw_cert" = "yes" ]; then
+ [ -e /root/.ssh/known_hosts ] && rm -f /root/.ssh/known_hosts
 fi
 
-# only to do on fresh installation or firewall type change
-if [[ "$1" = "--first" ]]; then
-
-	# read linuxmuster-ipcop default config
-	. /usr/share/linuxmuster-ipcop/config
-
-	# modify dedicated ipcop completely
-	/usr/share/linuxmuster-ipcop/restore-dedicated.sh --first "$ipcoppw"
-
-fi
-
+case $fwconfig in
+ 
+ ipfire)
+ 
+  [ "$1" = "--first" -o -n "$update_fwconfig" ] && /usr/share/linuxmuster-ipfire/setup.sh --first "$ipcoppw"
+ 
+ ;;
+  
+ ipcop)
+ 
+  # only root may have access
+  chmod 600 /etc/ipcop.settings
+ 
+  # only to do on fresh installation or firewall type change
+  if [ "$1" = "--first" -o -n "$update_fwconfig" ]; then
+   # read linuxmuster-ipcop default config
+   . /usr/share/linuxmuster-ipcop/config
+   # modify dedicated ipcop completely
+   /usr/share/linuxmuster-ipcop/restore-dedicated.sh --first "$ipcoppw"
+  fi
+   
+ ;;
+  
+ *) ;;
+  
+esac

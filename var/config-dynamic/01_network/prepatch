@@ -1,3 +1,9 @@
+#
+# thomas@linuxmuster.net
+# 19.01.2013
+# GPL v3
+#
+
 echo "### 01_network prepatch"
 
 # stop networking at all
@@ -45,7 +51,7 @@ else
  # prevent /etc/hosts from being patched
  mv resolv.conf.target resolv.conf.target.nopatch
 
- if [[ "$serverip" != "$serverip_old" || "$domainname" != "$domainname_old" ]]; then
+ if [ "$serverip" != "$serverip_old" -o "$domainname" != "$domainname_old" ]; then
   backup_file /etc/resolv.conf
   sed -e "s/$serverip_old/$serverip/g
           s/$domainname_old/$domainname/g" -i /etc/resolv.conf

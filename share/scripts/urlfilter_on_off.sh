@@ -2,8 +2,9 @@
 #
 # add|remove ips to|from urlfilter
 #
-# Thomas Schmitt <tschmitt@linuxmuster.de>
-# 24.11.2008
+# thomas@linuxmuster.net
+# 20.01.2013
+# GPL v3
 #
 
 # source linuxmuster defaults
@@ -33,8 +34,14 @@ usage() {
 # check if task is locked
 checklock || exit 1
 
+# test passwordless ssh connection
+test_pwless_fw || exit 1
+ 
 # check if urlfilter is active at all
 check_urlfilter || cancel "Urlfilter is not active!"
+
+# get fwtype
+fwtype="$(get_fwtype)"
 
 # parse hostlist
 n=0
@@ -63,7 +70,7 @@ nr_of_ips=$m
 
 # get urlfilter configuration
 [ -e "$CACHEDIR/urlfilter.settings" ] && rm -f $CACHEDIR/urlfilter.settings
-get_ipcop /var/ipcop/urlfilter/settings $CACHEDIR/urlfilter.settings &> /dev/null || cancel "Download of urlfilter settings failed!"
+get_ipcop /var/$fwtype/urlfilter/settings $CACHEDIR/urlfilter.settings &> /dev/null || cancel "Download of urlfilter settings failed!"
 . $CACHEDIR/urlfilter.settings &> /dev/null || cancel "Cannot read urlfilter settings!"
 IPLIST="$UNFILTERED_CLIENTS"
 

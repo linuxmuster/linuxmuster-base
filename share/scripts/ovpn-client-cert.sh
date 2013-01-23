@@ -1,15 +1,20 @@
 #!/bin/sh
 #
-# handling of ipcop's openvpn client certificates
-# Thomas Schmitt <tschmitt@linuxmuster.de>
+# handling of openvpn client certificates
 #
-# 02.07.2008
+# thomas@linuxmuster.net
+# 20.01.2013
+# GPL v3
+#
 
 # source linuxmuster defaults
 . /usr/share/linuxmuster/config/dist.conf || exit 1
 
 # source helperfunctions
 . $HELPERFUNCTIONS || exit 1
+
+# test ssh connection
+test_pwless_fw || exit 1
 
 
 # parsing parameters
@@ -64,6 +69,11 @@ fi
 check_id $ADMINISTRATOR || exit 1
 
 
+# test fwtype
+fwtype="$(get_fwtype)"
+[ "$fwtype" != "ipfire" -a "$fwtype" != "ipcop" ] && cancel "None or custom firewall!"
+[ "$fwtype" != "$fwconfig" ] && cancel "Misconfigured firewall!"
+
 # default values for certificate validity
 # period for admins, default 10 years
 admins_certperiod=3650
@@ -115,7 +125,7 @@ if [ -n "$username" ]; then
 
 	# check for certificate
 	cert_status=1; msg=no
-	exec_ipcop /bin/ls /var/ipcop/ovpn/certs/${username}.p12 && cert_status=0 && msg=an
+	exec_ipcop /bin/ls /var/$fwtype/ovpn/certs/${username}.p12 && cert_status=0 && msg=an
 
 fi
 
@@ -172,13 +182,13 @@ download_cert() {
 	mkdir -p $tmpdir
         checklock || exit 1
 
-	get_ipcop /var/ipcop/ovpn/certs/${username}.p12 $tmpdir/${username}.p12 || cancel "Certificate download for user $username failed!"
-	get_ipcop /var/ipcop/ovpn/settings $tmpdir/settings || cancel "OpenVPN settings download failed!"
+	get_ipcop /var/$fwtype/ovpn/certs/${username}.p12 $tmpdir/${username}.p12 || cancel "Certificate download for user $username failed!"
+	get_ipcop /var/$fwtype/ovpn/settings $tmpdir/settings || cancel "OpenVPN settings download failed!"
 	. $tmpdir/settings
 
-	write_config $tmpdir/${username}-TO-IPCop-RED.ovpn $VPN_IP
-	[ "$ENABLED_BLUE" = "on" ] && write_config $tmpdir/${username}-TO-IPCop-BLUE.ovpn ${ipcopblue}.254
-	[ "$ENABLED_ORANGE" = "on" ] && write_config $tmpdir/${username}-TO-IPCop-ORANGE.ovpn ${ipcoporange}.254
+	write_config $tmpdir/${username}-TO-Firewall-RED.ovpn $VPN_IP
+	[ "$ENABLED_BLUE" = "on" ] && write_config $tmpdir/${username}-TO-Firewall-BLUE.ovpn ${ipcopblue}.254
+	[ "$ENABLED_ORANGE" = "on" ] && write_config $tmpdir/${username}-TO-Firewall-ORANGE.ovpn ${ipcoporange}.254
 
 	get_homedir $username
 	strip_spaces "$RET"
@@ -242,7 +252,7 @@ mail_admin() {
 	mail -s "OpenVPN-Zertifikat fuer Benutzer $cn erstellt" ${ADMINISTRATOR}@localhost <<EOF
 Benutzer $cn hat sich erfolgreich ein OpenVPN-Zertifikat erstellt.
 Das Zertifikat muss jedoch noch durch den Administrator freigeschaltet werden.
-Siehe https://ipcop:445/cgi-bin/ovpnmain.cgi
+Siehe https://$ipcopip:445/cgi-bin/ovpnmain.cgi
 
 EOF
 
@@ -290,7 +300,7 @@ if [ -n "$show" ]; then
 	tmpdir=/var/tmp/show_cert.$$
 	mkdir -p $tmpdir || exit 1
 
-	get_ipcop /var/ipcop/ovpn/certs/${username}cert.pem $tmpdir
+	get_ipcop /var/$fwtype/ovpn/certs/${username}cert.pem $tmpdir
 	openssl x509 -text -in $tmpdir/${username}cert.pem
 
 	rm -rf $tmpdir
@@ -348,8 +358,8 @@ cert_purge() {
 	mv $tmpdir/ovpnconfig.tmp $tmpdir/ovpnconfig
 	grep -v "CN=$user - " $tmpdir/index.txt > $tmpdir/index.txt.tmp
 	mv $tmpdir/index.txt.tmp $tmpdir/index.txt
-	exec_ipcop /bin/rm /var/ipcop/ovpn/certs/${user}cert.pem
-	exec_ipcop /bin/rm /var/ipcop/ovpn/certs/${user}.p12
+	exec_ipcop /bin/rm /var/$fwtype/ovpn/certs/${user}cert.pem
+	exec_ipcop /bin/rm /var/$fwtype/ovpn/certs/${user}.p12
 	home_purge "$user"
 	changed="yes"
 
@@ -367,20 +377,20 @@ chmod 700 $tmpdir
 
 
 # deactivate web access to openvpn
-if ! exec_ipcop /bin/chown root:root /var/ipcop/ovpn/ovpnconfig; then
+if ! exec_ipcop /bin/chown root:root /var/$fwtype/ovpn/ovpnconfig; then
 	rm -rf $tmpdir
-	cancel "IPCop access failed!"
+	cancel "Firewall access failed!"
 fi
 
 
 # fetch relevant files
-get_ipcop /var/ipcop/ovpn/ovpnconfig $tmpdir
-get_ipcop /var/ipcop/ovpn/certs/index.txt $tmpdir
+get_ipcop /var/$fwtype/ovpn/ovpnconfig $tmpdir
+get_ipcop /var/$fwtype/ovpn/certs/index.txt $tmpdir
 if [[ ! -s "$tmpdir/ovpnconfig" || ! -s "$tmpdir/index.txt" ]]; then
 
-	exec_ipcop /bin/chown nobody:nobody /var/ipcop/ovpn/ovpnconfig
+	exec_ipcop /bin/chown nobody:nobody /var/$fwtype/ovpn/ovpnconfig
 	rm -rf $tmpdir
-	cancel "Download of certificate information from IPCop failed!"
+	cancel "Download of certificate information from $fwtype failed!"
 
 fi
 
@@ -515,21 +525,21 @@ if [[ -n "$cleanup" || -n "$purgeallstudentcerts" ]]; then
 fi
 
 
-# apply changes to IPcop
+# apply changes to firewall
 if [ -n "$changed" ]; then
 
 	touch $tmpdir/ovpnconfig
 	echo "Executing certificate configuration update ..."
-	put_ipcop $tmpdir/ovpnconfig /var/ipcop/ovpn/ovpnconfig
-	put_ipcop $tmpdir/index.txt /var/ipcop/ovpn/certs/index.txt
+	put_ipcop $tmpdir/ovpnconfig /var/$fwtype/ovpn/ovpnconfig
+	put_ipcop $tmpdir/index.txt /var/$fwtype/ovpn/certs/index.txt
 	exec_ipcop /usr/local/bin/openvpnctrl -r
 
 fi
 
 
 # all done
-exec_ipcop /bin/chown nobody:nobody /var/ipcop/ovpn/ovpnconfig
-exec_ipcop /bin/chown nobody:nobody /var/ipcop/ovpn/certs/index.txt
+exec_ipcop /bin/chown nobody:nobody /var/$fwtype/ovpn/ovpnconfig
+exec_ipcop /bin/chown nobody:nobody /var/$fwtype/ovpn/certs/index.txt
 rm -f $lockflag
 rm -rf $tmpdir
 
