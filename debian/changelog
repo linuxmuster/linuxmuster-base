@@ -32,7 +32,7 @@ linuxmuster-base (6.0.24-0ubuntu0) precise; urgency=low
     - added support for ipfire setup.
     - modify mode enabled again.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 23 Jan 2013 15:32:04 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 23 Jan 2013 15:50:28 +0100
 
 linuxmuster-base (6.0.0-23ubuntu0) precise; urgency=low
 

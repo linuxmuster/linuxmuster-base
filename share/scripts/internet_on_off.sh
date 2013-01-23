@@ -3,7 +3,7 @@
 # blocking web access on firewall
 #
 # thomas@linuxmuster.net
-# 21.01.2013
+# 23.01.2013
 # GPL v3
 #
 
@@ -50,8 +50,10 @@ usage() {
 checklock || exit 1
 
 
-# get maclist
-get_maclist || cancel "Cannot get maclist!"
+# test valid macaddresses, change hosts to macs
+[ -z "$maclist" ] && maclist="$hostlist"
+MACS_TO_PROCESS="$(test_maclist "$maclist")"
+[ -n "$MACS_TO_PROCESS" ] || cancel "Maclist contains no valid macaddresses!"
 
 
 # test fwtype
@@ -79,47 +81,41 @@ get_ipcop /var/$fwtype/proxy/squid.conf $CACHEDIR &> /dev/null || cancel "Downlo
 proxy_on(){
  # create new ban file
  touch $CACHEDIR/src_banned_mac.acl.new || cancel "Cannot create ban file in $CACHEDIR!"
- n=0
  # iterate over macs
- while [ $n -lt $nr_of_macs ]; do
-  # remove mac from list
-  sed "/${mac[$n]}/d" -i $CACHEDIR/src_banned_mac.acl.new
-  let n+=1
+ for m in "$MACS_TO_PROCESS"; do
+  sed "/$m/d" -i $CACHEDIR/src_banned_mac.acl.new
  done
 } # proxy_on
 
 
 # deny proxy access
 proxy_off(){
- n=0
  # iterate over macs
- while [ $n -lt $nr_of_macs ]; do
-  if ! grep -q ${mac[$n]} $CACHEDIR/src_banned_mac.acl; then
+ for m in "$MACS_TO_PROCESS"; do
+  if ! grep -q "$m" $CACHEDIR/src_banned_mac.acl; then
    # write new macs to ban file
-   echo ${mac[$n]} >> $CACHEDIR/src_banned_mac.acl.new || cancel "Cannot create ban file in $CACHEDIR!"
+   echo "$m" >> $CACHEDIR/src_banned_mac.acl.new || cancel "Cannot create ban file in $CACHEDIR!"
   fi
-  let n+=1
  done
 } # proxy_off
 
 
 # add block rules to ipcop's bot
 bot_ipcop_off(){
- n=0; found=0
+ found=0
  # iterate over rules file
  while read line; do
   # find forward rules
   if [ "${line:0:12}" = "RULE,FORWARD" -a $found -eq 0 ]; then
    found=1
    # iterate over macs
-   while [ $n -lt $nr_of_macs ]; do
-    tsearchstr=`echo $searchstr | sed -e "s/@@mac@@/${mac[$n]}/"`
+   for m in "$MACS_TO_PROCESS"; do
+    tsearchstr=`echo $searchstr | sed -e "s/@@mac@@/$m/"`
     # if no block rule for this mac exists yet create one
     if ! grep -q "$tsearchstr" $CACHEDIR/fwrules.config; then
-     tblockrule=`echo $blockrule | sed -e "s/@@mac@@/${mac[$n]}/g"`
+     tblockrule=`echo $blockrule | sed -e "s/@@mac@@/$m/g"`
      echo $tblockrule >> $CACHEDIR/fwrules.config.new || cancel "Cannot write $CACHEDIR/fwrules.config.new!"
     fi
-    let n+=1
    done
   fi
   echo $line >> $CACHEDIR/fwrules.config.new || cancel "Cannot write $CACHEDIR/fwrules.config.new!"
@@ -130,15 +126,13 @@ bot_ipcop_off(){
 # remove block rules from ipcop's bot
 bot_ipcop_on(){
  cp -f $CACHEDIR/fwrules.config $CACHEDIR/fwrules.config.new || cancel "Cannot write $CACHEDIR/fwrules.config.new!"
- n=0
- while [[ $n -lt $nr_of_macs  ]]; do
-  tsearchstr=`echo $searchstr | sed -e "s/@@mac@@/${mac[$n]}/"`
+ for m in "$MACS_TO_PROCESS"; do
+  tsearchstr=`echo $searchstr | sed -e "s/@@mac@@/$m/"`
   if grep -q "$tsearchstr" $CACHEDIR/fwrules.config; then
    grep -v "$tsearchstr" $CACHEDIR/fwrules.config > $CACHEDIR/fwrules.config.new
    [ -e "$CACHEDIR/fwrules.config.new" ] || cancel "Cannot write $CACHEDIR/fwrules.config.new!"
    cp -f $CACHEDIR/fwrules.config.new $CACHEDIR/fwrules.config || cancel "Cannot write $CACHEDIR/fwrules.config!"
   fi
-  let n+=1
  done
 } # bot_ipcop_on
 
