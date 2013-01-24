@@ -16,8 +16,9 @@ linuxmuster-base (6.0.24-0ubuntu0) precise; urgency=low
   * helperfunctions.sh:
     - added test_pwless_fw(), tests passwordless ssh connection to firewall.
     - added get_fwtype(), returns firewall type (ipfire, ipcop or custom).
-    - check_urlfilter(), behaviour depends on fwtype. 
+    - check_urlfilter(), behaviour depends on fwtype.
     - get_ipcop(), put_ipcop(): added recursive parameter.
+    - removed get_maclist().
     - added test_maclist(): tests, changes hostnames to macs according to
       /etc/linuxmuster/workstations, returns a list of macaddresses.
   * added sshaskpass.sh script for automating ssh connections.
@@ -32,7 +33,7 @@ linuxmuster-base (6.0.24-0ubuntu0) precise; urgency=low
     - added support for ipfire setup.
     - modify mode enabled again.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 23 Jan 2013 15:50:28 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 24 Jan 2013 09:43:39 +0100
 
 linuxmuster-base (6.0.0-23ubuntu0) precise; urgency=low
 

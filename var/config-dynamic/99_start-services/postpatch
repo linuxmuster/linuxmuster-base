@@ -71,14 +71,16 @@ done
 # set installed flag
 touch $INSTALLED
 
-# reconfigure linuxmuster-base to fix what has been not yet fixed, deprecated?
-dpkg-reconfigure linuxmuster-base
+# reconfigure linuxmuster-pkgs finally
+pkgs="base linbo schulkonsole"
+[ "$fwconfig" != "custom" ] && pkgs="$pkgs $fwconfig"
+for i in $pkgs; do
+ dpkg-reconfigure linuxmuster-$i
+done
 
 # repair linbo stuff
-dpkg-reconfigure linuxmuster-linbo
 status tftpd-hpa | grep -q start && stop tftpd-hpa
 start tftpd-hpa
-[ -e /etc/rsyncd.conf ] || dpkg-reconfigure linuxmuster-linbo
 /etc/init.d/rsync restart
 
 # apply workstation data if internal net has changed
