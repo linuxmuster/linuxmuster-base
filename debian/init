@@ -14,7 +14,7 @@
 
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 23.01.2013
+# 25.01.2013
 # GPL v3
 #
 
@@ -43,7 +43,9 @@ echo "$0" | grep -q ^/etc/rc && ONBOOT=yes
 # read macs and ports etc. for fw start|reload
 read_fwdata(){
 
+ # maximum ports for iptables multiport list
  local max_ports=15
+ local m
  local n
  local nr_ports
  local nr_portranges
@@ -55,13 +57,20 @@ read_fwdata(){
 
  # get all mac addresses
  MACS="$(grep -v ^# $WIMPORTDATA | awk -F\; '{ print $4 }' | tr a-z A-Z)"
+ 
+ # remove orphaned macs from blocked hosts intranet list
+ if [ -s "$BLOCKEDHOSTSINTRANET" ]; then
+  for m in $(cat $BLOCKEDHOSTSINTRANET); do
+   stringinstring "$m" "$MACS" || sed "/$m/d" -i $BLOCKEDHOSTSINTRANET
+  done
+ fi
 
  # get blocked macs
  BLOCKED_MACS="$(cat $BLOCKEDHOSTSINTRANET)"
 
  # get unblocked macs
  UNBLOCKED_MACS="$MACS"
- if [ -s "$BLOCKEDHOSTSINTRANET" ]; then
+ if [ -n "$BLOCKED_MACS" ]; then
   for m in $BLOCKED_MACS; do
    UNBLOCKED_MACS="${UNBLOCKED_MACS/$m/}"
   done

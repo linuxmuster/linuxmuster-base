@@ -1,3 +1,15 @@
+linuxmuster-base (6.0.25-0ubuntu0) precise; urgency=low
+
+  * internal firewall init script:
+    - removes orphaned macaddresses from list of intranet blocked hosts (closes #63).
+  * internet_on_off.sh:
+    - removes also orphaned macaddresses as above (closes #63).
+    - invokation without parameters updates just the macaddress lists and reloads the external firewall.
+      Replaces update_allowedmacs.sh script.
+  * wimport.sh: invokes internet_on_off.sh instead of update_allowedmacs.sh.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 25 Jan 2013 15:07:12 +0100
+
 linuxmuster-base (6.0.24-0ubuntu0) precise; urgency=low
 
   * changed versioning scheme.
@@ -22,6 +34,7 @@ linuxmuster-base (6.0.24-0ubuntu0) precise; urgency=low
     - added test_maclist(): tests, changes hostnames to macs according to
       /etc/linuxmuster/workstations, returns a list of macaddresses.
   * added sshaskpass.sh script for automating ssh connections.
+  * added update_allowedmacs.sh script for updating allowed macs group on IPFire's outgoing firewall.
   * added support for IPFire to various scripts, fixed naming and so on (closes #61).
   * added suport for Setup without IPFire/IPCop firewall (closes #24).
   * moved init script to debian/init.
@@ -33,7 +46,7 @@ linuxmuster-base (6.0.24-0ubuntu0) precise; urgency=low
     - added support for ipfire setup.
     - modify mode enabled again.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 24 Jan 2013 09:43:39 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 24 Jan 2013 22:24:57 +0100
 
 linuxmuster-base (6.0.0-23ubuntu0) precise; urgency=low
 

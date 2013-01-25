@@ -440,12 +440,33 @@ done
 
 # reload necessary services
 echo
+
 echo -n " * "
-/etc/init.d/linuxmuster-base reload
+if /etc/init.d/linuxmuster-base reload; then
+ echo "   ...done."
+else
+ echo "   failed!"
+ RC=1
+fi
+
+echo " * Reloading external firewall."
+if "$SCRIPTSDIR/internet_on_off.sh" 1> /dev/null; then
+ echo "   ...done."
+else
+ echo "   failed!"
+ RC=1
+fi
+
 echo " * Reloading DHCP service... isc-dhcp-server"
-reload isc-dhcp-server
-echo "   ...done."
-/etc/init.d/bind9 force-reload
+if reload isc-dhcp-server; then
+ echo "   ...done."
+else
+ echo "   failed!"
+ RC=1
+fi
+
+/etc/init.d/bind9 force-reload || RC=1
+
 [ -n "$update_printers" ] && import_printers
 
 
