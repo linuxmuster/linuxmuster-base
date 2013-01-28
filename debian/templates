@@ -167,3 +167,12 @@ Default: eth0
 Description: lan interface
  Keine Eingabe.
 
+Template: linuxmuster-base/serverexternname
+Type: string
+Default: server.linuxmuster-net.lokal
+Description: Externer Name des Servers?
+ Geben Sie hier z.B. eine existierende Dyndns-Adresse\n
+ des Servers ein. Falls der Server nicht vom Internet aus\n
+ erreichbar sein soll bzw. die interne und externe \n
+ Addresse übereinstimmen, kann das Feld auch leer\n
+ bleiben.

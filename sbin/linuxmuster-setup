@@ -124,7 +124,8 @@ case $opt in
     echo "Reading current configuration values ..." | tee -a $logfile
     rm -f $OLDVALUES
     for i in country state location workgroup servername domainname \
-             schoolname smtprelay internsubrange fwconfig; do
+             schoolname smtprelay internsubrange fwconfig \
+             serverexternname; do
      RET="$(echo get linuxmuster-base/$i | debconf-communicate | awk '{ print $2 }')"
      oldvalue="${i}_old"
      echo "$oldvalue=\"$RET\"" >> $OLDVALUES
