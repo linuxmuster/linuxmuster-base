@@ -28,7 +28,8 @@ read_values(){
  echo "Reading values from debconf ..."
 
  for i in country state location schoolname servername domainname workgroup fwconfig \
-          smtprelay sambasid internmask internmask_short internsubrange iface_lan; do
+          smtprelay sambasid internmask internmask_short internsubrange iface_lan \
+          serverexternname; do
   eval $i="$(echo "get linuxmuster-base/$i" | debconf-communicate | awk '{ print $2 }')"
  done
  
