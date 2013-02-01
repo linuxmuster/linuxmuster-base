@@ -17,7 +17,7 @@ echo "Reading debconf database ..."
 for i in country state location servername domainname schoolname \
          internmask internmask_short internsubrange fwconfig \
          smtprelay sambasid adminpw pgmadminpw wwwadminpw \
-         ipcoppw workgroup iface_lan; do
+         ipcoppw workgroup iface_lan serverexternname; do
   eval $i="$(echo get linuxmuster-base/$i | debconf-communicate | awk '{ print $2 }')"
 done
 
@@ -247,7 +247,8 @@ for i in $DYNTPLDIR/*; do
               s/@@printeradmins@@/${PRINTERADMINS}/g
               s/@@admingroup@@/${ADMINGROUP}/g
               s/@@teachersgroup@@/${TEACHERSGROUP}/g
-              s/@@wwwadmin@@/${WWWADMIN}/g" $conffile > $target
+              s/@@wwwadmin@@/${WWWADMIN}/g
+              s/@@serverexternname@@/${serverexternname}/g" $conffile > $target
     done
   fi
   # do something after the configuration is patched

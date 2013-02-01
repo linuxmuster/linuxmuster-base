@@ -1,3 +1,9 @@
+linuxmuster-base (6.0.25-0ubuntu0-1moodle) precise; urgency=low
+
+  * added moodle patch
+
+ -- Frank Schütte <fschuett@gymnasium-himmelsthuer.de>  Sat, 26 Jan 2013 18:04:42 +0100
+
 linuxmuster-base (6.0.25-0ubuntu0) precise; urgency=low
 
   * internal firewall init script:
