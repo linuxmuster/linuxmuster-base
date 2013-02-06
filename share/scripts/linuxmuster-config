@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 21.01.2013
+# 05.02.2013
 # GPL v3
 #
 
@@ -95,6 +95,21 @@ db_input $PRIORITY linuxmuster-base/internsubrange || true
 db_go
 
 
+# extern server name
+while ! validdomain "$SERVEREXTERNNAME"; do
+ db_fset linuxmuster-base/serverexternname seen false
+ db_input $PRIORITY linuxmuster-base/serverexternname || true
+ db_go
+ db_get linuxmuster-base/serverexternname || true
+ SERVEREXTERNNAME=$RET
+ if [ "$SERVEREXTERNNAME" = "" ]; then
+  SERVEREXTERNNAME="$SERVERNAME.$DOMAINNAME"
+  db_set linuxmuster-base/serverexternname $SERVEREXTERNNAME || true
+  break
+ fi
+done
+
+
 # firewall
 db_fset linuxmuster-base/fwconfig seen false
 db_input $PRIORITY linuxmuster-base/fwconfig || true
@@ -112,17 +127,6 @@ while ! validdomain "$SMTPRELAY"; do
  db_get linuxmuster-base/smtprelay || true
  SMTPRELAY=$RET
  if [ "$SMTPRELAY" = "" ]; then break; fi
-done
-
-
-# extern server name
-while ! validdomain "$SERVEREXTERNNAME"; do
-	db_fset linuxmuster-base/serverexternname seen false
-	db_input $PRIORITY linuxmuster-base/serverexternname || true
-	db_go
-	db_get linuxmuster-base/serverexternname || true
-	SERVEREXTERNNAME=$RET
-	if [ "$SERVEREXTERNNAME" = "" ]; then break; fi
 done
 
 # admin passwords

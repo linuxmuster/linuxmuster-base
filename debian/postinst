@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 21.01.2013
+# 05.02.2013
 # GPL v3
 #
 
@@ -38,6 +38,12 @@ read_values(){
  serverrev_short=1.1.$internsub
  ipcoprev_short=254.1.$internsub
  basedn="dc=`echo $domainname|sed 's/\./,dc=/g'`"
+ 
+ # update serverexternname
+ if [ -z "$serverexternname" ]; then
+  serverexternname="$servername.$domainname"
+  echo "set linuxmuster-base/serverexternname $serverexternname" | debconf-communicate
+ fi
 
 } # read_values
 
@@ -53,6 +59,7 @@ servername="$servername"
 serverip="$serverip"
 ipcopip="$ipcopip"
 domainname="$domainname"
+serverexternname="$serverexternname"
 fwconfig="$fwconfig"
 internmask="$internmask"
 internmask_short="$internmask_short"
@@ -162,7 +169,7 @@ case "$1" in
   esac
   
   # update network.settings
-  grep -q ^"# linuxmuster.net settings" "$NETWORKSETTINGS" || write_networksettings
+  grep -q ^serverexternname "$NETWORKSETTINGS" || write_networksettings
 
   # patch samba
   [ -s "$SMBCONFTEMPLATE" ] && sed -e "s/@@message1@@/${message1}/g

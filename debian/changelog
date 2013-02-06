@@ -1,8 +1,11 @@
-linuxmuster-base (6.0.25-0ubuntu0-1moodle) precise; urgency=low
+linuxmuster-base (6.0.26-0ubuntu0) precise; urgency=low
 
-  * added moodle patch
+  * added moodle patch for server's extern name from Frank Schütte (closes #68).
+  * linuxmuster-setup:
+    * if server's extern name is not given, assign internal fqdn to serverexternname variable.
+    * using serverexternname for opennvp certificate.
 
- -- Frank Schütte <fschuett@gymnasium-himmelsthuer.de>  Sat, 26 Jan 2013 18:04:42 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 05 Feb 2013 15:38:17 +0100
 
 linuxmuster-base (6.0.25-0ubuntu0) precise; urgency=low
 

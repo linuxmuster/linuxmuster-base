@@ -95,7 +95,7 @@ if [ "$1" != "--first" ]; then
   update_certs=yes && update_ldap=yes
   [ "$fwconfig" = "ipfire" -o "$fwconfig" = "ipcop" ] && update_fw_cert=yes
  fi
- [ "$internsubrange" = "$internsubrange_old" ] || update_extern=yes
+ [ "$serverexternname" = "$serverexternname_old" ] || update_extern=yes
  [ "$smptrelay" = "$smtprelay_old" ] || update_smtp=yes
  [ "$ipcopip" = "$ipcopip_old" ] || update_ssh=yes
  [ "$fwconfig" = "$fwconfig_old" ] || update_fwconfig=yes
@@ -113,6 +113,7 @@ servername="$servername"
 serverip="$serverip"
 ipcopip="$ipcopip"
 domainname="$domainname"
+serverexternname="$serverexternname"
 fwconfig="$fwconfig"
 internmask="$internmask"
 internmask_short="$internmask_short"

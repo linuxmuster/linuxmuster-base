@@ -1,6 +1,6 @@
 #
 # thomas@linuxmuster.net
-# 21.01.2013
+# 05.02.2013
 # GPL v3
 #
 
@@ -14,19 +14,19 @@ if [ "$1" = "--modify" ]; then
  done
 
  # do patching for extern name if it is used for the first time
- if [[ -z "$serverexternname_old" && -n "$serverexternname" ]]; then
+ if [ -z "$serverexternname_old" && -n "$serverexternname" ]; then
 
   mv named.conf.extern.target.nopatch named.conf.extern.target
   mv db.extern.target.nopatch db.extern.target
 
- elif [ -z "$serverexternname" ]; then
+ elif [ "$serverexternname" = "$servername.$domainname" ]; then
 
   [ -e /etc/bind/named.conf.extern ] && backup_file /etc/bind/named.conf.extern
   rm -f /etc/bind/named.conf.extern
   [ -e /etc/bind/db.extern ] && backup_file /etc/bind/db.extern
   rm -f /etc/bind/db.extern
 
- elif [[ "$serverexternname" != "$serverexternname_old" ]]; then
+ elif [ "$serverexternname" != "$serverexternname_old" ]; then
 
   backup_file /etc/bind/named.conf.extern
   sed -e "s/$serverexternname_old./$serverexternname./g" -i /etc/bind/named.conf.extern
@@ -100,7 +100,7 @@ if [ "$1" = "--modify" ]; then
 
 else
 
- if [ -z "$serverexternname" ]; then
+ if [ "$serverexternname" = "$servername.$domainname" ]; then
 
   mv db.extern.target db.extern.target.nopatch
   mv named.conf.extern.target named.conf.extern.target.nopatch

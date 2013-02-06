@@ -55,6 +55,14 @@ Description: Internet-Domäne des Schulnetzes?
  Es sind nur Buchstaben, Ziffern, Minuszeichen und Punkte\n
  erlaubt.
 
+Template: linuxmuster-base/serverexternname
+Type: string
+Description: Externer Name des Servers?
+ Geben Sie hier den vollständigen Namen (FQDN) ein,\n
+ unter dem der Server extern erreichbar ist (z.B. Dyndns).\n
+ Falls der Server keine externe Adresse hat,\n
+ lassen Sie das Feld leer.
+
 Template: linuxmuster-base/workgroup
 Type: string
 Default: SCHULE
@@ -166,13 +174,3 @@ Type: string
 Default: eth0
 Description: lan interface
  Keine Eingabe.
-
-Template: linuxmuster-base/serverexternname
-Type: string
-Default: server.linuxmuster-net.lokal
-Description: Externer Name des Servers?
- Geben Sie hier z.B. eine existierende Dyndns-Adresse\n
- des Servers ein. Falls der Server nicht vom Internet aus\n
- erreichbar sein soll bzw. die interne und externe \n
- Addresse übereinstimmen, kann das Feld auch leer\n
- bleiben.
