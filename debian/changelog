@@ -1,3 +1,14 @@
+linuxmuster-base (6.0.27-0ubuntu0) precise; urgency=low
+
+  * debian/postinst:
+    - added smbpasswd refresh and recreation of samba pre and postexec dirs (see #80).
+    - adding missing sophomorix-bind scripts if necessary.
+  * linuxmuster-setup:
+    - implemented workaround for ipcop nagios checks if ipfire is installed (see #81).
+    - removed php5's paedml.ini.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 13 Feb 2013 21:37:48 +0100
+
 linuxmuster-base (6.0.26-0ubuntu0) precise; urgency=low
 
   * added moodle patch for server's extern name from Frank Schütte (closes #68).

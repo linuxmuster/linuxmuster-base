@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 05.02.2013
+# 13.02.2013
 # GPL v3
 #
 
@@ -103,7 +103,7 @@ case "$1" in
   chmod 600 $HELPERFUNCTIONS
 
   # check all necessary dirs and create them if needed
-  for i in $NETLOGONDIR $PROGSDIR $PROGSRWDIR $CDSDIR $BACKUPDIR $BACKUPMNTPOINT $LOGINCACHE $LOGDIR; do
+  for i in $PREEXECD $POSTEXECD $NETLOGONDIR $PROGSDIR $PROGSRWDIR $CDSDIR $BACKUPDIR $BACKUPMNTPOINT $LOGINCACHE $LOGDIR; do
    [ -d "$i" ] || mkdir -p $i
   done
 
@@ -252,7 +252,28 @@ case "$1" in
    ln -s ldap.secret /etc/$i.secret
   done
   chmod 600 /etc/*.secret
+  
+  # refresh samba admin passwd (see #80)
+  smbpasswd -w "$(cat /etc/ldap.secret)"
 
+  # provide sophomorix-bind-mount scripts if missing (see #80)
+  for i in preexec postexec; do
+   case "$i" in
+    pre*) conf="$PREEXECD/sophomorix-root-$i"
+          param="--login" ;;
+    pos*) conf="$POSTEXECD/sophomorix-root-$i"
+          param="--logout" ;;
+   esac
+   if [ ! -s "$conf" ]; then
+    echo "Writing $conf."
+    cat > "$conf" <<EOF
+#!/bin/bash
+sophomorix-bind --quick $param --host \$HOSTNAME --user \$USERNAME --homedir \$HOMEDIR
+EOF
+    chmod +x "$conf"
+   fi
+  done
+  
   # expand allow-query list in named.conf.options (#18)
   conf=/etc/bind/named.conf.options
   searchstr="allow-query { $internalnet/$internmask_short; $ipcopblue.0/24; $ipcoporange.0/24; $ipcopovpn.0/24; };"
@@ -262,6 +283,21 @@ case "$1" in
     echo "Expanding allow-query list in $conf (#18)."
     sed -e "s|\tallow-query.*|\t$searchstr|" -i $conf
     bind_reload=yes
+  fi
+  # keep ipcop's hostname resolvable for nagios checks (see #81)
+  if [ "$fwconfig" = "ipfire" ]; then
+   conf=/etc/bind/db.linuxmuster
+   if ! grep -q ^ipcop $conf; then
+    if [ -z "$bind_reload" ]; then
+     echo "Backing up $conf to $conf.dpkg-bak."
+     cp $conf $conf.dpkg-bak
+    fi
+    # add hostname ipcop
+    echo "Making hostname ipcop resolvable for nagios checks (see #81)."
+    sed -e "/^ipfire/a\
+ipcop IN A $serverip" -i $conf
+    bind_reload=yes
+   fi
   fi
 
   # rename old shit
