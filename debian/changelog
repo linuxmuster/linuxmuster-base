@@ -1,3 +1,15 @@
+linuxmuster-base (6.0.28-0ubuntu0) precise; urgency=low
+
+  * internet_on_off.sh:
+    - added --help parameter.
+    - fixed mac address list creation (closes #85).
+  * horde
+    - turba: fix sources.php syntax (closes #83).
+    - gollem: update prefs.php (closes #80).
+  * debian/postinst: repairs permissions of /var/log/horde (closes #82).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 19 Feb 2013 10:16:04 +0100
+
 linuxmuster-base (6.0.27-0ubuntu0) precise; urgency=low
 
   * debian/postinst:

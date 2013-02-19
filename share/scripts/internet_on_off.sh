@@ -3,7 +3,7 @@
 # blocking web access on firewall
 #
 # thomas@linuxmuster.net
-# 25.01.2013
+# 18.02.2013
 # GPL v3
 #
 
@@ -27,10 +27,12 @@ usage() {
   echo "Usage: internet_on_off.sh --trigger=<on|off>"
   echo "                          --maclist=<mac1,mac2,...,macn>"
   echo "                          --hostlist=<host1,host2,...,hostn>"
+  echo "                          --help>"
   echo
   echo "  trigger:  trigger on or off"
   echo "  maclist:  comma separated list of mac addresses"
   echo "  hostlist: comma separated list of hostnames"
+  echo "  help:     shows this help"
   echo
   echo "  Invokation without parameters just updates and reloads the external firewall."
   exit 1
@@ -38,6 +40,7 @@ usage() {
 
 
 # test parameters
+[ -n "$help" ] && usage
 [ -z "$maclist" ] && maclist="$hostlist"
 [ -n "$trigger" -a -z "$maclist" ] && usage
 [ -z "$trigger" -a -n "$maclist" ] && usage
@@ -81,15 +84,16 @@ fi
 case "$trigger" in
  
  on) # remove macs
-  for m in "$MACS_TO_PROCESS"; do
+  for m in $MACS_TO_PROCESS; do
    sed "/$m/d" -i "$BLOCKEDHOSTSINTERNET" || cancel "Cannot write to $BLOCKEDHOSTSINTERNET!"
   done
   ;;
   
  off) # add macs
-  for m in "$MACS_TO_PROCESS"; do
+  for m in $MACS_TO_PROCESS; do
    if ! grep -q "$m" "$BLOCKEDHOSTSINTERNET"; then
     # write new macs to ban file
+    #echo "$m" | sed -e 's| |\n|g' >> "$BLOCKEDHOSTSINTERNET" || cancel "Cannot write to $BLOCKEDHOSTSINTERNET!"
     echo "$m" >> "$BLOCKEDHOSTSINTERNET" || cancel "Cannot write to $BLOCKEDHOSTSINTERNET!"
    fi
   done
@@ -98,7 +102,10 @@ case "$trigger" in
  *) ;;
  
 esac
-  
+
+# remove empty lines
+sed '/^$/d' -i "$BLOCKEDHOSTSINTERNET"
+
 # upload updated blocked mac list
 put_ipcop "$BLOCKEDHOSTSINTERNET" /var/$fwtype/proxy/advanced/acls/src_banned_mac.acl &> /dev/null || cancel "Upload of src_banned_mac.acl failed!"
 

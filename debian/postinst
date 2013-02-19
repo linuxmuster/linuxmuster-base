@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 13.02.2013
+# 19.02.2013
 # GPL v3
 #
 
@@ -299,6 +299,35 @@ ipcop IN A $serverip" -i $conf
     bind_reload=yes
    fi
   fi
+  
+  # update turba's sources.php (closes #83)
+  tpl="$DYNTPLDIR/21_horde3/turba2.sources.php"
+  conf="$(cat $tpl.target)"
+  searchstr="* 18.02.2013"
+  if ! grep -q "$searchstr" $conf; then
+   echo "Backing up $conf to $conf.dpkg-bak."
+   cp $conf $conf.dpkg-bak
+   echo "Fixing turba's sources.php."
+   sed -e "s|@@schoolname@@|$schoolname|
+           s|@@basedn@@|$basedn|" "$tpl" > "$conf"
+   chown root:www-data "$conf"
+   chmod 440 "$conf"
+  fi
+  
+  # update gollems's prefs.php (closes #80)
+  conf="/etc/horde/gollem/prefs.php"
+  searchstr="* 19.02.2013"
+  if ! grep -q "$searchstr" $conf; then
+   echo "Backing up $conf to $conf.dpkg-bak."
+   cp $conf $conf.dpkg-bak
+   echo "Fixing gollem's prefs.php."
+   cp "${STATICTPLDIR}${conf}" "$conf"
+   chown root:www-data "$conf"
+   chmod 440 "$conf"
+  fi
+    
+  # repair permissions for horde log dir (closes #82)
+  [ -e /var/log/horde ] && chown www-data:www-data /var/log/horde -R
 
   # rename old shit
   conf_old=/etc/php5/conf.d/paedml.ini
