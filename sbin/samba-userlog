@@ -86,12 +86,10 @@ if [[ "$hostname" != "$username" && "$log" = "in" ]]; then
 fi
 
 # change host password if user is a host
-#if [[ "$hostname" = "$username" && "$log" = "in" ]]; then
-
-#  password=`pwgen -s 8 1`
-#  sophomorix-passwd -u $hostname --pass $password &> /dev/null
-
-#fi
+if [ "$hostname" = "$username" -a "$log" = "in" ]; then
+ password="$(pwgen -s 8 1)"
+ sophomorix-passwd -u "$hostname" --pass "$password" &> /dev/null
+fi
 
 # check if there are valid logins in cache file
 check_logins() {

@@ -1,3 +1,9 @@
+linuxmuster-base (5.1.0-11lenny0) openml5-stable; urgency=low
+
+  * samba-userlog: changes host account password to random value on login (closes #88).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 24 Feb 2013 15:11:00 +0100
+
 linuxmuster-base (5.1.0-10lenny0) openml5-stable; urgency=low
 
   * Added linuxmuster-freefork to package dependency.
