@@ -1,8 +1,8 @@
 linuxmuster-base (6.0.29-0ubuntu0) precise; urgency=low
 
-  * samba-userlog: changes host account password to random value on login (closes #88).
+  * samba-userlog: changes host account password to random value on exam login (closes #88).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 24 Feb 2013 13:59:27 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 25 Feb 2013 19:58:05 +0100
 
 linuxmuster-base (6.0.28-0ubuntu0) precise; urgency=low
 
