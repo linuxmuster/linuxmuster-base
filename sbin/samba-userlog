@@ -1,5 +1,9 @@
 #!/bin/sh
+#
 # logs when users login and logout
+# thomas@linuxmuster.net
+# 25.02.2013
+#
 
 #set -x
 
@@ -22,29 +26,26 @@ usage() {
   exit 1
 }
 
+
 # test parameters
-[[ "$log" != "in" && "$log" != "out" ]] && usage
-[[ -z "$hostname" ]] && usage
-[[ -z "$username" ]] && usage
-[[ -z "$homedir" ]] && usage
+[ "$log" != "in" -a "$log" != "out" ] && usage
+[ -z "$hostname" ] && usage
+[ -z "$username" ] && usage
+[ -z "$homedir" ] && usage
 
-# probably a bug
-# if shares are connected on logout do nothing
-#if [ "$log" = "out" ]; then
-#  if smbstatus -u $username | grep -w $hostname | grep -w ^$username &> /dev/null; then
-#    exit 0
-#  fi
-#fi
-
-
-#  test if hostname is an ip address
+# test if hostname is an ip address
 if validip $hostname; then
   get_hostname $hostname
   [ -n "$RET" ] && hostname=$RET
 fi
 
+# test if username is a hostname (for exams)
+get_hostname $username
+[ -n "$RET" ] && EXAMMODE=yes
+
+
 # test for some dirs if account is not a workstation
-if [[ "$hostname" != "$username" && "$log" = "in" ]]; then
+if [ -z "$EXAMMODE" -a "$log" = "in" ]; then
 
   # check for teacher and domadmin group member
   check_teacher $username && teacher=yes
@@ -55,15 +56,15 @@ if [[ "$hostname" != "$username" && "$log" = "in" ]]; then
   check_empty_dir $homedir/private_html && rm -rf $homedir/private_html
 
   # public_html only for teachers
-  if [[ -n "$teacher" && ! -e "$homedir/public_html" ]]; then
+  if [ -n "$teacher" -a ! -e "$homedir/public_html" ]; then
     mkdir $homedir/public_html
     chown $username:www-data $homedir/public_html
     chmod 2750 $homedir/public_html
   fi
 
   # link to students home for teachers and administrators
-  if [[ -n "$teacher" || -n "$admin" ]]; then
-    if [[ -n "$STUDENTSLINK" && -n "$STUDENTSHOME" && -d "$STUDENTSHOME" ]]; then
+  if [ -n "$teacher" -o -n "$admin" ]; then
+    if [ -n "$STUDENTSLINK" -a -n "$STUDENTSHOME" -a -d "$STUDENTSHOME" ]; then
       [ -e "$homedir/$STUDENTSLINK" ] || ln -s $STUDENTSHOME $homedir/$STUDENTSLINK
     fi
   else
@@ -74,7 +75,7 @@ if [[ "$hostname" != "$username" && "$log" = "in" ]]; then
 
   # link to share dirs for administrator
   if [ -n "$admin" ]; then
-    if [[ -n "$SHARELINK" && -n "$SHAREHOME" && -d "$SHAREHOME" ]]; then
+    if [ -n "$SHARELINK" -a -n "$SHAREHOME" -a -d "$SHAREHOME" ]; then
       [ -e "$homedir/$SHARELINK" ] || ln -s $SHAREHOME $homedir/$SHARELINK
     fi
   else
@@ -85,10 +86,11 @@ if [[ "$hostname" != "$username" && "$log" = "in" ]]; then
 
 fi
 
-# change host password if user is a host
-if [ "$hostname" = "$username" -a "$log" = "in" ]; then
+# change host password if user is a host (more security for exams, see #88)
+if [ -n "$EXAMMODE" -a "$log" = "in" ]; then
  password="$(pwgen -s 8 1)"
- sophomorix-passwd -u "$hostname" --pass "$password" &> /dev/null
+ sophomorix-passwd -u "$username" --pass "$password" &> /dev/null
+ [ "$hostname" != "$username" ] && sophomorix-passwd -u "$hostname" --pass "$password" &> /dev/null
 fi
 
 # check if there are valid logins in cache file
