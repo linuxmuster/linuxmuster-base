@@ -1,3 +1,9 @@
+linuxmuster-base (5.1.0-11lenny1) openml5-stable; urgency=low
+
+  * postinst: removed moodle tweak.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 25 Feb 2013 22:35:00 +0100
+
 linuxmuster-base (5.1.0-11lenny0) openml5-stable; urgency=low
 
   * samba-userlog: changes host account password to random value on exam login (closes #88).
