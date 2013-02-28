@@ -3,7 +3,8 @@
 # linuxmuster-reset-rooms
 # resets the internet, intranet, webfilter, lession state of rooms/hosts
 #
-# tschmitt 20121205
+# thomas@linuxmuster.net
+# 28.02.2013
 # GPL V3
 #
 
@@ -75,9 +76,9 @@ if [ ! -e "$ROOMDEFAULTS" ]; then
 fi
 
 # check for ipcop availability
-if ! exec_ipcop /bin/ls /var/ipcop; then
-	echo "Fatal: IPCop is not available!"
-	exit_script
+if ! test_pwless_fw; then
+ echo "Passwordless connection to firewall is not available!"
+ exit_script
 fi
 
 # start

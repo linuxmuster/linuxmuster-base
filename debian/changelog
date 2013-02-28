@@ -1,3 +1,9 @@
+linuxmuster-base (6.0.30-0ubuntu0) precise; urgency=low
+
+  * linuxmuster-reset: fixed firewall connection test for IPFire (closes #91).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 28 Feb 2013 19:37:18 +0100
+
 linuxmuster-base (6.0.29-0ubuntu0) precise; urgency=low
 
   * samba-userlog: changes host account password to random value on exam login (closes #88).
