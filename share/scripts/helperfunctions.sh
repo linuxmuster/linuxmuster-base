@@ -1,10 +1,8 @@
 # linuxmuster shell helperfunctions
 #
-# Thomas Schmitt
-# <schmitt@lmz-bw.de>
+# thomas@linuxmuster.net
+# 01.03.2013
 # GPL v3
-#
-# $Id: helperfunctions.sh 1287 2012-02-18 13:50:18Z tschmitt $
 #
 
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
@@ -267,6 +265,7 @@ get_hostname() {
    RET=`grep -v ^# $WIMPORTDATA awk -F\; '{ print $4 " " $2 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
   else # assume hostname
    RET=`grep -v ^# $WIMPORTDATA | tr A-Z a-z | awk -F\; '{ print $2 }' | grep -wi ^"$pattern" | head -1` &> /dev/null
+   [ "xxx${RET}xxx" = "xxx${pattern}xxx" ] || RET=""
   fi
   [ -n "$RET" ] && tolower "$RET"
   return 0

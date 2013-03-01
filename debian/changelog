@@ -1,3 +1,9 @@
+linuxmuster-base (5.1.0-12lenny0) openml5-stable; urgency=low
+
+  * helperfunctions.sh, get_hostname(): improved hostname recognition.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 1 Mar 2013 20:14:00 +0100
+
 linuxmuster-base (5.1.0-11lenny1) openml5-stable; urgency=low
 
   * postinst: removed moodle tweak.
