@@ -1,8 +1,14 @@
+linuxmuster-base (6.0.31-1ubuntu0) precise; urgency=low
+
+  * rebuild.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 02 Mar 2013 13:41:49 +0100
+
 linuxmuster-base (6.0.31-0ubuntu0) precise; urgency=low
 
   * helperfunctions.sh, get_hostname(): improved hostname recognition.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 02 Mar 2013 13:12:12 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 02 Mar 2013 13:35:18 +0100
 
 linuxmuster-base (6.0.30-0ubuntu0) precise; urgency=low
 
