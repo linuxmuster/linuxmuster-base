@@ -1,3 +1,9 @@
+linuxmuster-base (5.1.0-13lenny0) openml5-stable; urgency=low
+
+  * helperfunctions.sh, get_hostname(): improved hostname recognition again (closes #93).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 2 Mar 2013 13:58:00 +0100
+
 linuxmuster-base (5.1.0-12lenny0) openml5-stable; urgency=low
 
   * helperfunctions.sh, get_hostname(): improved hostname recognition.
