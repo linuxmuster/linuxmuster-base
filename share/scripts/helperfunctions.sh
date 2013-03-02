@@ -1,7 +1,7 @@
 # linuxmuster shell helperfunctions
 #
 # thomas@linuxmuster.net
-# 23.01.2013
+# 02.03.2013
 # GPL v3
 #
 
@@ -255,7 +255,17 @@ get_hostname() {
   elif validmac "$pattern"; then
    RET=`grep -v ^# $WIMPORTDATA awk -F\; '{ print $4 " " $2 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
   else # assume hostname
-   RET=`grep -v ^# $WIMPORTDATA | tr A-Z a-z | awk -F\; '{ print $2 }' | grep -wi ^"$pattern" | head -1` &> /dev/null
+   local result=`grep -v ^# $WIMPORTDATA | tr A-Z a-z | awk -F\; '{ print $2 }' | grep -wi ^"$pattern"` &> /dev/null
+   local i
+   # iterate over results, get exact match
+   for i in $result; do
+    if [ "xxx${i}xxx" = "xxx${pattern}xxx" ]; then
+     RET="$i"
+     break
+    else
+     RET=""
+    fi
+   done
   fi
   [ -n "$RET" ] && tolower "$RET"
   return 0
