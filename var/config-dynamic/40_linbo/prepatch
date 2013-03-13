@@ -1,8 +1,9 @@
-# $Id: prepatch 1334 2012-07-20 12:03:39Z tschmitt $
+# thomas@linuxmuster.net
+# 13.03.2012
 
 echo "### 40_linbo prepatch"
 
-dpkg-reconfigure linuxmuster-linbo
+#dpkg-reconfigure linuxmuster-linbo
 
 # stuff to do on first time install
 if [ "$1" = "--first" ]; then

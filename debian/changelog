@@ -1,3 +1,9 @@
+linuxmuster-base (6.0.32-0ubuntu0) precise; urgency=low
+
+  * linuxmuster-setup: fixed missing /etc/rsyncd.conf after first install.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 13 Mar 2013 21:48:05 +0100
+
 linuxmuster-base (6.0.31-1ubuntu0) precise; urgency=low
 
   * rebuild.

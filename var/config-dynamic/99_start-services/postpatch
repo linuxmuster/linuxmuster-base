@@ -1,6 +1,6 @@
 #
 # thomas@linuxmuster.net
-# 21.01.2013
+# 13.03.2013
 # GPL v3
 #
 
@@ -78,11 +78,6 @@ for i in $pkgs; do
  dpkg-reconfigure linuxmuster-$i
 done
 
-# repair linbo stuff
-status tftpd-hpa | grep -q start && stop tftpd-hpa
-start tftpd-hpa
-/etc/init.d/rsync restart
-
 # apply workstation data if internal net has changed
 if [ "$1" = "--modify" -a "$internsub" != "$internsub_old" ]; then
  backup_file $WIMPORTDATA
@@ -96,3 +91,10 @@ if [ "$1" = "--modify" -a "$internsub" != "$internsub_old" ]; then
  import_workstations
  import_printers
 fi
+
+# repair linbo stuff finally
+[ -s /etc/rsyncd.conf ] || dpkg-reconfigure linuxmuster-linbo
+status tftpd-hpa | grep -q start && stop tftpd-hpa
+start tftpd-hpa
+/etc/init.d/rsync restart
+
