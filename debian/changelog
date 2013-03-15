@@ -1,3 +1,9 @@
+linuxmuster-base (6.0.33-0ubuntu0) precise; urgency=low
+
+  * linuxmuster-setup: fixed cups configuration (closes #101).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 15 Mar 2013 18:30:38 +0100
+
 linuxmuster-base (6.0.32-0ubuntu0) precise; urgency=low
 
   * linuxmuster-setup: fixed missing /etc/rsyncd.conf after first install.

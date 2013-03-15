@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 19.02.2013
+# 15.03.2013
 # GPL v3
 #
 
@@ -328,6 +328,19 @@ ipcop IN A $serverip" -i $conf
     
   # repair permissions for horde log dir (closes #82)
   [ -e /var/log/horde ] && chown www-data:www-data /var/log/horde -R
+  
+  # fix cups configuration (closes #101)
+  searchstr="# 15.03.2013"
+  for i in cupsd.conf cups-files.conf; do
+   conf="/etc/cups/$i"
+   tpl="${STATICTPLDIR}${conf}"
+   if ! grep -q "$searchstr" "$conf"; then
+    echo "Fixing $i ..."
+    cp "$conf" "${conf}.dpkg-bak"
+    cp "$tpl" "$conf"
+    cups_reload=yes
+   fi
+  done
 
   # rename old shit
   conf_old=/etc/php5/conf.d/paedml.ini
@@ -344,6 +357,7 @@ ipcop IN A $serverip" -i $conf
   apache2ctl graceful || true
   reload smbd || true
   reload nmbd || true
+  [ -n "$cups_reload" ] && reload cups
   [ -n "$nagios_reload" ] && /etc/init.d/nagios3 restart
   [ -n "$bind_reload" ] && /etc/init.d/bind9 force-reload
   [ -n "$dhcp_reload" ] && restart isc-dhcp-server

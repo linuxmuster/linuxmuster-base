@@ -1,9 +1,11 @@
-# $Id: postpatch 1223 2012-01-16 19:42:26Z tschmitt $
+# thomas@linuxmuster.net
+# 15.03.2013
+#
 
 echo "### 34_cups postpatch"
 
 # start service
-/etc/init.d/cups start
+start cups
 
 # installing postscript pdf printer driver
 if ! grep -q PDF-Printer /etc/cups/printers.conf; then
