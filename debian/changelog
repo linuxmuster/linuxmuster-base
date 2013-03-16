@@ -1,3 +1,12 @@
+linuxmuster-base (6.0.34-0ubuntu0) precise; urgency=low
+
+  * fixed horde/ingo's sieve configuration (closes #102).
+  * fixed altnamespace in imapd.conf to enable creation of user folders in inbox
+    (rejects spam filter activation, see also #102).
+  * added german manpage for workstations file (thanks to Jörg Richter, closes #44)
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 16 Mar 2013 14:11:10 +0100
+
 linuxmuster-base (6.0.33-0ubuntu0) precise; urgency=low
 
   * linuxmuster-setup: fixed cups configuration (closes #101).

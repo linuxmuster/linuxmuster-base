@@ -342,6 +342,29 @@ ipcop IN A $serverip" -i $conf
    fi
   done
 
+  # fix horde/ingo's sieve configuration (closes #102)
+  searchstr="/* 16.03.2013"
+  conf="/etc/horde/ingo1/backends.php"
+  if ! grep -q "$searchstr" "$conf"; then
+   echo "Fixing horde/ingo's sieve configuration ..."
+   cp "$conf" "${conf}.dpkg-bak"
+   tpl="${STATICTPLDIR}${conf}"
+   cp "$tpl" "$conf"
+   chown root:www-data "$conf"
+   chmod 440 "$conf"
+  fi
+
+  # fix altnamespace in imapd.conf (see #102)
+  searchstr="# 16.03.2013"
+  conf="/etc/imapd.conf"
+  if ! grep -q "$searchstr" "$conf"; then
+   echo "Fixing altnamespace in imapd.conf ..."
+   cp "$conf" "${conf}.dpkg-bak"
+   tpl="${STATICTPLDIR}${conf}"
+   cp "$tpl" "$conf"
+   cyrus_reload=yes
+  fi
+
   # rename old shit
   conf_old=/etc/php5/conf.d/paedml.ini
   if [ -e "$conf_old" ]; then
@@ -358,6 +381,7 @@ ipcop IN A $serverip" -i $conf
   reload smbd || true
   reload nmbd || true
   [ -n "$cups_reload" ] && reload cups
+  [ -n "$cyrus_reload" ] && /etc/init.d/cyrus-imapd reload
   [ -n "$nagios_reload" ] && /etc/init.d/nagios3 restart
   [ -n "$bind_reload" ] && /etc/init.d/bind9 force-reload
   [ -n "$dhcp_reload" ] && restart isc-dhcp-server

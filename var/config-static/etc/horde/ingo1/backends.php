@@ -35,7 +35,8 @@
  *               Ingo_Script driver needs.
  */
 
-/* Sieve Example */
+/* Sieve configuration for linuxmuster.net */
+/* 16.03.2013 thomas@linuxmuster.net */
 $backends['sieve'] = array(
     'driver' => 'timsieved',
     'preferred' => 'localhost',
@@ -46,7 +47,7 @@ $backends['sieve'] = array(
         // Login type of the server
         'logintype' => 'PLAIN',
         // Port number of the timsieved server
-        'port' => 2000,
+        'port' => 4190,
         // Name of the sieve script
         'scriptname' => 'ingo',
         // The following settings can be used to specify an administration
