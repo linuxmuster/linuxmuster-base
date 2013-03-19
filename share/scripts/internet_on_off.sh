@@ -3,7 +3,7 @@
 # blocking web access on firewall
 #
 # thomas@linuxmuster.net
-# 18.02.2013
+# 19.03.2013
 # GPL v3
 #
 
@@ -27,7 +27,7 @@ usage() {
   echo "Usage: internet_on_off.sh --trigger=<on|off>"
   echo "                          --maclist=<mac1,mac2,...,macn>"
   echo "                          --hostlist=<host1,host2,...,hostn>"
-  echo "                          --help>"
+  echo "                          --help"
   echo
   echo "  trigger:  trigger on or off"
   echo "  maclist:  comma separated list of mac addresses"
