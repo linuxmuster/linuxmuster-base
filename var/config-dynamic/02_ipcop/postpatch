@@ -1,6 +1,6 @@
 #
 # thomas@linuxmuster.net
-# 21.01.2013
+# 19.03.2013
 # GPL v3
 #
 
@@ -13,7 +13,13 @@ case $fwconfig in
  
  ipfire)
  
-  [ "$1" = "--first" -o -n "$update_fwconfig" ] && /usr/share/linuxmuster-ipfire/setup.sh --first "$ipcoppw"
+  if [ "$1" = "--first" -o -n "$update_fwconfig" ]; then
+   if [ -x /usr/sbin/linuxmuster-ipfire ]; then
+    /usr/sbin/linuxmuster-ipfire --setup --first --password="$ipcoppw"
+   else
+    /usr/share/linuxmuster-ipfire/setup.sh --first "$ipcoppw"
+   fi
+  fi
  
  ;;
   

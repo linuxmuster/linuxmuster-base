@@ -1,3 +1,9 @@
+linuxmuster-base (6.1.0-0ubuntu0) precise; urgency=low
+
+  * linuxmuster-setup, firewall setup: added modifications due to linuxmuster-ipfire >=1.1.0.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 19 Mar 2013 18:14:10 +0100
+
 linuxmuster-base (6.0.34-0ubuntu0) precise; urgency=low
 
   * fixed horde/ingo's sieve configuration (closes #102).
