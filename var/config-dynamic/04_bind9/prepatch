@@ -13,23 +13,10 @@ if [ "$1" = "--modify" ]; then
   mv $i $i.nopatch
  done
 
- # do patching for extern name if it is used for the first time
- if [ -z "$serverexternname_old" && -n "$serverexternname" ]; then
-
-  mv named.conf.extern.target.nopatch named.conf.extern.target
-  mv db.extern.target.nopatch db.extern.target
-
- elif [ "$serverexternname" = "$servername.$domainname" ]; then
-
-  [ -e /etc/bind/named.conf.extern ] && backup_file /etc/bind/named.conf.extern
-  rm -f /etc/bind/named.conf.extern
-  [ -e /etc/bind/db.extern ] && backup_file /etc/bind/db.extern
-  rm -f /etc/bind/db.extern
-
- elif [ "$serverexternname" != "$serverexternname_old" ]; then
+ if [ "$serverexternname" != "$serverexternname_old" ]; then
 
   backup_file /etc/bind/named.conf.extern
-  sed -e "s/$serverexternname_old./$serverexternname./g" -i /etc/bind/named.conf.extern
+  sed -e "s/^zone \"$dserverexternname_old.*/zone \"$serverexternname.\" \{/" -i /etc/bind/named.conf.extern
   backup_file /etc/bind/db.extern
   sed -e "s/$serverexternname_old./$serverexternname./g" -i /etc/bind/db.extern
 
