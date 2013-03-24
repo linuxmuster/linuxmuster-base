@@ -24,6 +24,8 @@ if [ "$1" = "--modify" ]; then
   else
     sed -e "s/^zone \"$dserverexternname_old.*/zone \"$serverexternname.\" \{/" -i /etc/bind/named.conf.extern
     sed -e "s/$serverexternname_old./$serverexternname./g" -i /etc/bind/db.extern
+  fi
+  
  fi
 
  if [ "$servername" != "$servername_old" -o "$domainname" != "$domainname_old" ]; then
