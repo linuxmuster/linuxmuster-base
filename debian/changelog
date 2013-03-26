@@ -4,6 +4,12 @@ linuxmuster-base (6.1.0-0ubuntu0) precise; urgency=low
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 19 Mar 2013 18:14:10 +0100
 
+linuxmuster-base (6.0.35-0ubuntu0) precise; urgency=low
+
+  * added fix for #110 from fschuett (closes #110, http://www.linuxmuster.net/trac/ticket/110).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 26 Mar 2013 16:11:13 +0100
+
 linuxmuster-base (6.0.34-0ubuntu0) precise; urgency=low
 
   * fixed horde/ingo's sieve configuration (closes #102).
