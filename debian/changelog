@@ -1,6 +1,7 @@
 linuxmuster-base (6.0.35-0ubuntu0) precise; urgency=low
 
   * added fix for #110 from fschuett (closes #110, http://www.linuxmuster.net/trac/ticket/110).
+  * removed nagios configuration from linuxmuster-setup (moved to linuxmuster-nagios-base package).
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 26 Mar 2013 16:11:13 +0100
 
