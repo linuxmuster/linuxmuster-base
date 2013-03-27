@@ -12,5 +12,5 @@ $TTL 7200       ; 2 hours
 
 $ORIGIN @@domainname@@.
 @@servername@@ IN A @@serverip@@
-ipfire IN A @@ipcopip@@
-ipcop IN A @@ipcopip@@
+@@fwconfig@@ IN A @@ipcopip@@
+

@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 15.03.2013
+# 27.03.2013
 # GPL v3
 #
 
@@ -284,20 +284,21 @@ EOF
     sed -e "s|\tallow-query.*|\t$searchstr|" -i $conf
     bind_reload=yes
   fi
-  # keep ipcop's hostname resolvable for nagios checks (see #81)
-  if [ "$fwconfig" = "ipfire" ]; then
-   conf=/etc/bind/db.linuxmuster
-   if ! grep -q ^ipcop $conf; then
-    if [ -z "$bind_reload" ]; then
-     echo "Backing up $conf to $conf.dpkg-bak."
-     cp $conf $conf.dpkg-bak
-    fi
-    # add hostname ipcop
-    echo "Making hostname ipcop resolvable for nagios checks (see #81)."
-    sed -e "/^ipfire/a\
-ipcop IN A $serverip" -i $conf
-    bind_reload=yes
-   fi
+  # fix firewall hostname resolution for nagios checks (see #81)
+  case "$fwconfig" in
+   "ipfire") searchstr="ipcop"
+    ;;
+   "ipcop") searchstr="ipfire"
+    ;;
+    *) ;;
+  esac
+  conf=/etc/bind/db.linuxmuster
+  if grep -q ^"$searchstr" "$conf"; then
+   echo "Backing up $conf to $conf.dpkg-bak."
+   cp $conf $conf.dpkg-bak
+   echo "Removing $searchstr from $conf."
+   sed -e "/^$searchstr/d" -i $conf
+   bind_reload=yes
   fi
   
   # update turba's sources.php (closes #83)
