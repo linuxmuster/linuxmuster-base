@@ -1,7 +1,7 @@
 Source: linuxmuster-base
 Section: debian-linuxmuster
 Priority: optional
-Maintainer: Thomas Schmitt <tschmitt@linuxmuster.de>
+Maintainer: Thomas Schmitt <thomas@linuxmuster.net>
 Build-Depends: debhelper (>= 4.0.0)
 Standards-Version: 3.6.0
 
