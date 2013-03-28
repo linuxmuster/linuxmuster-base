@@ -1,8 +1,9 @@
-linuxmuster-base (6.1.0-0ubuntu0) precise; urgency=low
+linuxmuster-base (6.0.35-1ubuntu0) precise; urgency=low
 
-  * linuxmuster-setup, firewall setup: added modifications due to linuxmuster-ipfire >=1.1.0.
+  * fixed cups restart in example script restart_printer_queues.sh.
+  * merged devel branch: support for linuxmuster-ipfire >=1.1.0 in linuxmuster-setup.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 19 Mar 2013 18:14:10 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 28 Mar 2013 09:35:14 +0100
 
 linuxmuster-base (6.0.35-0ubuntu0) precise; urgency=low
 

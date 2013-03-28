@@ -2,8 +2,9 @@
 #
 # Restarting all printer queues
 #
-# Thomas Schmitt <tschmitt@linuxmuster.de>
-# 19.04.2010
+# thomas@linuxmuster.net
+# 28.03.2013
+#
 
 LPSTAT=/usr/bin/lpstat
 AWK=/usr/bin/awk
@@ -13,10 +14,8 @@ CANCEL=/usr/bin/cancel
 REJECT=/usr/sbin/cupsreject
 ACCEPT=/usr/sbin/cupsaccept
 ENABLE=/usr/sbin/cupsenable
-INIT=/etc/init.d/cups
 
-$INIT stop
-$INIT start
+restart cups
 
 for i in `$LPSTAT -p | $AWK '{ print $2 }'`; do
 
