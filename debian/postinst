@@ -300,7 +300,7 @@ EOF
    sed -e "/^$searchstr/d" -i $conf
    bind_reload=yes
   fi
-  
+
   # update turba's sources.php (closes #83)
   tpl="$DYNTPLDIR/21_horde3/turba2.sources.php"
   conf="$(cat $tpl.target)"
