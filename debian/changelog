@@ -1,3 +1,10 @@
+linuxmuster-base (6.0.35-1ubuntu0) precise; urgency=low
+
+  * fixed cups restart in example script restart_printer_queues.sh.
+  * merged devel branch: support for linuxmuster-ipfire >=1.1.0 in linuxmuster-setup.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 28 Mar 2013 09:35:14 +0100
+
 linuxmuster-base (6.0.35-0ubuntu0) precise; urgency=low
 
   * added fix for #110 from fschuett (closes #110, http://www.linuxmuster.net/trac/ticket/110).
