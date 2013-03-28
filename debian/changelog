@@ -1,3 +1,9 @@
+linuxmuster-base (6.0.35-2ubuntu0) precise; urgency=low
+
+  * postinst: fixes cups upstart config (closes #112).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 28 Mar 2013 19:46:19 +0100
+
 linuxmuster-base (6.0.35-1ubuntu0) precise; urgency=low
 
   * fixed cups restart in example script restart_printer_queues.sh.
