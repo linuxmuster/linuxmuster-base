@@ -2,7 +2,7 @@
 #
 # logs when users login and logout
 # thomas@linuxmuster.net
-# 25.02.2013
+# 16.04.2013
 #
 
 #set -x
@@ -87,7 +87,7 @@ fi
 
 # change host password if user is a host (more security for exams, see #88)
 if [ -n "$EXAMMODE" -a "$log" = "in" ]; then
- password="$(pwgen -s 8 1)"
+ password="$(pwgen -s 24 1)"
  sophomorix-passwd -u "$username" --pass "$password" &> /dev/null
  [ "$hostname" != "$username" ] && sophomorix-passwd -u "$hostname" --pass "$password" &> /dev/null
 fi

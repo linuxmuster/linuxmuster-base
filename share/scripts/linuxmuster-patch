@@ -2,7 +2,7 @@
 # config script for linuxmuster.net
 #
 # thomas@linuxmuster.net
-# 21.01.2013
+# 16.04.2013
 # GPL v3
 #
 
@@ -185,7 +185,7 @@ if [ "$1" = "--first" ]; then
   rm -rf $BACKUPDIR/*
  fi
  # set a ldap admin password
- ldapadminpw=`pwgen -s 8 1`
+ ldapadminpw=`pwgen -s 24 1`
  echo -n $ldapadminpw > /etc/ldap.secret
  chmod 600 /etc/ldap.secret
 else

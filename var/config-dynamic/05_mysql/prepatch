@@ -1,4 +1,9 @@
-# $Id: prepatch 1223 2012-01-16 19:42:26Z tschmitt $
+# sets mysql root pw and horde dbs
+#
+# <thomas@linuxmuster.net>
+# 16.04.2013
+# GPL v3
+#
 
 echo "### 05_mysql prepatch"
 
@@ -10,7 +15,7 @@ if [ "$1" = "--first" ]; then
 
   if [ ! -f /root/.my.cnf ]; then
     echo "Creating /root/.my.cnf ..."
-    myrootpw=`pwgen -s 8 1`
+    myrootpw=`pwgen -s 24 1`
     mysqladmin -u root password $myrootpw
     echo "[client]" > /root/.my.cnf
     echo "user            = root" >> /root/.my.cnf

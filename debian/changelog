@@ -1,3 +1,11 @@
+linuxmuster-base (6.0.36-0ubuntu0) precise; urgency=low
+
+  * restart_printer_queues.sh: fixed get printer names from printers.conf.
+  * linuxmuster-setup: creates system user passwords with 24 chars (closes #75).
+  * new script set_random_passwords.sh to create new system users passwords with 24 chars.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 16 Apr 2013 21:59:27 +0200
+
 linuxmuster-base (6.0.35-2ubuntu0) precise; urgency=low
 
   * postinst: fixes cups upstart config (closes #112).
