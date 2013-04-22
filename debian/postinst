@@ -304,7 +304,7 @@ EOF
   # update turba's sources.php (closes #83)
   tpl="$DYNTPLDIR/21_horde3/turba2.sources.php"
   conf="$(cat $tpl.target)"
-  searchstr="* 18.02.2013"
+  searchstr="* 22.04.2013"
   if ! grep -q "$searchstr" $conf; then
    echo "Backing up $conf to $conf.dpkg-bak."
    cp $conf $conf.dpkg-bak

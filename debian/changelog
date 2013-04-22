@@ -1,3 +1,9 @@
+linuxmuster-base (6.0.37-0ubuntu0) precise; urgency=low
+
+  * horde, turba: fix sources.php syntax (closes #83 finally).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 22 Apr 2013 20:38:53 +0200
+
 linuxmuster-base (6.0.36-0ubuntu0) precise; urgency=low
 
   * restart_printer_queues.sh: fixed get printer names from printers.conf.

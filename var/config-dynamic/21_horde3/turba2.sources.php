@@ -3,7 +3,7 @@
 /**
  * linuxmuster.net configuration for turba
  * thomas@linuxmuster.net
- * 18.02.2013
+ * 22.04.2013
  */
  
 /**
@@ -18,30 +18,98 @@
 $cfgSources['localsql'] = array(
     'title' => _("Mein Adressbuch"),
     'type' => 'sql',
-    // The default connection details are pulled from the Horde-wide
-    // SQL connection configuration.
-    'params' => array_merge($conf['sql'], array('table' => 'turba_objects')),
+    // The default connection details are pulled from the Horde-wide SQL
+    // connection configuration.
+    'params' => array_merge($GLOBALS['conf']['sql'], array('table' => 'turba_objects')),
+    // Using two tables as datasource.
+    // 'params' => array_merge($GLOBALS['conf']['sql'],
+    //                         array('table' => 'leaddetails LEFT JOIN leadaddress ON leaddetails.leadid = leadaddress.leadaddressid',
+    //                               'filter' => 'leaddetails.converted = 0')),
     'map' => array(
         '__key' => 'object_id',
         '__owner' => 'owner_id',
         '__type' => 'object_type',
         '__members' => 'object_members',
         '__uid' => 'object_uid',
-        'name' => 'object_name',
-        'email' => 'object_email',
+        'firstname' => 'object_firstname',
+        'lastname' => 'object_lastname',
+        'middlenames' => 'object_middlenames',
+        'namePrefix' => 'object_nameprefix',
+        'nameSuffix' => 'object_namesuffix',
+        'name' => array('fields' => array('namePrefix', 'firstname',
+                                          'middlenames', 'lastname',
+                                          'nameSuffix'),
+                        'format' => '%s %s %s %s %s',
+                        'parse' => array(
+                            array('fields' => array('firstname', 'middlenames',
+                                                    'lastname'),
+                                  'format' => '%s %s %s'),
+                            array('fields' => array('firstname', 'lastname'),
+                                  'format' => '%s %s'))),
+        // This is a shorter version of a "name" composite field which only
+        // consists of the first name and last name.
+        // 'name' => array('fields' => array('firstname', 'lastname'),
+        //                 'format' => '%s %s'),
         'alias' => 'object_alias',
-        'homeAddress' => 'object_homeaddress',
-        'workAddress' => 'object_workaddress',
+        'birthday' => 'object_bday',
+        // The photo field requires at least Horde 3.3 and a matching type
+        // field.
+        // 'photo' => 'object_photo',
+        // 'phototype' => 'object_phototype',
+        'homeStreet' => 'object_homestreet',
+        'homePOBox' => 'object_homepob',
+        'homeCity' => 'object_homecity',
+        'homeProvince' => 'object_homeprovince',
+        'homePostalCode' => 'object_homepostalcode',
+        'homeCountry' => 'object_homecountry',
+        // This is an example composite field for addresses, so you can display
+        // the various map links. If you use this, be sure to add 'homeAddress'
+        // to the 'tabs' parameter below.
+        // 'homeAddress' => array('fields' => array('homeStreet', 'homeCity',
+        //                                          'homeProvince',
+        //                                          'homePostalCode'),
+        //                        'format' => "%s \n %s, %s  %s"),
+        'workStreet' => 'object_workstreet',
+        'workPOBox' => 'object_workpob',
+        'workCity' => 'object_workcity',
+        'workProvince' => 'object_workprovince',
+        'workPostalCode' => 'object_workpostalcode',
+        'workCountry' => 'object_workcountry',
+        'timezone' => 'object_tz',
+        'email' => 'object_email',
         'homePhone' => 'object_homephone',
         'workPhone' => 'object_workphone',
         'cellPhone' => 'object_cellphone',
         'fax' => 'object_fax',
+        'pager' => 'object_pager',
         'title' => 'object_title',
+        'role' => 'object_role',
         'company' => 'object_company',
+        // The logo field requires at least Horde 3.3 and a matching type
+        // field.
+        // 'logo' => 'object_logo',
+        // 'logotype' => 'object_logotype',
+        'category' => 'object_category',
         'notes' => 'object_notes',
+        'website' => 'object_url',
+        'freebusyUrl' => 'object_freebusyurl',
         'pgpPublicKey' => 'object_pgppublickey',
         'smimePublicKey' => 'object_smimepublickey',
-        'freebusyUrl' => 'object_freebusyurl'
+    ),
+    'tabs' => array(
+        _("Personal") => array('firstname', 'lastname', 'middlenames',
+                               'namePrefix', 'nameSuffix', 'name', 'alias',
+                               'birthday', 'photo'),
+        _("Location") => array('homeStreet', 'homePOBox', 'homeCity',
+                               'homeProvince', 'homePostalCode', 'homeCountry',
+                               'workStreet', 'workPOBox', 'workCity',
+                               'workProvince', 'workPostalCode', 'workCountry',
+                               'timezone'),
+        _("Communications") => array('email', 'homePhone', 'workPhone',
+                                     'cellPhone', 'fax', 'pager'),
+        _("Organization") => array('title', 'role', 'company', 'logo'),
+        _("Other") => array('category', 'notes', 'website', 'freebusyUrl',
+                            'pgpPublicKey', 'smimePublicKey'),
     ),
     'search' => array(
         'name',
@@ -52,11 +120,11 @@ $cfgSources['localsql'] = array(
         'owner_id',
         'object_type',
     ),
-    'public' => false,
-    'readonly' => false,
-    'admin' => array(),
     'export' => true,
-    'browse' => true
+    'browse' => true,
+    'use_shares' => true,
+    'list_name_field' => 'lastname',
+    'alternative_name' => 'company',
 );
 
 /**
