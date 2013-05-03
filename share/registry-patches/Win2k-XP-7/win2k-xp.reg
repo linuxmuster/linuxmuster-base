@@ -1,8 +1,0 @@
-Windows Registry Editor Version 5.00
-
-[HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Netlogon\Parameters\]
-"MaximumPasswordAge"=dword:000F4240
-"RefusePasswordChange"=dword:00000001
-"DisablePasswordChange"=dword:00000001
-"requiresignorseal"=dword:00000000
-

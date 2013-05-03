@@ -1,3 +1,13 @@
+linuxmuster-base (6.0.38-0ubuntu0) precise; urgency=low
+
+  * removed registry-patches which were moved to linbo package a long time ago.
+  * postinst: removes stale obsolete registry-patches link from administrators home.
+  * samba-userlog:
+    - removed obsolete link creation in admin's and teacher's homes (due to #135).
+    - exports additionally REALNAME, PGROUP and IP to prexec and postexec hook scripts.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 03 May 2013 17:52:50 +0200
+
 linuxmuster-base (6.0.37-0ubuntu0) precise; urgency=low
 
   * horde, turba: fix sources.php syntax (closes #83 finally).

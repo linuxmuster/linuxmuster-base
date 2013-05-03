@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 28.03.2013
+# 03.05.2013
 # GPL v3
 #
 
@@ -151,7 +151,10 @@ case "$1" in
    echo "after you have fixed this issue."
    exit 0
   fi
-
+  
+  # remove stale obsolete registry-patches link in administrator's home
+  find "$ADMINSHOME/$ADMINISTRATOR" -xtype l -name registry-patches -exec rm '{}' \;
+  
   # messages for config file headers
   message1="Do not change this file! It will be overwritten!"
   message2="This configuration file was automatically created by linuxmuster-base!"
@@ -223,12 +226,6 @@ case "$1" in
   chown $ADMINISTRATOR:$DOMADMINS $SAMBAHOME
   chown $ADMINISTRATOR:$DOMADMINS $SAMBAHOME/*
   chmod 775 $SAMBAHOME/*
-
-  # linking registry-patches to administrator's home (1.2-15)
-  if [ ! -e "$ADMINSHOME/$ADMINISTRATOR/registry-patches" ]; then
-   echo "Linking registry-patches to administrator's home ..."
-   ln -sf /usr/share/linuxmuster/registry-patches $ADMINSHOME/$ADMINISTRATOR/registry-patches
-  fi
 
   # linbo administrative user
   if ps ax | grep -v grep | grep -q slapd && ps ax | grep -v grep | grep -q postgresql; then
