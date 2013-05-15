@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 03.05.2013
+# 15.05.2013
 # GPL v3
 #
 
@@ -376,6 +376,21 @@ EOF
    conf=/etc/php5/conf.d/linuxmuster.ini
    mv "$conf_old" "$conf"
   fi
+  
+  # convert macs to ips for ip based internal firewall
+  searchstr="$(head -1 $BLOCKEDHOSTSINTRANET)"
+  if validmac "$searchstr"; then
+   echo "Converting blocked mac addresses to ips because internal firewall has changed."
+   macs="$(cat $BLOCKEDHOSTSINTRANET)"
+   rm $BLOCKEDHOSTSINTRANET
+   touch $BLOCKEDHOSTSINTRANET
+   for i in $macs; do
+    validmac "$i" || continue
+    get_ip "$i"
+    echo "$RET" >> $BLOCKEDHOSTSINTRANET
+   done
+   fwint_reload=yes
+  fi
 
   # updating release information
   echo "$DISTNAME $DISTFULLVERSION / Codename $CODENAME" > /etc/issue
@@ -392,6 +407,7 @@ EOF
   [ -n "$dhcp_reload" ] && restart isc-dhcp-server
   [ -n "$slapd_reload" ] && /etc/init.d/slapd restart
   [ -n "$postgres_reload" ] && /etc/init.d/postgresql reload
+  [ -n "$fwint_reload" ] && /etc/init.d/linuxmuster-base reload
 
   # notify if upgrade is necessary
   if [ -n "$upgrade" ]; then
