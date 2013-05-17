@@ -3,7 +3,7 @@
 # blocking intranet access
 #
 # thomas@linuxmuster.net
-# 23.01.2013
+# 17.05.2013
 # GPL v3
 #
 
@@ -35,7 +35,7 @@ usage() {
   echo
   echo "  trigger:  trigger on or off"
   echo "  maclist:  comma separated list of mac addresses"
-  echo "  hostlist: comma separated list of hostnames"
+  echo "  hostlist: comma separated list of hostnames or ip adresses"
   echo
   exit 1
 }
@@ -43,47 +43,51 @@ usage() {
 # test parameters
 [ "$trigger" != "on" -a "$trigger" != "off" ] && usage
 [ -z "$maclist" -a -z "$hostlist" ] && usage
+[ -n "$maclist" -a -n "$hostlist" ] && usage
 
 # check if task is locked
 checklock || exit 1
 
-# test valid macaddresses, change hosts to macs
-[ -z "$maclist" ] && maclist="$hostlist"
-MACS_TO_PROCESS="$(test_maclist "$maclist")"
-[ -n "$MACS_TO_PROCESS" ] || cancel "Maclist contains no valid macaddresses!"
+# create a list of ip addresses
+for i in ${maclist//,/ } ${hostlist//,/ }; do
+ if validip $i; then
+  IPS_TO_PROCESS="$IPS_TO_PROCESS $i"
+ else
+  get_ip $i
+  validip $RET && IPS_TO_PROCESS="$IPS_TO_PROCESS $RET"
+ fi
+done
+strip_spaces "$IPS_TO_PROCESS"
+if [ -n "$RET" ]; then
+ IPS_TO_PROCESS="$RET"
+else
+ cancel "No valid ip addresses!"
+fi
 
-# create a blocked hosts file
+# create a blocked hosts file if not there
 if [ ! -e "$BLOCKEDHOSTSINTRANET" ]; then
  touch $BLOCKEDHOSTSINTRANET || cancel "Cannot create $BLOCKEDHOSTSINTRANET!"
 fi
 
-# get blocked macs
-BLOCKED_MACS="$(cat $BLOCKEDHOSTSINTRANET)"
+# test for writability
+[ -w "$BLOCKEDHOSTSINTRANET" ] || cancel "Cannot write to $BLOCKEDHOSTSINTRANET!"
 
-# save blocked hosts file
-cp $BLOCKEDHOSTSINTRANET $BLOCKEDHOSTSINTRANET.new || cancel "Cannot create $BLOCKEDHOSTSINTRANET.new!"
+# iterate over commandline given ips and write ips not already in blocked hosts file
+for i in $IPS_TO_PROCESS; do
 
-# add macs to blocked hosts file
-if [ "$trigger" = "off" ]; then
+ # add ips to blocked hosts file
+ if [ "$trigger" = "off" ]; then
 
- # iterate over commandline given macs and write macs not already in blocked hosts file
- for m in $MACS_TO_PROCESS; do
-  stringinstring "$m" "$BLOCKED_MACS" && continue
-  echo "$m" >> $BLOCKEDHOSTSINTRANET.new
- done
+  grep -qw "$i" $BLOCKEDHOSTSINTRANET && continue
+  echo "$i" >> $BLOCKEDHOSTSINTRANET
 
-else # remove macs from blocked hosts file
+ else # remove ips from blocked hosts file
 
- # iterate over macs given on commandline
- for m in $MACS_TO_PROCESS; do
-  # remove mac from file
-  sed "/$m/d" -i $BLOCKEDHOSTSINTRANET.new
- done
+  sed "/^\($i\)$/d" -i $BLOCKEDHOSTSINTRANET
 
-fi
+ fi
 
-# move new file in place
-mv $BLOCKEDHOSTSINTRANET.new $BLOCKEDHOSTSINTRANET || cancel "Cannot write $BLOCKEDHOSTSINTRANET!"
+done
 
 # restart interal firewall
 /etc/init.d/linuxmuster-base restart ; RC="$?"

@@ -14,7 +14,7 @@
 
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 15.05.2013
+# 17.05.2013
 # GPL v3
 #
 
@@ -61,7 +61,7 @@ read_fwdata(){
  # remove orphaned ips from blocked hosts intranet list
  if [ -s "$BLOCKEDHOSTSINTRANET" ]; then
   for i in $(cat $BLOCKEDHOSTSINTRANET); do
-   echo "$IPS" | grep -wq "$i" || sed "/$i/d" -i $BLOCKEDHOSTSINTRANET
+   echo "$IPS" | grep -wq "$i" || sed "/^\($i\)$/d" -i $BLOCKEDHOSTSINTRANET
   done
  fi
 
@@ -71,17 +71,16 @@ read_fwdata(){
  # get unblocked ips
  UNBLOCKED_IPS=""
  if [ -n "$BLOCKED_IPS" ]; then
-  for u in $IPS; do
-   for b in $BLOCKED_IPS; do
-    [ "$u" = "$b" ] && continue
-    if [ -z "$UNBLOCKED_IPS" ]; then
-     UNBLOCKED_IPS="$u"
-    else
-     UNBLOCKED_IPS="$UNBLOCKED_IPS $u"
-    fi
-    break
-   done
+  for i in $IPS; do
+   echo "$BLOCKED_IPS" | grep -wq "$i" && continue
+   if [ -z "$UNBLOCKED_IPS" ]; then
+    UNBLOCKED_IPS="$i"
+   else
+    UNBLOCKED_IPS="$UNBLOCKED_IPS $i"
+   fi
   done
+ else
+  UNBLOCKED_IPS="$IPS"
  fi
 
  # read firewall port definitions
