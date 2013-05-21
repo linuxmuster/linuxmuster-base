@@ -2,7 +2,7 @@
 #
 # logs when users login and logout
 # thomas@linuxmuster.net
-# 25.02.2013
+# 03.05.2013
 #
 
 #set -x
@@ -42,52 +42,20 @@ fi
 get_hostname $username
 [ -n "$RET" ] && EXAMMODE=yes
 
+# get primary group of user
+get_pgroup $username
+export PGROUP=${RET# }
 
-# test for some dirs if account is not a workstation
-if [ -z "$EXAMMODE" -a "$log" = "in" ]; then
-
-  # check for teacher and domadmin group member
-  check_teacher $username && teacher=yes
-  check_admin $username && admin=yes
-
-  # remove obsolete private_html
-  [ -f "$homedir/private_html/.htaccess" ] && rm -f $homedir/private_html/.htaccess
-  check_empty_dir $homedir/private_html && rm -rf $homedir/private_html
-
-  # public_html only for teachers
-  if [ -n "$teacher" -a ! -e "$homedir/public_html" ]; then
-    mkdir $homedir/public_html
-    chown $username:www-data $homedir/public_html
-    chmod 2750 $homedir/public_html
-  fi
-
-  # link to students home for teachers and administrators
-  if [ -n "$teacher" -o -n "$admin" ]; then
-    if [ -n "$STUDENTSLINK" -a -n "$STUDENTSHOME" -a -d "$STUDENTSHOME" ]; then
-      [ -e "$homedir/$STUDENTSLINK" ] || ln -s $STUDENTSHOME $homedir/$STUDENTSLINK
-    fi
-  else
-    if [ -n "$STUDENTSLINK" ]; then
-      [ -L "$homedir/$STUDENTSLINK" ] && rm $homedir/$STUDENTSLINK
-    fi
-  fi
-
-  # link to share dirs for administrator
-  if [ -n "$admin" ]; then
-    if [ -n "$SHARELINK" -a -n "$SHAREHOME" -a -d "$SHAREHOME" ]; then
-      [ -e "$homedir/$SHARELINK" ] || ln -s $SHAREHOME $homedir/$SHARELINK
-    fi
-  else
-    if [ -n "$SHARELINK" ]; then
-      [ -L "$homedir/$SHARELINK" ] && rm $homedir/$SHARELINK
-    fi
-  fi
-
+# test for public_html (teachers only)
+if [ "$log" = "in" -a "$PGROUP" = "$TEACHERSGROUP" -a ! -e "$homedir/public_html" ]; then
+ mkdir $homedir/public_html
+ chown $username:www-data $homedir/public_html
+ chmod 2750 $homedir/public_html
 fi
 
 # change host password if user is a host (more security for exams, see #88)
 if [ -n "$EXAMMODE" -a "$log" = "in" ]; then
- password="$(pwgen -s 8 1)"
+ password="$(pwgen -s 24 1)"
  sophomorix-passwd -u "$username" --pass "$password" &> /dev/null
  [ "$hostname" != "$username" ] && sophomorix-passwd -u "$hostname" --pass "$password" &> /dev/null
 fi
@@ -153,14 +121,12 @@ fi
 
 # log to userlogins
 get_ip $hostname
-ip=$RET
+export IP=$RET
 get_realname $username
-realname=${RET# }
-get_pgroup $username
-pgroup=${RET# }
+export REALNAME=${RET# }
 locker=/tmp/.samba-userlog.lock
 lockfile -l 5 $locker
-echo "$DATETIME: $realname ($username, $pgroup) logs $log $prep $hostname ($ip)" >> $USERLOG
+echo "$DATETIME: $REALNAME ($username, $PGROUP) logs $log $prep $hostname ($IP)" >> $USERLOG
 
 echo "log$log of user $username $prep host $hostname successfully logged!"
 

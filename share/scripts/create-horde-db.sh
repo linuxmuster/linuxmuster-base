@@ -1,4 +1,11 @@
-#!/bin/sh
+#!/bin/bash
+#
+# creates horde database
+#
+# <thomas@linuxmuster.net>
+# 16.04.2013
+# GPL v3
+#
 
 . /usr/share/linuxmuster/config/dist.conf
 . $HELPERFUNCTIONS
@@ -19,7 +26,7 @@ fi
 
 # create a random password
 echo "Creating a new horde database password ..."
-hordepw=`pwgen -s 8 1`
+hordepw=`pwgen -s 24 1`
 
 
 # create user and db

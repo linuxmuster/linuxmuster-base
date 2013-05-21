@@ -1,9 +1,9 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Restarting all printer queues
 #
 # thomas@linuxmuster.net
-# 28.03.2013
+# 04.04.2013
 #
 
 LPSTAT=/usr/bin/lpstat
@@ -14,10 +14,13 @@ CANCEL=/usr/bin/cancel
 REJECT=/usr/sbin/cupsreject
 ACCEPT=/usr/sbin/cupsaccept
 ENABLE=/usr/sbin/cupsenable
+START=/sbin/start
+STOP=/sbin/stop
 
-restart cups
+$STOP cups
+$START cups
 
-for i in `$LPSTAT -p | $AWK '{ print $2 }'`; do
+for i in `$LPSTAT -p | grep ^printer | $AWK '{ print $2 }'`; do
 
     $ECHO "Deactivating printer $i ..."
     $DISABLE -c $i

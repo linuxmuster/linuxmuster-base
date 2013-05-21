@@ -1,5 +1,9 @@
 # linuxmuster.net: ldap configuration script
-# tschmitt 20121022
+#
+# <thomas@linuxmuster.net>
+# 16.04.2013
+# GPL v3
+#
 
 echo "### 15_ldap postpatch"
 
@@ -93,7 +97,7 @@ if [ "$1" = "--first" ]; then
 	#sophomorix-setup-pgldap --new-database
 
 	# new random password for ldap db user
-	ldapdbpw=`pwgen -s 8 1`
+	ldapdbpw=`pwgen -s 24 1`
 
 	# set ldap db password for schulkonsole
 	psql -U postgres -d template1 -qc "ALTER USER ldap WITH PASSWORD '"$ldapdbpw"';"

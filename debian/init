@@ -14,7 +14,7 @@
 
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 25.01.2013
+# 17.05.2013
 # GPL v3
 #
 
@@ -55,27 +55,32 @@ read_fwdata(){
  local proto
  local summary
 
- # get all mac addresses
- MACS="$(grep -v ^# $WIMPORTDATA | awk -F\; '{ print $4 }' | tr a-z A-Z)"
+ # get all ip addresses
+ IPS="$(grep -v ^# $WIMPORTDATA | awk -F\; '{ print $5 }' | tr a-z A-Z)"
  
- # remove orphaned macs from blocked hosts intranet list
+ # remove orphaned ips from blocked hosts intranet list
  if [ -s "$BLOCKEDHOSTSINTRANET" ]; then
-  for m in $(cat $BLOCKEDHOSTSINTRANET); do
-   stringinstring "$m" "$MACS" || sed "/$m/d" -i $BLOCKEDHOSTSINTRANET
+  for i in $(cat $BLOCKEDHOSTSINTRANET); do
+   echo "$IPS" | grep -wq "$i" || sed "/^\($i\)$/d" -i $BLOCKEDHOSTSINTRANET
   done
  fi
 
- # get blocked macs
- BLOCKED_MACS="$(cat $BLOCKEDHOSTSINTRANET)"
+ # get blocked ips
+ BLOCKED_IPS="$(cat $BLOCKEDHOSTSINTRANET)"
 
- # get unblocked macs
- UNBLOCKED_MACS="$MACS"
- if [ -n "$BLOCKED_MACS" ]; then
-  for m in $BLOCKED_MACS; do
-   UNBLOCKED_MACS="${UNBLOCKED_MACS/$m/}"
+ # get unblocked ips
+ UNBLOCKED_IPS=""
+ if [ -n "$BLOCKED_IPS" ]; then
+  for i in $IPS; do
+   echo "$BLOCKED_IPS" | grep -wq "$i" && continue
+   if [ -z "$UNBLOCKED_IPS" ]; then
+    UNBLOCKED_IPS="$i"
+   else
+    UNBLOCKED_IPS="$UNBLOCKED_IPS $i"
+   fi
   done
-  strip_spaces "$UNBLOCKED_MACS"
-  UNBLOCKED_MACS="$RET"
+ else
+  UNBLOCKED_IPS="$IPS"
  fi
 
  # read firewall port definitions
@@ -133,7 +138,7 @@ read_fwdata(){
  } # read_fwdata
 
  
-iptables_save(){
+save_rules(){
  local RC=0
  iptables-save > "$IPTRULES" ; RC="$?"
  if [ "$RC" != "0" ]; then
@@ -154,8 +159,13 @@ flush_fw() {
  # do only if there are rules
  if iptables -L IN-$IFACE &> /dev/null; then
   # save rules first
-  iptables_save ; RC="$?"
+  save_rules ; RC="$?"
   # remove it all
+  for i in ALLOWED BASE BLOCKED; do
+   iptables -D IN-$IFACE -i $IFACE -j IN-$IFACE-$i
+   iptables -F IN-$IFACE-$i
+   iptables -X IN-$IFACE-$i
+  done
   iptables -D INPUT -i $IFACE -j IN-$IFACE
   iptables -F IN-$IFACE
   iptables -X IN-$IFACE
@@ -226,16 +236,16 @@ EOF
   portlist="$p"
   # write base chain
   if [ "$TYPE" = "BASE" ]; then
-   RULE="-A IN-$IFACE-$TYPE -p $proto -m $proto -m multiport --dports $portlist -j ACCEPT"
+   RULE="-A IN-$IFACE-$TYPE -m $proto -p $proto -m multiport --dports $portlist -j ACCEPT"
    echo "$RULE" >> "$IPTRULES"
   else # write allowed and blocked chains
-   for m in $MACS; do
-   # for blocked chain use only macs which are not blocked
+   for i in $IPS; do
+   # for blocked chain use only ips which are not blocked
     if [ "$TYPE" = "BLOCKED" ]; then
-     stringinstring "$m" "$UNBLOCKED_MACS" || continue
+     echo "$UNBLOCKED_IPS" | grep -qw "$i" || continue
     fi
-    validmac "$m" || continue
-    RULE="-A IN-$IFACE-$TYPE -p $proto -m mac --mac-source $m -m $proto -m multiport --dports $portlist -j ACCEPT"
+    validip "$i" || continue
+    RULE="-A IN-$IFACE-$TYPE -s $i -m $proto -p $proto -m multiport --dports $portlist -j ACCEPT"
     echo "$RULE" >> "$IPTRULES"
    done
   fi   
@@ -246,7 +256,7 @@ EOF
  
  # footer
  cat >> "$IPTRULES" <<EOF
--A IN-$IFACE -p icmp -m icmp --icmp-type 8 -j ACCEPT
+-A IN-$IFACE -m icmp -p icmp --icmp-type 8 -j ACCEPT
 -A IN-$IFACE -j REJECT --reject-with icmp-port-unreachable
 COMMIT
 # Completed on `date`

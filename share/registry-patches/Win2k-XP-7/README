@@ -1,4 +1,0 @@
-Der Patch verhindert, dass Windows 2k/XP/7 Clients mit dem
-samba-Server ein neues Passwort aushandeln.
-
-Muss vor dem Domaenenbeitritt eingespielt werden!

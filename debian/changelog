@@ -1,3 +1,40 @@
+linuxmuster-base (6.0.39-0ubuntu0) precise; urgency=low
+
+  * init, intranet_on_off.sh: changed internal firewall to ip based rules.
+  * postinst: changes content of internal firewall's blocked hosts file from mac to ip addresses.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 03 May 2013 17:52:50 +0200
+
+linuxmuster-base (6.0.38-0ubuntu0) precise; urgency=low
+
+  * removed registry-patches which were moved to linbo package a long time ago.
+  * postinst: removes stale obsolete registry-patches link from administrators home.
+  * samba-userlog:
+    - removed obsolete link creation in admin's and teacher's homes (due to #135).
+    - exports additionally REALNAME, PGROUP and IP to prexec and postexec hook scripts.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 03 May 2013 17:52:50 +0200
+
+linuxmuster-base (6.0.37-0ubuntu0) precise; urgency=low
+
+  * horde, turba: fix sources.php syntax (closes #83 finally).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 22 Apr 2013 20:38:53 +0200
+
+linuxmuster-base (6.0.36-0ubuntu0) precise; urgency=low
+
+  * restart_printer_queues.sh: fixed get printer names from printers.conf.
+  * linuxmuster-setup: creates system user passwords with 24 chars (closes #75).
+  * new script set_random_passwords.sh to create new system users passwords with 24 chars.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 16 Apr 2013 21:59:27 +0200
+
+linuxmuster-base (6.0.35-2ubuntu0) precise; urgency=low
+
+  * postinst: fixes cups upstart config (closes #112).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 28 Mar 2013 19:46:19 +0100
+
 linuxmuster-base (6.0.35-1ubuntu0) precise; urgency=low
 
   * fixed cups restart in example script restart_printer_queues.sh.
