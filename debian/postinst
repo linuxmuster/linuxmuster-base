@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 15.05.2013
+# 21.05.2013
 # GPL v3
 #
 
@@ -163,10 +163,13 @@ case "$1" in
   # read setup values from debconf
   read_values
   
-  # test if fwconfig is valid
+  # test fwconfig
   case $fwconfig in
-   ipfire|ipcop|custom) ;;
-   *) fwconfig=ipcop
+   ipfire|custom) ;;
+   ipcop) echo "Note: IPCop firewall is no longer fully supported by this milestone!"
+          echo "You have to change to IPFire ASAP!"
+          ;;
+   *) fwconfig=custom
       echo "set linuxmuster-base/fwconfig $fwconfig" | debconf-communicate
       ;;
   esac
@@ -385,9 +388,12 @@ EOF
    rm $BLOCKEDHOSTSINTRANET
    touch $BLOCKEDHOSTSINTRANET
    for i in $macs; do
-    validmac "$i" || continue
-    get_ip "$i"
-    echo "$RET" >> $BLOCKEDHOSTSINTRANET
+    if validip "$i"; then
+     echo "$i" >> $BLOCKEDHOSTSINTRANET
+    else
+     get_ip "$i"
+     echo "$RET" >> $BLOCKEDHOSTSINTRANET
+    fi
    done
    fwint_reload=yes
   fi

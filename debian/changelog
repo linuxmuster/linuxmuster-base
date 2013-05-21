@@ -1,9 +1,12 @@
-linuxmuster-base (6.0.39-0ubuntu0) precise; urgency=low
+linuxmuster-base (6.1.0-0ubuntu0) precise; urgency=low
 
   * init, intranet_on_off.sh: changed internal firewall to ip based rules.
-  * postinst: changes content of internal firewall's blocked hosts file from mac to ip addresses.
+  * internet_on_off.sh: changed external firewall to ip based rules, removed IPCop support.
+  * postinst:
+    - changes content of internal firewall's blocked hosts file from mac to ip addresses.
+    - warns if IPCop is detected.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 03 May 2013 17:52:50 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 21 May 2013 18:51:33 +0200
 
 linuxmuster-base (6.0.38-0ubuntu0) precise; urgency=low
 

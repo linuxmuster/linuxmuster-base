@@ -3,7 +3,7 @@
 # blocking intranet access
 #
 # thomas@linuxmuster.net
-# 17.05.2013
+# 21.05.2013
 # GPL v3
 #
 
@@ -32,15 +32,18 @@ usage() {
   echo "Usage: intranet_on_off.sh --trigger=<on|off>"
   echo "                          --hostlist=<host1,host2,...,hostn>"
   echo "                          --maclist=<mac1,mac2,...,macn>"
+  echo "                          --help"
   echo
   echo "  trigger:  trigger on or off"
   echo "  maclist:  comma separated list of mac addresses"
   echo "  hostlist: comma separated list of hostnames or ip adresses"
+  echo "  help:     shows this help"
   echo
   exit 1
 }
 
 # test parameters
+[ -n "$help" ] && usage
 [ "$trigger" != "on" -a "$trigger" != "off" ] && usage
 [ -z "$maclist" -a -z "$hostlist" ] && usage
 [ -n "$maclist" -a -n "$hostlist" ] && usage

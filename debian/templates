@@ -78,8 +78,7 @@ Default: custom
 Description: Welche Firewall wird verwendet?
  Wählen Sie den Typ der Firewall:\n
  'ipfire' für die Installation mit IPFire.\n
- 'ipcop'  für die Installation mit IPCop.\n
- 'custom' wenn keine der oben genannten verwendet wird.
+ 'custom' wenn eine eigene Firewalllösung verwendet wird.
 
 Template: linuxmuster-base/smtprelay
 Type: string
