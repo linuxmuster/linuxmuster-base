@@ -3,7 +3,7 @@
 # blocking web access on firewall
 #
 # thomas@linuxmuster.net
-# 21.05.2013
+# 25.05.2013
 # GPL v3
 #
 
@@ -75,10 +75,20 @@ fi
 ### common stuff begin ###
 ##########################
 
-# get all client mac addresses from system and write them to file
+# get imported client ip addresses from system and write them to file
 ALLOWEDIPS="$CACHEDIR/allowedips"
-grep -v ^# $WIMPORTDATA | awk -F\; '{ print $5 }' | tr a-z A-Z > "$ALLOWEDIPS" || cancel "Cannot write to $ALLOWEDIPS!"
- 
+grep -v ^# $WIMPORTDATA | awk -F\; '{ print $5 }' > "$ALLOWEDIPS" || cancel "Cannot write to $ALLOWEDIPS!"
+
+# add guest ips if internet access is allowed
+if grep -q "### GUEST EXTERNAL ON" /etc/dhcp/dhcpd.conf; then
+ update_guestiplist ; RC="$?"
+ cat "$GUESTIPLIST" >> "$ALLOWEDIPS"
+fi
+
+# remove empty lines
+sed '/^$/d' -i "$ALLOWEDIPS"
+
+
 # remove orphaned ips from blocked hosts internet list
 touch "$BLOCKEDHOSTSINTERNET"
 if [ -s "$BLOCKEDHOSTSINTERNET" ]; then
@@ -112,9 +122,6 @@ esac
 
 # remove empty lines
 sed '/^$/d' -i "$BLOCKEDHOSTSINTERNET"
-
-# upload updated blocked mac list
-put_ipcop "$BLOCKEDHOSTSINTERNET" /var/$fwtype/proxy/advanced/acls/src_banned_ip.acl &> /dev/null || cancel "Upload of src_banned_ip.acl failed!"
 
 ########################
 ### common stuff end ###

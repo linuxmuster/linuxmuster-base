@@ -1,0 +1,52 @@
+#!/bin/bash
+#
+# restarts firewalls
+#
+# thomas@linuxmuster.net
+# 25.05.2013
+# GPL v3
+#
+
+# source linuxmuster environment
+. /usr/share/linuxmuster/config/dist.conf || exit 1
+. $HELPERFUNCTIONS || exit 1
+
+# parsing parameters
+getopt $*
+
+usage() {
+  echo
+  echo "Usage: restart-fw  --int"
+  echo "                   --ext"
+  echo "                   --help"
+  echo
+  echo "  int:   restarts internal firewall"
+  echo "  ext:   restarts external firewall"
+  echo "  help:  shows this help"
+  echo
+  exit 0
+}
+
+# test parameters
+[ -n "$help" ] && usage
+[ -z "$int" -a -z "$ext" ] && usage
+
+# restart internal firewall
+restart_internal() {
+ /etc/init.d/linuxmuster-base restart || RC="1"
+ reload isc-dhcp-server || RC="1"
+}
+
+# restart external firewall
+restart_external() {
+ echo -n "Restarting external firewall ... "
+ "$SCRIPTSDIR/internet_on_off.sh" || RC="1"
+}
+
+RC="0"
+
+[ -n "$int" ] && restart_internal
+
+[ -n "$ext" ] && restart_external
+
+exit "$RC"

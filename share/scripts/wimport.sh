@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 23.01.2013
+# 25.05.2013
 # GPL v3
 #
 
@@ -441,24 +441,8 @@ done
 # reload necessary services
 echo
 
-echo -n " * "
-if /etc/init.d/linuxmuster-base reload; then
- echo "   ...done."
-else
- echo "   failed!"
- RC=1
-fi
-
-echo " * Reloading external firewall."
-if "$SCRIPTSDIR/internet_on_off.sh" 1> /dev/null; then
- echo "   ...done."
-else
- echo "   failed!"
- RC=1
-fi
-
-echo " * Reloading DHCP service... isc-dhcp-server"
-if reload isc-dhcp-server; then
+echo " * Reloading firewall."
+if restart-fw --int --ext 1> /dev/null; then
  echo "   ...done."
 else
  echo "   failed!"

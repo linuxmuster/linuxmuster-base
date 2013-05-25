@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 21.05.2013
+# 25.05.2013
 # GPL v3
 #
 
@@ -151,10 +151,7 @@ case "$1" in
    echo "after you have fixed this issue."
    exit 0
   fi
-  
-  # remove stale obsolete registry-patches link in administrator's home
-  find "$ADMINSHOME/$ADMINISTRATOR" -xtype l -name registry-patches -exec rm '{}' \;
-  
+
   # messages for config file headers
   message1="Do not change this file! It will be overwritten!"
   message2="This configuration file was automatically created by linuxmuster-base!"
@@ -163,17 +160,15 @@ case "$1" in
   # read setup values from debconf
   read_values
   
-  # test fwconfig
+  # test if fwconfig is valid
   case $fwconfig in
    ipfire|custom) ;;
-   ipcop) echo "Note: IPCop firewall is no longer fully supported by this milestone!"
-          echo "You have to change to IPFire ASAP!"
-          ;;
+   ipcop) echo "IPCop is no longer supported. Please change to IPFire ASAP!" ;;
    *) fwconfig=custom
       echo "set linuxmuster-base/fwconfig $fwconfig" | debconf-communicate
       ;;
   esac
-  
+
   # update network.settings
   grep -q ^serverexternname "$NETWORKSETTINGS" || write_networksettings
 
@@ -230,6 +225,9 @@ case "$1" in
   chown $ADMINISTRATOR:$DOMADMINS $SAMBAHOME/*
   chmod 775 $SAMBAHOME/*
 
+  # remove stale obsolete registry-patches link in administrator's home
+  find "$ADMINSHOME/$ADMINISTRATOR" -xtype l -name registry-patches -exec rm '{}' \;
+
   # linbo administrative user
   if ps ax | grep -v grep | grep -q slapd && ps ax | grep -v grep | grep -q postgresql; then
    if ! check_id linbo &>/dev/null; then
@@ -285,22 +283,18 @@ EOF
     bind_reload=yes
   fi
   # fix firewall hostname resolution for nagios checks (see #81)
-  case "$fwconfig" in
-   "ipfire") searchstr="ipcop"
-    ;;
-   "ipcop") searchstr="ipfire"
-    ;;
-    *) ;;
-  esac
-  conf=/etc/bind/db.linuxmuster
-  if grep -q ^"$searchstr" "$conf"; then
-   echo "Backing up $conf to $conf.dpkg-bak."
-   cp $conf $conf.dpkg-bak
-   echo "Removing $searchstr from $conf."
-   sed -e "/^$searchstr/d" -i $conf
-   bind_reload=yes
+  if [ "$fwconfig" != "ipcop" ]; then
+   searchstr="ipcop"
+   conf=/etc/bind/db.linuxmuster
+   if grep -q ^"$searchstr" "$conf"; then
+    echo "Backing up $conf to $conf.dpkg-bak."
+    cp $conf $conf.dpkg-bak
+    echo "Removing $searchstr from $conf."
+    sed -e "/^$searchstr/d" -i $conf
+    bind_reload=yes
+   fi
   fi
-
+  
   # update turba's sources.php (closes #83)
   tpl="$DYNTPLDIR/21_horde3/turba2.sources.php"
   conf="$(cat $tpl.target)"
@@ -398,6 +392,29 @@ EOF
    fwint_reload=yes
   fi
 
+  # check for obsolete mac based iptables rules file
+  IPTRULES="$CACHEDIR/iptables"
+  if [ -e "$IPTRULES" ]; then
+   grep -q mac-source "$IPTRULES" && fwint_reload=yes
+  fi
+
+  # add guest range triggers to dhcpd.conf (see #139)
+  conf="/etc/dhcp/dhcpd.conf"
+  if [ ! $(grep -c "### GUEST [IE][NX]TERNAL" "$conf") -eq 2 ]; then
+   echo "DHCP configuration needs update. Adding guest range triggers."
+   cp "$conf" "${conf}.dpkg-bak"
+   tpl="$DYNTPLDIR/03_dhcp3-server/$(basename "$conf")"
+   sed -e "s/@@servername@@/${servername}/g
+           s/@@domainname@@/${domainname}/g
+           s/@@serverip@@/${serverip}/g
+           s/@@ipcopip@@/${ipcopip}/g
+           s/@@broadcast@@/${broadcast}/g
+           s/@@internsub@@/${internsub}/g
+           s/@@internalnet@@/${internalnet}/g
+           s/@@internmask@@/${internmask}/g" "$tpl" > $conf
+   dhcp_reload=yes
+  fi
+
   # updating release information
   echo "$DISTNAME $DISTFULLVERSION / Codename $CODENAME" > /etc/issue
   cp /etc/issue /etc/issue.net
@@ -410,7 +427,7 @@ EOF
   [ -n "$cyrus_reload" ] && /etc/init.d/cyrus-imapd reload
   [ -n "$nagios_reload" ] && /etc/init.d/nagios3 restart
   [ -n "$bind_reload" ] && /etc/init.d/bind9 force-reload
-  [ -n "$dhcp_reload" ] && restart isc-dhcp-server
+  [ -n "$dhcp_reload" ] && reload isc-dhcp-server
   [ -n "$slapd_reload" ] && /etc/init.d/slapd restart
   [ -n "$postgres_reload" ] && /etc/init.d/postgresql reload
   [ -n "$fwint_reload" ] && /etc/init.d/linuxmuster-base reload

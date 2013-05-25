@@ -14,7 +14,7 @@
 
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 17.05.2013
+# 25.05.2013
 # GPL v3
 #
 
@@ -55,8 +55,14 @@ read_fwdata(){
  local proto
  local summary
 
- # get all ip addresses
- IPS="$(grep -v ^# $WIMPORTDATA | awk -F\; '{ print $5 }' | tr a-z A-Z)"
+ # get imported ip addresses
+ IPS="$(grep -v ^# $WIMPORTDATA | awk -F\; '{ print $5 }')"
+ 
+ # add guest ips if intranet access is allowed
+ if grep -q "### GUEST INTERNAL ON" /etc/dhcp/dhcpd.conf; then
+  update_guestiplist ; RC="$?"
+  IPS="$IPS $(cat "$GUESTIPLIST")"
+ fi
  
  # remove orphaned ips from blocked hosts intranet list
  if [ -s "$BLOCKEDHOSTSINTRANET" ]; then

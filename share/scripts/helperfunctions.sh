@@ -1,7 +1,7 @@
 # linuxmuster shell helperfunctions
 #
 # thomas@linuxmuster.net
-# 02.03.2013
+# 25.05.2013
 # GPL v3
 #
 
@@ -50,7 +50,7 @@ checklock() {
   if [ -e "$lockflag" ]; then
     echo "Found lockfile $lockflag!"
     n=0
-    while [[ $n -lt $TIMEOUT ]]; do
+    while [ $n -lt $TIMEOUT ]; do
       remaining=$(($(($TIMEOUT-$n))*10))
       echo "Remaining $remaining seconds to wait ..."
       sleep 1
@@ -59,7 +59,7 @@ checklock() {
         echo "Lockfile released!"
         return 0
       fi
-      let n+=1
+      n=$(( $n + 1 ))
     done
     echo "Timed out! Exiting!"
     return 1
@@ -322,9 +322,9 @@ test_maclist() {
 }
 
 
-#######################
-# Firewall communication #
-#######################
+####################
+# Firewall related #
+####################
 
 # test if firewall can be connected passwordless
 test_pwless_fw(){
@@ -378,6 +378,30 @@ put_ipcop() {
  # test connection
  scp -r -P 222 $1 root@$ipcopip:$2 &> /dev/null || return 1
  return 0
+}
+
+# update guest ip list in cache
+update_guestiplist() {
+ # get range from dhcpd.conf
+ local range="$(grep -A20 ^subnet /etc/dhcp/dhcpd.conf | sed -e 's/^[ \t]*//' | grep -v ^# | grep ^range | head -1 | sed -e 's/range //' | sed -e 's/\;//')"
+ local startip="$(echo $range | awk '{ print $1 }')"
+ local endip="$(echo $range | awk '{ print $2 }')"
+ if ! ( validip $startip && validip $endip ); then
+  echo "Fatal: Cannot determine ip range."
+  return 1
+ fi
+
+ # write list
+ rm -f "$GUESTIPLIST"
+ local n=${startip[0]%.*}
+ local s=( ${startip[@]##*.} )
+ local e=( ${endip[@]##*.} )
+ local RC=0
+ for (( i=$s; i<=$e; ++i )); do
+  echo "$n.$i" >> "$GUESTIPLIST" || RC="1"
+ done
+ [ "$RC" != "0" ] && echo "Write error!"
+ return "$RC"
 }
 
 

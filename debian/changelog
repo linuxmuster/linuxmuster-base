@@ -1,3 +1,37 @@
+linuxmuster-base (6.1.0-3ubuntu0) precise; urgency=low
+
+  * made access rights for guests/not imported machines configurable (# 139).
+    - debian/init: considers guest ips for internal firewall if configured in dhcpd.conf.
+    - debian/postinst: added modifications due to IPCops end of support,
+      dhcpd.conf update and missing check for internal firewall.
+    - share/config/dist.conf: added new environment variable GUESTIPLIST.
+    - share/scripts/helperfunctions.sh: added function update_guestiplist()
+      which creates a list of all guest ips due to the range defined in dhcpd.conf
+      for use in firewall scripts.
+    - share/scripts/internet_on_off.sh: considers guest ips for external firewall
+      if configured in dhcpd.conf.
+    - share/scripts/wimport.sh: invokes restart-fw instead of internal and external
+      firewall and dhcp restart scripts.
+    - var/config-dynamic/03_dhcp3-server/dhcpd.conf: added config options to
+      control firewall access for guest ip range.
+    - sbin/restart-fw: new script for easyly restarting the internal and external
+      firewalls.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 25 May 2013 17:51:54 +0200
+
+linuxmuster-base (6.1.0-2ubuntu0) precise; urgency=low
+
+  * postinst: added internal firewall check to see if rules are already ip based
+    and reload if not.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 22 May 2013 17:35:37 +0200
+
+linuxmuster-base (6.1.0-1ubuntu0) precise; urgency=low
+
+  * internet_on_off.sh: removed upload of blocked ips list.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 22 May 2013 16:58:52 +0200
+
 linuxmuster-base (6.1.0-0ubuntu0) precise; urgency=low
 
   * init, intranet_on_off.sh: changed internal firewall to ip based rules.
