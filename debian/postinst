@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 25.05.2013
+# 03.07.2013
 # GPL v3
 #
 
@@ -373,7 +373,7 @@ EOF
    conf=/etc/php5/conf.d/linuxmuster.ini
    mv "$conf_old" "$conf"
   fi
-  
+
   # convert macs to ips for ip based internal firewall
   searchstr="$(head -1 $BLOCKEDHOSTSINTRANET)"
   if validmac "$searchstr"; then
@@ -398,10 +398,10 @@ EOF
    grep -q mac-source "$IPTRULES" && fwint_reload=yes
   fi
 
-  # add guest range triggers to dhcpd.conf (see #139)
+  # dhcpd.conf update
   conf="/etc/dhcp/dhcpd.conf"
-  if [ ! $(grep -c "### GUEST [IE][NX]TERNAL" "$conf") -eq 2 ]; then
-   echo "DHCP configuration needs update. Adding guest range triggers."
+  if ! grep -q ^"filename \"grub/pxegrub.0" "$conf"; then
+   echo "DHCP configuration needs update."
    cp "$conf" "${conf}.dpkg-bak"
    tpl="$DYNTPLDIR/03_dhcp3-server/$(basename "$conf")"
    sed -e "s/@@servername@@/${servername}/g
@@ -411,7 +411,11 @@ EOF
            s/@@broadcast@@/${broadcast}/g
            s/@@internsub@@/${internsub}/g
            s/@@internalnet@@/${internalnet}/g
-           s/@@internmask@@/${internmask}/g" "$tpl" > $conf
+           s/@@internmask@@/${internmask}/g" "$tpl" > "$conf"
+   dhcp_reload=yes
+  fi
+  if grep -q pxelinux.configfile "${conf}.linuxmuster"; then
+   sed -e 's/pxelinux.configfile \"pxelinux.cfg\//extensions-path \"/g' -i "${conf}.linuxmuster"
    dhcp_reload=yes
   fi
 

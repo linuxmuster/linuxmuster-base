@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 25.05.2013
+# 03.07.2013
 # GPL v3
 #
 
@@ -310,12 +310,6 @@ if [ -s "$WIMPORTDATA" ]; then
    echo -n " * LINBO: Linking $ip to group $hostgroup ... "
    ln -sf start.conf.$hostgroup $LINBODIR/start.conf-$ip
 
-   # if there is no pxelinux boot file for the group
-   if [ ! -s "$LINBODIR/pxelinux.cfg/$hostgroup" ]; then
-    # create one
-    sed -e "s/initrd=linbofs.gz/initrd=linbofs.$hostgroup.gz/g" $PXELINUXCFG > $LINBODIR/pxelinux.cfg/$hostgroup
-   fi
-
    echo "Ok!"
 
   fi # only if pxe host
@@ -328,7 +322,7 @@ if [ -s "$WIMPORTDATA" ]; then
   echo "  option host-name \"$hostname\";" >> $DHCPDCONF
   if [ "$pxe" != "0" ]; then
    # assign group specific pxelinux config
-   echo "  option pxelinux.configfile \"pxelinux.cfg/$hostgroup\";" >> $DHCPDCONF
+   echo "  option extensions-path \"grub/${hostgroup}\";" >> $DHCPDCONF
   fi
   echo "}" >> $DHCPDCONF
 		
