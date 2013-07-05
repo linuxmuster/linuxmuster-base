@@ -322,7 +322,7 @@ if [ -s "$WIMPORTDATA" ]; then
   echo "  option host-name \"$hostname\";" >> $DHCPDCONF
   if [ "$pxe" != "0" ]; then
    # assign group specific pxelinux config
-   echo "  option extensions-path \"grub/${hostgroup}\";" >> $DHCPDCONF
+   echo "  option extensions-path \"${hostgroup}\";" >> $DHCPDCONF
   fi
   echo "}" >> $DHCPDCONF
 		
