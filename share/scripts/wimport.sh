@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 03.07.2013
+# 10.09.2013
 # GPL v3
 #
 
@@ -371,7 +371,10 @@ echo "Checking for obsolete hosts:"
 # room_defaults
 hosts="$(grep ^[a-z0-9] $ROOMDEFAULTS | awk '{ print $1 }' | tr A-Z a-z)"
 for hostname in $hosts; do
+ # skip default settings
  [ "$hostname" = "default" ] && continue
+ # skip rooms
+ grep -q ^$hostname\; $WIMPORTDATA && continue
  if ! awk -F\; '{ print $2 }' $WIMPORTDATA | sort -u | grep -qw $hostname; then
   FOUND=1
   remove_defaults $hostname ; RC_LINE="$?"
