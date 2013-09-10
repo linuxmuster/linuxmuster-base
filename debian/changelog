@@ -1,3 +1,10 @@
+linuxmuster-base (6.0.39-0ubuntu0) precise; urgency=low
+
+  * import_workstations: removes falsely rooms from /etc/linuxmuster/room_defaults
+    if there is no hyphen after room name in the hostname (closes #195).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 10 Sep 2013 17:37:46 +0200
+
 linuxmuster-base (6.0.38-0ubuntu0) precise; urgency=low
 
   * removed registry-patches which were moved to linbo package a long time ago.
