@@ -1,0 +1,18 @@
+#!/bin/sh
+#
+# adds openldap signal to cups' upstart init
+# thomas@linuxmuster.net
+# 11.09.2013
+#
+
+INITSCRIPT="/etc/init/cups.conf"
+PATTERN="start on (filesystem and openldap"
+
+grep -q ^"$PATTERN" "$INITSCRIPT" && exit 0
+
+echo "Adding openldap signal to "$INITSCRIPT"."
+
+cp "$INITSCRIPT" "$INITSCRIPT".dpkg-bak
+sed -e "s|^start on (filesystem|$PATTERN|" -i "$INITSCRIPT"
+
+initctl reload-configuration

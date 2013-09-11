@@ -1,0 +1,29 @@
+#!/bin/sh
+#
+# adds signal to slapd init script
+# thomas@linuxmuster.net
+# 11.09.2013
+#
+
+SIGNALSTR="initctl emit --no-wait openldap"
+INITSCRIPT="/etc/init.d/slapd"
+
+grep -q "$SIGNALSTR" "$INITSCRIPT" && exit 0
+
+echo "Adding signalstring to "$INITSCRIPT"."
+
+. /usr/share/linuxmuster/config/dist.conf
+. $HELPERFUNCTIONS
+
+TMPFILE="/var/tmp/$(basename $0).$$"
+cat << EOF > "$TMPFILE"
+	$BEGINSTR
+	$SIGNALSTR
+	$ENDSTR
+EOF
+
+PATTERN="^[[:space:]]start_slapd\n[[:space:]]trap"
+
+cp "$INITSCRIPT" "$INITSCRIPT".dpkg-bak
+addto_file "$INITSCRIPT" "$TMPFILE" "$PATTERN"
+rm "$TMPFILE"
