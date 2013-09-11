@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 03.07.2013
+# 11.09.2013
 # GPL v3
 #
 
@@ -271,7 +271,7 @@ EOF
     chmod +x "$conf"
    fi
   done
-  
+
   # expand allow-query list in named.conf.options (#18)
   conf=/etc/bind/named.conf.options
   searchstr="allow-query { $internalnet/$internmask_short; $ipcopblue.0/24; $ipcoporange.0/24; $ipcopovpn.0/24; };"
@@ -336,13 +336,6 @@ EOF
     cups_reload=yes
    fi
   done
-  # fix cups upstart conf (closes #112)
-  conf=/etc/init/cups.conf
-  if ! grep -q net-device-up $conf; then
-   echo "Fixing $conf ..."
-   cp "$conf" "${conf}.dpkg-bak"
-   sed -e 's|^start on (filesystem|start on (filesystem and net-device-up IFACE!=lo|' -i $conf
-  fi
 
   # fix horde/ingo's sieve configuration (closes #102)
   searchstr="/* 16.03.2013"
@@ -435,6 +428,9 @@ EOF
   [ -n "$slapd_reload" ] && /etc/init.d/slapd restart
   [ -n "$postgres_reload" ] && /etc/init.d/postgresql reload
   [ -n "$fwint_reload" ] && /etc/init.d/linuxmuster-base reload
+  
+  # add config patches
+  run-parts "$ADDTPLDIR"
 
   # notify if upgrade is necessary
   if [ -n "$upgrade" ]; then

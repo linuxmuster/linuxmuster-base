@@ -1,7 +1,7 @@
 # linuxmuster shell helperfunctions
 #
 # thomas@linuxmuster.net
-# 25.05.2013
+# 11.09.2013
 # GPL v3
 #
 
@@ -128,32 +128,34 @@ check_free_space(){
 # config file editing #
 #######################
 
-addto_file()
-{
-	# Parameter 1 original file
-	# Parameter 2 changes file
-	# Parameter 3 search pattern after that content of changes file will be inserted
+addto_file() {
+ # Parameter 1 original file
+ # Parameter 2 changes file
+ # Parameter 3 search pattern after that content of changes file will be inserted
  local ofile="$1"
  local cfile="$2"
  local pattern="$3"
+ [ ! -s "$ofile" -o ! -s "$cfile" -o -z "$pattern" ] && return 1
  local tfile="/var/tmp/addto_file.$$"
-	sed ''/$pattern/' r '$cfile'' <$ofile > $tfile || return 1
-	cp $tfile $ofile
-	rm $tfile
-	return 0
+ sed "N; /$pattern/r $cfile" <$ofile > $tfile || return 1
+ cp $tfile $ofile
+ rm $tfile
+ return 0
 }
 
-removefrom_file()
-{
-	# Parameter 1 original file
-	# Parameter 2 search pattern e.g. /\;### linuxmuster - begin ###/,/\;### linuxmuster - end ###/
+removefrom_file() {
+ # Parameter 1 original file
+ # Parameter 2 begin search pattern e.g. "### linuxmuster - begin ###"
+ # Parameter 3 end search pattern e.g. "### linuxmuster - end ###"
  local ofile="$1"
- local pattern="$2"
+ local p_begin="$2"
+ local p_end="$3"
+ [ ! -s "$ofile" -o -z "$p_begin" -o -z "$p_end" ] && return 1
  local tfile="/var/tmp/removefrom_file.$$"
-	sed "$pattern"d <$ofile > $tfile || return 1
-	cp $tfile $ofile
-	rm $tfile
-	return 0
+ sed "/$p_begin/,/$p_end/d" <$ofile > $tfile || return 1
+ cp $tfile $ofile
+ rm $tfile
+ return 0
 }
 
 ##########################
