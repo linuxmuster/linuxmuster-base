@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 10.09.2013
+# 11.09.2013
 # GPL v3
 #
 
@@ -257,8 +257,8 @@ fi # sync host accounts
 backup_file $DB10 2>> $TMPLOG 1>> $TMPLOG || exitmsg "Unable to backup $DB10!"
 backup_file $DBREV 2>> $TMPLOG 1>> $TMPLOG || exitmsg "Unable to backup $DBREV!"
 echo >> $TMPLOG
-removefrom_file $DB10 "/\;$BEGINSTR/,/\;$ENDSTR/"
-removefrom_file $DBREV "/\;$BEGINSTR/,/\;$ENDSTR/"
+removefrom_file $DB10 "$BEGINSTR" "$ENDSTR"
+removefrom_file $DBREV "$BEGINSTR" "$ENDSTR"
 echo ";$BEGINSTR" > $DB10TMP
 echo ";$BEGINSTR" > $DBREVTMP
 

@@ -1,0 +1,31 @@
+#!/bin/sh
+#
+# adds openldap signal to upstart's initctl
+# thomas@linuxmuster.net
+# 11.09.2013
+#
+
+SIGNALSTR="emits openldap"
+INITSCRIPT="/etc/init/rc.conf"
+
+grep -q "$SIGNALSTR" "$INITSCRIPT" && exit 0
+
+echo "Adding openldap signal to "$INITSCRIPT"."
+
+. /usr/share/linuxmuster/config/dist.conf
+. $HELPERFUNCTIONS
+
+TMPFILE="/var/tmp/$(basename $0).$$"
+cat << EOF > "$TMPFILE"
+$BEGINSTR
+$SIGNALSTR
+$ENDSTR
+EOF
+
+PATTERN="emits unmounted-remote-filesystems"
+
+cp "$INITSCRIPT" "$INITSCRIPT".dpkg-bak
+addto_file "$INITSCRIPT" "$TMPFILE" "$PATTERN"
+rm "$TMPFILE"
+
+initctl reload-configuration

@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 03.05.2013
+# 11.09.2013
 # GPL v3
 #
 
@@ -151,7 +151,7 @@ case "$1" in
    echo "after you have fixed this issue."
    exit 0
   fi
-  
+
   # remove stale obsolete registry-patches link in administrator's home
   find "$ADMINSHOME/$ADMINISTRATOR" -xtype l -name registry-patches -exec rm '{}' \;
   
@@ -339,13 +339,6 @@ EOF
     cups_reload=yes
    fi
   done
-  # fix cups upstart conf (closes #112)
-  conf=/etc/init/cups.conf
-  if ! grep -q net-device-up $conf; then
-   echo "Fixing $conf ..."
-   cp "$conf" "${conf}.dpkg-bak"
-   sed -e 's|^start on (filesystem|start on (filesystem and net-device-up IFACE!=lo|' -i $conf
-  fi
 
   # fix horde/ingo's sieve configuration (closes #102)
   searchstr="/* 16.03.2013"
@@ -392,6 +385,9 @@ EOF
   [ -n "$dhcp_reload" ] && restart isc-dhcp-server
   [ -n "$slapd_reload" ] && /etc/init.d/slapd restart
   [ -n "$postgres_reload" ] && /etc/init.d/postgresql reload
+  
+  # add config patches
+  run-parts "$ADDTPLDIR"
 
   # notify if upgrade is necessary
   if [ -n "$upgrade" ]; then

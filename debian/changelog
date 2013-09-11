@@ -1,3 +1,11 @@
+linuxmuster-base (6.0.40-0ubuntu0) precise; urgency=low
+
+  * tweaked init system forcing cups to start after openldap (closes #199).
+  * added a run-parts dir /var/lib/linuxmuster/config-add for scripts
+    which are adding necessary entries to system config files.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 11 Sep 2013 18:09:42 +0200
+
 linuxmuster-base (6.0.39-0ubuntu0) precise; urgency=low
 
   * import_workstations: removes falsely rooms from /etc/linuxmuster/room_defaults
