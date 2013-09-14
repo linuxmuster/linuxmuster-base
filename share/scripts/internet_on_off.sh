@@ -3,7 +3,7 @@
 # blocking web access on firewall
 #
 # thomas@linuxmuster.net
-# 19.03.2013
+# 14.09.2013
 # GPL v3
 #
 
@@ -93,7 +93,6 @@ case "$trigger" in
   for m in $MACS_TO_PROCESS; do
    if ! grep -q "$m" "$BLOCKEDHOSTSINTERNET"; then
     # write new macs to ban file
-    #echo "$m" | sed -e 's| |\n|g' >> "$BLOCKEDHOSTSINTERNET" || cancel "Cannot write to $BLOCKEDHOSTSINTERNET!"
     echo "$m" >> "$BLOCKEDHOSTSINTERNET" || cancel "Cannot write to $BLOCKEDHOSTSINTERNET!"
    fi
   done
@@ -174,7 +173,7 @@ ipcop_update(){
  grep -q ${fwname}_banned_mac $CACHEDIR/squid.conf && squid_off=yes
 
  # add acls to squid.conf
- if [ -s "$CACHEDIR/src_banned_mac.acl.new" -a -z "$squid_off" ]; then
+ if [ -s "$BLOCKEDHOSTSINTERNET" -a -z "$squid_off" ]; then
   while read line; do
    if [ "$line" = "acl CONNECT method CONNECT" ]; then
     echo "acl ${fwname}_banned_mac       arp \"/var/$fwtype/proxy/advanced/acls/src_banned_mac.acl\"" >> $CACHEDIR/squid.conf.new || cancel "Cannot write to $CACHEDIR/squid.conf.new!"
@@ -187,7 +186,7 @@ ipcop_update(){
  fi
 
  # remove acls from squid.conf
- if [ ! -s "$CACHEDIR/src_banned_mac.acl.new" -a -n "$squid_off" ]; then
+ if [ ! -s "$BLOCKEDHOSTSINTERNET" -a -n "$squid_off" ]; then
   grep -v ${fwname}_banned_mac $CACHEDIR/squid.conf > $CACHEDIR/squid.conf.new || cancel "Cannot write to $CACHEDIR/squid.conf.new!"
  fi
 
@@ -197,7 +196,7 @@ ipcop_update(){
  fi
 
  # reload proxy
- exec_ipcop /usr/sbin/squid -k reconfigure &> /dev/null || cancel "Restarting of firewall proxy failed!"
+ exec_ipcop /usr/local/bin/reloadsquid &> /dev/null || cancel "Restarting of firewall proxy failed!"
 
  # bot stuff only if maclist is given on commandline
  if [ -n "$maclist" ]; then

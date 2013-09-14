@@ -1,3 +1,9 @@
+linuxmuster-base (6.0.41-0ubuntu0) precise; urgency=low
+
+  * internet_on_off.sh: fixed broken ipcop support (closes #196).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 14 Sep 2013 15:57:59 +0200
+
 linuxmuster-base (6.0.40-0ubuntu0) precise; urgency=low
 
   * tweaked init system forcing cups to start after openldap (closes #199).
