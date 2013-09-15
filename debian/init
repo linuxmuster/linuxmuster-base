@@ -50,7 +50,6 @@ read_fwdata(){
  local nr_ports
  local nr_portranges
  local p
- local pr
  local portfile
  local portlist
  local proto
