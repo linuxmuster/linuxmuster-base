@@ -1,3 +1,9 @@
+linuxmuster-base (6.0.42-0ubuntu0) precise; urgency=low
+
+  * internal firewall ini script: fixed multiport portrange issue (closes #169).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 15 Sep 2013 13:03:16 +0200
+
 linuxmuster-base (6.0.41-0ubuntu0) precise; urgency=low
 
   * internet_on_off.sh: fixed broken ipcop support (closes #196).

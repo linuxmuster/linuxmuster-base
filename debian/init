@@ -14,7 +14,7 @@
 
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 25.01.2013
+# 15.09.2013
 # GPL v3
 #
 
@@ -50,9 +50,11 @@ read_fwdata(){
  local nr_ports
  local nr_portranges
  local p
+ local pr
  local portfile
  local portlist
  local proto
+ local sep
  local summary
 
  # get all mac addresses
@@ -106,17 +108,20 @@ read_fwdata(){
     summary="$summary $proto"
     n=0
     for p in $(echo $portlist | sed 's|,| |g'); do
-     if [ $n -eq 0 ]; then
-      summary="$summary $p"
-     else
-      summary="$summary,$p"
-     fi
      n=$(($n + 1))
+     # summary string for first item is different
+     sep=","
+     [ $n -eq 1 ] && sep=" "
+     # increase port counter if portrange
      echo "$p" | grep -qo ":" && n=$(($n + 1))
-     if [ $n -eq $max_ports -o $n -gt $max_ports ]; then
-      n=0
-      summary="$summary $proto"
+     # continue if max port number per rule is not yet reached
+     if [ $n -le $max_ports ]; then
+      summary="${summary}${sep}${p}"
+      continue
      fi
+     # reset counter
+     n=1
+     summary="$summary $proto $p"
     done
    else # less or equal number of ports
     summary="$summary $proto $portlist"
