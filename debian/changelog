@@ -1,3 +1,9 @@
+linuxmuster-base (6.1.0-7ubuntu0) precise; urgency=low
+
+  * internal firewall ini script: fixed multiport portrange issue (closes #169).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 15 Sep 2013 13:23:09 +0200
+
 linuxmuster-base (6.1.0-6ubuntu0) precise; urgency=low
 
   * tweaked init system forcing cups to start after openldap (closes #199).
