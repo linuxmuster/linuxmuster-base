@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 11.09.2013
+# 17.09.2013
 # GPL v3
 #
 
@@ -375,7 +375,7 @@ FOUND=0
 echo
 echo "Checking for obsolete hosts:"
 # room_defaults
-hosts="$(grep ^[a-z0-9] $ROOMDEFAULTS | awk '{ print $1 }' | tr A-Z a-z)"
+hosts="$(grep ^[a-zA-Z0-9] $ROOMDEFAULTS | awk '{ print $1 }' | tr A-Z a-z)"
 for hostname in $hosts; do
  # skip default settings
  [ "$hostname" = "default" ] && continue
@@ -403,7 +403,7 @@ FOUND=0
 echo
 echo "Checking for obsolete rooms:"
 # classrooms
-rooms="$(grep ^[a-z0-9] $CLASSROOMS | awk '{ print $1 }' | tr A-Z a-z)"
+rooms="$(grep ^[a-zA-Z0-9] $CLASSROOMS | awk '{ print $1 }' | tr A-Z a-z)"
 for room in $rooms; do
  if ! grep -q ^${room}\; $WIMPORTDATA; then
   FOUND=1
@@ -415,10 +415,13 @@ for room in $rooms; do
  fi
 done
 # room_defaults
-rooms="$(grep ^[a-z0-9] $ROOMDEFAULTS | awk '{ print $1 }' | tr A-Z a-z)"
+rooms="$(grep ^[a-zA-Z0-9] $ROOMDEFAULTS | awk '{ print $1 }' | tr A-Z a-z)"
 for room in $rooms; do
+ # skip default
  [ "$room" = "default" ] && continue
- if ! awk -F\; '{ print $1 }' $WIMPORTDATA | sort -u | grep -qw $room; then
+ # skip other entries which are not rooms
+ grep ^[a-zA-Z0-9] $WIMPORTDATA | grep -q \;$room\; && continue
+ if ! awk -F\; '{ print $1 }' $WIMPORTDATA | sort -u | grep ^[a-zA-Z0-9] | grep -qw $room; then
   FOUND=1
   remove_defaults $room ; RC_LINE="$?"
   [ $RC_LINE -eq 0 ] || RC=1
