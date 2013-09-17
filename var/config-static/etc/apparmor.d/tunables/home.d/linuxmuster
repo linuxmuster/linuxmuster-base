@@ -1,0 +1,7 @@
+# fuer linuxmuster homes mit mehreren Verzeichnisebenen zulassen
+#
+# thomas@linuxmuster.net
+# 17.09.2013
+#
+
+@{HOME}+= @{HOMEDIRS}/**/

@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 11.09.2013
+# 17.09.2013
 # GPL v3
 #
 
@@ -295,11 +295,11 @@ EOF
    fi
   fi
   
-  # update turba's sources.php (closes #83)
+  # update turba's sources.php (closes #83 & #184)
   tpl="$DYNTPLDIR/21_horde3/turba2.sources.php"
   conf="$(cat $tpl.target)"
   searchstr="* 22.04.2013"
-  if ! grep -q "$searchstr" $conf; then
+  if (! grep -q "$searchstr" "$conf" || grep -q @@ "$conf"); then
    echo "Backing up $conf to $conf.dpkg-bak."
    cp $conf $conf.dpkg-bak
    echo "Fixing turba's sources.php."
@@ -336,6 +336,15 @@ EOF
     cups_reload=yes
    fi
   done
+  
+  # adding apparmor profile for linuxmuster (see #156)
+  conf="/etc/apparmor.d/tunables/home.d/linuxmuster"
+  if [ ! -s "$conf" ]; then
+   echo "Adding apparmor profile for linuxmuster.net ..."
+   tpl="${STATICTPLDIR}${conf}"
+   cp "$tpl" "$conf"
+   apparmor_reload=yes
+  fi
 
   # fix horde/ingo's sieve configuration (closes #102)
   searchstr="/* 16.03.2013"
@@ -420,6 +429,7 @@ EOF
   apache2ctl graceful || true
   reload smbd || true
   reload nmbd || true
+  [ -n "$apparmor_reload" ] && /etc/init.d/apparmor restart
   [ -n "$cups_reload" ] && reload cups
   [ -n "$cyrus_reload" ] && /etc/init.d/cyrus-imapd reload
   [ -n "$nagios_reload" ] && /etc/init.d/nagios3 restart
