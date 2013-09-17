@@ -1,3 +1,11 @@
+linuxmuster-base (6.0.43-0ubuntu0) precise; urgency=low
+
+  * postinst: fixed turba's sources.php (closes #184).
+  * added apparmor profile for cups-pdf (closes #156).
+  * final fix for #195 at least (see 6.0.39 below).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 17 Sep 2013 16:51:40 +0200
+
 linuxmuster-base (6.0.42-1ubuntu0) precise; urgency=low
 
   * internal firewall ini script: fixed multiport portrange issue (closes #169).

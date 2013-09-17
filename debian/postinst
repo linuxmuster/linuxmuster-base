@@ -367,7 +367,6 @@ EOF
   conf="/etc/apparmor.d/tunables/home.d/linuxmuster"
   if [ ! -s "$conf" ]; then
    echo "Adding apparmor profile for linuxmuster.net ..."
-   cp "$conf" "${conf}.dpkg-bak"
    tpl="${STATICTPLDIR}${conf}"
    cp "$tpl" "$conf"
    apparmor_reload=yes
