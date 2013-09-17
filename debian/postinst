@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 11.09.2013
+# 17.09.2013
 # GPL v3
 #
 
@@ -363,6 +363,16 @@ EOF
    cyrus_reload=yes
   fi
 
+  # adding apparmor profile for linuxmuster (see #156)
+  conf="/etc/apparmor.d/tunables/home.d/linuxmuster"
+  if [ ! -s "$conf" ]; then
+   echo "Adding apparmor profile for linuxmuster.net ..."
+   cp "$conf" "${conf}.dpkg-bak"
+   tpl="${STATICTPLDIR}${conf}"
+   cp "$tpl" "$conf"
+   apparmor_reload=yes
+  fi
+
   # rename old shit
   conf_old=/etc/php5/conf.d/paedml.ini
   if [ -e "$conf_old" ]; then
@@ -378,6 +388,7 @@ EOF
   apache2ctl graceful || true
   reload smbd || true
   reload nmbd || true
+  [ -n "$apparmor_reload" ] && /etc/init.d/apparmor restart
   [ -n "$cups_reload" ] && reload cups
   [ -n "$cyrus_reload" ] && /etc/init.d/cyrus-imapd reload
   [ -n "$nagios_reload" ] && /etc/init.d/nagios3 restart
