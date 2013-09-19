@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 17.09.2013
+# 19.09.2013
 # GPL v3
 #
 
@@ -338,12 +338,14 @@ EOF
   done
   
   # adding apparmor profile for linuxmuster (see #156)
-  conf="/etc/apparmor.d/tunables/home.d/linuxmuster"
+  dir="/etc/apparmor.d/tunables/home.d"
+  conf="$dir/linuxmuster"
   if [ ! -s "$conf" ]; then
    echo "Adding apparmor profile for linuxmuster.net ..."
    tpl="${STATICTPLDIR}${conf}"
+   mkdir -p "$dir"
    cp "$tpl" "$conf"
-   apparmor_reload=yes
+   [ -s "/etc/init.d/apparmor" ] && apparmor_reload=yes
   fi
 
   # fix horde/ingo's sieve configuration (closes #102)

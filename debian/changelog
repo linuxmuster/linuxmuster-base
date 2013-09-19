@@ -1,3 +1,15 @@
+linuxmuster-base (6.1.0-10ubuntu0) precise-testing; urgency=low
+
+  * postinst: added creation of /etc/apparmor.d/tunables/home.d directory.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 19 Sep 2013 20:08:50 +0200
+
+linuxmuster-base (6.1.0-9ubuntu0) precise-testing; urgency=low
+
+  * import_workstations: fixed writing of host entries to bind config (closes #202).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 19 Sep 2013 19:50:39 +0200
+
 linuxmuster-base (6.1.0-8ubuntu0) precise; urgency=low
 
   * postinst: fixed turba's sources.php (closes #184).

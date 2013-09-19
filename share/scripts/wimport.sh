@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 17.09.2013
+# 19.09.2013
 # GPL v3
 #
 
@@ -344,8 +344,8 @@ fi # if there are any workstation data
 # finalize bind config
 echo ";$ENDSTR" >> $DB10TMP
 echo ";$ENDSTR" >> $DBREVTMP
-addto_file "$DB10" "$DB10TMP" "$fwconfig"
-addto_file "$DBREV" "$DBREVTMP" "$fwconfig"
+cat "$DB10TMP" >> "$DB10"
+cat "$DBREVTMP" >> "$DBREV"
 rm $DB10TMP
 rm $DBREVTMP
 
