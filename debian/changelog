@@ -1,3 +1,9 @@
+linuxmuster-base (6.0.44-0ubuntu0) precise; urgency=low
+
+  * import_workstations: fixed writing of host entries to bind config (closes #202).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 17 Sep 2013 16:51:40 +0200
+
 linuxmuster-base (6.0.43-0ubuntu0) precise; urgency=low
 
   * postinst: fixed turba's sources.php (closes #184).
