@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 19.09.2013
+# 08.11.2013
 # GPL v3
 #
 
@@ -276,7 +276,7 @@ if [ -s "$WIMPORTDATA" ]; then
  while read line; do
 
   echo "$line" | grep -q ^[a-zA-Z0-9] || continue
-  
+
   # read in host data
   room=`echo $line | awk -F\; '{ print $1 }'`
   tolower $room
@@ -321,8 +321,12 @@ if [ -s "$WIMPORTDATA" ]; then
   echo "  fixed-address $ip;" >> $DHCPDCONF
   echo "  option host-name \"$hostname\";" >> $DHCPDCONF
   if [ "$pxe" != "0" ]; then
-   # assign group specific pxelinux config
-   echo "  option extensions-path \"${hostgroup}\";" >> $DHCPDCONF
+   # assign group and pxe boot method specific config
+   if [ -e "$LINBODIR/grub/pxegrub.0" ]; then
+    echo "  option extensions-path \"${hostgroup}\";" >> $DHCPDCONF
+   else
+    echo "  option pxelinux.configfile \"pxelinux.cfg/$hostgroup\";" >> $DHCPDCONF
+   fi
   fi
   echo "}" >> $DHCPDCONF
 		

@@ -1,3 +1,12 @@
+linuxmuster-base (6.1.0-11ubuntu0) precise-testing; urgency=low
+
+  * merged dhcp configuration from master branch to be able to use
+    ip based firewall independend from linbo version.
+  * added run-parts dir /etc/linuxmuster/import_workstations.d for custom scripts
+    invoked at the end of import_workstations.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 08 Nov 2013 20:41:28 +0100
+
 linuxmuster-base (6.1.0-10ubuntu0) precise-testing; urgency=low
 
   * postinst: added creation of /etc/apparmor.d/tunables/home.d directory.

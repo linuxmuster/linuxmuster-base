@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 19.09.2013
+# 08.11.2013
 # GPL v3
 #
 
@@ -320,10 +320,10 @@ EOF
    chown root:www-data "$conf"
    chmod 440 "$conf"
   fi
-    
+
   # repair permissions for horde log dir (closes #82)
   [ -e /var/log/horde ] && chown www-data:www-data /var/log/horde -R
-  
+
   # fix cups configuration (closes #101)
   searchstr="# 15.03.2013"
   for i in cupsd.conf cups-files.conf; do
@@ -403,25 +403,37 @@ EOF
   fi
 
   # dhcpd.conf update
+  echo "DHCP configuration update"
   conf="/etc/dhcp/dhcpd.conf"
-  if ! grep -q ^"filename \"grub/pxegrub.0" "$conf"; then
-   echo "DHCP configuration needs update."
-   cp "$conf" "${conf}.dpkg-bak"
-   tpl="$DYNTPLDIR/03_dhcp3-server/$(basename "$conf")"
-   sed -e "s/@@servername@@/${servername}/g
-           s/@@domainname@@/${domainname}/g
-           s/@@serverip@@/${serverip}/g
-           s/@@ipcopip@@/${ipcopip}/g
-           s/@@broadcast@@/${broadcast}/g
-           s/@@internsub@@/${internsub}/g
-           s/@@internalnet@@/${internalnet}/g
-           s/@@internmask@@/${internmask}/g" "$tpl" > "$conf"
-   dhcp_reload=yes
+  # determine pxe boot method
+  if [ -e "$LINBODIR/grub/pxegrub.0" ]; then
+   suffix="pxegrub"
+  else
+   suffix="pxelinux"
   fi
-  if grep -q pxelinux.configfile "${conf}.linuxmuster"; then
-   sed -e 's/pxelinux.configfile \"pxelinux.cfg\//extensions-path \"/g' -i "${conf}.linuxmuster"
-   dhcp_reload=yes
+  # patch the according template
+  tpl="$DYNTPLDIR/03_dhcp3-server/$(basename "$conf").$suffix"
+  cp "$conf" "${conf}.dpkg-bak"
+  sed -e "s/@@servername@@/${servername}/g
+          s/@@domainname@@/${domainname}/g
+          s/@@serverip@@/${serverip}/g
+          s/@@ipcopip@@/${ipcopip}/g
+          s/@@broadcast@@/${broadcast}/g
+          s/@@internsub@@/${internsub}/g
+          s/@@internalnet@@/${internalnet}/g
+          s/@@internmask@@/${internmask}/g" "$tpl" > "$conf"
+  # patch dhcp host definitions if necessary
+  conf="${conf}.linuxmuster"
+  if [ "$suffix" = "pxegrub" ]; then
+   if grep -q pxelinux.configfile "$conf"; then
+    sed -e 's/pxelinux.configfile \"pxelinux.cfg\//extensions-path \"/g' -i "$conf"
+   fi
+  else
+   if grep -q extensions-path "$conf"; then
+    sed -e 's/extensions-path \"/pxelinux.configfile \"pxelinux.cfg\//g' -i "$conf"
+   fi
   fi
+  dhcp_reload=yes
 
   # updating release information
   echo "$DISTNAME $DISTFULLVERSION / Codename $CODENAME" > /etc/issue
