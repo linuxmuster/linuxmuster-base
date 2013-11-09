@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 08.11.2013
+# 09.11.2013
 # GPL v3
 #
 
@@ -379,22 +379,24 @@ EOF
   fi
 
   # convert macs to ips for ip based internal firewall
-  searchstr="$(head -1 $BLOCKEDHOSTSINTRANET)"
-  if validmac "$searchstr"; then
-   echo "Converting blocked mac addresses to ips because internal firewall has changed."
-   macs="$(cat $BLOCKEDHOSTSINTRANET)"
-   rm $BLOCKEDHOSTSINTRANET
-   touch $BLOCKEDHOSTSINTRANET
-   for i in $macs; do
-    if validip "$i"; then
-     echo "$i" >> $BLOCKEDHOSTSINTRANET
-    else
-     get_ip "$i"
-     echo "$RET" >> $BLOCKEDHOSTSINTRANET
-    fi
-   done
-   fwint_reload=yes
-  fi
+  for conf in $BLOCKEDHOSTSINTRANET $UNFILTEREDHOSTS; do
+   searchstr="$(head -1 $conf)"
+   if validmac "$searchstr"; then
+    echo "Converting macs to ips in $conf."
+    macs="$(cat $conf)"
+    rm $conf
+    touch $conf
+    for i in $macs; do
+     if validip "$i"; then
+      echo "$i" >> $conf
+     else
+      get_ip "$i"
+      echo "$RET" >> $conf
+     fi
+    done
+    fwint_reload=yes
+   fi
+  done
 
   # check for obsolete mac based iptables rules file
   IPTRULES="$CACHEDIR/iptables"

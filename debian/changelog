@@ -1,3 +1,9 @@
+linuxmuster-base (6.1.0-12ubuntu0) precise-testing; urgency=low
+
+  * urlfilter_on_off: changed from mac to ip address based cache store.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 09 Nov 2013 21:47:34 +0100
+
 linuxmuster-base (6.1.0-11ubuntu0) precise-testing; urgency=low
 
   * merged dhcp configuration from master branch to be able to use
