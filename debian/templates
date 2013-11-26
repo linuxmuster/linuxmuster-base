@@ -73,12 +73,12 @@ Description: Samba-Domäne des Schulnetzes?
 
 Template: linuxmuster-base/fwconfig
 Type: select
-Choices: ipfire, ipcop, custom
-Default: custom
+Choices: ipfire, custom
+Default: ipfire
 Description: Welche Firewall wird verwendet?
  Wählen Sie den Typ der Firewall:\n
  'ipfire' für die Installation mit IPFire.\n
- 'custom' wenn eine eigene Firewalllösung verwendet wird.
+ 'custom' wenn eine andere Firewalllösung verwendet wird.
 
 Template: linuxmuster-base/smtprelay
 Type: string
@@ -86,6 +86,13 @@ Description: SMTP relay host?
  Geben Sie ein, über welchen Mailserver E-Mail
  verschickt und empfangen werden soll.\n
  Bsp.: mbox1.belwue.de
+
+Template: linuxmuster-base/subnetting
+Type: boolean
+Default: false
+Description: Subnetting?
+ Wollen Sie Subnetting nutzen?\n
+ Aktivieren Sie diese Option nur, wenn Sie genau wissen, was Sie tun.
 
 Template: linuxmuster-base/adminpw
 Type: password
@@ -139,18 +146,6 @@ Description: Bestätigen Sie das Firewall-Root-Passwort:
 Template: linuxmuster-base/sambasid
 Type: string
 Description: SID für samba?
- Keine Eingabe.
-
-Template: linuxmuster-base/internmask
-Type: string
-Default: 255.240.0.0
-Description: Interne Netzmaske?
- Keine Eingabe.
-
-Template: linuxmuster-base/internmask_short
-Type: string
-Default: 12
-Description: Interne Netzmaske?
  Keine Eingabe.
 
 Template: linuxmuster-base/internsubrange

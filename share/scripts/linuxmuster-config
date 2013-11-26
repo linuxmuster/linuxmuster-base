@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 05.02.2013
+# 25.11.2013
 # GPL v3
 #
 
@@ -128,6 +128,14 @@ while ! validdomain "$SMTPRELAY"; do
  SMTPRELAY=$RET
  if [ "$SMTPRELAY" = "" ]; then break; fi
 done
+
+
+# subnetting
+db_fset linuxmuster-base/subnetting seen false
+db_input $PRIORITY linuxmuster-base/subnetting || true
+db_go
+db_get linuxmuster-base/subnetting || true
+subnetting=$RET
 
 # admin passwords
 if [ "$1" = "--first" ]; then

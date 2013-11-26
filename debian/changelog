@@ -1,3 +1,13 @@
+linuxmuster-base (6.1.0-13ubuntu0) precise-testing; urgency=low
+
+  * added subnetting support.
+  * linuxmuster-setup:
+    - removed ipcop and other obsolete stuff.
+    - renumbered several folders below config-dynamic.
+  * added --nofirewall option to internet_on_off.sh (updates only allowed ips file).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 26 Nov 2013 18:39:24 +0100
+
 linuxmuster-base (6.1.0-12ubuntu0) precise-testing; urgency=low
 
   * urlfilter_on_off: changed from mac to ip address based cache store.

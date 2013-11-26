@@ -1,7 +1,7 @@
 # linuxmuster shell helperfunctions
 #
 # thomas@linuxmuster.net
-# 11.09.2013
+# 26.11.2013
 # GPL v3
 #
 
@@ -370,40 +370,112 @@ exec_ipcop() {
 
 # fetch file from ipcop
 get_ipcop() {
- # test connection
  scp -r -P 222 root@$ipcopip:$1 $2 &> /dev/null || return 1
  return 0
 }
 
 # upload file to ipcop
 put_ipcop() {
- # test connection
  scp -r -P 222 $1 root@$ipcopip:$2 &> /dev/null || return 1
  return 0
 }
 
-# update guest ip list in cache
-update_guestiplist() {
- # get range from dhcpd.conf
- local range="$(grep -A20 ^subnet /etc/dhcp/dhcpd.conf | sed -e 's/^[ \t]*//' | grep -v ^# | grep ^range | head -1 | sed -e 's/range //' | sed -e 's/\;//')"
- local startip="$(echo $range | awk '{ print $1 }')"
- local endip="$(echo $range | awk '{ print $2 }')"
- if ! ( validip $startip && validip $endip ); then
-  echo "Fatal: Cannot determine ip range."
-  return 1
+# print list of subnets which are allowed to access intranet
+# get_allowed_subnets <intern|extern>
+get_allowed_subnets() {
+ case $1 in
+  intern|extern) ;;
+  *) return 0 ;;
+ esac
+ # senseless if internal firewall is deactivated
+ if [ "$1" = "intern" ]; then
+  . $DEFAULTCONF
+  local active="$(echo "$START_LINUXMUSTER" | tr A-Z a-z)"
+  [ "$active" = "yes" ] || return 0
  fi
-
- # write list
- rm -f "$GUESTIPLIST"
- local n=${startip[0]%.*}
- local s=( ${startip[@]##*.} )
- local e=( ${endip[@]##*.} )
- local RC=0
- for (( i=$s; i<=$e; ++i )); do
-  echo "$n.$i" >> "$GUESTIPLIST" || RC="1"
+ local subnetlist
+ # get ranges from subnets
+ for line in `sort -b -d -t';' -k1 $SUBNETDATA | grep ^[0-9]`; do
+  if [ "$1" = "intern" ]; then
+   local allowed="$(echo $line | awk -F\; '{ print $5 }')"
+  else
+   local allowed="$(echo $line | awk -F\; '{ print $6 }')"
+  fi
+  [ "$allowed" = "1" ] || continue
+  local network="$(echo $line | awk -F\; '{ print $1 }')"
+  if [ -z "$subnetlist" ]; then
+   subnetlist="$network"
+  else
+   subnetlist="$subnetlist $network"
+  fi
  done
- [ "$RC" != "0" ] && echo "Write error!"
- return "$RC"
+ echo "$subnetlist"
+}
+
+# test if ip matches a subnet
+# ipsubmatch <ip> <list of nets>
+ipsubmatch(){
+ local ip="$1"
+ local netlist="$2"
+ local netid
+ local prefix
+ local i
+ for i in $netlist; do
+  netid="$(echo $i | awk -F\/ '{ print $1}')"
+  prefix="$(echo $i | awk -F\/ '{ print $2}')"
+  [ -n "$netid" -a -n "$prefix" ] || continue
+  local netid_test="$(ipcalc "$ip"/"$prefix" | grep ^Network | awk '{ print $2 }' | awk -F\/ '{ print $1 }')"
+  [ "$netid_test" = "$netid" ] && return 0
+ done
+ return 1
+}
+
+# prints all ips of a subnet (from http://stackoverflow.com/questions/16986879/bash-script-to-list-all-ips-in-prefix)
+# network_address_to_ips <netip/netmask>
+network_address_to_ips() {
+ [ -z "$1" ] && return 0
+ local ips
+ local network
+ local iparr
+ local netmaskarr
+ local i
+ local j
+ local k
+ local l
+ # define empty array to hold the ip addresses
+ ips=()
+ # create array containing network address and subnet
+ network=(${1//\// })
+ # split network address by dot
+ iparr=(${network[0]//./ })
+ # check for subnet mask or create subnet mask from CIDR notation
+ if [[ ${network[1]} =~ '.' ]]; then
+  netmaskarr=(${network[1]//./ })
+ else
+  if [[ $((8-${network[1]})) > 0 ]]; then
+   netmaskarr=($((256-2**(8-${network[1]}))) 0 0 0)
+  elif  [[ $((16-${network[1]})) > 0 ]]; then
+   netmaskarr=(255 $((256-2**(16-${network[1]}))) 0 0)
+  elif  [[ $((24-${network[1]})) > 0 ]]; then
+   netmaskarr=(255 255 $((256-2**(24-${network[1]}))) 0)
+  elif [[ $((32-${network[1]})) > 0 ]]; then 
+   netmaskarr=(255 255 255 $((256-2**(32-${network[1]}))))
+  fi
+ fi
+ # correct wrong subnet masks (e.g. 240.192.255.0 to 255.255.255.0)
+ [[ ${netmaskarr[2]} == 255 ]] && netmaskarr[1]=255
+ [[ ${netmaskarr[1]} == 255 ]] && netmaskarr[0]=255
+ # generate list of ip addresses
+ for i in $(seq 0 $((255-${netmaskarr[0]}))); do
+  for j in $(seq 0 $((255-${netmaskarr[1]}))); do
+   for k in $(seq 0 $((255-${netmaskarr[2]}))); do
+    for l in $(seq 1 $((255-${netmaskarr[3]}))); do
+     ips+=( $(( $i+$(( ${iparr[0]}  & ${netmaskarr[0]})) ))"."$(( $j+$(( ${iparr[1]} & ${netmaskarr[1]})) ))"."$(($k+$(( ${iparr[2]} & ${netmaskarr[2]})) ))"."$(($l+$((${iparr[3]} & ${netmaskarr[3]})) )) )
+    done
+   done
+  done
+ done
+ echo ${ips[@]}
 }
 
 

@@ -1,7 +1,7 @@
 # linuxmuster.net: ldap configuration script
 #
 # <thomas@linuxmuster.net>
-# 16.04.2013
+# 15.11.2013
 # GPL v3
 #
 
@@ -34,7 +34,7 @@ if [ -n "$SOPHOMORIX" ]; then
  sed -e "s/^\$domainname=.*/\$domainname=\"${domainname}\";/
          s/^\$servername=.*/\$servername=\"${servername}\";/
          s/^\$internip=.*/\$internip=\"${serverip}\";/
-         s/^\$internmask=.*/\$internmask=\"${internmask}\";/
+         s/^\$internmask=.*/\$internmask=\"${INTERNMASK}\";/
          s/^\$smbworkgroup=.*/\$smbworkgroup=\"${workgroup}\";/" -i $template
 
 

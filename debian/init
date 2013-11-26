@@ -14,7 +14,7 @@
 
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 15.09.2013
+# 16.11.2013
 # GPL v3
 #
 
@@ -36,11 +36,33 @@
 # file which saves the fw rules
 IPTRULES="$CACHEDIR/iptables"
 
+# lockfile defaults
+# looks for unlock every 15 secs
+LOCKSLEEPTIME=15
+# 19 retries
+LOCKRETRIES=19
+# forced remove of lockfile after 300 secs
+LOCKTIMEOUT=300
+LOCKFILE="${IPTRULES}.lock"
+
 # check if we were called on boot
 echo "$0" | grep -q ^/etc/rc && ONBOOT=yes
 
 
-# read macs and ports etc. for fw start|reload
+### functions begin ###
+
+# start locking iptables file
+start_lock(){
+ lockfile -s $LOCKSLEEPTIME -r $LOCKRETRIES -l $LOCKTIMEOUT "$LOCKFILE"
+}
+
+# stop locking iptables file
+stop_lock(){
+ rm -f "$LOCKFILE"
+}
+
+
+# read ips, subnets and ports etc. for fw start|reload
 read_fwdata(){
 
  # maximum ports for iptables multiport list
@@ -58,12 +80,9 @@ read_fwdata(){
 
  # get imported ip addresses
  IPS="$(grep -v ^# $WIMPORTDATA | awk -F\; '{ print $5 }')"
- 
- # add guest ips if intranet access is allowed
- if grep -q "### GUEST INTERNAL ON" /etc/dhcp/dhcpd.conf; then
-  update_guestiplist ; RC="$?"
-  IPS="$IPS $(cat "$GUESTIPLIST")"
- fi
+
+ # get subnets which are allowed to access intranet
+ [ "$subnetting" = "true" ] && ALLOWEDNETS="$(get_allowed_subnets intern)"
  
  # remove orphaned ips from blocked hosts intranet list
  if [ -s "$BLOCKEDHOSTSINTRANET" ]; then
@@ -190,7 +209,11 @@ stop_firewall() {
  local RC=0
 
  echo -n "Stopping internal firewall"
+ 
+ start_lock
  flush_fw ; RC="$?"
+ stop_lock
+ 
  echo "."
  
  return "$RC"
@@ -207,6 +230,7 @@ write_rulesfile() {
  local portlist
  local proto
  local RULE
+ local suballowed
  local TYPE
 
  # write header
@@ -226,7 +250,7 @@ write_rulesfile() {
 -A IN-$IFACE -i $IFACE -j IN-$IFACE-BLOCKED
 -A IN-$IFACE -m state --state RELATED,ESTABLISHED -j ACCEPT
 -A IN-$IFACE -s $ipcopip/32 -j ACCEPT
--A IN-$IFACE ! -s $internalnet/$internmask_short -j ACCEPT
+-A IN-$IFACE ! -s $internalnet/$INTERNMASK_SHORT -j ACCEPT
 EOF
 
  # add custom rules before
@@ -244,26 +268,45 @@ EOF
   esac
   # get portlist
   portlist="$p"
-  # write base chain
+  # write allowed and blocked subnet rules
+  if [ "$TYPE" != "BASE" -a -n "$ALLOWEDNETS" ]; then
+   suballowed="yes"
+   for i in $ALLOWEDNETS; do
+    RULE="-A IN-$IFACE-$TYPE -s $i -m $proto -p $proto -m multiport --dports $portlist -j ACCEPT"
+    echo "$RULE" >> "$IPTRULES"
+   done
+  fi
+  # write rule into base chain
   if [ "$TYPE" = "BASE" ]; then
    RULE="-A IN-$IFACE-$TYPE -m $proto -p $proto -m multiport --dports $portlist -j ACCEPT"
    echo "$RULE" >> "$IPTRULES"
-  else # write allowed and blocked chains
+  else # write rules into allowed and blocked chains
    for i in $IPS; do
-   # for blocked chain use only ips which are not blocked
-    if [ "$TYPE" = "BLOCKED" ]; then
-     echo "$UNBLOCKED_IPS" | grep -qw "$i" || continue
+    # if ip matches an already allowed subnet only a reject rule for bocked ips is needed
+    if ([ -n "$suballowed" ] && ipsubmatch "$i" "$ALLOWEDNETS"); then
+     if [ "$TYPE" = "BLOCKED" ]; then
+      # create reject rule for ips which are blocked
+      if ! echo "$UNBLOCKED_IPS" | grep -qw "$i"; then
+       RULE="-A IN-$IFACE-$TYPE -s $i -m $proto -p $proto -m multiport --dports $portlist -j REJECT"
+       echo "$RULE" >> "$IPTRULES"
+      fi
+     fi
+    else # create accept rules for ips which does not match an allowed subnet
+     # for blocked ips do not create an accept rule
+     if [ "$TYPE" = "BLOCKED" ]; then
+      echo "$UNBLOCKED_IPS" | grep -qw "$i" || continue
+     fi
+     # create accept rules for the rest
+     RULE="-A IN-$IFACE-$TYPE -s $i -m $proto -p $proto -m multiport --dports $portlist -j ACCEPT"
+     echo "$RULE" >> "$IPTRULES"
     fi
-    validip "$i" || continue
-    RULE="-A IN-$IFACE-$TYPE -s $i -m $proto -p $proto -m multiport --dports $portlist -j ACCEPT"
-    echo "$RULE" >> "$IPTRULES"
    done
   fi   
  done
 
  # add custom rules after
  [ -r "$CUSTOMRULESAFTER" ] && cat "$CUSTOMRULESAFTER" >> "$IPTRULES"
- 
+
  # footer
  cat >> "$IPTRULES" <<EOF
 -A IN-$IFACE -m icmp -p icmp --icmp-type 8 -j ACCEPT
@@ -279,22 +322,25 @@ start_firewall() {
 
  echo -n "Starting internal firewall"
  
+ start_lock
+ 
  if [ -n "$ONBOOT" -a -s "$IPTRULES" ]; then
   echo -n " on boot, loading saved file"
  else
   write_rulesfile
  fi
- 
+
  if ! iptables-restore < "$IPTRULES"; then
   echo " ... failed to load $IPTRULES!"
   echo
   return 1
  fi
  
+ stop_lock
+
  echo "."
 
 } # start_firewall
-
 
 # it's a fake, restarting is fast enough
 reload_firewall(){
@@ -310,6 +356,9 @@ reload_firewall(){
  fi
  return "$RC"
 }
+
+### functions end ###
+
 
 RC=0
 

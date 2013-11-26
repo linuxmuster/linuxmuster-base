@@ -2,7 +2,7 @@
 # config script for linuxmuster.net
 #
 # thomas@linuxmuster.net
-# 16.04.2013
+# 23.11.2013
 # GPL v3
 #
 
@@ -15,9 +15,8 @@
 # read debconf database
 echo "Reading debconf database ..."
 for i in country state location servername domainname schoolname \
-         internmask internmask_short internsubrange fwconfig \
-         smtprelay sambasid adminpw pgmadminpw wwwadminpw \
-         ipcoppw workgroup iface_lan serverexternname; do
+         internsubrange fwconfig smtprelay sambasid adminpw pgmadminpw \
+         wwwadminpw ipcoppw workgroup iface_lan serverexternname subnetting; do
   eval $i="$(echo get linuxmuster-base/$i | debconf-communicate | awk '{ print $2 }')"
 done
 
@@ -66,8 +65,6 @@ internsub=`echo $internsubrange | cut -f1 -d"-"`
 internsub_old=`echo $internsubrange_old | cut -f1 -d"-"`
 orangesub=$(( $internsub+1 ))
 ovpnsub=$(( $internsub+2 ))
-internbc=`echo $internsubrange | cut -f2 -d"-"`
-internbc_old=`echo $internsubrange_old | cut -f2 -d"-"`
 serverip=10.$internsub.1.1
 serverip_old=10.$internsub_old.1.1
 serverrev_short=1.1.$internsub
@@ -75,11 +72,20 @@ ipcopip=10.$internsub.1.254
 ipcopip_old=10.$internsub_old.1.254
 ipcoprev_short=254.1.$internsub
 internalnet=10.$internsub.0.0
-broadcast=10.$internbc.255.255
-broadcast_old=10.$internbc_old.255.255
+internalnet_old=10.$internsub_old.0.0
+broadcast="$(ipcalc "$internalnet/$INTERNMASK" | grep ^Broadcast | awk '{ print $2 }')"
+broadcast_old="$(ipcalc "$internalnet_old/$INTERNMASK" | grep ^Broadcast | awk '{ print $2 }')"
 ipcopblue=172.16.$internsub
 ipcoporange=172.16.$orangesub
 ipcopovpn=172.16.$ovpnsub
+
+# values for subnetting
+subnetip=10.$internsub.1.0
+subnetip_old=10.$internsub_old.1.0
+subnetgw=10.$internsub.1.253
+subnetgw_old=10.$internsub_old.1.253
+subnetbc="$(ipcalc "$subnetip/$SUBNETMASK" | grep ^Broadcast | awk '{ print $2 }')"
+subnetbc_old="$(ipcalc "$subnetip_old/$SUBNETMASK" | grep ^Broadcast | awk '{ print $2 }')"
 
 # check for modified values
 if [ "$1" != "--first" ]; then
@@ -92,13 +98,13 @@ if [ "$1" != "--first" ]; then
   update_certs=yes && update_ldap=yes
  fi
  if [ "$domainname" != "$domainname_old" ]; then
-  update_certs=yes && update_ldap=yes
-  [ "$fwconfig" = "ipfire" -o "$fwconfig" = "ipcop" ] && update_fw_cert=yes
+  update_certs=yes
+  update_ldap=yes
+  [ "$fwconfig" != "custom" ] && update_fw_cert=yes
  fi
  [ "$serverexternname" = "$serverexternname_old" ] || update_extern=yes
  [ "$smptrelay" = "$smtprelay_old" ] || update_smtp=yes
  [ "$ipcopip" = "$ipcopip_old" ] || update_ssh=yes
- [ "$fwconfig" = "$fwconfig_old" ] || update_fwconfig=yes
 fi
 
 # compute basedn from domainname
@@ -115,8 +121,6 @@ ipcopip="$ipcopip"
 domainname="$domainname"
 serverexternname="$serverexternname"
 fwconfig="$fwconfig"
-internmask="$internmask"
-internmask_short="$internmask_short"
 internalnet="$internalnet"
 broadcast="$broadcast"
 ipcopblue="$ipcopblue"
@@ -131,6 +135,10 @@ location="$location"
 state="$state"
 country="$country"
 imaging="linbo"
+subnetting="$subnetting"
+subnetip="$subnetip"
+subnetgw="$subnetgw"
+subnetbc="$subnetbc"
 EOF
 ) > "$NETWORKSETTINGS"
 chmod 755 "$NETWORKSETTINGS"
@@ -229,8 +237,13 @@ for i in $DYNTPLDIR/*; do
               s/@@broadcast@@/${broadcast}/g
               s/@@internsub@@/${internsub}/g
               s/@@internalnet@@/${internalnet}/g
-              s/@@internmask@@/${internmask}/g
-              s/@@internmask_short@@/${internmask_short}/g
+              s/@@internmask@@/${INTERNMASK}/g
+              s/@@internmask_short@@/${INTERNMASK_SHORT}/g
+              s/@@subnetip@@/${subnetip}/g
+              s/@@subnetmask@@/${SUBNETMASK}/g
+              s/@@subnetmask_short@@/${SUBNETMASK_SHORT}/g
+              s/@@subnetbc@@/${subnetbc}/g
+              s/@@subnetgw@@/${subnetgw}/g
               s/@@smtprelay@@/${smtprelay}/g
               s/@@adminmac@@/${adminmac}/g
               s/@@workgroup@@/${workgroup}/g

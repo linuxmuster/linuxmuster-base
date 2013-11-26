@@ -2,7 +2,7 @@
 # setup for linuxmuster.net
 #
 # thomas@linuxmuster.net
-# 19.01.2013
+# 23.11.2013
 # GPL v3
 #
 
@@ -125,7 +125,7 @@ case $opt in
     rm -f $OLDVALUES
     for i in country state location workgroup servername domainname \
              schoolname smtprelay internsubrange fwconfig \
-             serverexternname; do
+             serverexternname subnetting; do
      RET="$(echo get linuxmuster-base/$i | debconf-communicate | awk '{ print $2 }')"
      oldvalue="${i}_old"
      echo "$oldvalue=\"$RET\"" >> $OLDVALUES

@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 09.11.2013
+# 26.11.2013
 # GPL v3
 #
 
@@ -28,8 +28,7 @@ read_values(){
  echo "Reading values from debconf ..."
 
  for i in country state location schoolname servername domainname workgroup fwconfig \
-          smtprelay sambasid internmask internmask_short internsubrange iface_lan \
-          serverexternname; do
+          smtprelay sambasid internsubrange iface_lan serverexternname subnetting; do
   eval $i="$(echo "get linuxmuster-base/$i" | debconf-communicate | awk '{ print $2 }')"
  done
  
@@ -38,6 +37,9 @@ read_values(){
  serverrev_short=1.1.$internsub
  ipcoprev_short=254.1.$internsub
  basedn="dc=`echo $domainname|sed 's/\./,dc=/g'`"
+ subnetip=10.$internsub.1.0
+ subnetgw=10.$internsub.1.253
+ subnetbc="$(ipcalc "$subnetip/$subnetmask" | grep ^Broadcast | awk '{ print $2 }')"
  
  # update serverexternname
  if [ -z "$serverexternname" ]; then
@@ -61,8 +63,6 @@ ipcopip="$ipcopip"
 domainname="$domainname"
 serverexternname="$serverexternname"
 fwconfig="$fwconfig"
-internmask="$internmask"
-internmask_short="$internmask_short"
 internalnet="$internalnet"
 broadcast="$broadcast"
 ipcopblue="$ipcopblue"
@@ -77,6 +77,10 @@ location="$location"
 state="$state"
 country="$country"
 imaging="linbo"
+subnetting="$subnetting"
+subnetip="$subnetip"
+subnetgw="$subnetgw"
+subnetbc="$subnetbc"
 EOF
  ) > "$NETWORKSETTINGS"
  chmod 755 "$NETWORKSETTINGS"
@@ -170,14 +174,14 @@ case "$1" in
   esac
 
   # update network.settings
-  grep -q ^serverexternname "$NETWORKSETTINGS" || write_networksettings
+  grep -q ^subnetting "$NETWORKSETTINGS" || write_networksettings
 
   # patch samba
   [ -s "$SMBCONFTEMPLATE" ] && sed -e "s/@@message1@@/${message1}/g
           s/@@message2@@/${message2}/g
           s/@@message3@@/${message3}/g
           s/@@serverip@@/${serverip}/g
-          s/@@internmask@@/${internmask}/g
+          s/@@internmask@@/${INTERNMASK}/g
           s/@@workgroup@@/${workgroup}/g
           s/@@domadmin@@/${DOMADMIN}/g
           s/@@administrator@@/${ADMINISTRATOR}/g
@@ -274,7 +278,7 @@ EOF
 
   # expand allow-query list in named.conf.options (#18)
   conf=/etc/bind/named.conf.options
-  searchstr="allow-query { $internalnet/$internmask_short; $ipcopblue.0/24; $ipcoporange.0/24; $ipcopovpn.0/24; };"
+  searchstr="allow-query { $internalnet/$INTERNMASK_SHORT; $ipcopblue.0/24; $ipcoporange.0/24; $ipcopovpn.0/24; };"
   if ! grep -q "$searchstr" $conf; then
     echo "Backing up $conf to $conf.dpkg-bak."
     cp $conf $conf.dpkg-bak
@@ -414,7 +418,7 @@ EOF
    suffix="pxelinux"
   fi
   # patch the according template
-  tpl="$DYNTPLDIR/03_dhcp3-server/$(basename "$conf").$suffix"
+  tpl="$DYNTPLDIR/05_dhcp/$(basename "$conf").$suffix"
   cp "$conf" "${conf}.dpkg-bak"
   sed -e "s/@@servername@@/${servername}/g
           s/@@domainname@@/${domainname}/g
@@ -423,17 +427,20 @@ EOF
           s/@@broadcast@@/${broadcast}/g
           s/@@internsub@@/${internsub}/g
           s/@@internalnet@@/${internalnet}/g
-          s/@@internmask@@/${internmask}/g" "$tpl" > "$conf"
+          s/@@internmask@@/${INTERNMASK}/g" "$tpl" > "$conf"
   # patch dhcp host definitions if necessary
-  conf="${conf}.linuxmuster"
   if [ "$suffix" = "pxegrub" ]; then
-   if grep -q pxelinux.configfile "$conf"; then
-    sed -e 's/pxelinux.configfile \"pxelinux.cfg\//extensions-path \"/g' -i "$conf"
+   if grep -q pxelinux.configfile "${conf}.linuxmuster"; then
+    sed -e 's/pxelinux.configfile \"pxelinux.cfg\//extensions-path \"/g' -i "${conf}.linuxmuster"
    fi
   else
-   if grep -q extensions-path "$conf"; then
-    sed -e 's/extensions-path \"/pxelinux.configfile \"pxelinux.cfg\//g' -i "$conf"
+   if grep -q extensions-path "${conf}.linuxmuster"; then
+    sed -e 's/extensions-path \"/pxelinux.configfile \"pxelinux.cfg\//g' -i "${conf}.linuxmuster"
    fi
+  fi
+  # remove free range if subnetting is set
+  if [ "$subnetting" = "true" ]; then
+   removefrom_file "$conf" "$BEGINSTR" "$ENDSTR"
   fi
   dhcp_reload=yes
 
@@ -444,19 +451,31 @@ EOF
   # reload services
   apache2ctl graceful || true
   reload smbd || true
-  reload nmbd || true
+  #reload nmbd || true
   [ -n "$apparmor_reload" ] && /etc/init.d/apparmor restart
   [ -n "$cups_reload" ] && reload cups
   [ -n "$cyrus_reload" ] && /etc/init.d/cyrus-imapd reload
   [ -n "$nagios_reload" ] && /etc/init.d/nagios3 restart
   [ -n "$bind_reload" ] && /etc/init.d/bind9 force-reload
-  [ -n "$dhcp_reload" ] && reload isc-dhcp-server
+  if [ -n "$dhcp_reload" ]; then
+   if status isc-dhcp-server | grep -q running; then
+    reload isc-dhcp-server
+   else
+    start isc-dhcp-server
+   fi
+  fi
   [ -n "$slapd_reload" ] && /etc/init.d/slapd restart
   [ -n "$postgres_reload" ] && /etc/init.d/postgresql reload
   [ -n "$fwint_reload" ] && /etc/init.d/linuxmuster-base reload
-  
+
   # add config patches
   run-parts "$ADDTPLDIR"
+  
+  # remove obsolete config dirs
+  for i in 03_dhcp3-server 01_network; do
+   conf="$DYNTPLDIR/$i"
+   [ -e "$conf" ] && rm -rf "$conf"
+  done
 
   # notify if upgrade is necessary
   if [ -n "$upgrade" ]; then

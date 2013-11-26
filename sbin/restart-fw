@@ -3,7 +3,7 @@
 # restarts firewalls
 #
 # thomas@linuxmuster.net
-# 25.05.2013
+# 14.11.2013
 # GPL v3
 #
 
@@ -34,7 +34,11 @@ usage() {
 # restart internal firewall
 restart_internal() {
  /etc/init.d/linuxmuster-base restart || RC="1"
- reload isc-dhcp-server || RC="1"
+ if status isc-dhcp-server | grep -q running; then
+  reload isc-dhcp-server || RC="1"
+ else
+  start isc-dhcp-server || RC="1"
+ fi
 }
 
 # restart external firewall

@@ -35,7 +35,7 @@ else
 	fi
 	if [ "$internsub" != "$internsub_old" ]; then
 		[ -e "$BACKUPDIR/etc/postfix/main.cf-$DATETIME.gz" ] || backup_file /etc/postfix/main.cf
-		postconf -e mynetworks="$internalnet/$internmask_short 127.0.0.1"
+		postconf -e mynetworks="$internalnet/$INTERNMASK_SHORT 127.0.0.1"
 	fi
 	if [[ "$servername" != "$servername_old" || "$domainname" != "$domainname_old" ]]; then
 		[ -e "$BACKUPDIR/etc/postfix/main.cf-$DATETIME.gz" ] || backup_file /etc/postfix/main.cf
