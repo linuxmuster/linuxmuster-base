@@ -1,0 +1,19 @@
+#
+# thomas@linuxmuster.net
+# 26.11.2013
+# GPL v3
+#
+
+echo "### 05_dhcp postpatch"
+
+# patch internal interface
+[ "$1" = "--modfify" ] && backup_file /etc/isc-dhcp-server
+sed -e "s/^INTERFACES=.*/INTERFACES=\"$iface_lan\"/" -i /etc/default/isc-dhcp-server
+
+# remove free range if subnetting is set
+if [ "$subnetting" = "true" ]; then
+ removefrom_file $(cat dhcpd.conf.target) "$BEGINSTR" "$ENDSTR"
+fi
+
+# simply start the service
+start isc-dhcp-server

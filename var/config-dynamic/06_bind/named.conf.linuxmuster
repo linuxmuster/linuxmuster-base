@@ -1,0 +1,19 @@
+//
+// Do any local configuration here
+//
+
+// Consider adding the 1918 zones here, if they are not used in your
+// organization
+//include "/etc/bind/zones.rfc1918";
+
+zone "@@domainname@@" {
+	type master;
+	file "/etc/bind/db.linuxmuster";
+	notify yes;
+};
+
+zone "10.in-addr.arpa" {
+	type master;
+	file "/etc/bind/db.10";
+	notify yes;
+};

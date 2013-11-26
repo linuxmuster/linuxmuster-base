@@ -1,0 +1,16 @@
+$ORIGIN .
+$TTL 7200       ; 2 hours
+@@domainname@@	IN SOA	@@servername@@.@@domainname@@. postmaster.@@domainname@@. (
+			2004030801
+			10800
+			3600
+			604800
+			38400
+			)
+		NS	@@servername@@.@@domainname@@.
+		MX	10 @@servername@@.@@domainname@@.
+
+$ORIGIN @@domainname@@.
+@@servername@@ IN A @@serverip@@
+@@fwconfig@@ IN A @@ipcopip@@
+

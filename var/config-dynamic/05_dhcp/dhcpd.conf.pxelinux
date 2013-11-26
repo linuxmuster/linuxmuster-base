@@ -1,0 +1,70 @@
+#
+# Sample configuration file for ISC dhcpd for Debian
+#
+# thomas@linuxmuster.net
+# 08.11.2013
+#
+
+# The ddns-updates-style parameter controls whether or not the server will
+# attempt to do a DNS update when a lease is confirmed. We default to the
+# behavior of the version 2 packages ('none', since DHCP v2 didn't
+# have support for DDNS.)
+server-identifier @@servername@@;
+update-static-leases true;
+
+# option definitions common to all supported networks...
+server-name "@@servername@@.@@domainname@@";
+option domain-name "@@domainname@@";
+option domain-name-servers @@serverip@@;
+option netbios-name-servers @@serverip@@;
+option ntp-servers @@serverip@@;
+option routers @@ipcopip@@;
+option font-servers @@serverip@@;
+option subnet-mask @@internmask@@;
+option broadcast-address @@broadcast@@;
+use-host-decl-names on; #rembo
+
+default-lease-time 86400;
+max-lease-time 86400;
+
+# If this DHCP server is the official DHCP server for the local
+# network, the authoritative directive should be uncommented.
+authoritative;
+
+# Use this to send dhcp log messages to a different log file (you also
+# have to hack syslog.conf to complete the redirection).
+log-facility local7;
+
+allow booting;
+allow bootp;
+
+# pxelinux options for LINBO
+option vendor-encapsulated-options 09:0f:80:00:0c:4e:65:74:77:6f:72:6b:20:62:6f:6f:74:0a:07:00:50:72:6f:6d:70:74:06:01:02:08:03:80:00:00:47:04:80:00:00:00:ff;
+option space pxelinux;
+option pxelinux.magic      code 208 = string;
+option pxelinux.configfile code 209 = string;  
+option pxelinux.pathprefix code 210 = text;  
+option pxelinux.reboottime code 211 = unsigned integer 32;								
+site-option-space "pxelinux";
+option pxelinux.magic f1:00:74:7e;
+if exists dhcp-parameter-request-list {
+    # Always send the PXELINUX options (specified in hexadecimal)
+    option dhcp-parameter-request-list = concat(option dhcp-parameter-request-list,d0,d1,d2,d3);
+}
+option configfile code 150 = string;
+filename "pxelinux.0";
+
+next-server @@serverip@@;
+
+### linuxmuster - begin ### DON'T REMOVE THIS LINE ###
+# subnet for workstation import
+subnet @@internalnet@@ netmask @@internmask@@ {
+	range 10.@@internsub@@.1.100 10.@@internsub@@.1.200;
+	max-lease-time 3600;
+	default-lease-time 3600;
+	option host-name "pxeclient";
+}
+### linuxmuster - end ### DON'T REMOVE THIS LINE ###
+
+# dynamic part of dhcpd.conf is included
+include "/etc/dhcp/dhcpd.conf.linuxmuster";
