@@ -6,7 +6,7 @@ linuxmuster-base (6.1.0-13ubuntu0) precise-testing; urgency=low
     - renumbered several folders below config-dynamic.
   * added --nofirewall option to internet_on_off.sh (updates only allowed ips file).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 26 Nov 2013 18:39:24 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 30 Nov 2013 17:05:58 +0100
 
 linuxmuster-base (6.1.0-12ubuntu0) precise-testing; urgency=low
 

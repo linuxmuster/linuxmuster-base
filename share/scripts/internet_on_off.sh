@@ -3,7 +3,7 @@
 # blocking web access on firewall
 #
 # thomas@linuxmuster.net
-# 25.11.2013
+# 30.11.2013
 # GPL v3
 #
 
@@ -128,6 +128,11 @@ fi # subnetting
 
 # remove empty lines
 sed '/^$/d' -i "$ALLOWEDIPS" || cancel "Cannot write to $ALLOWEDIPS 5!"
+
+# remove blocked ips
+for i in $(cat $BLOCKEDHOSTSINTERNET); do
+ sed "/^\($i\)$/d" -i "$ALLOWEDIPS" || cancel "Cannot write to $ALLOWEDIPS 6!"
+done
 
 # omit firewall update if set
 if [ -z "$nofirewall" ]; then
