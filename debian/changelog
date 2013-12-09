@@ -1,3 +1,9 @@
+linuxmuster-base (6.1.0-14ubuntu0) precise-testing; urgency=low
+
+  * linuxmuster-setup: do finally an import_workstations if subnetting has changed.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 08 Dec 2013 18:24:33 +0100
+
 linuxmuster-base (6.1.0-13ubuntu0) precise-testing; urgency=low
 
   * added subnetting support.

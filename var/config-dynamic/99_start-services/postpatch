@@ -1,6 +1,6 @@
 #
 # thomas@linuxmuster.net
-# 13.03.2013
+# 08.12.2013
 # GPL v3
 #
 
@@ -88,13 +88,19 @@ if [ "$1" = "--modify" -a "$internsub" != "$internsub_old" ]; then
   let o+=1
  done
  rm -f $LINBODIR/*.torrent
- import_workstations
  import_printers
+ impws="yes"
 fi
+
+# if subnetting has changed do an import_workstations
+[ "$subnetting" = "$subnetting_old" ] || impws="yes"
 
 # repair linbo stuff finally
 [ -s /etc/rsyncd.conf ] || dpkg-reconfigure linuxmuster-linbo
 status tftpd-hpa | grep -q start && stop tftpd-hpa
 start tftpd-hpa
 /etc/init.d/rsync restart
+
+# finally do an import_workstations if necessary
+[ -n "$impws" ] && import_workstations
 
