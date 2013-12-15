@@ -1,4 +1,7 @@
-# $Id: postpatch 1223 2012-01-16 19:42:26Z tschmitt $
+#
+# thomas@linuxmuster.net
+# 14.12.2013
+#
 
 echo "### 17_admins postpatch"
 
@@ -7,5 +10,7 @@ for i in $NETLOGONDIR $PROGSDIR $CDSDIR; do
   chown $ADMINISTRATOR:$DOMADMINS $i
   chmod 775 $i
 done
+find $NETLOGONDIR/ -type f -exec chmod 664 '{}' \;
+find $NETLOGONDIR/ -type d -exec chmod 775 '{}' \;
 chown $ADMINISTRATOR:$DOMADMINS $NETLOGONDIR -R
-chmod 664 $NETLOGONDIR/*
+

@@ -1,4 +1,7 @@
-# $Id: prepatch 1334 2012-07-20 12:03:39Z tschmitt $
+#
+# thomas@linuxmuster.net
+# 14.12.2013
+#
 
 echo "### 17_admins prepatch"
 
@@ -48,15 +51,6 @@ else
 
   # prevent access.conf from being patched
   mv access.conf.target access.conf.target.nopatch
-
-  # prevent login.bat from being patched
-  mv login.bat.target login.bat.target.nopatch
-
-  # patch login.bat with new servername if necessary
-  if [ "$servername" != "$servername_old" ]; then
-    backup_file $NETLOGONDIR/login.bat
-    sed -e 's%^call \\\\'$servername_old'\\%call \\\\'$servername'\\%g' -i $NETLOGONDIR/login.bat
-  fi
 
 fi
 

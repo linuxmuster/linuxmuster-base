@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 26.11.2013
+# 14.12.2013
 # GPL v3
 #
 
@@ -214,12 +214,34 @@ case "$1" in
    [ -e "/etc/sophomorix/user/$i" ] || cp $STATICTPLDIR/etc/sophomorix/user/$i /etc/sophomorix/user
   done
 
+  # repair sharehome
+  chmod 755 "$SHAREHOME"
+  chmod 1775 "$TASKSCACHE"
+  for i in "Klassen classes" "Lehrkräfte teachers" "Projekte projects" "Prüfungen exams" "Schule school" "Unterklassen subclasses"; do
+   l="$SHAREHOME/$(echo $i | awk '{ print $1 }')"
+   if [ ! -L "$l" ]; then
+    o="$(echo $i | awk '{ print $2 }')"
+    ln -s "$o" "$l"
+   fi
+  done
+
   # adding win7 netlogon example files.
   for i in common.bat.win7 replace.vbs; do
    [ -s "$NETLOGONDIR/$i" ] || cp $STATICTPLDIR/$NETLOGONDIR/$i $NETLOGONDIR
   done
 
-  # reparing permissions in netlogondir (1.5.3-1)
+  # provide teachers.bat if not yet there
+  tpldir="$DYNTPLDIR/17_admins"
+  tpl="$tpldir/login.bat"
+  conf="$(cat $tpl.target)"
+  if ! grep -q 'teachers.bat' "$conf"; then
+   echo "Providing new netlogon script teachers.bat."
+   sed -e "s|@@servername@@|$servername|g" "$tpl" > "$conf"
+   tpl="$tpldir/teachers.bat"
+   conf="$(cat $tpl.target)"
+   sed -e "s|@@servername@@|$servername|g" "$tpl" > "$conf"
+  fi
+  # reparing permissions in netlogondir
   echo "Repairing permissions in $NETLOGONDIR ..."
   find $NETLOGONDIR/ -type f -exec chmod 664 '{}' \;
   find $NETLOGONDIR/ -type d -exec chmod 775 '{}' \;
