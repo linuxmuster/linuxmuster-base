@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 14.12.2013
+# 17.12.2013
 # GPL v3
 #
 
@@ -214,15 +214,15 @@ case "$1" in
    [ -e "/etc/sophomorix/user/$i" ] || cp $STATICTPLDIR/etc/sophomorix/user/$i /etc/sophomorix/user
   done
 
-  # repair sharehome
+  # create localized links in certain samba share folders
   chmod 755 "$SHAREHOME"
   chmod 1775 "$TASKSCACHE"
-  for i in "Klassen classes" "Lehrkräfte teachers" "Projekte projects" "Prüfungen exams" "Schule school" "Unterklassen subclasses"; do
-   l="$SHAREHOME/$(echo $i | awk '{ print $1 }')"
-   if [ ! -L "$l" ]; then
+  for i in "Klassen classes" "Lehrkräfte teachers" "Projekte projects" "Prüfungen exams" "Räume rooms" "Schule school" "Unterklassen subclasses"; do
+   for d in "$SHAREHOME" "$TASKSCACHE"; do
+    l="$d/$(echo $i | awk '{ print $1 }')"
     o="$(echo $i | awk '{ print $2 }')"
-    ln -s "$o" "$l"
-   fi
+    [ ! -L "$l" -a -e "$d/$o" ] && ln -s "$o" "$l"
+   done
   done
 
   # adding win7 netlogon example files.
@@ -335,17 +335,19 @@ EOF
    chmod 440 "$conf"
   fi
   
-  # update gollems's prefs.php (closes #80)
-  conf="/etc/horde/gollem/prefs.php"
-  searchstr="* 19.02.2013"
-  if ! grep -q "$searchstr" $conf; then
-   echo "Backing up $conf to $conf.dpkg-bak."
-   cp $conf $conf.dpkg-bak
-   echo "Fixing gollem's prefs.php."
-   cp "${STATICTPLDIR}${conf}" "$conf"
-   chown root:www-data "$conf"
-   chmod 440 "$conf"
-  fi
+  # update gollem configs
+  confs="backends.php prefs.php"
+  confdir="/etc/horde/gollem"
+  for i in $confs; do
+   conf="$confdir/$i"
+   if ! grep -q ^" \* "[0-3][0-9].[0-1][0-2].2013 $conf; then
+    cp $conf $conf.dpkg-bak
+    echo "Fixing gollem's $(basename $conf)."
+    cp "${STATICTPLDIR}${conf}" "$conf"
+    chown root:www-data "$conf"
+    chmod 440 "$conf"
+   fi
+  done
 
   # repair permissions for horde log dir (closes #82)
   [ -e /var/log/horde ] && chown www-data:www-data /var/log/horde -R
@@ -439,6 +441,14 @@ EOF
   else
    suffix="pxelinux"
   fi
+  # according to subnetting
+  if [ "$subnetting" = "true" ]; then
+   dhcpbc="$subnetbc"
+   dhcpmask="$SUBNETMASK"
+  else
+   dhcpbc="$broadcast"
+   dhcpmask="$INTERNMASK"
+  fi
   # patch the according template
   tpl="$DYNTPLDIR/05_dhcp/$(basename "$conf").$suffix"
   cp "$conf" "${conf}.dpkg-bak"
@@ -446,10 +456,10 @@ EOF
           s/@@domainname@@/${domainname}/g
           s/@@serverip@@/${serverip}/g
           s/@@ipcopip@@/${ipcopip}/g
-          s/@@broadcast@@/${broadcast}/g
+          s/@@dhcpbc@@/${dhcpbc}/g
           s/@@internsub@@/${internsub}/g
           s/@@internalnet@@/${internalnet}/g
-          s/@@internmask@@/${INTERNMASK}/g" "$tpl" > "$conf"
+          s/@@dhcpmask@@/${dhcpmask}/g" "$tpl" > "$conf"
   # patch dhcp host definitions if necessary
   if [ "$suffix" = "pxegrub" ]; then
    if grep -q pxelinux.configfile "${conf}.linuxmuster"; then
@@ -461,9 +471,7 @@ EOF
    fi
   fi
   # remove free range if subnetting is set
-  if [ "$subnetting" = "true" ]; then
-   removefrom_file "$conf" "$BEGINSTR" "$ENDSTR"
-  fi
+  [ "$subnetting" = "true" ] && removefrom_file "$conf" "$BEGINSTR" "$ENDSTR"
   dhcp_reload=yes
 
   # updating release information

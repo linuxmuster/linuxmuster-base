@@ -2,7 +2,7 @@
 # config script for linuxmuster.net
 #
 # thomas@linuxmuster.net
-# 23.11.2013
+# 15.12.2013
 # GPL v3
 #
 
@@ -86,6 +86,13 @@ subnetgw=10.$internsub.1.253
 subnetgw_old=10.$internsub_old.1.253
 subnetbc="$(ipcalc "$subnetip/$SUBNETMASK" | grep ^Broadcast | awk '{ print $2 }')"
 subnetbc_old="$(ipcalc "$subnetip_old/$SUBNETMASK" | grep ^Broadcast | awk '{ print $2 }')"
+if [ "$subnetting" = "true" ]; then
+ dhcpbc="$subnetbc"
+ dhcpmask="$SUBNETMASK"
+else
+ dhcpbc="$broadcast"
+ dhcpmask="$INTERNMASK"
+fi
 
 # check for modified values
 if [ "$1" != "--first" ]; then
@@ -234,6 +241,8 @@ for i in $DYNTPLDIR/*; do
               s/@@ipcopovpn@@/${ipcopovpn}/g
               s/@@iface_lan@@/${iface_lan}/g
               s/@@fwconfig@@/${fwconfig}/g
+              s/@@dhcpbc@@/${dhcpbc}/g
+              s/@@dhcpmask@@/${dhcpmask}/g
               s/@@broadcast@@/${broadcast}/g
               s/@@internsub@@/${internsub}/g
               s/@@internalnet@@/${internalnet}/g

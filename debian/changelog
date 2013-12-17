@@ -1,8 +1,9 @@
 linuxmuster-base (6.1.0-15ubuntu0) precise-testing; urgency=low
 
-  * modifications due to substitution of bind mounts (see #237).
+  * several modifications due to substitution of bind mounts (see #237).
+  * improved handling of servernet in case of subnetting.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 14 Dec 2013 17:17:16 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 17 Dec 2013 19:50:39 +0100
 
 linuxmuster-base (6.1.0-14ubuntu0) precise-testing; urgency=low
 

@@ -98,21 +98,21 @@
 // ** For the SMB backend to work, you must be using a version of Horde
 // ** that contains the SMB VFS driver.  See the test.php script to determine
 // ** whether the SMB driver is present on your system.
-$backends['smb'] = array(
-     'name' => 'SMB Server',
-     'driver' => 'smb',
-     'preferred' => '',
-     'hordeauth' => true,
-     'params' => array(
-         'hostspec' => 'localhost',
-         'port' => 139,
-         'share' => 'homes',
-         // Path to the smbclient executable.
-         'smbclient' => '/usr/bin/smbclient',
-         // IP address of server (only needed if hostname is different from
-         // NetBIOS name).
-         'ipaddress' => '127.0.0.1',
-     ),
+// $backends['smb'] = array(
+//      'name' => 'SMB Server',
+//      'driver' => 'smb',
+//      'preferred' => '',
+//      'hordeauth' => true,
+//      'params' => array(
+//          'hostspec' => 'localhost',
+//          'port' => 139,
+//          'share' => 'homes',
+//          // Path to the smbclient executable.
+//          'smbclient' => '/usr/bin/smbclient',
+//          // IP address of server (only needed if hostname is different from
+//          // NetBIOS name).
+//          'ipaddress' => '127.0.0.1',
+//      ),
 //     'loginparams' => array(
 //         // Allow the user to change to Samba server.
 //         // 'hostspec' => 'Hostname',
@@ -127,6 +127,57 @@ $backends['smb'] = array(
 //     // 'permissions' => '750',
 //     // 'filter' => '^regex$',
 //     // 'quota' => false,
+//      'clipboard' => true,
+//      'attributes' => array('type', 'name', 'download', 'modified', 'size')
+// );
+
+/**
+ * thomas@linuxmuster.net
+ * smb share definitions for gollem
+ * 17.12.2013
+ */
+
+$backends['smb-home'] = array(
+     'name' => 'Home',
+     'driver' => 'smb',
+     'preferred' => '',
+     'hordeauth' => true,
+     'params' => array(
+         'hostspec' => 'localhost',
+         'port' => 139,
+         'share' => 'homes',
+         'smbclient' => '/usr/bin/smbclient',
+     ),
+     'clipboard' => true,
+     'attributes' => array('type', 'name', 'download', 'modified', 'size')
+);
+$backends['smb-shares'] = array(
+     'name' => 'Tauschen',
+     'driver' => 'smb',
+     'preferred' => '',
+     'hordeauth' => true,
+     'params' => array(
+         'hostspec' => 'localhost',
+         'port' => 139,
+         'share' => 'shares',
+         'smbclient' => '/usr/bin/smbclient',
+     ),
+     'filter' => '^[a-z]',
+     'clipboard' => true,
+     'attributes' => array('type', 'name', 'download', 'modified', 'size')
+);
+$backends['smb-tasks'] = array(
+     'name' => 'Vorlagen',
+     'driver' => 'smb',
+     'preferred' => '',
+     'hordeauth' => true,
+     'params' => array(
+         'hostspec' => 'localhost',
+         'port' => 139,
+         'share' => 'tasks',
+         'smbclient' => '/usr/bin/smbclient',
+     ),
+     'filter' => '^[a-z]',
      'clipboard' => true,
      'attributes' => array('type', 'name', 'download', 'modified', 'size')
 );

@@ -20,8 +20,8 @@ option netbios-name-servers @@serverip@@;
 option ntp-servers @@serverip@@;
 option routers @@ipcopip@@;
 option font-servers @@serverip@@;
-option subnet-mask @@internmask@@;
-option broadcast-address @@broadcast@@;
+option subnet-mask @@dhcpmask@@;
+option broadcast-address @@dhcpbc@@;
 use-host-decl-names on; #rembo
 
 default-lease-time 86400;

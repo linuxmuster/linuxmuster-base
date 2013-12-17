@@ -2,7 +2,7 @@
 # Sample configuration file for ISC dhcpd for Debian
 #
 # thomas@linuxmuster.net
-# 08.11.2013
+# 15.12.2013
 #
 
 # The ddns-updates-style parameter controls whether or not the server will
@@ -20,8 +20,8 @@ option netbios-name-servers @@serverip@@;
 option ntp-servers @@serverip@@;
 option routers @@ipcopip@@;
 option font-servers @@serverip@@;
-option subnet-mask @@internmask@@;
-option broadcast-address @@broadcast@@;
+option subnet-mask @@dhcpmask@@;
+option broadcast-address @@dhcpbc@@;
 use-host-decl-names on; #rembo
 
 default-lease-time 86400;

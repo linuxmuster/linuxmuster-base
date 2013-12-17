@@ -1,12 +1,14 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 26.11.2013
+# 17.12.2013
 # GPL v3
 #
 
 DB10TMP=/var/tmp/db10.$$
 DBREVTMP=/var/tmp/dbrev.$$
+SERVERNET="${subnetip}/${SUBNETMASK_SHORT}"
+SRVNETLINE="$SERVERNET;$subnetgw;;;0;0"
 
 RC=0
 
@@ -146,22 +148,24 @@ test_subnet(){
    # subnet definition exists
    [ -n "$room" ] && write_dhcp_subnet "$vnetid" "$vnetpre" "$line" "$room"
    echo "$vnetwork"
-   return 0
+   return
   fi
  done
  if [ -n "$room" ]; then
   # subnet definition does not yet exist
   vnetid="$(ipcalc "$ip"/"$SUBNETMASK_SHORT" | grep ^Network | awk '{ print $2 }' | awk -F\/ '{ print $1 }')"
   vgateway="$(ipcalc "$ip"/"$SUBNETMASK_SHORT" | grep ^HostMax | awk '{ print $2 }' | awk -F\/ '{ print $1 }')"
-  line="$vnetid/$SUBNETMASK_SHORT;$vgateway;;;0;0"
+  vnetwork="$vnetid/$SUBNETMASK_SHORT"
+  line="$vnetwork;$vgateway;;;0;0"
   write_dhcp_subnet "$vnetid" "$SUBNETMASK_SHORT" "$line" "$room"
-  echo "$vnetid/$SUBNETMASK_SHORT"
-  # write subnet definition to $SUBNETDATA
-  echo "# Subnet $room" >> "$SUBNETDATA"
-  echo "$line" >> "$SUBNETDATA"
-  return 0
+  echo "$vnetwork"
+  # write subnet definition to $SUBNETDATA (if it is not the servernet)
+  if [ "$SERVERNET" != "$vnetwork" ]; then
+   echo "# Subnet $room" >> "$SUBNETDATA"
+   echo "$line" >> "$SUBNETDATA"
+  fi
+  return
  fi
- return 1
 }
 
 ### functions end ###
@@ -284,6 +288,53 @@ fi
 echo " * Workstation data are Ok!"
 echo
 
+# check subnet data
+if [ "$subnetting" = "true" ]; then
+ echo "Checking subnet data."
+ for line in `grep ^[a-zA-Z0-9] $SUBNETDATA`; do
+  vnetwork="$(echo $line | awk -F\; '{ print $1 }')"
+  vnetreal="$(ipcalc $vnetwork | grep ^Network | awk '{ print $2}')"
+  vnetpre="$(echo $vnetreal | awk -F\/ '{ print $2 }')"
+  # if network matches servernet warn and comment out subnet declaration
+  if [ "$vnetreal" = "$(ipcalc ${serverip}/${vnetpre} | grep ^Network | awk '{ print $2}')" ]; then
+   echo " * WARNING: Subnet $vnetwork matches server subnet!"
+   sed -e "s|^$vnetwork|### NOT SUPPORTED ###${vnetwork}|" -i "$SUBNETDATA"
+   subwarn=yes
+   continue
+  fi
+  # test if gateway address matches subnet
+  vnetgw="$(echo $line | awk -F\; '{ print $2 }')"
+  if [ "$vnetreal" != "$(ipcalc ${vnetgw}/${vnetpre} | grep ^Network | awk '{ print $2}')" ]; then
+   echo " * WARNING: Subnet gateway $vnetgw does not match subnet $vnetwork!"
+   sed -e "s|^$vnetwork|### NOT SUPPORTED ###${vnetwork}|" -i "$SUBNETDATA"
+   subwarn=yes
+   continue
+  fi
+  # test if first range address matches subnet
+  vnetfirst="$(echo $line | awk -F\; '{ print $3 }')"
+  if [ -n "$vnetfirst" -a "$vnetreal" != "$(ipcalc ${vnetfirst}/${vnetpre} | grep ^Network | awk '{ print $2}')" ]; then
+   echo " * WARNING: First range address $vnetfirst does not match subnet $vnetwork!"
+   sed -e "s|^$vnetwork|### NOT SUPPORTED ###${vnetwork}|" -i "$SUBNETDATA"
+   subwarn=yes
+   continue
+  fi
+  # test if last range address matches subnet
+  vnetlast="$(echo $line | awk -F\; '{ print $4 }')"
+  if [ -n "$vnetlast" -a "$vnetreal" != "$(ipcalc ${vnetlast}/${vnetpre} | grep ^Network | awk '{ print $2}')" ]; then
+   echo " * WARNING: Last range address $vnetlast does not match subnet $vnetwork!"
+   sed -e "s|^$vnetwork|### NOT SUPPORTED ###${vnetwork}|" -i "$SUBNETDATA"
+   subwarn=yes
+   continue
+  fi
+ done
+ if [ -z "$subwarn" ]; then
+  echo " * Subnet data are Ok!"
+ else
+  echo " * Note: One or more subnet declarations have been deactivated!"
+  RC="1"
+ fi
+ echo
+fi
 
 # check dhcp stuff
 [ -z "$DHCPDCONF" ] && exitmsg "Variable DHCPDCONF is not set!"
@@ -325,9 +376,15 @@ find "$LINBODIR" -name "start.conf-*" -type l -exec rm '{}' \;
 echo "Done!"
 echo
 
-# read in host data
-[ "$subnetting" = "true" ] && subnetmsg=" and subnet"
+# process host and subnet data at least
 echo "Processing workstation${subnetmsg} data:"
+if [ "$subnetting" = "true" ]; then
+ tab="  "
+ subnetmsg=" and subnet"
+else
+ tab=""
+fi
+vnetwork=""
 for line in `sort -b -d -t';' -k5 $WIMPORTDATA | grep ^[a-zA-Z0-9]`; do
 
  # get room from line
@@ -341,8 +398,8 @@ for line in `sort -b -d -t';' -k5 $WIMPORTDATA | grep ^[a-zA-Z0-9]`; do
  pxe=`echo $line | awk -F\; '{ print $11 }'`
  [ -z "$pxe" ] && pxe="0"
 
-  # only if pxe host
-  if [ "$pxe" != "0" ]; then
+ # only if pxe host
+ if [ "$pxe" != "0" ]; then
 
   # use the default start.conf if there is none for this group
   if [ ! -e "$LINBODIR/start.conf.$hostgroup" ]; then
@@ -359,24 +416,16 @@ for line in `sort -b -d -t';' -k5 $WIMPORTDATA | grep ^[a-zA-Z0-9]`; do
 
  fi # only if pxe host
 
- # write dhcpd.conf entry
- # close subnet declaration
- if [ -n "$vnetwork" -a "$vnetwork" != "$(test_subnet "$ip")" ]; then
-  vnetwork=""
-  echo "}" >> $DHCPDCONF
- fi
-
- # if subnetting is set
- if [ "$subnetting" = "true" -a -z "$vnetwork" ]; then
+ # if subnetting is set handle subnet dhcp entries
+ if [ "$subnetting" = "true" -a "$vnetwork" != "$(test_subnet "$ip")" ]; then
+  # close subnet declaration
+  [ -n "$vnetwork" ] && echo "}" >> $DHCPDCONF
+  # assign changed vnet id
   vnetwork="$(test_subnet "$ip" "$room")"
   echo " * Subnet $vnetwork -> ${room}."
  fi
- if [ -n "$vnetwork" ]; then
-  tab="  "
- else
-  tab=""
-  echo "# Host $hostname" >> $DHCPDCONF
- fi
+ 
+ # write dhcpd.conf entry for hosts
  echo " * Host $hostname."
  echo "$tab""host $hostname {" >> $DHCPDCONF
  echo "$tab""  hardware ethernet $mac;" >> $DHCPDCONF
@@ -412,9 +461,9 @@ cat "$DBREVTMP" >> "$DBREV"
 rm $DB10TMP
 rm $DBREVTMP
 
-# do subnets not handled yet
+# do subnets not handled yet (incl. servernet)
 if [ "$subnetting" = "true" ]; then
- for line in `grep ^[a-zA-Z0-9] $SUBNETDATA`; do
+ for line in `grep ^[a-zA-Z0-9] $SUBNETDATA` "$SRVNETLINE"; do
   vnetwork="$(echo $line | awk -F\; '{ print $1 }')"
   vnetid="$(echo $vnetwork | awk -F\/ '{ print $1 }')"
   vnetpre="$(echo $vnetwork | awk -F\/ '{ print $2 }')"

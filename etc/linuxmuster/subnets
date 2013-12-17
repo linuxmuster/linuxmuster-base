@@ -1,20 +1,18 @@
 #
 # thomas@linuxmuster.net
-# 26.11.2013
+# 15.12.2013
 #
-# Example subnet declarations
+# Beispiele für Subnetzdeklarationen
 #
 # Network/Prefix ; Router-IP (last IP in network) ; 1. Range-IP ; Last-Range-IP ; Intranet Access 0/1 ; Internet Access 0/1
 #
-# Servernetz - vlan11 (mit freier Range für Rechneraufnahme)
-#10.16.1.0/24;10.16.1.254;10.16.1.100;10.16.1.200;0;0
+# Raum 100 - vlan100 (mit Range zur Rechneraufnahme)
+#10.20.100.0/24;10.20.100.254;10.20.100.1;10.20.100.200;0;0
 #
-# Lehrernetz - vlan50
-#10.16.50.0/24;10.16.50.254;10.16.50.100;10.16.50.200;1;1
+# Lehrernetz - vlan50 (keine freie Range)
+#10.30.10.0/24;10.30.10.254;;;0;0
 #
-# Gästenetz - vlan70
-#10.17.0.0/16;10.17.255.254;10.17.0.1;10.17.255.253;0;1
+# Gästenetz - vlan60 (nur freie Range mit Internetzugriff)
+#10.30.20.0/24;10.30.20.254;10.30.20.1;10.30.20.253;0;1
 #
-# Raum 100 - vlan100 (ohne Range)
-#10.16.100.0/24;10.16.100.254;;;0;0
-#
+
