@@ -1,14 +1,14 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 17.12.2013
+# 18.12.2013
 # GPL v3
 #
 
 DB10TMP=/var/tmp/db10.$$
 DBREVTMP=/var/tmp/dbrev.$$
-SERVERNET="${subnetip}/${SUBNETMASK_SHORT}"
-SRVNETLINE="$SERVERNET;$subnetgw;;;0;0"
+SERVERNET="${srvnetip}/${SUBNETBITMASK}"
+SRVNETLINE="$SERVERNET;$srvnetgw;;;0;0"
 
 RC=0
 
@@ -99,7 +99,7 @@ remove_defaults() {
 
 
 # write subnet definition to dhcp configuration
-# write_dhcp_subnet <network> <line from file> <netmask> <room>
+# write_dhcp_subnet <network ip> <bitmask> <subnet data line> <room>
 write_dhcp_subnet(){
  local vnetid="$1"
  local vnetpre="$2"
@@ -113,8 +113,8 @@ write_dhcp_subnet(){
  local vrouter="$(echo $line | awk -F\; '{ print $2 }')"
  local vfirstip="$(echo $line | awk -F\; '{ print $3 }')"
  local vlastip="$(echo $line | awk -F\; '{ print $4 }')"
- local vnetmask="$(ipcalc "$vnetid/$vnetpre" | grep ^Netmask | awk '{ print $2 }')"
- local vbroadcast="$(ipcalc "$vnetid/$vnetpre" | grep ^Broadcast | awk '{ print $2 }')"
+ local vnetmask="$(ipcalc -b "$vnetid/$vnetpre" | grep ^Netmask | awk '{ print $2 }')"
+ local vbroadcast="$(ipcalc -b "$vnetid/$vnetpre" | grep ^Broadcast | awk '{ print $2 }')"
  # write new subnet in DHCP-configuration
  echo "# $msg" >> $DHCPDCONF
  echo "subnet $vnetid netmask $vnetmask {" >> $DHCPDCONF
@@ -143,7 +143,7 @@ test_subnet(){
   vnetwork="$(echo $line | awk -F\; '{ print $1 }')"
   vnetid="$(echo $vnetwork | awk -F\/ '{ print $1 }')"
   vnetpre="$(echo $vnetwork | awk -F\/ '{ print $2 }')"
-  netid="$(ipcalc "$ip"/"$vnetpre" | grep ^Network | awk '{ print $2 }' | awk -F\/ '{ print $1 }')"
+  netid="$(ipcalc -b "$ip"/"$vnetpre" | grep ^Network | awk '{ print $2 }' | awk -F\/ '{ print $1 }')"
   if [ "$netid" = "$vnetid" ]; then
    # subnet definition exists
    [ -n "$room" ] && write_dhcp_subnet "$vnetid" "$vnetpre" "$line" "$room"
@@ -153,11 +153,11 @@ test_subnet(){
  done
  if [ -n "$room" ]; then
   # subnet definition does not yet exist
-  vnetid="$(ipcalc "$ip"/"$SUBNETMASK_SHORT" | grep ^Network | awk '{ print $2 }' | awk -F\/ '{ print $1 }')"
-  vgateway="$(ipcalc "$ip"/"$SUBNETMASK_SHORT" | grep ^HostMax | awk '{ print $2 }' | awk -F\/ '{ print $1 }')"
-  vnetwork="$vnetid/$SUBNETMASK_SHORT"
+  vnetid="$(ipcalc -b "$ip"/"$SUBNETBITMASK" | grep ^Network | awk '{ print $2 }' | awk -F\/ '{ print $1 }')"
+  vgateway="$(ipcalc -b "$ip"/"$SUBNETBITMASK" | grep ^HostMax | awk '{ print $2 }' | awk -F\/ '{ print $1 }')"
+  vnetwork="$vnetid/$SUBNETBITMASK"
   line="$vnetwork;$vgateway;;;0;0"
-  write_dhcp_subnet "$vnetid" "$SUBNETMASK_SHORT" "$line" "$room"
+  write_dhcp_subnet "$vnetid" "$SUBNETBITMASK" "$line" "$room"
   echo "$vnetwork"
   # write subnet definition to $SUBNETDATA (if it is not the servernet)
   if [ "$SERVERNET" != "$vnetwork" ]; then
@@ -293,10 +293,10 @@ if [ "$subnetting" = "true" ]; then
  echo "Checking subnet data."
  for line in `grep ^[a-zA-Z0-9] $SUBNETDATA`; do
   vnetwork="$(echo $line | awk -F\; '{ print $1 }')"
-  vnetreal="$(ipcalc $vnetwork | grep ^Network | awk '{ print $2}')"
+  vnetreal="$(ipcalc -b $vnetwork | grep ^Network | awk '{ print $2}')"
   vnetpre="$(echo $vnetreal | awk -F\/ '{ print $2 }')"
   # if network matches servernet warn and comment out subnet declaration
-  if [ "$vnetreal" = "$(ipcalc ${serverip}/${vnetpre} | grep ^Network | awk '{ print $2}')" ]; then
+  if [ "$vnetreal" = "$(ipcalc -b ${serverip}/${vnetpre} | grep ^Network | awk '{ print $2}')" ]; then
    echo " * WARNING: Subnet $vnetwork matches server subnet!"
    sed -e "s|^$vnetwork|### NOT SUPPORTED ###${vnetwork}|" -i "$SUBNETDATA"
    subwarn=yes
@@ -304,7 +304,7 @@ if [ "$subnetting" = "true" ]; then
   fi
   # test if gateway address matches subnet
   vnetgw="$(echo $line | awk -F\; '{ print $2 }')"
-  if [ "$vnetreal" != "$(ipcalc ${vnetgw}/${vnetpre} | grep ^Network | awk '{ print $2}')" ]; then
+  if [ "$vnetreal" != "$(ipcalc -b ${vnetgw}/${vnetpre} | grep ^Network | awk '{ print $2}')" ]; then
    echo " * WARNING: Subnet gateway $vnetgw does not match subnet $vnetwork!"
    sed -e "s|^$vnetwork|### NOT SUPPORTED ###${vnetwork}|" -i "$SUBNETDATA"
    subwarn=yes
@@ -312,7 +312,7 @@ if [ "$subnetting" = "true" ]; then
   fi
   # test if first range address matches subnet
   vnetfirst="$(echo $line | awk -F\; '{ print $3 }')"
-  if [ -n "$vnetfirst" -a "$vnetreal" != "$(ipcalc ${vnetfirst}/${vnetpre} | grep ^Network | awk '{ print $2}')" ]; then
+  if [ -n "$vnetfirst" -a "$vnetreal" != "$(ipcalc -b ${vnetfirst}/${vnetpre} | grep ^Network | awk '{ print $2}')" ]; then
    echo " * WARNING: First range address $vnetfirst does not match subnet $vnetwork!"
    sed -e "s|^$vnetwork|### NOT SUPPORTED ###${vnetwork}|" -i "$SUBNETDATA"
    subwarn=yes
@@ -320,7 +320,7 @@ if [ "$subnetting" = "true" ]; then
   fi
   # test if last range address matches subnet
   vnetlast="$(echo $line | awk -F\; '{ print $4 }')"
-  if [ -n "$vnetlast" -a "$vnetreal" != "$(ipcalc ${vnetlast}/${vnetpre} | grep ^Network | awk '{ print $2}')" ]; then
+  if [ -n "$vnetlast" -a "$vnetreal" != "$(ipcalc -b ${vnetlast}/${vnetpre} | grep ^Network | awk '{ print $2}')" ]; then
    echo " * WARNING: Last range address $vnetlast does not match subnet $vnetwork!"
    sed -e "s|^$vnetwork|### NOT SUPPORTED ###${vnetwork}|" -i "$SUBNETDATA"
    subwarn=yes

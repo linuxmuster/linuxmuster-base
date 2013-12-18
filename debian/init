@@ -13,8 +13,8 @@
 ### END INIT INFO
 
 #
-# Thomas Schmitt <thomas@linuxmuster.net>
-# 16.11.2013
+# thomas@linuxmuster.net
+# 18.12.2013
 # GPL v3
 #
 
@@ -250,7 +250,7 @@ write_rulesfile() {
 -A IN-$IFACE -i $IFACE -j IN-$IFACE-BLOCKED
 -A IN-$IFACE -m state --state RELATED,ESTABLISHED -j ACCEPT
 -A IN-$IFACE -s $ipcopip/32 -j ACCEPT
--A IN-$IFACE ! -s $internalnet/$INTERNMASK_SHORT -j ACCEPT
+-A IN-$IFACE ! -s $internalnet/$INTERNBITMASK -j ACCEPT
 EOF
 
  # add custom rules before

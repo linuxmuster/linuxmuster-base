@@ -31,7 +31,7 @@ options {
 	# on your system. The default port is 53.
 
 	#listen-on port 53 { 127.0.0.1; };
-	listen-on port 53 { @@internalnet@@/@@internmask_short@@; };
+	listen-on port 53 { @@internalnet@@/@@internbitmask@@; };
 
 	# The listen-on-v6 record enables or disables listening
 	# on IPV6 interfaces. Allowed values are 'any' and 'none'
@@ -52,7 +52,7 @@ options {
 	# default is to allow queries from all hosts.
 
 	#allow-query { 127.0.0.1; };
-	allow-query { @@internalnet@@/@@internmask_short@@; @@ipcopblue@@.0/24; @@ipcoporange@@.0/24; @@ipcopovpn@@.0/24; };
+	allow-query { @@internalnet@@/@@internbitmask@@; @@ipcopblue@@.0/24; @@ipcoporange@@.0/24; @@ipcopovpn@@.0/24; };
 
 	# If notify is set to yes (default), notify messages are
 	# sent to other name servers when the the zone data is

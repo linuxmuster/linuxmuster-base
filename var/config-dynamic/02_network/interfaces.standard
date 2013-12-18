@@ -1,5 +1,8 @@
-# This file describes the network interfaces available on your system
-# and how to activate them. For more information, see interfaces(5).
+# standard network interfaces template for linuxmuster.net
+# For more information, see interfaces(5).
+#
+# thomas@linuxmuster.net
+# 18.12.2013
 #
 
 # The loopback network interface

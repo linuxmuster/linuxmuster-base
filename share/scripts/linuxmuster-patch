@@ -2,7 +2,7 @@
 # config script for linuxmuster.net
 #
 # thomas@linuxmuster.net
-# 15.12.2013
+# 18.12.2013
 # GPL v3
 #
 
@@ -73,21 +73,21 @@ ipcopip_old=10.$internsub_old.1.254
 ipcoprev_short=254.1.$internsub
 internalnet=10.$internsub.0.0
 internalnet_old=10.$internsub_old.0.0
-broadcast="$(ipcalc "$internalnet/$INTERNMASK" | grep ^Broadcast | awk '{ print $2 }')"
-broadcast_old="$(ipcalc "$internalnet_old/$INTERNMASK" | grep ^Broadcast | awk '{ print $2 }')"
+broadcast="$(ipcalc -b "$internalnet/$INTERNMASK" | grep ^Broadcast | awk '{ print $2 }')"
+broadcast_old="$(ipcalc -b "$internalnet_old/$INTERNMASK" | grep ^Broadcast | awk '{ print $2 }')"
 ipcopblue=172.16.$internsub
 ipcoporange=172.16.$orangesub
 ipcopovpn=172.16.$ovpnsub
 
 # values for subnetting
-subnetip=10.$internsub.1.0
-subnetip_old=10.$internsub_old.1.0
-subnetgw=10.$internsub.1.253
-subnetgw_old=10.$internsub_old.1.253
-subnetbc="$(ipcalc "$subnetip/$SUBNETMASK" | grep ^Broadcast | awk '{ print $2 }')"
-subnetbc_old="$(ipcalc "$subnetip_old/$SUBNETMASK" | grep ^Broadcast | awk '{ print $2 }')"
+srvnetip=10.$internsub.1.0
+srvnetip_old=10.$internsub_old.1.0
+srvnetgw=10.$internsub.1.253
+srvnetgw_old=10.$internsub_old.1.253
+srvnetbc="$(ipcalc -b "$srvnetip/$SUBNETMASK" | grep ^Broadcast | awk '{ print $2 }')"
+srvnetbc_old="$(ipcalc -b "$srvnetip_old/$SUBNETMASK" | grep ^Broadcast | awk '{ print $2 }')"
 if [ "$subnetting" = "true" ]; then
- dhcpbc="$subnetbc"
+ dhcpbc="$srvnetbc"
  dhcpmask="$SUBNETMASK"
 else
  dhcpbc="$broadcast"
@@ -143,9 +143,9 @@ state="$state"
 country="$country"
 imaging="linbo"
 subnetting="$subnetting"
-subnetip="$subnetip"
-subnetgw="$subnetgw"
-subnetbc="$subnetbc"
+srvnetip="$srvnetip"
+srvnetgw="$srvnetgw"
+srvnetbc="$srvnetbc"
 EOF
 ) > "$NETWORKSETTINGS"
 chmod 755 "$NETWORKSETTINGS"
@@ -247,12 +247,12 @@ for i in $DYNTPLDIR/*; do
               s/@@internsub@@/${internsub}/g
               s/@@internalnet@@/${internalnet}/g
               s/@@internmask@@/${INTERNMASK}/g
-              s/@@internmask_short@@/${INTERNMASK_SHORT}/g
-              s/@@subnetip@@/${subnetip}/g
+              s/@@internbitmask@@/${INTERNBITMASK}/g
+              s/@@srvnetip@@/${srvnetip}/g
               s/@@subnetmask@@/${SUBNETMASK}/g
-              s/@@subnetmask_short@@/${SUBNETMASK_SHORT}/g
-              s/@@subnetbc@@/${subnetbc}/g
-              s/@@subnetgw@@/${subnetgw}/g
+              s/@@subnetbitmask@@/${SUBNETBITMASK}/g
+              s/@@srvnetbc@@/${srvnetbc}/g
+              s/@@srvnetgw@@/${srvnetgw}/g
               s/@@smtprelay@@/${smtprelay}/g
               s/@@adminmac@@/${adminmac}/g
               s/@@workgroup@@/${workgroup}/g

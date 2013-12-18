@@ -1,3 +1,13 @@
+linuxmuster-base (6.1.0-16ubuntu0) precise-testing; urgency=low
+
+  * renamed several network specific environment variables.
+  * linuxmuster-setup: improved servernet/dhcp handling.
+  * new config file dhcpd.conf.custom (included in main dhcp config file).
+  * smb.conf: improved task share definition due to files to hide.
+  * netlogon improvements due to students share for teachers.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 18 Dec 2013 18:07:53 +0100
+
 linuxmuster-base (6.1.0-15ubuntu0) precise-testing; urgency=low
 
   * several modifications due to substitution of bind mounts (see #237).

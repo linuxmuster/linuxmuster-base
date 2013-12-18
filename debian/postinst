@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 17.12.2013
+# 18.12.2013
 # GPL v3
 #
 
@@ -37,9 +37,9 @@ read_values(){
  serverrev_short=1.1.$internsub
  ipcoprev_short=254.1.$internsub
  basedn="dc=`echo $domainname|sed 's/\./,dc=/g'`"
- subnetip=10.$internsub.1.0
- subnetgw=10.$internsub.1.253
- subnetbc="$(ipcalc "$subnetip/$subnetmask" | grep ^Broadcast | awk '{ print $2 }')"
+ srvnetip=10.$internsub.1.0
+ srvnetgw=10.$internsub.1.253
+ srvnetbc="$(ipcalc -b "$srvnetip/$subnetmask" | grep ^Broadcast | awk '{ print $2 }')"
  
  # update serverexternname
  if [ -z "$serverexternname" ]; then
@@ -78,9 +78,9 @@ state="$state"
 country="$country"
 imaging="linbo"
 subnetting="$subnetting"
-subnetip="$subnetip"
-subnetgw="$subnetgw"
-subnetbc="$subnetbc"
+srvnetip="$srvnetip"
+srvnetgw="$srvnetgw"
+srvnetbc="$srvnetbc"
 EOF
  ) > "$NETWORKSETTINGS"
  chmod 755 "$NETWORKSETTINGS"
@@ -174,7 +174,7 @@ case "$1" in
   esac
 
   # update network.settings
-  grep -q ^subnetting "$NETWORKSETTINGS" || write_networksettings
+  grep -q ^srvnetip "$NETWORKSETTINGS" || write_networksettings
 
   # patch samba
   [ -s "$SMBCONFTEMPLATE" ] && sed -e "s/@@message1@@/${message1}/g
@@ -300,7 +300,7 @@ EOF
 
   # expand allow-query list in named.conf.options (#18)
   conf=/etc/bind/named.conf.options
-  searchstr="allow-query { $internalnet/$INTERNMASK_SHORT; $ipcopblue.0/24; $ipcoporange.0/24; $ipcopovpn.0/24; };"
+  searchstr="allow-query { $internalnet/$INTERNBITMASK; $ipcopblue.0/24; $ipcoporange.0/24; $ipcopovpn.0/24; };"
   if ! grep -q "$searchstr" $conf; then
     echo "Backing up $conf to $conf.dpkg-bak."
     cp $conf $conf.dpkg-bak
@@ -443,7 +443,7 @@ EOF
   fi
   # according to subnetting
   if [ "$subnetting" = "true" ]; then
-   dhcpbc="$subnetbc"
+   dhcpbc="$srvnetbc"
    dhcpmask="$SUBNETMASK"
   else
    dhcpbc="$broadcast"
@@ -472,6 +472,9 @@ EOF
   fi
   # remove free range if subnetting is set
   [ "$subnetting" = "true" ] && removefrom_file "$conf" "$BEGINSTR" "$ENDSTR"
+  # provide custom file
+  conf="/etc/dhcp/dhcpd.conf.custom"
+  [ -e "$conf" ] || cp "$STATICTPLDIR/$conf" "$conf"
   dhcp_reload=yes
 
   # updating release information

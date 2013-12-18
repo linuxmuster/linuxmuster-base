@@ -1,4 +1,8 @@
-# $Id: prepatch 1223 2012-01-16 19:42:26Z tschmitt $
+#
+# setup mail configuration
+# thomas@linuxmuster.net
+# 18.12.2013
+#
 
 echo "### 16_mail prepatch"
 
@@ -35,7 +39,7 @@ else
 	fi
 	if [ "$internsub" != "$internsub_old" ]; then
 		[ -e "$BACKUPDIR/etc/postfix/main.cf-$DATETIME.gz" ] || backup_file /etc/postfix/main.cf
-		postconf -e mynetworks="$internalnet/$INTERNMASK_SHORT 127.0.0.1"
+		postconf -e mynetworks="$internalnet/$INTERNBITMASK 127.0.0.1"
 	fi
 	if [[ "$servername" != "$servername_old" || "$domainname" != "$domainname_old" ]]; then
 		[ -e "$BACKUPDIR/etc/postfix/main.cf-$DATETIME.gz" ] || backup_file /etc/postfix/main.cf

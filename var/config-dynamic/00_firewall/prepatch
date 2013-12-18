@@ -1,6 +1,6 @@
 #
 # thomas@linuxmuster.net
-# 26.11.2013
+# 18.12.2013
 # GPL v3
 #
 
@@ -23,7 +23,7 @@ if [ "$1" = "--modify" -a "$fwconfig" != "custom" -a "$fwconfig" = "$fwconfig_ol
 	 else
 	  echo "  Removing subnetting capabilities ..."
 	 fi
-	 ssh -p 222 $ipcopip_old /var/linuxmuster/patch-subnet.sh $internalnet $INTERNMASK $broadcast $subnetgw $SUBNETMASK $subnetbc $subnetting
+	 ssh -p 222 $ipcopip_old /var/linuxmuster/patch-subnet.sh $internalnet $INTERNMASK $broadcast $srvnetgw $SUBNETMASK $srvnetbc $subnetting
      fw_modified=yes
 	fi
 

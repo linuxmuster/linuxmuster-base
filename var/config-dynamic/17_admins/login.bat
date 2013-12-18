@@ -1,6 +1,6 @@
 REM ****************************
 REM * tschmitt@linuxmuster.net *
-REM * 14.12.2014               *
+REM * 18.12.2014               *
 REM ****************************
 
 @echo off
@@ -18,5 +18,5 @@ call \\@@servername@@\netlogon\logon.bat H: homes K: pgm R: cdrom T: shares V: t
 REM *******************************************************
 REM *             Schülerhomes für Lehrkräfte             *
 REM *******************************************************
-call \\@@servername@@\netlogon\teachers.bat
+if exist \\@@servername@@\students call \\@@servername@@\netlogon\teachers.bat
 rem pause

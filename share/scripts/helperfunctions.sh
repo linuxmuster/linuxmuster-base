@@ -341,11 +341,7 @@ test_pwless_fw(){
 # returns ipfire, ipcop or none
 get_fwtype(){
  local fwtype="custom"
- if ssh -p 222 root@$ipcopip /bin/ls /var/ipfire &> /dev/null; then
-  fwtype="ipfire"
- else
-  ssh -p 222 root@$ipcopip /bin/ls /var/ipcop &> /dev/null && fwtype="ipcop"
- fi
+ ssh -p 222 root@$ipcopip /bin/ls /var/ipfire &> /dev/null && fwtype="ipfire"
  echo "$fwtype"
 }
 
@@ -353,7 +349,7 @@ get_fwtype(){
 check_urlfilter() {
  # get advanced proxy settings
  local fwtype="$(get_fwtype)"
- [ "$fwtype" != "ipfire" -a "$fwtype" != "ipcop" ] && cancel "None or custom firewall!"
+ [ "$fwtype" != "ipfire" ] && cancel "Custom firewall is not supported!"
  get_ipcop /var/$fwtype/proxy/advanced/settings $CACHEDIR/proxy.advanced.settings || cancel "Cannot download proxy advanced settings!"
  . $CACHEDIR/proxy.advanced.settings || cancel "Cannot read $CACHEDIR/proxy.advanced.settings!"
  rm -f $CACHEDIR/proxy.advanced.settings
@@ -412,6 +408,11 @@ get_allowed_subnets() {
  echo "$subnetlist"
 }
 
+
+#########################
+# ip & subnetting stuff #
+#########################
+
 # test if ip matches a subnet
 # ipsubmatch <ip> <list of nets>
 ipsubmatch(){
@@ -424,7 +425,7 @@ ipsubmatch(){
   netid="$(echo $i | awk -F\/ '{ print $1}')"
   prefix="$(echo $i | awk -F\/ '{ print $2}')"
   [ -n "$netid" -a -n "$prefix" ] || continue
-  local netid_test="$(ipcalc "$ip"/"$prefix" | grep ^Network | awk '{ print $2 }' | awk -F\/ '{ print $1 }')"
+  local netid_test="$(ipcalc -b "$ip"/"$prefix" | grep ^Network | awk '{ print $2 }' | awk -F\/ '{ print $1 }')"
   [ "$netid_test" = "$netid" ] && return 0
  done
  return 1

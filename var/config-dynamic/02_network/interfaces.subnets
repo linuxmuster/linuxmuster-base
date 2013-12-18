@@ -1,5 +1,8 @@
-# This file describes the network interfaces available on your system
-# and how to activate them. For more information, see interfaces(5).
+# network interfaces template for linuxmuster.net for subnetting
+# For more information, see interfaces(5).
+#
+# thomas@linuxmuster.net
+# 18.12.2013
 #
 
 # The loopback network interface
@@ -11,11 +14,11 @@ auto @@iface_lan@@
 iface @@iface_lan@@ inet static
 	address @@serverip@@
 	netmask @@subnetmask@@
-	network @@subnetip@@
-	broadcast @@subnetbc@@
+	network @@srvnetip@@
+	broadcast @@srvnetbc@@
 	gateway @@ipcopip@@
 	# dns-* options are implemented by the resolvconf package, if installed
 	dns-nameservers @@serverip@@
 	dns-search @@domainname@@
 	# set global static route
-	up route add -net @@internalnet@@ netmask @@internmask@@ gw @@subnetgw@@ @@iface_lan@@
+	up route add -net @@internalnet@@ netmask @@internmask@@ gw @@srvnetgw@@ @@iface_lan@@
