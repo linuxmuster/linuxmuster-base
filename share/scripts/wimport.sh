@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 18.12.2013
+# 20.12.2013
 # GPL v3
 #
 
@@ -104,12 +104,8 @@ write_dhcp_subnet(){
  local vnetid="$1"
  local vnetpre="$2"
  local line="$3"
- local room="$4"
- if [ -n "$room" ]; then
-  local msg="Subnet $vnetid/$vnetpre -> $room"
- else
-  local msg="Subnet $vnetid/$vnetpre"
- fi
+ local closedef="$4"
+ local msg="Subnet $vnetid/$vnetpre"
  local vrouter="$(echo $line | awk -F\; '{ print $2 }')"
  local vfirstip="$(echo $line | awk -F\; '{ print $3 }')"
  local vlastip="$(echo $line | awk -F\; '{ print $4 }')"
@@ -124,7 +120,7 @@ write_dhcp_subnet(){
  echo "  option netbios-name-servers $serverip;" >> $DHCPDCONF
  [ -n "$vfirstip" -a -n "$vlastip" ] && echo "  range $vfirstip $vlastip;" >> $DHCPDCONF
  echo "  option host-name "pxeclient";" >> $DHCPDCONF
- [ -z "$room" ] && echo "}" >> $DHCPDCONF
+ [ "$closedef" = "1" ] && echo "}" >> $DHCPDCONF
 }
 
 
@@ -132,13 +128,20 @@ write_dhcp_subnet(){
 # if no subnet for an ip is defined add it to $SUBNETDATA
 test_subnet(){
  local ip="$1"
- local room="$2"
+ local testonly="$2"
  local line
  local netid
  local vnetwork
  local vnetid
  local vnetpre
  local vgateway
+ # handle servernet
+ vnetwork="$(ipcalc -b "$ip"/"$SUBNETBITMASK" | grep ^Network | awk '{ print $2 }')"
+ if [ "$vnetwork" = "$SERVERNET" ]; then
+  [ "$testonly" = "1" ] || write_dhcp_subnet "$srvnetip" "$SUBNETBITMASK" "$SRVNETLINE" "$room"
+  echo "$vnetwork"
+  return
+ fi
  for line in `sort -b -d -t';' -k1 $SUBNETDATA | grep ^[a-zA-Z0-9]`; do
   vnetwork="$(echo $line | awk -F\; '{ print $1 }')"
   vnetid="$(echo $vnetwork | awk -F\/ '{ print $1 }')"
@@ -146,18 +149,18 @@ test_subnet(){
   netid="$(ipcalc -b "$ip"/"$vnetpre" | grep ^Network | awk '{ print $2 }' | awk -F\/ '{ print $1 }')"
   if [ "$netid" = "$vnetid" ]; then
    # subnet definition exists
-   [ -n "$room" ] && write_dhcp_subnet "$vnetid" "$vnetpre" "$line" "$room"
+   [ "$testonly" = "1" ] || write_dhcp_subnet "$vnetid" "$vnetpre" "$line" "$room"
    echo "$vnetwork"
    return
   fi
  done
- if [ -n "$room" ]; then
+ if [ "$testonly" != "1" ]; then
   # subnet definition does not yet exist
   vnetid="$(ipcalc -b "$ip"/"$SUBNETBITMASK" | grep ^Network | awk '{ print $2 }' | awk -F\/ '{ print $1 }')"
   vgateway="$(ipcalc -b "$ip"/"$SUBNETBITMASK" | grep ^HostMax | awk '{ print $2 }' | awk -F\/ '{ print $1 }')"
   vnetwork="$vnetid/$SUBNETBITMASK"
   line="$vnetwork;$vgateway;;;0;0"
-  write_dhcp_subnet "$vnetid" "$SUBNETBITMASK" "$line" "$room"
+  write_dhcp_subnet "$vnetid" "$SUBNETBITMASK" "$line"
   echo "$vnetwork"
   # write subnet definition to $SUBNETDATA (if it is not the servernet)
   if [ "$SERVERNET" != "$vnetwork" ]; then
@@ -417,14 +420,14 @@ for line in `sort -b -d -t';' -k5 $WIMPORTDATA | grep ^[a-zA-Z0-9]`; do
  fi # only if pxe host
 
  # if subnetting is set handle subnet dhcp entries
- if [ "$subnetting" = "true" -a "$vnetwork" != "$(test_subnet "$ip")" ]; then
+ if [ "$subnetting" = "true" -a "$vnetwork" != "$(test_subnet "$ip" 1)" ]; then
   # close subnet declaration
   [ -n "$vnetwork" ] && echo "}" >> $DHCPDCONF
   # assign changed vnet id
-  vnetwork="$(test_subnet "$ip" "$room")"
-  echo " * Subnet $vnetwork -> ${room}."
+  vnetwork="$(test_subnet "$ip")"
+  echo " * Subnet $vnetwork."
  fi
- 
+
  # write dhcpd.conf entry for hosts
  echo " * Host $hostname."
  echo "$tab""host $hostname {" >> $DHCPDCONF
@@ -469,7 +472,7 @@ if [ "$subnetting" = "true" ]; then
   vnetpre="$(echo $vnetwork | awk -F\/ '{ print $2 }')"
   if ! grep -q ^"subnet $vnetid " $DHCPDCONF; then
    echo " * Subnet ${vnetwork}."
-   write_dhcp_subnet "$vnetid" "$vnetpre" "$line"
+   write_dhcp_subnet "$vnetid" "$vnetpre" "$line" 1
   fi
  done
 fi
