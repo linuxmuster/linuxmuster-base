@@ -1,6 +1,17 @@
+linuxmuster-base (6.1.0-17ubuntu0) precise-testing; urgency=low
+
+  * Adding "allowusermoves: yes" to imapd.conf to allow renaming of top level
+    mailboxes (closes #216).
+  * removed tasks share from gollem's backends.php (see #237).
+  * link consolidation under /home/share and /var/cache/sophomorix/tasks due to
+    substitution of bind mounts (see #237).
+  * linuxmuster-reset: resets also rooms defined in classrooms (closes #92).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 27 Jan 2014 21:17:50 +0100
+
 linuxmuster-base (6.1.0-16ubuntu1) precise-testing; urgency=low
 
-  * wimport.sh: fixed serveret handling.
+  * wimport.sh: fixed servernet handling.
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 20 Dec 2013 16:21:37 +0100
 

@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 18.12.2013
+# 27.01.2014
 # GPL v3
 #
 
@@ -214,14 +214,20 @@ case "$1" in
    [ -e "/etc/sophomorix/user/$i" ] || cp $STATICTPLDIR/etc/sophomorix/user/$i /etc/sophomorix/user
   done
 
-  # create localized links in certain samba share folders
+  # create localized links in certain samba share folders (temporary workaround until sophomorix does the job)
   chmod 755 "$SHAREHOME"
   chmod 1775 "$TASKSCACHE"
-  for i in "Klassen classes" "Lehrkräfte teachers" "Projekte projects" "Prüfungen exams" "Räume rooms" "Schule school" "Unterklassen subclasses"; do
-   for d in "$SHAREHOME" "$TASKSCACHE"; do
-    l="$d/$(echo $i | awk '{ print $1 }')"
-    o="$(echo $i | awk '{ print $2 }')"
-    [ ! -L "$l" -a -e "$d/$o" ] && ln -s "$o" "$l"
+  for d in "$SHAREHOME" "$TASKSCACHE"; do
+   # remove obsolete links
+   for i in Lehrkräfte Prüfungen Räume; do
+    [ -L "$d/$i" ] && rm "$d/$i"
+   done
+   for i in "Klassen classes" "Kollegium teachers" "Projekte projects" "Schule school"; do
+    # no link for teachers in tasks
+    [ "$d" = "$TASKSCACHE" -a "$i" = "Kollegium teachers" ] && continue
+    lnk="$d/$(echo $i | awk '{ print $1 }')"
+    src="$(echo $i | awk '{ print $2 }')"
+    [ ! -L "$lnk" -a -e "$d/$src" ] && ln -sf "$src" "$lnk"
    done
   done
 
@@ -336,18 +342,23 @@ EOF
   fi
   
   # update gollem configs
-  confs="backends.php prefs.php"
   confdir="/etc/horde/gollem"
-  for i in $confs; do
-   conf="$confdir/$i"
-   if ! grep -q ^" \* "[0-3][0-9].[0-1][0-2].2013 $conf; then
-    cp $conf $conf.dpkg-bak
-    echo "Fixing gollem's $(basename $conf)."
-    cp "${STATICTPLDIR}${conf}" "$conf"
-    chown root:www-data "$conf"
-    chmod 440 "$conf"
-   fi
-  done
+  conf="$confdir/prefs.php"
+  searchstr='* 19.02.2013'
+  if ! grep -q ^"$searchstr" "$conf"; then
+   echo "Fixing gollem's $(basename $conf)."
+   cp "${STATICTPLDIR}${conf}" "$conf"
+   chown root:www-data "$conf"
+   chmod 440 "$conf"
+  fi
+  conf="$confdir/backends.php"
+  searchstr='* 27.01.2014'
+  if ! grep -q ^"$searchstr" "$conf"; then
+   echo "Fixing gollem's $(basename $conf)."
+   cp "${STATICTPLDIR}${conf}" "$conf"
+   chown root:www-data "$conf"
+   chmod 440 "$conf"
+  fi
 
   # repair permissions for horde log dir (closes #82)
   [ -e /var/log/horde ] && chown www-data:www-data /var/log/horde -R
@@ -388,11 +399,11 @@ EOF
    chmod 440 "$conf"
   fi
 
-  # fix altnamespace in imapd.conf (see #102)
-  searchstr="# 16.03.2013"
+  # add allowusermoves to imapd.conf (see #216)
+  searchstr="# 27.01.2014"
   conf="/etc/imapd.conf"
   if ! grep -q "$searchstr" "$conf"; then
-   echo "Fixing altnamespace in imapd.conf ..."
+   echo "Adding allowusermoves option to imapd.conf ..."
    cp "$conf" "${conf}.dpkg-bak"
    tpl="${STATICTPLDIR}${conf}"
    cp "$tpl" "$conf"

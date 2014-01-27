@@ -134,7 +134,7 @@
 /**
  * thomas@linuxmuster.net
  * smb share definitions for gollem
- * 17.12.2013
+ * 27.01.2014
  */
 
 $backends['smb-home'] = array(
@@ -162,22 +162,7 @@ $backends['smb-shares'] = array(
          'share' => 'shares',
          'smbclient' => '/usr/bin/smbclient',
      ),
-     'filter' => '^[a-z]',
-     'clipboard' => true,
-     'attributes' => array('type', 'name', 'download', 'modified', 'size')
-);
-$backends['smb-tasks'] = array(
-     'name' => 'Vorlagen',
-     'driver' => 'smb',
-     'preferred' => '',
-     'hordeauth' => true,
-     'params' => array(
-         'hostspec' => 'localhost',
-         'port' => 139,
-         'share' => 'tasks',
-         'smbclient' => '/usr/bin/smbclient',
-     ),
-     'filter' => '^[a-z]',
+     'filter' => '^classes$|^exams$|^projects$|^school$|^subclasses$|^teachers$',
      'clipboard' => true,
      'attributes' => array('type', 'name', 'download', 'modified', 'size')
 );
