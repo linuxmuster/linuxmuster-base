@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 20.12.2013
+# 10.02.2014
 # GPL v3
 #
 
@@ -9,23 +9,16 @@ DB10TMP=/var/tmp/db10.$$
 DBREVTMP=/var/tmp/dbrev.$$
 SERVERNET="${srvnetip}/${SUBNETBITMASK}"
 SRVNETLINE="$SERVERNET;$srvnetgw;;;0;0"
+LINBOPXETPL="$LINBOTPLDIR/default.pxe"
 
 RC=0
 
 
 ### functions begin ###
 
-# check for unique entry
+# check for unique entry: check_unique <item1 item2 ...>
 check_unique() {
- local found=""
- local s
- for s in $2; do
-  if [ "$s" = "$1" ]; then
-   [ -n "$found" ] && return 1
-   found=yes
-  fi
- done
- return 0
+ printf '%s\n' $1 | sort | uniq -c -d
 }
 
 
@@ -104,7 +97,6 @@ write_dhcp_subnet(){
  local vnetid="$1"
  local vnetpre="$2"
  local line="$3"
- local closedef="$4"
  local msg="Subnet $vnetid/$vnetpre"
  local vrouter="$(echo $line | awk -F\; '{ print $2 }')"
  local vfirstip="$(echo $line | awk -F\; '{ print $3 }')"
@@ -112,15 +104,15 @@ write_dhcp_subnet(){
  local vnetmask="$(ipcalc -b "$vnetid/$vnetpre" | grep ^Netmask | awk '{ print $2 }')"
  local vbroadcast="$(ipcalc -b "$vnetid/$vnetpre" | grep ^Broadcast | awk '{ print $2 }')"
  # write new subnet in DHCP-configuration
- echo "# $msg" >> $DHCPDCONF
- echo "subnet $vnetid netmask $vnetmask {" >> $DHCPDCONF
- echo "  option routers $vrouter;" >> $DHCPDCONF
- echo "  option subnet-mask $vnetmask;" >> $DHCPDCONF
- echo "  option broadcast-address $vbroadcast;" >> $DHCPDCONF
- echo "  option netbios-name-servers $serverip;" >> $DHCPDCONF
- [ -n "$vfirstip" -a -n "$vlastip" ] && echo "  range $vfirstip $vlastip;" >> $DHCPDCONF
- echo "  option host-name "pxeclient";" >> $DHCPDCONF
- [ "$closedef" = "1" ] && echo "}" >> $DHCPDCONF
+ echo "# $msg"
+ echo "subnet $vnetid netmask $vnetmask {"
+ echo "  option routers $vrouter;"
+ echo "  option subnet-mask $vnetmask;"
+ echo "  option broadcast-address $vbroadcast;"
+ echo "  option netbios-name-servers $serverip;"
+ [ -n "$vfirstip" -a -n "$vlastip" ] && echo "  range $vfirstip $vlastip;"
+ echo "  option host-name "pxeclient";"
+ echo "}"
 }
 
 
@@ -135,10 +127,13 @@ test_subnet(){
  local vnetid
  local vnetpre
  local vgateway
+ local conf
  # handle servernet
  vnetwork="$(ipcalc -b "$ip"/"$SUBNETBITMASK" | grep ^Network | awk '{ print $2 }')"
  if [ "$vnetwork" = "$SERVERNET" ]; then
-  [ "$testonly" = "1" ] || write_dhcp_subnet "$srvnetip" "$SUBNETBITMASK" "$SRVNETLINE" "$room"
+  vnetid="$(echo $vnetwork | awk -F\/ '{ print $1 }')"
+  conf="$DHCPDCACHE/subnet_$vnetid"
+  [ "$testonly" = "1" ] || write_dhcp_subnet "$srvnetip" "$SUBNETBITMASK" "$SRVNETLINE" "$room" > "$conf"
   echo "$vnetwork"
   return
  fi
@@ -148,8 +143,9 @@ test_subnet(){
   vnetpre="$(echo $vnetwork | awk -F\/ '{ print $2 }')"
   netid="$(ipcalc -b "$ip"/"$vnetpre" | grep ^Network | awk '{ print $2 }' | awk -F\/ '{ print $1 }')"
   if [ "$netid" = "$vnetid" ]; then
+   conf="$DHCPDCACHE/subnet_$vnetid"
    # subnet definition exists
-   [ "$testonly" = "1" ] || write_dhcp_subnet "$vnetid" "$vnetpre" "$line" "$room"
+   [ "$testonly" = "1" ] || write_dhcp_subnet "$vnetid" "$vnetpre" "$line" "$room" > "$conf"
    echo "$vnetwork"
    return
   fi
@@ -160,7 +156,8 @@ test_subnet(){
   vgateway="$(ipcalc -b "$ip"/"$SUBNETBITMASK" | grep ^HostMax | awk '{ print $2 }' | awk -F\/ '{ print $1 }')"
   vnetwork="$vnetid/$SUBNETBITMASK"
   line="$vnetwork;$vgateway;;;0;0"
-  write_dhcp_subnet "$vnetid" "$SUBNETBITMASK" "$line"
+  conf="$DHCPDCACHE/subnet_$vnetid"
+  write_dhcp_subnet "$vnetid" "$SUBNETBITMASK" "$line" > "$conf"
   echo "$vnetwork"
   # write subnet definition to $SUBNETDATA (if it is not the servernet)
   if [ "$SERVERNET" != "$vnetwork" ]; then
@@ -169,6 +166,141 @@ test_subnet(){
   fi
   return
  fi
+}
+
+
+# sets serverip in start.conf
+set_serverip(){
+ local conf="$LINBODIR/start.conf.$1"
+ local RC="0"
+ grep -qi ^"server = $serverip" $conf && return "$RC"
+ if grep -qwi ^server $conf; then
+  sed -e "s/^[Ss][Ee][Rr][Vv][Ee][Rr].*/Server = $serverip/" -i $conf || RC="1"
+ else
+  sed -e "/^\[LINBO\]/a\
+Server = $serverip" -i $conf || RC="1"
+ fi
+ return "$RC"
+}
+
+
+# sets group in start.conf
+set_group(){
+ local group="$1"
+ local conf="$LINBODIR/start.conf.$group"
+ local RC="0"
+ grep -qi ^"Group = $group" $conf && return "$RC"
+ if grep -qwi ^group $conf; then
+  sed -e "s/^[Gg][Rr][Oo][Uu][Pp].*/Group = $group/" -i $conf || RC="1"
+ else
+  sed -e "/^Server/a\
+Group = $group" -i $conf || RC="1"
+ fi
+ return "$RC"
+}
+
+# get reboot option from start.conf
+get_reboot(){
+ local conf="$LINBODIR/start.conf.$1"
+ if [ -e "$conf" ]; then
+  grep -iw ^kernel "$conf" | grep -qiw reboot && return 0
+ fi
+ return 1
+}
+
+# sets pxe config file
+set_pxeconfig(){
+ local group="$1"
+ local conf="$PXECFGDIR/$group"
+ if ([ -s "$conf" ] && ! grep -q "$MANAGEDSTR" "$conf"); then
+  echo -e "\tkeeping pxe config."
+  return 0
+ fi
+ echo -e "\twriting pxe config."
+ local default
+ local kopts
+ local RC="0"
+ # get default boot label
+ if get_reboot "$group"; then
+  default="reboot"
+ else
+  default="linbo"
+ fi
+ # get kernel options
+ kopts="$(linbo_kopts "$LINBODIR/start.conf.$group")"
+ # create configfile
+ sed -e "s|@@default@@|$default|
+         s|@@kopts@@|$kopts|g" "$LINBOPXETPL" > "$conf" || RC="1"
+ return "$RC"
+}
+
+
+# process configs for pxe hosts
+do_pxe(){
+ local group="$1"
+ local ip="$2"
+ local RC="0"
+ # copy default start.conf if there is none for this group
+ if [ ! -e "$LINBODIR/start.conf.$group" ]; then
+  echo "    Creating new linbo group $group."
+  cp "$LINBODEFAULTCONF" "$LINBODIR/start.conf.$group" || RC="2"
+ fi
+
+ # process start.conf and pxelinux configfile for group
+ if ! echo "$groups_processed" | grep -qwi "$group"; then
+  echo -en " * LINBO-Group\t$group"
+  groups_processed="$groups_processed $group"
+  # set serverip in start.conf
+  set_serverip "$group" || RC="2"
+  # set group in start.conf
+  set_group "$group" || RC="2"
+  # provide pxelinux configfile for group
+  set_pxeconfig "$group" || RC="2"
+ fi
+
+ # create start.conf link for host
+ ln -sf "start.conf.$group" "$LINBODIR/start.conf-$ip" || RC="1"
+ # create pxelinux cfg link for host
+ local hostip="$(gethostip -x "$ip")" || RC="1"
+ if [ -n "$hostip" ]; then
+  ln -sf "$group" "$PXECFGDIR/$hostip" || RC="1"
+ fi
+ case "$RC" in
+  1) echo "   ERROR in pxe host configuration!" ;;
+  2) echo "   ERROR in pxe group configuration!" ;;
+  *) ;;
+ esac
+ return "$RC"
+}
+
+# write dhcpd.conf file for host
+write_dhcp_host() {
+ local hostname="$1"
+ local hostgroup="$2"
+ local ip="$3"
+ local mac="$4"
+ local pxe="$5"
+ echo "host $ip {"
+ echo "  hardware ethernet $mac;"
+ echo "  fixed-address $ip;"
+ echo "  option host-name \"$hostname\";"
+ case "$pxe" in
+  1|2|22)
+   # experimental pxegrub support
+   if [ -e "$LINBODIR/grub/pxegrub.0" ]; then
+    echo "  option extensions-path \"${hostgroup}\";"
+   fi
+  ;;
+  3)
+   if [ -n "$opsiip" ]; then
+    # configure opsi pxe boot for host
+    echo "  next-server $opsiip;"
+    echo "  filename \"$OPSIPXEFILE\";"
+   fi
+  ;;
+  *) ;;
+ esac
+ echo "}"
 }
 
 ### functions end ###
@@ -189,106 +321,68 @@ if ls $LINBODIR/*.new &> /dev/null; then
 fi
 
 
-# check and correct workstation data and cancel processing if necessary
-echo "Checking workstation data:"
-for line in `sort -b -d -t';' -k1 $WIMPORTDATA | grep ^[a-zA-Z0-9]`; do
+# case repair for workstation data
+# all to lower case, macs to upper case
+sed -e 's/\(^[A-Za-z0-9].*\)/\L\1/
+        s/\([a-fA-F0-9]\{2\}[:][a-fA-F0-9]\{2\}[:][a-fA-F0-9]\{2\}[:][a-fA-F0-9]\{2\}[:][a-fA-F0-9]\{2\}[:][a-fA-F0-9]\{2\}\)/\U\1/g' -i "$WIMPORTDATA"
 
- room_orig=`echo $line | awk -F\; '{ print $1 }'`
- if ! check_string "$room_orig"; then
-  [ -z "$room_orig" ] && room_orig="<empty>"
-  exitmsg "$room_orig is no valid room name!"
- fi
- tolower $room_orig
- room=$RET
- # check for uppercase room names
- if [ "$room_orig" != "$room" ]; then
-  rooms_to_be_converted="$rooms_to_be_converted $room_orig"
- fi
 
- hostname_orig=`echo $line | awk -F\; '{ print $2 }'`
- tolower $hostname_orig
- hostname=$RET
- if ! validhostname "$hostname"; then
-  [ -z "$hostname" ] && hostname="<empty>"
-  exitmsg "$hostname is no valid hostname!"
- fi
- if [ "$hostname_orig" != "$hostname" ]; then
-  hostnames_to_be_converted="$hostnames_to_be_converted $hostname_orig"
- fi
+# check workstation data
+echo -n "Checking workstation data ..."
+# rooms
+rooms="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $1 }' | sort -u)"
+for i in $rooms; do
+ check_string "$i" || exitmsg "$i is no valid room name!"
+done
 
- hostgroup=`echo $line | awk -F\; '{ print $3 }'`
- if ! check_string "$hostgroup"; then
-  [ -z "$hostgroup" ] && hostgroup="<empty>"
-  exitmsg "Host $hostname: $hostgroup is no valid group name!"
- fi
+# hostgroups
+hostgroups="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print "#"$3"#" }' | sort -u)"
+echo "$hostgroups" | grep -q "##" && exitmsg "Empty hostgroup found! Check your data!"
+hostgroups="${hostgroups//#/}"
+for i in $hostgroups; do
+ check_string "$i" || exitmsg "$i is no valid hostgroup name!"
+done
 
- mac_orig=`echo $line | awk -F\; '{ print $4 }'`
- if ! validmac "$mac_orig"; then
-  [ -z "$mac_orig" ] && mac_orig="<empty>"
-  exitmsg "Host $hostname: $mac_orig is no valid mac address!"
- fi
- toupper $mac_orig
- mac=$RET
- # check for lowercase macs
- if [ "$mac_orig" != "$mac" ]; then
-  macs_to_be_converted="$macs_to_be_converted $mac_orig"
- fi
-
- ip=`echo $line | awk -F\; '{ print $5 }'`
- if ! validip "$ip"; then
-  [ -z "$ip" ] && ip="<empty>"
-  exitmsg "Host $hostname: $ip is no valid ip address!"
- fi
-
-done # check
-
-# check hostnames
-hostnames="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $2 }' | tr A-Z a-z)"
+# hostnames, one host can have two entries with different macs (wired and wlan)
+hostnames="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print "#"$2"#" }')"
+echo "$hostnames" | grep -q "##" && exitmsg "Empty hostname found! Check your data!"
+hostnames="${hostnames//#/}"
 for i in $hostnames; do
- check_unique "$i" "$hostnames" || exitmsg "Hostname $i is not unique!"
+ validhostname "$i" || exitmsg "$i is no valid hostname!"
+done
+check_unique "$hostnames" | while read line; do
+ i="$(echo $line | awk '{ print $2 }')"
+ # check ips for hostname
+ get_ip "$i"
+ [ -n "$(check_unique "$RET")" ] && exitmsg "Ips for host $i are not unique: $RET!"
+ # check macs for hostname
+ get_mac "$i"
+ [ -n "$(check_unique "$RET")" ] && exitmsg "Macs for host $i are not unique: $RET!"
 done
 
-# check macs
-macs="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $4 }' | tr a-z A-Z)"
+# macs
+macs="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print "#"$4"#" }')"
+echo "$macs" | grep -q "##" && exitmsg "Empty mac address found! Check your data!"
+macs="${macs//#/}"
 for i in $macs; do
- check_unique "$i" "$macs" || exitmsg "MAC address $i is not unique!"
+ validmac "$i" || exitmsg "$i is no valid mac address!"
 done
+RET="$(check_unique "$macs")"
+[ -n "$RET" ] && exitmsg "Not unique mac(s) detected: $RET!"
 
-# check ips
-ips="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $5 }')"
+# ips
+ips="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print "#"$5"#" }')"
+echo "$ips" | grep -q "##" && exitmsg "Empty ip address found! Check your data!"
+ips="${ips//#/}"
 for i in $ips; do
- check_unique "$i" "$ips" || exitmsg "IP address $i is not unique!"
+ validip "$i" || exitmsg "$i is no valid host ip address!"
 done
+RET="$(check_unique "$ips")"
+[ -n "$RET" ] && exitmsg "Not unique ip(s) detected: $RET!"
 
-# convert lowercase macs
-if [ -n "$macs_to_be_converted" ]; then
- for i in $macs_to_be_converted; do
-  toupper $i
-  sed -e "s|$i|$RET|g" -i "$WIMPORTDATA"
- done
-fi
 
-# convert uppercase room names
-if [ -n "$rooms_to_be_converted" ]; then
- for i in $rooms_to_be_converted; do
-  tolower $i
-  sed -e "s|^$i\;|$RET\;|g
-          s|^$i |$RET |g" -i "$WIMPORTDATA"
- done
-fi
-
-# convert uppercase hostnames
-if [ -n "$hostnames_to_be_converted" ]; then
- for i in $hostnames_to_be_converted; do
-  tolower $i
-  sed -e "s|\;$i\;|\;$RET\;|g
-          s|\;$i |\;$RET |g
-          s| $i | $RET |g
-          s| $i\;| $RET\;|g" -i "$WIMPORTDATA"
- done
-fi
-
-echo " * Workstation data are Ok!"
+# tests are done
+echo " Ok!"
 echo
 
 # check subnet data
@@ -339,15 +433,6 @@ if [ "$subnetting" = "true" ]; then
  echo
 fi
 
-# check dhcp stuff
-[ -z "$DHCPDCONF" ] && exitmsg "Variable DHCPDCONF is not set!"
-if [ -e "$DHCPDCONF" ]; then
- backup_file $DHCPDCONF 2>> $TMPLOG 1>> $TMPLOG || exitmsg "Unable to backup $DHCPDCONF!"
- rm -rf $DHCPDCONF 2>> $TMPLOG 1>> $TMPLOG || exitmsg "Unable to delete $DHCPDCONF!"
-fi
-touch $DHCPDCONF 2>> $TMPLOG 1>> $TMPLOG || exitmsg "Unable to create $DHCPDCONF!"
-
-
 # sync host accounts
 echo "Sophomorix syncs accounts (may take a while):"
 sophomorix-workstation --sync-accounts | grep ^[KA][id][ld] 2>> $TMPLOG ; RC_LINE="${PIPESTATUS[0]}"
@@ -373,76 +458,57 @@ echo ";$BEGINSTR" > $DB10TMP
 echo ";$BEGINSTR" > $DBREVTMP
 
 
-# remove old linbo links
-echo -n "Removing old start.conf links ... "
+# remove linbo/pxe links
+echo -n "Removing old links under $LINBODIR ... "
 find "$LINBODIR" -name "start.conf-*" -type l -exec rm '{}' \;
+for i in $PXECFGDIR/*; do
+ if [ -L "$i" ] && [[ "$(basename $i)" =~ [A-F0-9]{4} ]]; then rm "$i"; fi
+done
 echo "Done!"
 echo
 
+
+# test for dhcp conf cache dir and clean it up
+[ -e "$DHCPDCACHE" -a ! -d "$DHCPDCACHE" ] && rm -rf "$DHCPDCACHE"
+mkdir -p "$DHCPDCACHE"
+[ -d "$DHCPDCACHE" ] || exitmsg "Missing directory $DHCPDCACHE!"
+rm -rf "$DHCPDCACHE"/*
+
+
 # process host and subnet data at least
+[ "$subnetting" = "true" ] && subnetmsg=" and subnet"
 echo "Processing workstation${subnetmsg} data:"
-if [ "$subnetting" = "true" ]; then
- tab="  "
- subnetmsg=" and subnet"
-else
- tab=""
-fi
 vnetwork=""
-for line in `sort -b -d -t';' -k5 $WIMPORTDATA | grep ^[a-zA-Z0-9]`; do
+groups_processed=""
+sort -b -d -t';' -k5 $WIMPORTDATA | grep ^[a-z0-9] | while read line; do
 
- # get room from line
- room=`echo $line | awk -F\; '{ print $1 }' | tr A-Z a-z`
-
- hostname=`echo $line | awk -F\; '{ print $2 }'`
- hostgroup=`echo $line | awk -F\; '{ print $3 }'`
- hostgroup=`echo $hostgroup | awk -F\, '{ print $1 }'`
- mac=`echo $line | awk -F\; '{ print $4 }'`
- ip=`echo $line | awk -F\; '{ print $5 }'`
- pxe=`echo $line | awk -F\; '{ print $11 }'`
- [ -z "$pxe" ] && pxe="0"
-
- # only if pxe host
- if [ "$pxe" != "0" ]; then
-
-  # use the default start.conf if there is none for this group
-  if [ ! -e "$LINBODIR/start.conf.$hostgroup" ]; then
-   echo " * New hostgroup $hostgroup."
-   if cp $LINBODEFAULTCONF $LINBODIR/start.conf.$hostgroup; then
-    sed -e "s/^Server.*/Server = $serverip/" -i $LINBODIR/start.conf.$hostgroup
-   else
-    echo "Error!"
-    RC=1
-   fi
-  fi
-
-  ln -sf start.conf.$hostgroup $LINBODIR/start.conf-$ip
-
- fi # only if pxe host
+ # get data from line
+ room="$(echo "$line" | awk -F\; '{ print $1 }')"
+ hostname="$(echo "$line" | awk -F\; '{ print $2 }')"
+ hostgroup="$(echo "$line" | awk -F\; '{ print $3 }')"
+ hostgroup="$(echo "$hostgroup" | awk -F\, '{ print $1 }')"
+ mac="$(echo "$line" | awk -F\; '{ print $4 }')"
+ ip="$(echo "$line" | awk -F\; '{ print $5 }')"
+ pxe="$(echo "$line" | awk -F\; '{ print $11 }')"
 
  # if subnetting is set handle subnet dhcp entries
  if [ "$subnetting" = "true" -a "$vnetwork" != "$(test_subnet "$ip" 1)" ]; then
-  # close subnet declaration
-  [ -n "$vnetwork" ] && echo "}" >> $DHCPDCONF
   # assign changed vnet id
   vnetwork="$(test_subnet "$ip")"
-  echo " * Subnet $vnetwork."
+  echo -e " * Subnet\t$vnetwork."
  fi
 
- # write dhcpd.conf entry for hosts
- echo " * Host $hostname."
- echo "$tab""host $hostname {" >> $DHCPDCONF
- echo "$tab""  hardware ethernet $mac;" >> $DHCPDCONF
- echo "$tab""  fixed-address $ip;" >> $DHCPDCONF
- echo "$tab""  option host-name \"$hostname\";" >> $DHCPDCONF
- if [ "$pxe" != "0" ]; then
-  # assign group and pxe boot method specific config
-  if [ -e "$LINBODIR/grub/pxegrub.0" ]; then
-   echo "$tab""  option extensions-path \"${hostgroup}\";" >> $DHCPDCONF
-  else
-   echo "$tab""  option pxelinux.configfile \"pxelinux.cfg/$hostgroup\";" >> $DHCPDCONF
-  fi
- fi
- echo "$tab""}" >> $DHCPDCONF
+ # write dhcpd.conf entries for hosts
+ case "$pxe" in
+  1|2|3|22)
+   # process linbo pxe configs
+   do_pxe "$hostgroup" "$ip" || RC="1"
+   echo -en " * PXE" ;;
+  *) echo -en " * IP" ;;
+ esac
+ conf="$DHCPDCACHE/host_$ip"
+ write_dhcp_host "$hostname" "$hostgroup" "$ip" "$mac" "$pxe" > "$conf"
+ echo -e "-Host\t$ip\t$hostname."
 
  # write bind config
  okt2="$(echo $ip | awk -F. '{ print $2 }')"
@@ -453,9 +519,6 @@ for line in `sort -b -d -t';' -k5 $WIMPORTDATA | grep ^[a-zA-Z0-9]`; do
 
 done
 
-# close subnet declaration in dhcp config
-[ -n "$vnetwork" ] && echo "}" >> $DHCPDCONF
-
 # finalize bind config
 echo ";$ENDSTR" >> $DB10TMP
 echo ";$ENDSTR" >> $DBREVTMP
@@ -464,26 +527,28 @@ cat "$DBREVTMP" >> "$DBREV"
 rm $DB10TMP
 rm $DBREVTMP
 
-# do subnets not handled yet (incl. servernet)
+
+# finalize subnets and concenate cached dhcpd conf files
+rm -f "$DHCPDCONF"
+touch "$DHCPDCONF"
 if [ "$subnetting" = "true" ]; then
+ # do subnets not handled yet (incl. servernet)
  for line in `grep ^[a-zA-Z0-9] $SUBNETDATA` "$SRVNETLINE"; do
   vnetwork="$(echo $line | awk -F\; '{ print $1 }')"
   vnetid="$(echo $vnetwork | awk -F\/ '{ print $1 }')"
   vnetpre="$(echo $vnetwork | awk -F\/ '{ print $2 }')"
-  if ! grep -q ^"subnet $vnetid " $DHCPDCONF; then
-   echo " * Subnet ${vnetwork}."
-   write_dhcp_subnet "$vnetid" "$vnetpre" "$line" 1
+  conf="$DHCPDCACHE/subnet_$vnetid"
+  if [ ! -e "$conf" ]; then
+   echo -e " * Subnet\t${vnetwork}."
+   write_dhcp_subnet "$vnetid" "$vnetpre" "$line" > "$conf"
   fi
  done
+ # concenate subnet definitions
+ ls "$DHCPDCACHE"/subnet_* &> /dev/null && cat "$DHCPDCACHE"/subnet_* > "$DHCPDCONF"
 fi
+# concenate host definitions
+ls "$DHCPDCACHE"/host_* &> /dev/null && cat "$DHCPDCACHE"/host_* >> "$DHCPDCONF"
 echo
-
-
-# creating/updating group specific linbofs
-if [ -e "$LINBOUPDATE" ]; then
- $LINBOUPDATE; RC_LINE=$?
- [ $RC_LINE -ne 0 ] && RC=1
-fi
 
 
 # backup config files to be modified
@@ -495,8 +560,7 @@ backup_file $ROOMDEFAULTS &> /dev/null
 
 # remove hosts which are no more defined in workstations file
 FOUND=0
-echo
-echo "Checking for obsolete hosts:"
+echo "Looking for orphaned host entries:"
 # room_defaults
 hosts="$(grep ^[a-zA-Z0-9] $ROOMDEFAULTS | awk '{ print $1 }' | tr A-Z a-z)"
 for hostname in $hosts; do
@@ -524,7 +588,7 @@ done
 # remove rooms which are no more defined in workstations file
 FOUND=0
 echo
-echo "Checking for obsolete rooms:"
+echo "Looking for orphaned room entries:"
 # classrooms
 rooms="$(grep ^[a-zA-Z0-9] $CLASSROOMS | awk '{ print $1 }' | tr A-Z a-z)"
 for room in $rooms; do
@@ -570,11 +634,14 @@ done
 # reload necessary services
 echo
 
-echo " * Reloading firewall."
+# opsi stuff
+([ -n "$opsiip" ] && linuxmuster-opsi --wsimport) || RC=1
+
+echo " * Reloading firewall ..."
 if restart-fw --int --ext 1> /dev/null; then
  echo "   ...done."
 else
- echo "   failed!"
+ echo "   ...failed!"
  RC=1
 fi
 

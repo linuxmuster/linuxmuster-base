@@ -80,6 +80,13 @@ Description: Welche Firewall wird verwendet?
  'ipfire' für die Installation mit IPFire.\n
  'custom' wenn eine andere Firewalllösung verwendet wird.
 
+Template: linuxmuster-base/opsi
+Type: boolean
+Default: false
+Description: OPSI-Server-Unterstützung aktivieren?
+ Beachten Sie, dass der OPSI-Server, je nach gewähltem internen Adressbereich,\n
+ mit einer IP-Adresse nach dem Schema 10.n.1.2 konfiguriert sein muss.
+
 Template: linuxmuster-base/smtprelay
 Type: string
 Description: SMTP relay host?
@@ -97,19 +104,16 @@ Description: Subnetting?
 Template: linuxmuster-base/adminpw
 Type: password
 Description: Administrator-Passwort:
- Auf den folgenden Seiten müssen Sie die Passwörter für die
- administrativen Benutzer root, administrator, pgmadmin,
- wwwadmin und für den IPCop eingeben.
- Achten Sie darauf, dass Sie sichere Passwörter verwenden.
- Folgende Zeichen in Passwörtern werden nicht unterstützt:
- äöüß$&{}![]+#
- .
- Geben Sie das Passwort für den User administrator ein.
+ Auf den folgenden Seiten müssen Sie administrative Passwörter eingeben.\n
+ Das Administrator-Passwort auf dieser Seite wird für die Benutzer\n
+ administrator, pgmadmin und wwwadmin verwendet.\n
+ Sie können die Passwörter später mit sophomorix-passwd ändern.\n
+ Folgende Zeichen in Passwörtern werden nicht unterstützt: äöüß$&{}![]+#
 
 Template: linuxmuster-base/adminpw_confirm
 Type: password
 Description: Bestätigen Sie das Administrator-Passwort:
- Geben Sie das Passwort für administrator nochmals zur Bestätigung ein.
+ Geben Sie das Passwort für die Administratoren nochmals zur Bestätigung ein.
 
 Template: linuxmuster-base/pgmadminpw
 Type: password
@@ -121,15 +125,15 @@ Type: password
 Description: Bestätigen Sie das Programm-Administrator-Passwort:
  Geben Sie das Passwort für pgmadmin nochmals zur Bestätigung ein.
 
-Template: linuxmuster-base/wwwadminpw
+Template: linuxmuster-base/opsipw
 Type: password
-Description: Web-Administrator-Passwort:
- Geben Sie das Passwort für den Web-Administrator wwwadmin ein.
+Description: OPSI-Root-Passwort:
+ Geben Sie das OPSI-Root-Passwort ein.
 
-Template: linuxmuster-base/wwwadminpw_confirm
+Template: linuxmuster-base/opsipw_confirm
 Type: password
-Description: Bestätigen Sie das Web-Administrator-Passwort:
- Geben Sie das Passwort für wwwadmin nochmals zur Bestätigung ein.
+Description: Bestätigen Sie das OPSI-Root-Passwort:
+ Geben Sie das OPSI-Root-Passwort nochmals zur Bestätigung ein.
 
 Template: linuxmuster-base/ipcoppw
 Type: password

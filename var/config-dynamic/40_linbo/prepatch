@@ -1,16 +1,16 @@
+#
 # thomas@linuxmuster.net
-# 13.03.2012
+# 04.02.2014
+# GPL v3
+#
 
 echo "### 40_linbo prepatch"
-
-#dpkg-reconfigure linuxmuster-linbo
 
 # stuff to do on first time install
 if [ "$1" = "--first" ]; then
 
  # patch rsyncd.secrets with admin password
- [ -e /etc/rsyncd.secrets ] && backup_file /etc/rsyncd.secrets
- if grep ^linbo: /etc/rsyncd.secrets &> /dev/null; then
+ if grep -q ^linbo: /etc/rsyncd.secrets; then
   sed -e "s/^linbo:.*/linbo:$adminpw/" -i /etc/rsyncd.secrets
  else
   echo "linbo:$adminpw" >> /etc/rsyncd.secrets
@@ -22,17 +22,7 @@ if [ "$1" = "--first" ]; then
 fi
 
 touch $SYSCONFDIR/workstations
-
-# if there is no linbo password use "muster"
-if ! grep ^linbo: /etc/rsyncd.secrets &> /dev/null; then
- echo "### WARNING: Using muster as linbo password. Please change this ASAP!"
- linbopw=muster
- echo "linbo:$linbopw" >> /etc/rsyncd.secrets
-fi
 chmod 600 /etc/rsyncd.secrets
-
-# link pxelinux.0 to linbo dir
-[ -e "$LINBODIR/pxelinux.0" ] || ln -sf /usr/lib/syslinux/pxelinux.0 $LINBODIR/pxelinux.0
 
 # open internal firewall for multicasting and rsync
 . /etc/default/linuxmuster-linbo
@@ -61,16 +51,6 @@ done
 # patch rsync start variable
 sed -e "s/^RSYNC_ENABLE=.*/RSYNC_ENABLE=true/" -i /etc/default/rsync
 
-# check for images and start multicast
-update-rc.d linbo-multicast defaults
-res="$(find $LINBODIR -name \*.cloop)"
-if [ -n "$res" ]; then
- sed -e "s/^START_MULTICAST=.*/START_MULTICAST=yes/" -i /etc/default/linuxmuster-linbo
- /etc/init.d/linbo-multicast start
-else
- sed -e "s/^START_MULTICAST=.*/START_MULTICAST=no/" -i /etc/default/linuxmuster-linbo
-fi
-
 # linbo administrative user
 if ! check_id linbo; then
  linbopasswd=`grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }'`
@@ -89,19 +69,7 @@ if ! check_id linbo; then
  fi
 fi
 
-# check for linbo mail wrapper in /etc/aliases
-if ! grep -q ^linbo: /etc/aliases; then
- backup_file /etc/aliases
- sed -e "/^root:/a\
-linbo: \"\|\/usr\/share\/linuxmuster-linbo\/mail2log.sh\"" -i /etc/aliases
- newaliases
-fi
-
-# change owner of logdir to nobody
-[ -d "$LOGDIR/linbo" ] || mkdir -p $LOGDIR/linbo
-chown nobody $LOGDIR/linbo
-
-# update .macct files
+# update machine account files with basedn
 maccts="$(ls "$LINBODIR"/*.macct 2> /dev/null)"
 if [ -n "$maccts" ]; then
  for i in $maccts; do
@@ -109,18 +77,7 @@ if [ -n "$maccts" ]; then
  done
 fi
 
-# start necessary services
-[ -e /etc/default/tftpd-hpa -a -e /etc/tftp_remap.conf ] && start tftpd-hpa
-[ -e /etc/rsyncd.conf ] && /etc/init.d/rsync start
-
-# don't start these on first install
-if [ "$1" != "--first" ]; then
- /etc/init.d/bittorrent start
- /etc/init.d/linbo-bittorrent start
- /etc/init.d/linbo-multicast start
-else
- [ -e /etc/default/bittorrent ] && sed -e 's|^START_BTTRACK=.*|START_BTTRACK=0|' -i /etc/default/bittorrent
- [ -e /etc/default/linbo-bittorrent ] && sed -e 's|^START_BITTORRENT=.*|START_BITTORRENT=0|' -i /etc/default/linbo-bittorrent
- [ -e /etc/default/linuxmuster-linbo ] && sed -e 's|^START_MULTICAST=.*|START_MULTICAST=no|' -i /etc/default/linuxmuster-linbo
-fi
+# enable bittorrent by default
+[ -e /etc/default/bittorrent ] && sed -e 's|^START_BTTRACK=.*|START_BTTRACK=1|' -i /etc/default/bittorrent
+[ -e /etc/default/linbo-bittorrent ] && sed -e 's|^START_BITTORRENT=.*|START_BITTORRENT=1|' -i /etc/default/linbo-bittorrent
 

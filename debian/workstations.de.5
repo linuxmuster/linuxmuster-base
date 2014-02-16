@@ -106,18 +106,47 @@ Beispielsweise gehören alle Rechner mit einer IP-Adresse
 der Form 10.17.113.x zum selben Raum.
 .RE
 .TP
-.B Felder 6-10: Derzeit nicht genutzt
-.TP
-.B Feld 11: PXE
+.B Feld 6: Ungenutzt
 .br
-Steht hier eine Zahl größer Null, 
-so wird der Rechner bei Linbo angemeldet 
-und eine entsprechende Startkonfiguration erstellt. 
-Steht hier eine 0, so unterbleibt dies.
+Feld derzeit ungenutzt.
 .TP
-.B Feld 12: Optionen
+.B Feld 7: Ungenutzt
 .br
-Derzeit nicht genutzt.
+Feld derzeit ungenutzt.
+.TP
+.B Feld 8: Momentan unbenutzt. Für linuxmuster.net reserviert
+.br
+Für zukünftige, jetzt noch nicht vorhersehbare Angaben zum Rechner.
+.br
+Zulässige Zeichen: [0-9a-zA-Z_-.,]
+.TP
+.B Feld 9: Dauerhaft unbenutzt von linuxmuster.net
+.br
+Kann vom Netzwerkbetreuer genutzt werden.
+.br
+Zulässige Zeichen: [0-9a-zA-Z_-.,]
+.TP
+.B Feld 10: Account flag (number)
+.br
+0: Device ohne Account, mit Firewall
+.br
+1: Device ohne Account, ohne Firewall
+.br
+2-6: ???
+.TP
+.B Feld 11: PXE Flag (number)
+.br
+0: kein PXE-Boot, kein Imaging, mit Sambakonto
+.br
+1: LINBO-PXE-Boot, verwaltet von LINBO, mit Sambakonto
+.br
+2: LINBO-PXE-Boot, verwaltet von LINBO & OPSI, mit Sambakonto
+.br
+3: OPSI-PXE-Boot, verwaltet von OPSI, mit Sambakonto
+.TP
+.SH SEE ALSO
+.BR sophomorix-workstation (8),
+
 .
 .SH AUTOR
-Jörg Richter <mail@jrichter.de>
+Jörg Richter <mail@jrichter.de> und Rüdiger Beck <jeffbeck@web.de>

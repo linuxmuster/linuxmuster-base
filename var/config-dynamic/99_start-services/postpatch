@@ -1,6 +1,6 @@
 #
 # thomas@linuxmuster.net
-# 18.12.2013
+# 04.02.2014
 # GPL v3
 #
 
@@ -64,8 +64,7 @@ fi
 # start services not yet started
 services="dbus openbsd-inetd atd cron openntpd"
 for service in $services; do
- [ -e "/etc/init.d/$service" ] && /etc/init.d/$service start
- [ -e "/etc/init/$service.conf" ] && start $service
+ service $service start
 done
 
 # set installed flag
@@ -95,17 +94,16 @@ fi
 # if subnetting has changed do an import_workstations
 [ "$subnetting" = "$subnetting_old" ] || impws="yes"
 
-# repair linbo stuff finally
-[ -s /etc/rsyncd.conf ] || dpkg-reconfigure linuxmuster-linbo
-status tftpd-hpa | grep -q start && stop tftpd-hpa
-start tftpd-hpa
-/etc/init.d/rsync restart
+# start linbo affected services
+for i in rsync atftpd linbo-bittorrent linbo-multicast; do
+ service "$i" restart
+done
 
 # finally do an import_workstations if necessary
 if [ -n "$impws" ]; then
  import_workstations
 else
  # start remaining services
- /etc/init.d/linuxmuster-base start
- start isc-dhcp-server
+ service linuxmuster-base start
+ service isc-dhcp-server restart
 fi

@@ -1,7 +1,7 @@
 # linuxmuster shell helperfunctions
 #
 # thomas@linuxmuster.net
-# 26.11.2013
+# 12.02.2014
 # GPL v3
 #
 
@@ -205,6 +205,22 @@ validhostname() {
 }
 
 
+###############
+# linbo stuff #
+###############
+
+# print kernel options from start.conf
+linbo_kopts(){
+ local conf="$1"
+ [ -z "$conf" ] && return
+ local kopts
+ if [ -e "$conf" ]; then
+  kopts="$(grep -i ^kerneloptions "$conf" | tail -1 | sed -e 's/#.*$//' -e 's/kerneloptions//I' | awk -F\= '{ print substr($0, index($0,$2)) }' | sed -e 's/ =//' -e 's/^ *//g' -e 's/ *$//g')"
+ fi
+ echo "$kopts"
+}
+
+
 #######################
 # workstation related #
 #######################
@@ -290,6 +306,62 @@ get_room() {
   return 0
 }
 
+# get pxe flag: get_pxe ip|host
+get_pxe() {
+ [ -f "$WIMPORTDATA" ] || return 1
+ local pattern="$1"
+ local res
+ local i
+ if validip "$pattern"; then
+  res="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | grep \;$pattern\; | awk -F\; '{ print $11 }')"
+ else
+  # assume hostname
+  get_ip "$pattern"
+  # perhaps a host with 2 ips
+  for i in $RET; do
+   if [ -z "$res" ]; then
+    res="$(get_pxe "$i")"
+   else
+    res="$res $(get_pxe "$i")"
+   fi
+  done
+ fi
+ echo "$res"
+}
+
+# test if host is opsimanaged: opsimanaged ip|host
+opsimanaged() {
+ local res="$(get_pxe "$1")"
+ local i
+ for i in $res; do
+  isinteger "$i" || continue
+  [ "$i" = "2" -o "$i" = "3" ] && return 0
+ done
+ return 1
+}
+
+# test if host is configured to pxe boot opsi: opsipxe ip|host
+opsipxe() {
+ local res="$(get_pxe "$1")"
+ local i
+ for i in $res; do
+  isinteger "$i" || continue
+  [ "$i" = "3" ] && return 0
+ done
+ return 1
+}
+
+# test if host is configured to pxe boot linbo: linbopxe ip|host
+linbopxe() {
+ local res="$(get_pxe "$1")"
+ local i
+ for i in $res; do
+  isinteger "$i" || continue
+  [ "$i" = "1" -o "$i" = "22" ] && return 0
+ done
+ return 1
+}
+
 # needed by internet & intranet on off scripts
 # test valid mac, change hostname to mac, returns space separated list of macs
 test_maclist() {
@@ -323,18 +395,38 @@ test_maclist() {
  return 0
 }
 
-
-####################
-# Firewall related #
-####################
+#################
+# Firewall/OPSI #
+#################
 
 # test if firewall can be connected passwordless
-test_pwless_fw(){
- if ! ssh -oNumberOfPasswordPrompts=0 -oStrictHostKeyChecking=no -p222 $ipcopip "echo 'Passwordless ssh connection to Firewall is available. :-)'"; then
-  echo "Cannot establish ssh connection to Firewall!"
+test_pwless_ssh(){
+ local ip="$1"
+ local port="$2"
+ local target="$3"
+ if ! ssh -oNumberOfPasswordPrompts=0 -oStrictHostKeyChecking=no -p "$port" "$ip" echo "Passwordless ssh connection to $target is available."; then
+  echo "Cannot establish ssh connection to $target!"
   return 1
  else
   return 0
+ fi
+}
+
+# test if firewall can be connected passwordless
+test_pwless_opsi(){
+ if test_pwless_ssh "$opsiip" 22 OPSI; then
+  return 0
+ else
+  return 1
+ fi
+}
+
+# test if firewall can be connected passwordless
+test_pwless_fw(){
+ if test_pwless_ssh "$ipcopip" 222 Firewall; then
+  return 0
+ else
+  return 1
  fi
 }
 
@@ -376,6 +468,11 @@ put_ipcop() {
  return 0
 }
 
+
+#########################
+# ip & subnetting stuff #
+#########################
+
 # print list of subnets which are allowed to access intranet
 # get_allowed_subnets <intern|extern>
 get_allowed_subnets() {
@@ -407,11 +504,6 @@ get_allowed_subnets() {
  done
  echo "$subnetlist"
 }
-
-
-#########################
-# ip & subnetting stuff #
-#########################
 
 # test if ip matches a subnet
 # ipsubmatch <ip> <list of nets>
