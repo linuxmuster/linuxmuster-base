@@ -1,7 +1,7 @@
 # linuxmuster.net: ldap configuration script
 #
 # <thomas@linuxmuster.net>
-# 15.11.2013
+# 21.02.2014
 # GPL v3
 #
 
@@ -51,100 +51,126 @@ if [ -n "$SOPHOMORIX" ]; then
 
 fi # installed
 
+
+# ldap dump files
+ldapdump=/var/tmp/ldap.ldif
+ldapdumpgz="$BACKUPDIR/ldap/ldap-$DATETIME.ldif.gz"
+
+# function: create ldap tree from ldif file
+create_ldap_tree(){
+ rm -rf /etc/ldap/slapd.d
+ mkdir -p /etc/ldap/slapd.d
+ chattr +i /var/lib/ldap/DB_CONFIG
+ rm -f /var/lib/ldap/*
+ chattr -i /var/lib/ldap/DB_CONFIG
+ sed -e "s|^dc:.*|dc: ${domainname%%.*}|
+         s|^o:.*|o: ${domainname%%.*}|" -i "$ldapdump"
+ slapadd < "$ldapdump"
+ chown openldap:openldap /var/lib/ldap -R
+ slaptest -f /etc/ldap/slapd.conf -F /etc/ldap/slapd.d
+ chown -R openldap:openldap /etc/ldap/slapd.d
+}
+
+
 # only on fresh install
 if [ "$1" = "--first" ]; then
 
-	# delete old userdata
-	[[ -n "$ADMINSHOME" && -d "$ADMINSHOME" ]] && rm -rf $ADMINSHOME/*
-	[[ -n "$TEACHERSHOME" && -d "$TEACHERSHOME" ]] && rm -rf $TEACHERSHOME/*
-	[[ -n "$STUDENTSHOME" && -d "$STUDENTSHOME" ]] && rm -rf $STUDENTSHOME/*
-	[[ -n "$WSHOME" && -d "$WSHOME" ]] && rm -rf $WSHOME/*
-	[[ -n "$SHAREHOME" && -d "$SHAREHOME" ]] && rm -rf $SHAREHOME/*/*
-	[[ -n "$TASKSCACHE" && -d "$TASKSCACHE" ]] && rm -rf $TASKSCACHE/*/*
-	rm -rf /var/lib/sophomorix/check-result/*
-	rm -rf /var/lib/sophomorix/database/*
-	rm -rf /var/lib/sophomorix/tmp/*
-	rm -rf /var/lib/sophomorix/print-data/*
-	rm -rf /var/log/sophomorix/*.log
-	rm -rf /var/log/sophomorix/exam/*
-	rm -rf /var/log/sophomorix/user/*
+ # delete old userdata
+ [[ -n "$ADMINSHOME" && -d "$ADMINSHOME" ]] && rm -rf $ADMINSHOME/*
+ [[ -n "$TEACHERSHOME" && -d "$TEACHERSHOME" ]] && rm -rf $TEACHERSHOME/*
+ [[ -n "$STUDENTSHOME" && -d "$STUDENTSHOME" ]] && rm -rf $STUDENTSHOME/*
+ [[ -n "$WSHOME" && -d "$WSHOME" ]] && rm -rf $WSHOME/*
+ [[ -n "$SHAREHOME" && -d "$SHAREHOME" ]] && rm -rf $SHAREHOME/*/*
+ [[ -n "$TASKSCACHE" && -d "$TASKSCACHE" ]] && rm -rf $TASKSCACHE/*/*
+ rm -rf /var/lib/sophomorix/check-result/*
+ rm -rf /var/lib/sophomorix/database/*
+ rm -rf /var/lib/sophomorix/tmp/*
+ rm -rf /var/lib/sophomorix/print-data/*
+ rm -rf /var/log/sophomorix/*.log
+ rm -rf /var/log/sophomorix/exam/*
+ rm -rf /var/log/sophomorix/user/*
 
-	# openldap access to ssl-certs
-	addgroup openldap ssl-cert
+ # openldap access to ssl-certs
+ addgroup openldap ssl-cert
+ 
+ # create a new ldap database
+ createuser -U postgres -S -D -R ldap
+ createdb -U postgres -O ldap ldap
+ psql -U postgres ldap < /var/tmp/ldap.pgsql
 
-	# create a new ldap database
-	createuser -U postgres -S -D -R ldap
-	createdb -U postgres -O ldap ldap
-	psql -U postgres ldap < /var/tmp/ldap.pgsql
+ # create fresh ldap tree from ldif file
+ create_ldap_tree
+ 
+ # changing user's default shell to /bin/bash
+ [ -n "$SOPHOMORIX" ] && sed -e 's/^\$schueler_per_ssh=.*/\$schueler_per_ssh=\"yes\"\;/
+                                 s/^\$lehrer_per_ssh=.*/\$lehrer_per_ssh=\"yes\"\;/' -i $SOPHOMORIXCONF
 
-        # clean ldap tree
-        rm -rf /etc/ldap/slapd.d
-        mkdir -p /etc/ldap/slapd.d
-        chattr +i /var/lib/ldap/DB_CONFIG
-        rm -f /var/lib/ldap/*
-        chattr -i /var/lib/ldap/DB_CONFIG
-	sed -e "s|^dc:.*|dc: ${domainname%%.*}|" -i /var/tmp/ldap.ldif
-        slapadd < /var/tmp/ldap.ldif
-        chown openldap:openldap /var/lib/ldap -R
-        slaptest -f /etc/ldap/slapd.conf -F /etc/ldap/slapd.d
-        chown -R openldap:openldap /etc/ldap/slapd.d
+ # new random password for ldap db user
+ ldapdbpw=`pwgen -s 24 1`
 
-	# changing user's default shell to /bin/bash
-	[ -n "$SOPHOMORIX" ] && sed -e 's/^\$schueler_per_ssh=.*/\$schueler_per_ssh=\"yes\"\;/
-		                        s/^\$lehrer_per_ssh=.*/\$lehrer_per_ssh=\"yes\"\;/' -i $SOPHOMORIXCONF
-
-	# let sophomorix do upgrades - done later
-	#sophomorix-setup-pgldap --new-database
-
-	# new random password for ldap db user
-	ldapdbpw=`pwgen -s 24 1`
-
-	# set ldap db password for schulkonsole
-	psql -U postgres -d template1 -qc "ALTER USER ldap WITH PASSWORD '"$ldapdbpw"';"
-	sed -e "s|^Password=.*|Password=$ldapdbpw|" -i /etc/linuxmuster/schulkonsole/db.conf
+ # set ldap db password for schulkonsole
+ psql -U postgres -d template1 -qc "ALTER USER ldap WITH PASSWORD '"$ldapdbpw"';"
+ sed -e "s|^Password=.*|Password=$ldapdbpw|" -i /etc/linuxmuster/schulkonsole/db.conf
 
 else
 
-	# update user database with basedn and workgroup if necessary
-	if [ "$update_ldap" = "yes" ]; then
+ # update user database with basedn, servername and/or workgroup
+ if [ "$update_ldap" = "yes" ]; then
 
-	 dumpfile=/var/tmp/ldap.pgsql
-	 dumpgzfile="$BACKUPDIR/ldap/ldap-$DATETIME.pgsql.gz"
+  psqldump=/var/tmp/ldap.pgsql
+  psqldumpgz="$BACKUPDIR/ldap/ldap-$DATETIME.pgsql.gz"
 
-	 echo "Backing up ldap db to $dumpgzfile ..."
-	 [ -d "$BACKUPDIR/ldap" ] || mkdir -p $BACKUPDIR/ldap
-	 pg_dump -U postgres ldap > $dumpfile
-	 gzip -c9 $dumpfile > $dumpgzfile
+  echo "Sichere Benutzer-Datenbank nach $psqldumpgz ..."
+  [ -d "$BACKUPDIR/ldap" ] || mkdir -p $BACKUPDIR/ldap
+  pg_dump -U postgres ldap > $psqldump
+  gzip -c9 "$psqldump" > "$psqldumpgz"
 
-	 # change basedn
-	 if [ "$basedn_old" != "$basedn" ]; then
-	  if [ -s "$dumpfile" ]; then
-	   if sed -e "s|$basedn_old|$basedn|g" -i $dumpfile; then
-	    # restore ldap db
-	    echo "Ändere BaseDN in LDAP-Datenbank."
-	    dropdb -U postgres ldap
-	    createdb -U postgres -O ldap ldap
-	    psql -U postgres ldap < $dumpfile
-            # recreate ldap tree
-	    sophomorix-dump-pg2ldap
-	   else
-	    echo "Fehler beim Patchen von $dumpfile! Kann BaseDN nicht ändern!"
-	   fi
-	  else
-	   echo "LDAP-Dump $dumpfile nicht gefunden! Kann BaseDN nicht ändern!"
-	  fi
-	 fi
+  # recreate ldap tree
+  echo "Sichere LDAP-Baum nach $ldapdumpgz ..."
+  slapcat > "$ldapdump"
+  gzip -c9 "$ldapdump" > "$ldapdumpgz"
 
-	 # change samba domain
-	 if [ "$workgroup_old" != "$workgroup" ]; then
-	  echo "Ändere Samba-Domäne in LDAP-Datenbank."
-	  psql -U postgres -d ldap -qc "UPDATE samba_domain SET sambadomainname = '$workgroup' WHERE id = '1';"
-	 fi
+  if [ -s "$psqldump" -a -s "$ldapdump" ]; then
 
-	 rm $dumpfile
+   echo "Modifiziere Benutzer-Datenbank."
 
-	fi
+   if [ "$basedn_old" != "$basedn" ]; then
+    echo "Ändere BaseDN zu $basedn."
+    sed -e "s|$basedn_old|$basedn|g" -i "$psqldump"
+    sed -e "s|$basedn_old|$basedn|g" -i "$ldapdump"
+   fi
 
+   if [ "$servername_old" != "$servername" ]; then
+    echo "Ändere Servernamen zu $servername."
+    sed -e 's|\\\\\\\\.*\\\\|\\\\\\\\'"$servername"'\\\\|g' -i "$psqldump"
+    sed -e 's|^sambaHomePath: \\\\.*\\|sambaHomePath: \\\\'"$servername"'\\|g' -i "$ldapdump"
+   fi
+
+   # recreate ldap db
+   dropdb -U postgres ldap
+   createdb -U postgres -O ldap ldap
+   psql -U postgres ldap < $psqldump
+
+   # change samba domain
+   if [ "$workgroup_old" != "$workgroup" ]; then
+    echo "Ändere Samba-Domäne zu $workgroup."
+    psql -U postgres -d ldap -qc "UPDATE samba_domain SET sambadomainname = '$workgroup' WHERE id = '1';"
+    sed -e "s|sambaDomainName=$workgroup_old|sambaDomainName=$workgroup|" -i "$ldapdump"
+   fi
+
+   # recreate ldap tree
+   create_ldap_tree
+
+   rm "$psqldump" "$ldapdump"
+
+  else
+
+   echo "LDAP-Dump gescheitert! Kann Benutzerdatenbank nicht modifizieren!"
+
+  fi
+
+ fi
+   
 fi
 
 
@@ -184,6 +210,7 @@ for i in $ADMINISTRATOR $PGMADMIN $WWWADMIN; do
 done
 chmod 700 $ADMINSHOME -R
 
+# let sophomorix do upgrades
 echo "### sophomorix-setup-pgldap"
 sophomorix-setup-pgldap
 
