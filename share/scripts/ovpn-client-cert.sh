@@ -3,7 +3,7 @@
 # handling of openvpn client certificates
 #
 # thomas@linuxmuster.net
-# 20.01.2013
+# 28.02.2014
 # GPL v3
 #
 
@@ -252,7 +252,7 @@ mail_admin() {
 	mail -s "OpenVPN-Zertifikat fuer Benutzer $cn erstellt" ${ADMINISTRATOR}@localhost <<EOF
 Benutzer $cn hat sich erfolgreich ein OpenVPN-Zertifikat erstellt.
 Das Zertifikat muss jedoch noch durch den Administrator freigeschaltet werden.
-Siehe https://$ipcopip:445/cgi-bin/ovpnmain.cgi
+Siehe https://$ipcopip:444/cgi-bin/ovpnmain.cgi
 
 EOF
 
