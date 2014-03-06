@@ -1,0 +1,17 @@
+#
+# thomas@linuxmuster.net
+# 05.03.2014
+# GPL v3
+#
+
+echo "### 00_opsi prepatch"
+
+# modify only
+if [ "$1" = "--modify" -a -n "$opsiip" ]; then
+ # do a reboot if ipaddress has changed
+ if [ "$serverip" = "$serverip_old" ]; then
+  linuxmuster-opsi --setup --quiet
+ else
+  linuxmuster-opsi --setup --reboot --quiet
+ fi
+fi

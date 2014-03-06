@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 10.02.2014
+# 05.03.2014
 # GPL v3
 #
 
@@ -284,6 +284,8 @@ write_dhcp_host() {
  echo "  hardware ethernet $mac;"
  echo "  fixed-address $ip;"
  echo "  option host-name \"$hostname\";"
+ # do not evaluate opsi pxe boot if opsiip is not set
+ [ "$pxe" = "3" -a -z "$opsiip" ] && pxe="1"
  case "$pxe" in
   1|2|22)
    # experimental pxegrub support
@@ -292,11 +294,8 @@ write_dhcp_host() {
    fi
   ;;
   3)
-   if [ -n "$opsiip" ]; then
-    # configure opsi pxe boot for host
-    echo "  next-server $opsiip;"
-    echo "  filename \"$OPSIPXEFILE\";"
-   fi
+   echo "  next-server $opsiip;"
+   echo "  filename \"$OPSIPXEFILE\";"
   ;;
   *) ;;
  esac
@@ -635,7 +634,9 @@ done
 echo
 
 # opsi stuff
-([ -n "$opsiip" ] && linuxmuster-opsi --wsimport) || RC=1
+if [ -n "$opsiip" ]; then
+ linuxmuster-opsi --wsimport --quiet || RC=1
+fi
 
 echo " * Reloading firewall ..."
 if restart-fw --int --ext 1> /dev/null; then
@@ -651,7 +652,7 @@ fi
 
 
 # delete tmp files
-[ -n "$PRINTERSTMP" ] && [ -e "$PRINTERSTMP" ] && rm -rf $PRINTERSTMP
+[ -n "$PRINTERSTMP" -a -e "$PRINTERSTMP" ] && rm -rf "$PRINTERSTMP"
 
 
 # exit with return code

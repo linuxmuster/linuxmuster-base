@@ -18,7 +18,7 @@ linuxmuster-base (6.1.0-18ubuntu0) precise-testing; urgency=low
   * postinst: fixed gollem config update.
   * removed linuxmuster-backup and dependencies (see #283).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 21 Feb 2014 19:20:42 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 05 Mar 2014 17:51:09 +0100
 
 linuxmuster-base (6.1.0-17ubuntu0) precise-testing; urgency=low
 

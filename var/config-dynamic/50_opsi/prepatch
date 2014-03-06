@@ -1,14 +1,17 @@
 #
 # thomas@linuxmuster.net
-# 12.02.2014
+# 05.03.2014
 # GPL v3
 #
 
 echo "### 50_opsi prepatch"
 
 # initial setup
-[ "$1" = "--first" -a -n "$opsiip" -a -n "$opsipw" ] && linuxmuster-opsi --setup --password="$opsipw" --unattended
+[ "$1" = "--first" -a -n "$opsiip" -a -n "$opsipw" ] && linuxmuster-opsi --setup --password="$opsipw" --first --quiet
 
-# modify only if network settings were not changed or if opsi has been enabled
-([ "$1" = "--modify" -a -n "$opsiip" -a "$opsi" != "$opsi_old" ] || [ "$1" = "--modify" -a -n "$opsiip" -a "$serverip" = "$serverip_old" -a -z "$update_certs" ]) && linuxmuster-opsi --setup --unattended
-
+# recreate ssh connect
+if [ "$1" = "--modify" -a -n "$opsiip" ]; then
+ ssh-keygen -f /root/.ssh/known_hosts -R "$opsiip"
+ ssh-keygen -f /root/.ssh/known_hosts -R opsi
+ test_pwless_opsi
+fi
