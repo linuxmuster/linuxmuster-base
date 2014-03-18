@@ -3,7 +3,7 @@
 # linuxmuster-opsi configuration script
 #
 # thomas@linuxmuster.net
-# 05.03.2014
+# 18.03.2014
 # GPL v3
 #
 
@@ -88,14 +88,25 @@ bailout(){
  exit 1
 }
 
+# test connection
+test_connection(){
+ if ping -c1 -q opsi; then
+  echo
+  return 0
+ else
+  bailout "Connection to opsi not available!"
+ fi
+}
+
 # setup
 do_setup(){
+ test_connection
  # update opsi debconf value
  local status="$(debconf-show linuxmuster-base | grep /opsi | awk -F\: '{ print $2 }' | awk '{ print $1 }')"
  if [ "$status" != "true" ]; then
   echo "Updating debconf variable."
   status="true"
-  echo "set linuxmuster-base/subnetting $status" | debconf-communicate || bailout "Debconf update failed!"
+  echo "set linuxmuster-base/opsi $status" | debconf-communicate || bailout "Debconf update failed!"
  else
   echo "Debconf variable already set."
  fi
@@ -127,7 +138,10 @@ do_setup(){
   [ -z "$password" -a -z "$unattended" ] && bailout "No password given!"
   mykey="$(cat /root/.ssh/id_dsa.pub)"
   [ -z "$mykey" ] && bailout "No ssh key available!"
-  [ -s /root/.ssh/known_hosts ] && ssh-keygen -f /root/.ssh/known_hosts -R "$opsiip" &> /dev/null
+  if [ -s /root/.ssh/known_hosts ]; then
+   ssh-keygen -f /root/.ssh/known_hosts -R "$opsiip" &> /dev/null
+   ssh-keygen -f /root/.ssh/known_hosts -R opsi &> /dev/null
+  fi
   # upload root's public key
   echo "$password" | "$SCRIPTSDIR/sshaskpass.sh" ssh -oStrictHostKeyChecking=no "$opsiip" "mkdir -p /root/.ssh && echo "$mykey" >> /root/.ssh/authorized_keys"
   # test passwordless ssh connection again
@@ -151,9 +165,10 @@ do_setup(){
 do_disable(){
  # debconf
  echo "Unsetting debconf variable."
- echo "set linuxmuster-base/subnetting false" | debconf-communicate || bailout "Debconf update failed!"
+ echo "set linuxmuster-base/opsi false" | debconf-communicate || bailout "Debconf update failed!"
  echo "Removing ip address."
  ssh-keygen -f "/root/.ssh/known_hosts" -R "$opsiip"
+ ssh-keygen -f "/root/.ssh/known_hosts" -R opsi
  if grep -q ^opsiip "$NETWORKSETTINGS"; then
   sed -e "s|^opsiip=.*|opsiip=\"\"|" -i "$NETWORKSETTINGS" || bailout "Debconf update failed!"
  else
@@ -163,6 +178,7 @@ do_disable(){
 
 # wsimport
 do_wsimport(){
+ test_connection
  echo "Processing opsi workstations:"
  # upload workstations file
  rsync "$WIMPORTDATA" "$opsiip:$OPSIWSDATA"

@@ -1,3 +1,11 @@
+linuxmuster-base (6.1.0-19ubuntu0) precise-testing; urgency=low
+
+  * linuxmuster-opsi
+    - setup: removing hostname opsi also from known_hosts during ssh setup.
+    - fixed debconf update.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 18 Mar 2014 19:51:20 +0100
+
 linuxmuster-base (6.1.0-18ubuntu0) precise-testing; urgency=low
 
   * linuxmuster-reset: improved return codes and console output.
