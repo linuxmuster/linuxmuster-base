@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 12.02.2014
+# 26.03.2014
 # GPL v3
 #
 
@@ -364,17 +364,23 @@ EOF
   [ -e /var/log/horde ] && chown www-data:www-data /var/log/horde -R
 
   # fix cups configuration (closes #101)
-  searchstr="# 15.03.2013"
-  for i in cupsd.conf cups-files.conf; do
-   conf="/etc/cups/$i"
-   tpl="${STATICTPLDIR}${conf}"
-   if ! grep -q "$searchstr" "$conf"; then
-    echo "Fixing $i ..."
-    cp "$conf" "${conf}.dpkg-bak"
-    cp "$tpl" "$conf"
-    cups_reload=yes
-   fi
-  done
+  searchstr="Allow @LOCAL"
+  conf="/etc/cups/cupsd.conf"
+  tpl="${STATICTPLDIR}${conf}"
+  if ! grep -q "$searchstr" "$conf"; then
+   echo "Fixing $conf ..."
+   cp "$conf" "${conf}.dpkg-bak"
+   cp "$tpl" "$conf"
+   cups_reload=yes
+  fi
+  conf="/etc/cups/cups-files.conf"
+  tpl="${STATICTPLDIR}${conf}"
+  if [ ! -e "$conf" ]; then
+   echo "Creating $conf ..."
+   cp "$conf" "${conf}.dpkg-bak"
+   cp "$tpl" "$conf"
+   cups_reload=yes
+  fi
   
   # adding apparmor profile for linuxmuster (see #156)
   dir="/etc/apparmor.d/tunables/home.d"

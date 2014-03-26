@@ -1,3 +1,9 @@
+linuxmuster-base (6.1.0-20ubuntu0) precise-testing; urgency=low
+
+  * postinst: fixed cupsd.conf update (closes #302).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 26 Mar 2014 18:11:44 +0100
+
 linuxmuster-base (6.1.0-19ubuntu0) precise-testing; urgency=low
 
   * linuxmuster-opsi
