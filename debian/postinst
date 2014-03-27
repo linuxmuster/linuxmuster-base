@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 26.03.2014
+# 27.03.2014
 # GPL v3
 #
 
@@ -364,10 +364,9 @@ EOF
   [ -e /var/log/horde ] && chown www-data:www-data /var/log/horde -R
 
   # fix cups configuration (closes #101)
-  searchstr="Allow @LOCAL"
   conf="/etc/cups/cupsd.conf"
   tpl="${STATICTPLDIR}${conf}"
-  if ! grep -q "$searchstr" "$conf"; then
+  if ! grep -q ^"BrowseAddress 10.*" "$conf"; then
    echo "Fixing $conf ..."
    cp "$conf" "${conf}.dpkg-bak"
    cp "$tpl" "$conf"
@@ -381,7 +380,7 @@ EOF
    cp "$tpl" "$conf"
    cups_reload=yes
   fi
-  
+
   # adding apparmor profile for linuxmuster (see #156)
   dir="/etc/apparmor.d/tunables/home.d"
   conf="$dir/linuxmuster"
@@ -529,7 +528,7 @@ EOF
 
   # add config patches
   run-parts "$ADDTPLDIR"
-  
+
   # remove obsolete config dirs
   for i in 03_dhcp3-server 01_network; do
    conf="$DYNTPLDIR/$i"
