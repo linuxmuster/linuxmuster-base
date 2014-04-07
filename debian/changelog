@@ -1,3 +1,11 @@
+linuxmuster-base (6.1.0-21ubuntu0) precise-testing; urgency=low
+
+  * linuxuster-setup: 
+    - removed tftpd-hpa from server tasks (closes #303).
+    - added --prepare parameter to install only the packages needed for setup.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 07 Apr 2014 14:41:51 +0200
+
 linuxmuster-base (6.1.0-20ubuntu1) precise-testing; urgency=low
 
   * postinst: fixed cupsd.conf update again (closes #302).
