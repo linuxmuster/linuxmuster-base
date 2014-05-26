@@ -1,7 +1,7 @@
 # linuxmuster shell helperfunctions
 #
 # thomas@linuxmuster.net
-# 11.09.2013
+# 25.05.2014
 # GPL v3
 #
 
@@ -324,9 +324,9 @@ test_maclist() {
 }
 
 
-#######################
-# Firewall communication #
-#######################
+##################
+# Firewall stuff #
+##################
 
 # test if firewall can be connected passwordless
 test_pwless_fw(){
@@ -361,27 +361,43 @@ check_urlfilter() {
  return 0
 }
 
-# execute a command on ipcop
+# execute a command on firewall
 exec_ipcop() {
  # test connection
  ssh -p 222 root@$ipcopip $* &> /dev/null || return 1
  return 0
 }
 
-# fetch file from ipcop
+# fetch file from firewall
 get_ipcop() {
  # test connection
  scp -r -P 222 root@$ipcopip:$1 $2 &> /dev/null || return 1
  return 0
 }
 
-# upload file to ipcop
+# upload file to firewall
 put_ipcop() {
  # test connection
  scp -r -P 222 $1 root@$ipcopip:$2 &> /dev/null || return 1
  return 0
 }
 
+# create and upload custom hosts file to firewall
+fw_do_customhosts(){
+ rm -rf $FWCUSTOMHOSTS
+ # test if necessary dir is present
+ exec_ipcop ls /var/ipfire/fwhosts || return 1
+ local RC=0
+ grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F \; '{ print "#,host " $2 ",mac," $4 }' | awk 'sub(/#/,++c)' > $FWCUSTOMHOSTS || RC=1
+ ([ "$RC" = "0" ] && put_ipcop $FWCUSTOMHOSTS /var/ipfire/fwhosts) || RC=1
+ ([ "$RC" = "0" ] && exec_ipcop chown nobody:nobody /var/ipfire/fwhosts/customhosts) || RC=1
+ if [ "$RC" = "1" ]; then
+  rm -rf $FWCUSTOMHOSTS
+ else
+  touch $FWCUSTOMHOSTS
+ fi
+ return "$RC"
+}
 
 #################
 # nic setup     #

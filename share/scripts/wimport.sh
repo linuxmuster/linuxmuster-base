@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 19.09.2013
+# 25.05.2015
 # GPL v3
 #
 
@@ -456,11 +456,17 @@ else
 fi
 
 echo " * Reloading external firewall."
-if "$SCRIPTSDIR/internet_on_off.sh" 1> /dev/null; then
- echo "   ...done."
-else
+# first create and upload customhosts
+if ! fw_do_customhosts; then
  echo "   failed!"
  RC=1
+else # update external fw
+ if "$SCRIPTSDIR/internet_on_off.sh" 1> /dev/null; then
+  echo "   ...done."
+ else
+  echo "   failed!"
+  RC=1
+ fi
 fi
 
 echo " * Reloading DHCP service... isc-dhcp-server"

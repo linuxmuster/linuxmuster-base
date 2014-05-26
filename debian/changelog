@@ -1,8 +1,14 @@
+linuxmuster-base (6.0.46-0ubuntu0) precise; urgency=low
+
+  * wimport.sh, internet_on_off.sh: modifications due to IPFire 2.15 core update 77 (closes #307).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 25 May 2014 16:14:51 +0200
+
 linuxmuster-base (6.0.45-0ubuntu0) precise; urgency=low
 
   * linuxmuster-ovpn: IPFire-Adresse in Administratormail gefixt (schließt #285).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 19 Sep 2013 20:19:48 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 28 Feb 2014 18:50:37 +0100
 
 linuxmuster-base (6.0.44-1ubuntu0) precise; urgency=low
 

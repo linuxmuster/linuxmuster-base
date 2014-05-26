@@ -3,7 +3,7 @@
 # blocking web access on firewall
 #
 # thomas@linuxmuster.net
-# 14.09.2013
+# 25.05.2014
 # GPL v3
 #
 
@@ -69,8 +69,13 @@ checklock || exit 1
 
 # get all client mac addresses from system and write them to file
 ALLOWEDMACS="$CACHEDIR/allowedmacs"
-grep -v ^# $WIMPORTDATA | awk -F\; '{ print $4 }' | tr a-z A-Z > "$ALLOWEDMACS" || cancel "Cannot write to $ALLOWEDMACS!"
- 
+if [ "$fwconfig" = "ipcop" ]; then 
+ grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $4 }' | tr a-z A-Z > "$ALLOWEDMACS" || cancel "Cannot write to $ALLOWEDMACS!"
+else
+ grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F \; '{ print "@,allowedmacs,,host " $2 ",Custom Host# " $4 }' | awk 'sub(/@/,++c)'  > "$ALLOWEDMACS" || cancel "Cannot write to $ALLOWEDMACS!"
+fi
+
+
 # remove orphaned macs from blocked hosts internet list
 touch "$BLOCKEDHOSTSINTERNET"
 if [ -s "$BLOCKEDHOSTSINTERNET" ]; then
@@ -227,16 +232,28 @@ ipcop_update(){
 
 # fw update for ipfire
 ipfire_update(){
+
+ # create and upload customhosts if not there
+ if [ ! -e "$FWCUSTOMHOSTS" ]; then
+  fw_do_customhosts || cancel "Upload of $FWCUSTOMHOSTS failed!"
+ fi
+
  # update allowed list
- local remotefile="/var/$fwtype/outgoing/groups/macgroups/allowedmacs"
+ local remotefile="/var/$fwtype/fwhosts/allowedmacs"
  # if there are banned macs
  if [ -s "$BLOCKEDHOSTSINTERNET" ]; then
   for m in $(cat $BLOCKEDHOSTSINTERNET); do
    # remove them from list of allowed macs
    sed "/$m/d" -i "$ALLOWEDMACS"
   done
+  # repair line numbers
+  awk 'sub(/[0-9]*/,++c)' "$ALLOWEDMACS" > "$ALLOWEDMACS".tmp
+  mv "$ALLOWEDMACS".tmp "$ALLOWEDMACS"
  fi
- 
+ # remove mac comments
+ awk -F\# '{ print $1 }' "$ALLOWEDMACS" > "$ALLOWEDMACS".tmp
+ mv "$ALLOWEDMACS".tmp "$ALLOWEDMACS"
+
  # upload allowd mac list for outgoing fw
  put_ipcop "$ALLOWEDMACS" "$remotefile" &> /dev/null || cancel "Upload of $localfile failed!"
 
