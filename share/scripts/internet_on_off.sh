@@ -3,7 +3,7 @@
 # blocking web access on firewall
 #
 # thomas@linuxmuster.net
-# 30.11.2013
+# 26.05.2013
 # GPL v3
 #
 
@@ -66,17 +66,14 @@ if [ -n "$maclist" ]; then
  fi
 fi
 
-# file definitions
-ALLOWEDIPS_FW="/var/$fwtype/outgoing/groups/ipgroups/allowedips"
-
-# get imported client ip addresses from system and write them to file
-grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $5 }' > "$ALLOWEDIPS" || cancel "Cannot write to $ALLOWEDIPS 1!"
+# create an ipfire compatible customgroups file
+grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F \; '{ print "@,allowedhosts,,host " $5 ",Custom Host" }' | awk 'sub(/@/,++c)' > "$ALLOWEDHOSTS" || cancel "Cannot write to $ALLOWEDHOSTS!"
 
 # remove orphaned ips from blocked hosts internet list
 touch "$BLOCKEDHOSTSINTERNET"
 if [ -s "$BLOCKEDHOSTSINTERNET" ]; then
  for i in $(cat $BLOCKEDHOSTSINTERNET); do
-  grep -qw "$i" "$ALLOWEDIPS" || sed "/^\($i\)$/d" -i "$BLOCKEDHOSTSINTERNET"
+  grep -qw "$i" "$ALLOWEDHOSTS" || sed "/^\($i\)$/d" -i "$BLOCKEDHOSTSINTERNET"
  done
 fi
 
@@ -107,37 +104,74 @@ esac
 sed '/^$/d' -i "$BLOCKEDHOSTSINTERNET" || cancel "Cannot write to $BLOCKEDHOSTSINTERNET!"
 
 
+# create and upload custom firewall stuff if not there
+if [ ! -e "$FWCUSTOMHOSTS" ]; then
+ fw_do_custom || cancel "Upload of custom stuff to firewall failed!"
+fi
+
+
 # update allowed list
 
 # handle allowed subnets
 if [ "$subnetting" = "true" ]; then
- ALLOWEDNETS="$(get_allowed_subnets extern)"
- if [ -n "$ALLOWEDNETS" ]; then
-  # remove ips which match allowed subnets from allowed ips
-  for i in $(cat $ALLOWEDIPS); do
-   if ipsubmatch "$i" "$ALLOWEDNETS"; then
-    sed "/^\($i\)$/d" -i "$ALLOWEDIPS" || cancel "Cannot write to $ALLOWEDIPS 3!"
+
+ # create and upload custom firewall stuff if not there
+ if [ ! -e "$FWCUSTOMNETWORKS" ]; then
+  fw_do_custom omit_hosts || cancel "Upload of custom networks to firewall failed!"
+ fi
+
+ # get all subnets with allowed internet access
+ networks="$(get_allowed_subnets extern)"
+
+ # are there any subnets?
+ if [ -n "$networks" ]; then
+
+  # remove ips which match allowed subnets from allowed hosts
+  for i in $(awk '{ print $4 }' $ALLOWEDHOSTS); do
+   if ipsubmatch "$i" "$networks"; then
+    sed "/^\($i\)$/d" -i "$ALLOWEDHOSTS" || cancel "Cannot write to $ALLOWEDHOSTS 3!"
    fi
   done
-  # add allowed subnets to allowed ip list
-  for i in $ALLOWEDNETS; do
-   echo "$i" >> "$ALLOWEDIPS" || cancel "Cannot write to $ALLOWEDIPS 4!"
+
+  # add allowed subnets to allowed networks list
+  c=1
+  rm -f "$ALLOWEDNETWORKS"
+  for i in $networks; do
+   netname="$(echo $i | awk -F\/ '{ print $1 }')"
+   echo "$c,allowednetworks,created by import_workstations,$netname,Custom Network" >> "$ALLOWEDNETWORKS" || cancel "Cannot write to $ALLOWEDNETWORKS!"
+   c="$(( $c + 1 ))"
   done
- fi # ALLOWEDNETS
+  touch "$ALLOWEDNETWORKS"
+
+ fi # networks
+
 fi # subnetting
 
 # remove empty lines
-sed '/^$/d' -i "$ALLOWEDIPS" || cancel "Cannot write to $ALLOWEDIPS 5!"
+sed '/^$/d' -i "$ALLOWEDHOSTS" || cancel "Cannot write to $ALLOWEDHOSTS 4!"
 
 # remove blocked ips
 for i in $(cat $BLOCKEDHOSTSINTERNET); do
- sed "/^\($i\)$/d" -i "$ALLOWEDIPS" || cancel "Cannot write to $ALLOWEDIPS 6!"
+ sed "/host $i,/d" -i "$ALLOWEDHOSTS" || cancel "Cannot write to $ALLOWEDHOSTS 5!"
 done
+
+# create allowed ips file for proxy
+ALLOWEDIPS="$CACHEDIR/allowedips"
+awk -F\, '{ print $4 }' "$ALLOWEDHOSTS" | sed -e 's|host ||g' > "$ALLOWEDIPS"
+[ -n "$networks" ] && echo $networks | sed -e 's| |\n|g' >> "$ALLOWEDIPS"
 
 # omit firewall update if set
 if [ -z "$nofirewall" ]; then
 
- # upload ip lists to ipfire
+ # upload allowed lists to ipfire
+ ULPATH="/var/$fwtype"
+ ALLOWEDHOSTS_FW="$ULPATH/fwhosts/allowedhosts"
+ put_ipcop "$ALLOWEDHOSTS" "$ALLOWEDHOSTS_FW" &> /dev/null || cancel "Upload of $ALLOWEDHOSTS failed!"
+ if [ "$subnetting" = "true" ]; then
+  ALLOWEDNETWORKS_FW="$ULPATH/fwhosts/allowednetworks"
+  put_ipcop "$ALLOWEDNETWORKS" "$ALLOWEDNETWORKS_FW" &> /dev/null || cancel "Upload of $ALLOWEDNETWORKS failed!"
+ fi
+ ALLOWEDIPS_FW="$ULPATH/proxy/advanced/acls/src_allowed_ip.acl"
  put_ipcop "$ALLOWEDIPS" "$ALLOWEDIPS_FW" &> /dev/null || cancel "Upload of $ALLOWEDIPS failed!"
 
  # reload proxy, doing the squid.conf stuff on ipfire

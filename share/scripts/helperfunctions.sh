@@ -1,7 +1,7 @@
 # linuxmuster shell helperfunctions
 #
 # thomas@linuxmuster.net
-# 12.02.2014
+# 26.05.2014
 # GPL v3
 #
 
@@ -449,23 +449,73 @@ check_urlfilter() {
  return 0
 }
 
-# execute a command on ipcop
+# execute a command on firewall
 exec_ipcop() {
  # test connection
  ssh -p 222 root@$ipcopip $* &> /dev/null || return 1
  return 0
 }
 
-# fetch file from ipcop
+# fetch file from firewall
 get_ipcop() {
  scp -r -P 222 root@$ipcopip:$1 $2 &> /dev/null || return 1
  return 0
 }
 
-# upload file to ipcop
+# upload file to firewall
 put_ipcop() {
  scp -r -P 222 $1 root@$ipcopip:$2 &> /dev/null || return 1
  return 0
+}
+
+# create and upload custom networks file to firewall
+fw_do_customnets(){
+ rm -rf $FWCUSTOMNETWORKS
+ touch $FWCUSTOMNETWORKS
+ if [ "$subnetting" = "true" ]; then
+  local line
+  local network
+  local netmask
+  local netname
+  local c=1
+  grep ^[1-2] $SUBNETDATA | awk -F\; '{ print $1 }' | while read line; do
+   netname="$(echo $line | awk -F\/ '{ print $1 }')"
+   netmask="$(ipcalc -b $line | grep ^Netmask: | awk '{ print $2 }')"
+   echo "$c,$netname,$netname,$netmask,created by import_workstations" >> $FWCUSTOMNETWORKS
+   c="$(( $c + 1 ))"
+  done
+ fi
+ local RC=0
+ put_ipcop $FWCUSTOMNETWORKS /var/ipfire/fwhosts/customnetworks.import || RC=1
+ [ "$RC" = "1" ] && rm -rf $FWCUSTOMNETWORKS
+ [ "$RC" = "0" ] && touch $FWCUSTOMNETWORKS
+ return "$RC"
+}
+
+# create and upload custom hosts file to firewall
+fw_do_customhosts(){
+ rm -rf $FWCUSTOMHOSTS
+ local RC=0
+ grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F \; '{ print "#,host " $5 ",ip," $5 "," $2 }' | awk 'sub(/#/,++c)' > $FWCUSTOMHOSTS || RC=1
+ ([ "$RC" = "0" ] && put_ipcop $FWCUSTOMHOSTS /var/ipfire/fwhosts) || RC=1
+ ([ "$RC" = "0" ] && exec_ipcop chown nobody:nobody /var/ipfire/fwhosts/customhosts) || RC=1
+ if [ "$RC" = "1" ]; then
+  rm -rf $FWCUSTOMHOSTS
+ else
+  touch $FWCUSTOMHOSTS
+ fi
+ return "$RC"
+}
+
+# create and upload custom firewall stuff
+fw_do_custom(){
+ [ "$1" = "omit_hosts" ] && local omit_hosts="yes"
+ # test if necessary dir is present
+ exec_ipcop ls /var/ipfire/fwhosts || return 1
+ if [ -z "$omit_hosts" ]; then
+  fw_do_customhosts || return 1
+ fi
+ fw_do_customnets || return 1
 }
 
 

@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 05.03.2014
+# 27.05.2014
 # GPL v3
 #
 
@@ -479,6 +479,9 @@ rm -rf "$DHCPDCACHE"/*
 echo "Processing workstation${subnetmsg} data:"
 vnetwork=""
 groups_processed=""
+rooms_processed=""
+# remove acls for rooms
+setfacl -b "$SHAREHOME"
 sort -b -d -t';' -k5 $WIMPORTDATA | grep ^[a-z0-9] | while read line; do
 
  # get data from line
@@ -515,6 +518,12 @@ sort -b -d -t';' -k5 $WIMPORTDATA | grep ^[a-z0-9] | while read line; do
  okt4="$(echo $ip | awk -F. '{ print $4 }')"
  echo "$okt4.$okt3.$okt2 PTR $hostname.`dnsdomainname`." >> $DB10TMP
  echo "$hostname A $ip" >> $DBREVTMP
+
+ # set acls for /home/share to deny access for exam accounts
+ if ! echo "$rooms_processed" | grep -qwi "$room"; then
+  setfacl -m g:${room}:--- "$SHAREHOME"
+  rooms_processed="$rooms_processed $room"
+ fi
 
 done
 
@@ -638,12 +647,26 @@ if [ -n "$opsiip" ]; then
  linuxmuster-opsi --wsimport --quiet || RC=1
 fi
 
-echo " * Reloading firewall ..."
-if restart-fw --int --ext 1> /dev/null; then
+echo " * Reloading internal firewall ..."
+if restart-fw --int 1> /dev/null; then
  echo "   ...done."
 else
  echo "   ...failed!"
  RC=1
+fi
+
+echo " * Reloading external firewall ..."
+# first create and upload custom firewall stuff
+if ! fw_do_custom; then
+ echo "   ...failed!"
+ RC=1
+else # update external fw
+ if restart-fw --ext 1> /dev/null; then
+  echo "   ...done."
+ else
+  echo "   ...failed!"
+  RC=1
+ fi
 fi
 
 /etc/init.d/bind9 force-reload || RC=1

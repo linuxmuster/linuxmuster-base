@@ -1,6 +1,6 @@
 #
 # thomas@linuxmuster.net
-# 27.02.2014
+# 28.04.2014
 # GPL v3
 #
 
@@ -99,7 +99,7 @@ for i in rsync atftpd linbo-bittorrent linbo-multicast; do
  service "$i" restart
 done
 
-# finally do an import_workstations if necessary
+# import_workstations if necessary
 if [ -n "$impws" ]; then
  import_workstations
 else
@@ -108,3 +108,5 @@ else
  service isc-dhcp-server restart
 fi
 
+# update linbofs on initial setup or if certificates where renewed
+[ "$update_certs" = "yes" -o "$1" = "--first" ] && update-linbofs
