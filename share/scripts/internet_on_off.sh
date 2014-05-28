@@ -3,7 +3,7 @@
 # blocking web access on firewall
 #
 # thomas@linuxmuster.net
-# 26.05.2013
+# 27.05.2013
 # GPL v3
 #
 
@@ -127,9 +127,9 @@ if [ "$subnetting" = "true" ]; then
  if [ -n "$networks" ]; then
 
   # remove ips which match allowed subnets from allowed hosts
-  for i in $(awk '{ print $4 }' $ALLOWEDHOSTS); do
+  for i in $(awk -F\, '{ print $4}' $ALLOWEDHOSTS | sed -e 's|host ||g'); do
    if ipsubmatch "$i" "$networks"; then
-    sed "/^\($i\)$/d" -i "$ALLOWEDHOSTS" || cancel "Cannot write to $ALLOWEDHOSTS 3!"
+    sed "/,host $i,/d" -i "$ALLOWEDHOSTS" || cancel "Cannot write to $ALLOWEDHOSTS 3!"
    fi
   done
 
@@ -138,7 +138,7 @@ if [ "$subnetting" = "true" ]; then
   rm -f "$ALLOWEDNETWORKS"
   for i in $networks; do
    netname="$(echo $i | awk -F\/ '{ print $1 }')"
-   echo "$c,allowednetworks,created by import_workstations,$netname,Custom Network" >> "$ALLOWEDNETWORKS" || cancel "Cannot write to $ALLOWEDNETWORKS!"
+   echo "$c,allowednetworks,,net $netname,Custom Network" >> "$ALLOWEDNETWORKS" || cancel "Cannot write to $ALLOWEDNETWORKS!"
    c="$(( $c + 1 ))"
   done
   touch "$ALLOWEDNETWORKS"
@@ -152,7 +152,7 @@ sed '/^$/d' -i "$ALLOWEDHOSTS" || cancel "Cannot write to $ALLOWEDHOSTS 4!"
 
 # remove blocked ips
 for i in $(cat $BLOCKEDHOSTSINTERNET); do
- sed "/host $i,/d" -i "$ALLOWEDHOSTS" || cancel "Cannot write to $ALLOWEDHOSTS 5!"
+ sed "/,host $i,/d" -i "$ALLOWEDHOSTS" || cancel "Cannot write to $ALLOWEDHOSTS 5!"
 done
 
 # create allowed ips file for proxy

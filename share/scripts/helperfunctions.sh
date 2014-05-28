@@ -1,7 +1,7 @@
 # linuxmuster shell helperfunctions
 #
 # thomas@linuxmuster.net
-# 26.05.2014
+# 27.05.2014
 # GPL v3
 #
 
@@ -481,7 +481,7 @@ fw_do_customnets(){
   grep ^[1-2] $SUBNETDATA | awk -F\; '{ print $1 }' | while read line; do
    netname="$(echo $line | awk -F\/ '{ print $1 }')"
    netmask="$(ipcalc -b $line | grep ^Netmask: | awk '{ print $2 }')"
-   echo "$c,$netname,$netname,$netmask,created by import_workstations" >> $FWCUSTOMNETWORKS
+   echo "$c,net $netname,$netname,$netmask,created by import_workstations" >> $FWCUSTOMNETWORKS
    c="$(( $c + 1 ))"
   done
  fi
