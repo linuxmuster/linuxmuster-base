@@ -1,3 +1,9 @@
+linuxmuster-base (6.1.0-22ubuntu2) precise-testing; urgency=low
+
+  * rebuild.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 28 May 2014 10:48:35 +0200
+
 linuxmuster-base (6.1.0-22ubuntu1) precise-testing; urgency=low
 
   * internet_on_off.sh:
