@@ -479,9 +479,6 @@ rm -rf "$DHCPDCACHE"/*
 echo "Processing workstation${subnetmsg} data:"
 vnetwork=""
 groups_processed=""
-rooms_processed=""
-# remove acls for rooms
-setfacl -b "$SHAREHOME"
 sort -b -d -t';' -k5 $WIMPORTDATA | grep ^[a-z0-9] | while read line; do
 
  # get data from line
@@ -518,12 +515,6 @@ sort -b -d -t';' -k5 $WIMPORTDATA | grep ^[a-z0-9] | while read line; do
  okt4="$(echo $ip | awk -F. '{ print $4 }')"
  echo "$okt4.$okt3.$okt2 PTR $hostname.`dnsdomainname`." >> $DB10TMP
  echo "$hostname A $ip" >> $DBREVTMP
-
- # set acls for /home/share to deny access for exam accounts
- if ! echo "$rooms_processed" | grep -qwi "$room"; then
-  setfacl -m g:${room}:--- "$SHAREHOME"
-  rooms_processed="$rooms_processed $room"
- fi
 
 done
 
