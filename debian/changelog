@@ -1,8 +1,8 @@
-linuxmuster-base (6.1.0-22ubuntu2) precise-testing; urgency=low
+linuxmuster-base (6.1.0-23ubuntu0) precise-testing; urgency=low
 
-  * rebuild.
+  * added script room_share_acl.sh to withdraw access rights for exam accounts to /home/share.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 28 May 2014 10:48:35 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 28 May 2014 17:42:17 +0200
 
 linuxmuster-base (6.1.0-22ubuntu1) precise-testing; urgency=low
 
@@ -15,14 +15,14 @@ linuxmuster-base (6.1.0-22ubuntu1) precise-testing; urgency=low
 
 linuxmuster-base (6.1.0-22ubuntu0) precise-testing; urgency=low
 
-  * linuxuster-setup: added update-linbofs on initial setup or if certs were renewed.
+  * linuxmuster-setup: added update-linbofs on initial setup or if certs were renewed.
   * wimport.sh, internet_on_off.sh: modifications due to IPFire 2.15 core update 77 (closes #308).
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 27 May 2014 18:58:54 +0200
 
 linuxmuster-base (6.1.0-21ubuntu0) precise-testing; urgency=low
 
-  * linuxuster-setup: 
+  * linuxmuster-setup: 
     - removed tftpd-hpa from server tasks (closes #303).
     - added --prepare parameter to install only the packages needed for setup.
 

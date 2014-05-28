@@ -3,7 +3,7 @@
 # blocking web access on firewall
 #
 # thomas@linuxmuster.net
-# 27.05.2013
+# 28.05.2013
 # GPL v3
 #
 

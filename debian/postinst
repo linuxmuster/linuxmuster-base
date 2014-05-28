@@ -326,7 +326,7 @@ EOF
     bind_reload=yes
    fi
   fi
-  
+
   # update turba's sources.php (closes #83 & #184)
   tpl="$DYNTPLDIR/21_horde3/turba2.sources.php"
   conf="$(cat $tpl.target)"
@@ -340,7 +340,7 @@ EOF
    chown root:www-data "$conf"
    chmod 440 "$conf"
   fi
-  
+
   # update gollem configs
   confdir="/etc/horde/gollem"
   conf="$confdir/prefs.php"
@@ -492,7 +492,7 @@ EOF
   conf="/etc/dhcp/dhcpd.conf.custom"
   [ -e "$conf" ] || cp "$STATICTPLDIR/$conf" "$conf"
   dhcp_reload=yes
-  
+
   # remove obsolete backup settings from schulkonsole
   conf="$SYSCONFDIR/schulkonsole/permissions.conf"
   searchstr="settings_backup"
@@ -500,6 +500,11 @@ EOF
    echo "Removing backup settings from schulkonsole."
    cp "$conf" "$conf.dpkg-bak"
    sed -e "s|$searchstr||" -i "$conf"
+  fi
+
+  # withdraw access rights for room on /home/share
+  if [ ! -e "$ROOM_SHARE_ACLS" ]; then
+   "$SCRIPTSDIR/room_share_acl.sh" --deny || true
   fi
 
   # updating release information

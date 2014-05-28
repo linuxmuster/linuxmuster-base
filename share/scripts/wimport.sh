@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 27.05.2014
+# 28.05.2014
 # GPL v3
 #
 
@@ -445,6 +445,12 @@ else
  rm -f $locker
  exit "$RC"
 fi # sync host accounts
+
+
+# do not grant access rights for rooms (exam accounts) on $SHAREHOME
+echo
+"$SCRIPTSDIR/room_share_acl.sh" --deny || RC="1"
+echo
 
 
 # remove host entries from bind config
