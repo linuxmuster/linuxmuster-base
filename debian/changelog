@@ -1,3 +1,10 @@
+linuxmuster-base (6.1.0-24ubuntu0) precise-testing; urgency=low
+
+  * samba-userlog, cron.daily: improved userlogin cachefile handling.
+  * added acl to package dependencies.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 30 May 2014 14:24:38 +0200
+
 linuxmuster-base (6.1.0-23ubuntu0) precise-testing; urgency=low
 
   * added script room_share_acl.sh to withdraw access rights for exam accounts to /home/share.

@@ -4,7 +4,7 @@
 #
 # Thomas Schmitz
 # <tschmitt@linuxmuster.de>
-# 07.02.2008
+# 30.05.2014
 #
 
 . /usr/share/linuxmuster/config/dist.conf
@@ -19,6 +19,8 @@ fi
 cd $LOGINCACHE
 
 for h in *; do
+
+    chattr -i $h
 
 	for u in `cat $h`; do
 
@@ -35,7 +37,11 @@ for h in *; do
 
 	done
 
-	if [ ! -s "$h" ]; then
+	if [ -s "$h" ]; then
+
+        chattr +i $h
+
+    else
 
 		locker=/tmp/.samba-userlog_${h}.lock
 		lockfile -l 5 $locker
