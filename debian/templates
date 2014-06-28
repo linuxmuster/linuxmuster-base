@@ -74,7 +74,7 @@ Description: Samba-Domäne des Schulnetzes?
 Template: linuxmuster-base/fwconfig
 Type: select
 Choices: ipfire, ipcop, custom
-Default: custom
+Default: ipfire
 Description: Welche Firewall wird verwendet?
  Wählen Sie den Typ der Firewall:\n
  'ipfire' für die Installation mit IPFire.\n

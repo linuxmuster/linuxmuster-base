@@ -1,3 +1,11 @@
+linuxmuster-base (6.0.46-1ubuntu0) precise; urgency=low
+
+  * linuxmuster-setup:
+    - sets default firewall to ipfire.
+    - sets linux-image-generic instead of linux-image-server in server task.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 28 Jun 2014 13:12:04 +0200
+
 linuxmuster-base (6.0.46-0ubuntu0) precise; urgency=low
 
   * wimport.sh, internet_on_off.sh: modifications due to IPFire 2.15 core update 77 (closes #307).

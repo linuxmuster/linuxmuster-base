@@ -20,9 +20,9 @@ case $fwconfig in
     /usr/share/linuxmuster-ipfire/setup.sh --first "$ipcoppw"
    fi
   fi
- 
+
  ;;
-  
+
  ipcop)
  
   # only root may have access
