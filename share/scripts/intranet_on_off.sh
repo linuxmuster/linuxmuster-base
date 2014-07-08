@@ -3,7 +3,7 @@
 # blocking intranet access
 #
 # thomas@linuxmuster.net
-# 21.05.2013
+# 24.06.2014
 # GPL v3
 #
 
@@ -92,7 +92,7 @@ for i in $IPS_TO_PROCESS; do
 
 done
 
-# restart interal firewall
+# restart internal firewall
 /etc/init.d/linuxmuster-base restart ; RC="$?"
 
 # delete lock

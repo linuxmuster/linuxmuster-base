@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 28.05.2014
+# 08.07.2014
 # GPL v3
 #
 
@@ -432,6 +432,10 @@ if [ "$subnetting" = "true" ]; then
  echo
 fi
 
+# restore acls for room groups (exam accounts) on $SHAREHOME
+"$SCRIPTSDIR/room_share_acl.sh" --allow || RC="1"
+echo
+
 # sync host accounts
 echo "Sophomorix syncs accounts (may take a while):"
 sophomorix-workstation --sync-accounts | grep ^[KA][id][ld] 2>> $TMPLOG ; RC_LINE="${PIPESTATUS[0]}"
@@ -447,7 +451,7 @@ else
 fi # sync host accounts
 
 
-# do not grant access rights for rooms (exam accounts) on $SHAREHOME
+# withdraw access rights for rooms (exam accounts) on $SHAREHOME
 echo
 "$SCRIPTSDIR/room_share_acl.sh" --deny || RC="1"
 echo
@@ -638,12 +642,6 @@ done
 
 # reload necessary services
 echo
-
-# opsi stuff
-if [ -n "$opsiip" ]; then
- linuxmuster-opsi --wsimport --quiet || RC=1
-fi
-
 echo " * Reloading internal firewall ..."
 if restart-fw --int 1> /dev/null; then
  echo "   ...done."
@@ -666,12 +664,16 @@ else # update external fw
  fi
 fi
 
+# name service at least
 /etc/init.d/bind9 force-reload || RC=1
 
+# opsi stuff (do not during migration)
+if [ -n "$opsiip" -a ! -e /tmp/.migration ]; then
+ linuxmuster-opsi --wsimport --quiet || RC=1
+fi
+
+# printer stuff
 [ -n "$update_printers" ] && import_printers
-
-
-# delete tmp files
 [ -n "$PRINTERSTMP" -a -e "$PRINTERSTMP" ] && rm -rf "$PRINTERSTMP"
 
 

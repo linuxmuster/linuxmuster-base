@@ -2,7 +2,7 @@
 # config script for linuxmuster.net
 #
 # thomas@linuxmuster.net
-# 12.02.2014
+# 03.06.2014
 # GPL v3
 #
 
@@ -81,6 +81,8 @@ if [ "$opsi" = "true" ]; then
 else
  opsiip=""
 fi
+# save opsi ip from former setup, less work later if not set
+opsiip_old="$(grep ^opsiip "$NETWORKSETTINGS" | awk -F\= '{ print $2 }' | sed -e 's|\"||g')"
 
 # values for subnetting
 srvnetip=10.$internsub.1.0
@@ -190,6 +192,8 @@ $SCRIPTSDIR/cyradmpw.sh
 cyradmpw=`cat /etc/imap.secret`
 
 if [ "$1" = "--first" ]; then
+ # save opsi workstations entry
+ [ -n "$opsiip" ] && grep ^[a-zA-Z0-9] "$WIMPORTDATA" | grep ";$opsiip_old;" | sed -e "s|;$opsiip_old;|;$opsiip;|" > "$CACHEDIR/workstations.opsi"
  # copying default configuration an remove installed flag for first time installation
  echo "Copying default static configuration files ..." | tee -a $LOGDIR/setup.log
  cp -a $STATICTPLDIR/* /

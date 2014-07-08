@@ -1,3 +1,17 @@
+linuxmuster-base (6.1.0-25ubuntu0) precise-testing; urgency=low
+
+  * linuxmuster-opsi: fixed availability test for opsi.
+  * linuxmuster-setup:
+    - improved opsi ip handling.
+    - added acl remove for /home/share on first time installation.
+    - improved firewall setup.
+  * wimport.sh:
+    - improved acl handling for /home/share.
+    - doing opsi stuff after service restarts.
+  * room_share_acl.sh: fixed setfacl invokation if acl file is empty.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 08 Jul 2014 15:09:38 +0200
+
 linuxmuster-base (6.1.0-24ubuntu0) precise-testing; urgency=low
 
   * samba-userlog, cron.daily: improved userlogin cachefile handling.

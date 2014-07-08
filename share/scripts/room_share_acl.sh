@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 28.05.2014
+# 08.07.2014
 #
 #
 
@@ -30,7 +30,9 @@ set_acls(){
   remove_acls || return 1
  fi
  grep ^[a-zA-Z0-9] "$WIMPORTDATA" | awk -F\; '{ print $1 }' | sort -u | awk '{ print "g:" $1 ":---" }' > "$ROOM_SHARE_ACLS" || return 1
- setfacl -M "$ROOM_SHARE_ACLS" "$SHAREHOME" || return 1
+ if [ -s "$ROOM_SHARE_ACLS" ]; then
+  setfacl -M "$ROOM_SHARE_ACLS" "$SHAREHOME" || return 1
+ fi
 }
 
 RC=0
@@ -39,14 +41,14 @@ case "$1" in
 
  --allow)
   if [ ! -s "$ROOM_SHARE_ACLS" ]; then
-   echo "No acl file found. Nothing to allow!"
+   echo "No acls to restore on $SHAREHOME!"
    exit 0
   fi
-  echo "Granting access rights for rooms on $SHAREHOME."
+  echo "Restoring acls for room groups on $SHAREHOME ..."
   remove_acls || RC=1 ;;
 
  --deny)
-  echo "Removing access rights for rooms on $SHAREHOME."
+  echo "Setting up acls for room groups on $SHAREHOME ..."
   set_acls || RC=1 ;;
 
  *) usage ;;

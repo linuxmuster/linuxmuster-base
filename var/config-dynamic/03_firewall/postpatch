@@ -1,22 +1,17 @@
 #
 # thomas@linuxmuster.net
-# 26.11.2013
+# 31.05.2014
 # GPL v3
 #
 
 echo "### 02_firewall postpatch"
 
 # remove firewall from known_hosts if it is there, on first install or certificates need to be renewed
-if ([ -e /root/.ssh/known_hosts ] && [ "$1" = "--first" -o "$update_ssh" = "yes" -o "$update_certs" = "yes" -o "$update_fw_cert" = "yes" ]); then
+if [ -e /root/.ssh/known_hosts -a -n "$ipcoppw" ]; then
  for f in $ipcopip $ipcopip_old ipcop ipfire; do
   ssh-keygen -f /root/.ssh/known_hosts -R ["$f"]:222
  done
 fi
 
-# test if passwordless ssh connection to firewall is available
-test_pwless_fw
-
 # initial firewall configuration on first install or firewall change
-if ([ "$1" = "--first" ] || [ "$1" = "--modify" -a "$fwconfig" != "$fwconfig_old" ]); then
- [ -x "/usr/sbin/linuxmuster-${fwconfig}" ] && /usr/sbin/linuxmuster-${fwconfig} --setup --first --password="$ipcoppw"
-fi
+[ -n "$ipcoppw" ] && /usr/sbin/linuxmuster-ipfire --setup --first --password="$ipcoppw"

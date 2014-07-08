@@ -1,6 +1,6 @@
 #
 # thomas@linuxmuster.net
-# 28.04.2014
+# 04.07.2014
 # GPL v3
 #
 
@@ -10,8 +10,8 @@ echo "### 99_start-services postpatch"
 chown root:crontab /var/spool/cron/crontabs/root
 chmod 600 /var/spool/cron/crontabs/root
 
-# only if firewall is ipfire or ipcop
-if [ "$fwconfig" = "ipfire" -o "$fwconfig" = "ipcop" ]; then
+# only if firewall is not custom
+if [ "$fwconfig" != "custom" ]; then
 
  # waiting for firewall to come up 
  c=0
@@ -20,14 +20,14 @@ if [ "$fwconfig" = "ipfire" -o "$fwconfig" = "ipcop" ]; then
 
   if ping -c 2 $ipcopip &> /dev/null; then
 
-   # upload root's public key if certficates were renewed
-   if [ "$update_certs" = "yes" -a "$1" = "--modify" ]; then
+   # upload root's public key if ipcoppw is set
+   if [ -n "$ipcoppw" ]; then
 
     # upload root's public key
     echo "Uploading root's ssh key to $fwconfig ..."
     mykey="$(cat /root/.ssh/id_dsa.pub)"
     if [ -s /root/.ssh/known_hosts ]; then
-     for i in ipfire ipcop "$ipcopip"; do
+     for i in ipfire ipcop "$ipcopip" "$ipcopip_old"; do
       ssh-keygen -f "/root/.ssh/known_hosts" -R ["$i"]:222 &> /dev/null
      done
     fi

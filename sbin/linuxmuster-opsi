@@ -3,7 +3,7 @@
 # linuxmuster-opsi configuration script
 #
 # thomas@linuxmuster.net
-# 18.03.2014
+# 07.07.2014
 # GPL v3
 #
 
@@ -90,7 +90,7 @@ bailout(){
 
 # test connection
 test_connection(){
- if ping -c1 -q opsi; then
+ if ping -c1 -q "$opsiip"; then
   echo
   return 0
  else

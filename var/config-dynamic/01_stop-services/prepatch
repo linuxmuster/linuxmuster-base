@@ -1,11 +1,17 @@
 #
 # thomas@linuxmuster.net
-# 26.11.2013
+# 31.05.2014
 # GPL v3
 #
 # stop all relevant services
 
 echo "### 01_stop-services prepatch"
+
+# remove acls on $SHAREHOME
+if [ "$i" = "--first" ]; then
+ setfacl -b "$SHAREHOME"
+ rm -f "$ROOM_SHARE_ACLS"
+fi
 
 services="linuxmuster-base tftpd-hpa bittorrent rsync linbo-bittorrent \
           linbo-multicast nagios3 atd cron rembo quota apache2 cups \
