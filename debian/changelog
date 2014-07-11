@@ -1,3 +1,13 @@
+linuxmuster-base (6.1.0-26ubuntu0) babo; urgency=low
+
+  * linuxmuster-setup:
+    - removed opsi question, not necessary, job is done by linuxmuster-opsi.
+    - minor fixes.
+  * room_share_acl.sh: filters out hosts without exam account additionally.
+  * linuxmuster-opsi: fixed availability test for opsi again.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 11 Jul 2014 17:41:10 +0200
+
 linuxmuster-base (6.1.0-25ubuntu0) precise-testing; urgency=low
 
   * linuxmuster-opsi: fixed availability test for opsi.

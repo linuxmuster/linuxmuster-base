@@ -2,7 +2,7 @@
 # config script for linuxmuster.net
 #
 # thomas@linuxmuster.net
-# 03.06.2014
+# 11.07.2014
 # GPL v3
 #
 
@@ -82,7 +82,7 @@ else
  opsiip=""
 fi
 # save opsi ip from former setup, less work later if not set
-opsiip_old="$(grep ^opsiip "$NETWORKSETTINGS" | awk -F\= '{ print $2 }' | sed -e 's|\"||g')"
+[ -e "$NETWORKSETTINGS" ] && opsiip_old="$(grep ^opsiip "$NETWORKSETTINGS" | awk -F\= '{ print $2 }' | sed -e 's|\"||g')"
 
 # values for subnetting
 srvnetip=10.$internsub.1.0

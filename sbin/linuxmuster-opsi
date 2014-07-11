@@ -3,7 +3,7 @@
 # linuxmuster-opsi configuration script
 #
 # thomas@linuxmuster.net
-# 07.07.2014
+# 11.07.2014
 # GPL v3
 #
 
@@ -90,6 +90,7 @@ bailout(){
 
 # test connection
 test_connection(){
+ local opsiip="${serverip/.1.1/.1.2}"
  if ping -c1 -q "$opsiip"; then
   echo
   return 0

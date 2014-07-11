@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 08.07.2014
+# 11.07.2014
 #
 #
 
@@ -29,7 +29,8 @@ set_acls(){
  if [ -s "$ROOM_SHARE_ACLS" ]; then
   remove_acls || return 1
  fi
- grep ^[a-zA-Z0-9] "$WIMPORTDATA" | awk -F\; '{ print $1 }' | sort -u | awk '{ print "g:" $1 ":---" }' > "$ROOM_SHARE_ACLS" || return 1
+ # filter out room names with != 0 in field 10 (exam account exists)
+ grep ^[a-zA-Z0-9] "$WIMPORTDATA" | awk -F\; '{ print $1 " " $10 }' | grep -v " 0" | sort -u | awk '{ print "g:" $1 ":---" }' > "$ROOM_SHARE_ACLS" || return 1
  if [ -s "$ROOM_SHARE_ACLS" ]; then
   setfacl -M "$ROOM_SHARE_ACLS" "$SHAREHOME" || return 1
  fi
