@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH WORKSTATIONS 5 "12. März 2013"
+.TH WORKSTATIONS 5 "19. März 2013"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -23,7 +23,7 @@
 .
 Jede Zeile beschreibt ein Gerät (Computer, Drucker, ...)  und hat die folgende Syntax:
 .sp
-.B Raum;Hostname;Gruppe;MAC;IP;Netzmaske;1;1;1;1;PXE;Optionen
+.B Raumname;Hostname;Gruppe;MAC;IP;Netzmaske;1;1;1;1;PXE;Optionen
 .
 .PP
 .SH BEISPIEL
@@ -35,7 +35,7 @@ r66;r66-pc03;hd;00:11:22:3A:4B:5F;10.20.66.3;255.240.0.0;1;1;1;1;1
 Anhand der Einträge in dieser Datei werden die in der Schule vorhandenen
 Computer und sonstigen Geräte dem System bekanntgemacht. 
 Dabei werden unter anderem IP-Adressen vergeben, 
-Maschinenaccounts für die Domänenanmeldung sowie 
+Maschinenaccounts für die Samba-Domänenanmeldung sowie 
 Accounts für den Klassenarbeitsmodus eingerichtet. 
 Computer, die nicht in der Datei 
 .B workstations 
@@ -49,7 +49,8 @@ Nach jeder Änderung an der Datei muss der Befehl
 aufgerufen werden (als root).
 .br
 Zeilen, die mit einer Raute beginnen, 
-werden als Kommentarzeilen aufgefasst und ignoriert. 
+werden als Kommentarzeilen aufgefasst und ignoriert.
+.br 
 Achtung: Bearbeitet man die Datei über den Reiter
 .B Hosts
 in der Schulkonsole, so werden Kommentarzeilen gelöscht.
@@ -60,13 +61,20 @@ in der Schulkonsole, so werden Kommentarzeilen gelöscht.
 Die Felder werden durch Strichpunkte getrennt 
 und haben folgende Bedeutung:
 .TP
-.B Feld 1: Raum
+.B Feld 1: Raumname
 .br
 Der Name des Raumes, in dem der Rechner steht. 
 Anhand dieses Namens werden die Computer in der Schulkonsole 
 den Räumen zugeordnet.
 .TP
-.B Feld 2: Gruppe
+.B Feld 2: Hostname
+.br
+Der eindeutige Hostname. 
+Zulässige Zeichen sind Kleinbuchstaben und Ziffern 
+sowie der Bindestrich 
+(der nicht an erster oder letzter Stelle stehen darf).
+.TP
+.B Feld 3: Gruppe (Hardwareklasse)
 .br
 Die Rechnergruppe, zu der der Computer gehört. 
 Computer in derselben Rechnergruppe erhalten 
@@ -76,19 +84,12 @@ Ist eine Integration in Linbo nicht erforderlich
 .B PXE
 ), so wird dieses Feld nicht ausgewertet. 
 .TP
-.B Feld 3: Hostname
-.br
-Der eindeutige Hostname. 
-Zulässige Zeichen sind Kleinbuchstaben und Ziffern 
-sowie der Bindestrich 
-(der nicht an erster oder letzter Stelle stehen darf).
-.TP
 .B Feld 4: MAC-Adresse
 .br
 Die MAC-Adresse im Format 01:23:45:AB:CD:EF
 (auch Kleinbuchstaben sind zulässig)
 .TP
-.B Feld 5: IP-Adresse
+.B Feld 5: IP-Adresse (IPv4)
 .br
 Bei der Vergabe der IP-Adressen ist Folgendes zu beachten:
 .RS
@@ -110,14 +111,36 @@ der Form 10.17.113.x zum selben Raum.
 .br
 Die verwendete Netzmaske. Derzeit ist dies 255.240.0.0
 .TP
-.B Felder 7-10: Derzeit nicht genutzt
-.TP
-.B Feld 11: PXE
+.B Feld 7: Die IP des Linbo Servers (IPv4)
 .br
-Steht hier eine Zahl größer Null, 
-so wird der Rechner bei Linbo angemeldet 
-und eine entsprechende Startkonfiguration erstellt. 
-Steht hier eine 0, so unterbleibt dies.
+Falls in diesem Feld ein Integer steht, wird die IP des Servers als
+Linbo IP genommen.
+.TP
+.B Feld 8: Momentan unbenutzt. Für linuxmuster.net reserviert
+.br
+Für zukünftige, jetzt noch nicht vorhersehbare Angaben zum Rechner.
+.br
+Zulässige Zeichen: [0-9a-zA-Z_-.,]
+.TP
+.B Feld 9: Dauerhaft unbenutzt von linuxmuster.net
+.br
+Kann vom Netzwerkbetreuer genutzt werden.
+.br
+Zulässige Zeichen: [0-9a-zA-Z_-.,]
+.TP
+.B Feld 10: Account flag (number)
+.br
+0:   Device ohne Account, mit Firewall
+.br
+1:   Device ohne Account, ohne Firewall
+.br
+2-6: ???
+.TP
+.B Feld 11: PXE Flag (number)
+.br
+0:    nicht von LINBO verwaltet
+.br
+1 ... bootet über pxe, wird von LINBO verwaltet
 .TP
 .B Feld 12: Optionen
 .br
@@ -129,6 +152,11 @@ und
 .B unicast.
 Bei Linbo werden etwaige Optionen ignoriert 
 und man kann das Feld weglassen.
+.TP
+.SH SEE ALSO
+.BR import_workstations (8)
+.BR sophomorix-workstation (8),
+
 .
 .SH AUTOR
-Jörg Richter <mail@jrichter.de>
+Jörg Richter <mail@jrichter.de> und Rüdiger Beck <jeffbeck@web.de>
