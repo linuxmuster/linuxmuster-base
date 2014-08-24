@@ -22,7 +22,7 @@ for h in *; do
 
 	for u in `cat $h`; do
 
-		if ! smbstatus -b -d 0 -u $u | grep -qw $u | grep -qw $h; then
+		if ! smbstatus -b -d 0 -u $u | grep -w $u | grep -qw $h; then
 
 			locker=/tmp/.samba-userlog_${h}.lock
 			lockfile -l 5 $locker
