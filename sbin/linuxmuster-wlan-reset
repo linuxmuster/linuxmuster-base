@@ -1,0 +1,195 @@
+#!/bin/bash
+#
+# linuxmuster-wlan-reset
+# resets the wlan state of groups
+#
+# fschuett@gymnasium-himmelsthuer.de
+# 06.08.2014
+# GPL V3
+#
+
+
+# check for linuxmuster-wlan-reset lockfile
+locker=/tmp/.linuxmuster-wlan-reset
+GROUPDEFAULTS=/etc/linuxmuster/group_defaults
+if [ -e "$locker" ]; then
+	echo "Caution! Lockfile $locker detected!"
+	echo "Probably there is another linuxmuster-wlan-reset process running!"
+	echo "If this is not the case you can safely remove the lockfile $locker"
+        echo "and give linuxmuster-wlan-reset another try."
+	exit 1
+fi
+touch $locker
+chmod 400 $locker
+
+
+exit_script() {
+ local RC=1
+ [ -n "$1" ] && RC="$1"
+ echo | tee -a $LOGFILE
+ echo "Terminating linuxmuster-wlan-reset session at `date`" | tee -a $LOGFILE
+ echo "#####################################################################" | tee -a $LOGFILE
+ rm -f $locker $HOSTLIST $GROUPLIST
+ exit "$RC"
+}
+
+# source linuxmuster defaults
+. /usr/share/linuxmuster/config/dist.conf || exit_script
+
+# source helperfunctions
+. $HELPERFUNCTIONS || exit_script
+
+# logfile
+LOGFILE="$LOGDIR/linuxmuster-wlan-reset.log"
+
+# parsing parameters
+getopt $*
+
+usage() {
+  echo
+  echo "Usage: linuxmuster-wlan-reset --group=<group> [--kill]"
+  echo "                              --all [--kill]"
+  echo
+  echo "--group : reset group."
+  echo "--all  : reset all groups defined in $(basename $GROUPDEFAULTS)."
+  echo "--kill : kill the group's active lession, if there is one (optional)."
+  echo "         Use this with care!"
+  echo
+  echo "Note: --group is using default values if group is not"
+  echo "      defined in $GROUPDEFAULTS."
+  exit_script
+}
+
+# test parameters
+[[ -z "$group" && -z "$all" ]] && usage
+[[ -n "$group" && -n "$all" ]] && usage
+
+# check if $GROUPDEFAULTS exists
+if [ ! -e "$GROUPDEFAULTS" ]; then
+	echo "Fatal: File $GROUPDEFAULTS not found!"
+	exit_script
+fi
+
+# start
+echo | tee -a $LOGFILE
+echo "#####################################################################" | tee -a $LOGFILE
+echo "Starting linuxmuster-wlan-reset session at `date`" | tee -a $LOGFILE
+
+# get default values from group_defaults or set it to on if not defined
+defaults="$(grep -iw ^default $GROUPDEFAULTS | tr A-Z a-z)"
+wlan_default="$(echo $defaults | awk '{ print $2 }')"
+[ -z "$wlan_default" ] && wlan_default=on
+
+# create empty list files
+GROUPLIST="/var/tmp/groups_to_reset.$$"
+rm -f "$GROUPLIST"
+touch "$GROUPLIST"
+
+# all is given on cl
+if [ -n "$all" ]; then
+
+ # process all entries in group_defaults and create first a grouplist
+ grep ^[A-Za-z0-9] $GROUPDEFAULTS | tr A-Z a-z | while read line; do
+  item="$(echo $line | awk '{ print $1 }')"
+  echo "$line" >> "$GROUPLIST"
+ done
+ 
+ # process grouplist, look for already defined groups, add groups not defined with defaults
+ for i in $(cat $GROUPLIST | grep ^[A-Za-z0-9] | awk '{ print $1 }' | tr A-Z a-z | sort -u); do
+  # read defaults for group
+  defaults="$(grep -iw ^$i $GROUPDEFAULTS | tr A-Z a-z)"
+  wlan_group="$(echo $defaults | awk '{ print $2 }')"
+  [ -z "$wlan_group" ] && wlan_group="$wlan_default"
+  # get classes from /home/share/classes
+  for h in $(find /home/share/classes -maxdepth 1 -type d -printf '%f\n' | tr A-Z a-z | sort -u); do
+   grep -qi ^$h "$GROUPLIST" || echo "$h $wlan_default" >> "$GROUPLIST"
+  done
+  # get subclassess from /home/share/subclasses
+  for h in $(find /home/share/subclasses -maxdepth 1 -type d -not -name attic -printf '%f\n' | tr A-Z a-z | sort -u); do
+   grep -qi ^$h "$GROUPLIST" || echo "$h $wlan_default" >> "$GROUPLIST"
+  done
+  # get projects from /home/share/projects
+  for h in $(find /home/share/projects -maxdepth 1 -type d -not -name attic -printf '%f\n' | tr A-Z a-z | sort -u); do
+   grep -qi ^$h "$GROUPLIST" || echo "$h $wlan_default" >> "$GROUPLIST"
+  done
+  # teachers group
+  grep -qi ^teachers "$GROUPLIST" || echo "teachers $wlan_default" >> "$GROUPLIST"
+ done
+
+# a specific group is given on cl
+elif [ -n "$group" ]; then
+
+ # read defaults for group
+ defaults="$(grep -iw ^$group $GROUPDEFAULTS | tr A-Z a-z)"
+ wlan_group="$(echo $defaults | awk '{ print $2 }')"
+ [ -z "$wlan_group" ] && wlan_group="$wlan_default"
+ # write group list
+ echo "$group $wlan_group" > "$GROUPLIST"
+
+fi
+
+
+# exit if grouplist is empty
+if [ ! -s "$GROUPLIST" ]; then
+ echo | tee -a $LOGFILE
+ echo "No items to process." | tee -a $LOGFILE
+ exit_script 0
+fi
+
+
+# call wlan on_off script
+call_script() {
+ local target="$1"
+ local trigger="$2"
+ local grouplist="$(echo $3 | sed -e 's| |,|g')"
+ local script="$SCRIPTSDIR/$(echo $target | tr A-Z a-z)_on_off.sh"
+ local RCTMP="0"
+ echo | tee -a $LOGFILE
+ echo " * $target $(echo $trigger | tr a-z A-Z)" | tee -a $LOGFILE
+ echo "   -> $(echo $grouplist | sed -e 's|,|\n   -> |g')" | tee -a $LOGFILE
+ $script --trigger=$trigger --grouplist=$grouplist 2>> $LOGFILE 1>> $LOGFILE ; RCTMP="$?"
+ if [ "$RCTMP" = "0" ]; then
+  echo "   OK!"
+ else
+  echo "   FAILED!"
+  RC="1"
+ fi
+ return "$RCTMP"
+}
+
+RC="0"
+
+# do wlan reset
+# groups to trigger on
+wlan_on="$(grep ^[A-Za-z0-9] $GROUPLIST | awk '{ print $1 " " $2 }' | grep -i " on" | awk '{ print $1 }')"
+[ -n "$wlan_on" ] && call_script wlan on "$wlan_on"
+
+# groups to trigger off
+wlan_off="$(grep ^[A-Za-z0-9] $GROUPLIST | awk '{ print $1 " " $2 }' | grep -i " off" | awk '{ print $1 }')"
+[ -n "$wlan_off" ] && call_script wlan off "$wlan_off"
+
+# kill active lessions
+if [ -s "$GROUPLIST" -a -n "$kill" ]; then
+
+ # set session file prefix
+ groupfile_prefix="/var/lib/schulkonsole/group_lesson_"
+
+ # process groups from grouplist
+ for r in $(grep -i ^[A-Za-z0-9] $GROUPLIST | awk '{ print $1 }'); do
+ 
+  groupfile=${groupfile_prefix}$(echo -n $r | md5sum | awk '{ print $1 }')
+  if [ -e "$groupfile" ]; then
+   echo " * WARNING: I'm killing an active lession in group $r!" | tee -a $LOGFILE
+   rm -f $groupfile
+  fi
+ 
+ done
+
+fi
+
+
+if [ "$RC" != "0" ]; then
+ echo | tee -a $LOGFILE
+ echo "Terminated with error(s)!" | tee -a $LOGFILE
+fi
+exit_script "$RC"

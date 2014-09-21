@@ -1,3 +1,9 @@
+linuxmuster-base (6.2.0-1) precise; urgency=low
+
+  * added wlan (ticket #98)
+
+ -- Frank Schütte <fschuett@gymnasium-himmelsthuer.de>  Sun, 21 Sep 2014 15:04:45 +0200
+
 linuxmuster-base (6.1.0-26ubuntu1) babo; urgency=low
 
   * Fixed update-logins.sh for compatibility with ubuntu 14.04 clients (#317)
