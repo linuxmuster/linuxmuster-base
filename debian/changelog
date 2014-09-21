@@ -1,4 +1,4 @@
-linuxmuster-base (6.2.0-1) precise; urgency=low
+linuxmuster-base (6.1.0-26fschuett) precise; urgency=low
 
   * added wlan (ticket #98)
 
