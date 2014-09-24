@@ -58,5 +58,5 @@ done
 /usr/sbin/linuxmuster-reset --all --kill
 
 # reset groups to their in /etc/linuxmuster/group_defaults defined status
-/usr/sbin/linuxmuster-wlan-reset --all
+/usr/sbin/linuxmuster-wlan-reset --all --kill
 
