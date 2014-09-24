@@ -1,0 +1,23 @@
+# group_defaults will be processed by /usr/sbin/linuxmuster-reset.
+# It defines the default wlan status for all classes and projects.
+#
+# Two columns have to be present:
+# class/project: class or project name as defined in /etc/linuxmuster/workstations
+# wlan status: on/off/-
+#
+# Place a "-" in wlan column, if you want the current
+# status not to be changed. 
+#
+# There has to be one class or project definition per line.
+# Note: the classes or projects are processed in the sequence that is defined here.
+#
+# class/project	wlan status
+#
+# Examples:
+#07a		off
+#11b		-
+#
+# next entry sets the default values for classes/projects, which are not defined
+# explicitly.
+default		off
+teachers	on
