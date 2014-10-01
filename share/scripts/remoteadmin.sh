@@ -20,6 +20,9 @@ lockfile -l 60 $locker
 tmpdir=/var/tmp/${REMOTEADMIN}.$$
 mkdir -p $tmpdir
 
+tmpaddfile=/etc/sudoers.${REMOTEADMIN}.backup.add
+tmpdelfile=/etc/sudoers.${REMOTEADMIN}.backup.remove
+
 # strings placed in /etc/sudoers
 sudoerstr[0]="## begin linuxmuster $REMOTEADMIN ## DO NOT EDIT! ##"
 sudoerstr[1]="$REMOTEADMIN ALL=(ALL) ALL ## DO NOT EDIT! ##"
@@ -36,12 +39,12 @@ remove_quota_entry() {
 }
 
 add_to_sudoers() {
- cp /etc/sudoers /etc/sudoers.${REMOTEADMIN}.backup.add
+ cp /etc/sudoers $tmpaddfile $tmpdelfile
  for i in 0 1 2; do
   echo "${sudoerstr[$i]}" >> /etc/sudoers
  done
- chown root:root /etc/sudoers*
- chmod 440 /etc/sudoers*
+ chown root:root /etc/sudoers $tmpaddfile $tmpdelfile
+ chmod 440 /etc/sudoers $tmpaddfile $tmpdelfile
 }
 
 remove_from_nagios() {
@@ -64,13 +67,13 @@ remove_from_nagios() {
 }
 
 remove_from_sudoers() {
- cp /etc/sudoers /etc/sudoers.${REMOTEADMIN}.backup.remove
+ cp /etc/sudoers $tmpdelfile
  for i in 0 1 2; do
   grep -v "${sudoerstr[$i]}" /etc/sudoers > $tmpdir/sudoers
   mv $tmpdir/sudoers /etc
  done
- chown root:root /etc/sudoers*
- chmod 440 /etc/sudoers*
+ chown root:root /etc/sudoers $tmpaddfile $tmpdelfile
+ chmod 440 /etc/sudoers $tmpaddfile $tmpdelfile
 }
 
 remove_from_webmin() {
