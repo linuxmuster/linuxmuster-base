@@ -39,7 +39,7 @@ remove_quota_entry() {
 }
 
 add_to_sudoers() {
- cp /etc/sudoers $tmpaddfile $tmpdelfile
+ cp /etc/sudoers $tmpaddfile
  for i in 0 1 2; do
   echo "${sudoerstr[$i]}" >> /etc/sudoers
  done
