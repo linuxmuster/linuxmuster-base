@@ -384,6 +384,9 @@ EOF
   # updating release information
   echo "$DISTNAME $DISTFULLVERSION / Codename $CODENAME" > /etc/issue
   cp /etc/issue /etc/issue.net
+  # remove upgrade-notice to 14.04 and make it not come back (closes #355)
+  sed -i "s/^Prompt=lts$/Prompt=never/" /etc/update-manager/release-upgrades
+  rm -f /var/lib/update-notifier/release-upgrade-available
 
   # reload services
   apache2ctl graceful || true
