@@ -51,8 +51,13 @@ if exists dhcp-parameter-request-list {
     # Always send the PXELINUX options (specified in hexadecimal)
     option dhcp-parameter-request-list = concat(option dhcp-parameter-request-list,d0,d1,d2,d3);
 }
+option arch code 93 = unsigned integer 16; #RFC4578
 option configfile code 150 = string;
+if option arch = 00:07 {
+filename "grub.efi";
+} else {
 filename "pxelinux.0";
+}
 
 next-server @@serverip@@;
 
