@@ -53,10 +53,12 @@ if exists dhcp-parameter-request-list {
 }
 option arch code 93 = unsigned integer 16; #RFC4578
 option configfile code 150 = string;
-if option arch = 00:07 {
-filename "grub.efi";
+if option arch = 00:06 {
+filename "efi32/bootia32.efi";
+else if option arch = 00:07 {
+filename "efi64/bootx64.efi";
 } else {
-filename "pxelinux.0";
+filename "bios/pxelinux.0";
 }
 
 next-server @@serverip@@;
