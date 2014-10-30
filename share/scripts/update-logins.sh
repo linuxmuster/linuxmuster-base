@@ -49,7 +49,7 @@ for room in $rooms; do
   msg=false
   # read smbstatus file and grep logins from it
   grep "^\s*[1-9]" $status | while read line; do
-   machine="$(echo $line | awk '{ print $4 }')"
+   machine="$(echo $line | awk '{ print $4 }' | sed -e 's/(\(.*\))/\1/')"
    # check if ip instead of hostname was returned
    get_hostname "$machine"
    machine="$RET"

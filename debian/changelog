@@ -5,6 +5,12 @@ linuxmuster-base (6.1.0-27ubuntu0) babo; urgency=low
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 30 Oct 2014 11:08:20 +0100
 
+linuxmuster-base (6.1.0-26ubuntu1) babo; urgency=low
+
+  * Fixed update-logins.sh for compatibility with ubuntu 14.04 clients (#317)
+
+ -- Frank Schiebel <frank@linuxmuster.net>  Tue, 12 Aug 2014 11:35:35 +0200
+
 linuxmuster-base (6.1.0-26ubuntu0) babo; urgency=low
 
   * linuxmuster-setup:
