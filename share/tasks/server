@@ -30,8 +30,7 @@ libnss-db
 libnss-ldap
 libpam-ldap
 libsasl2-modules
-linux-headers-generic
-linux-image-generic
+linux-hwe-generic
 linux-firmware
 linux-firmware-nonfree
 linuxmuster-linbo
