@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 27.03.2014
+# 17.10.2014
 # GPL v3
 #
 
@@ -505,6 +505,13 @@ EOF
   # withdraw access rights for room on /home/share
   if [ ! -e "$ROOM_SHARE_ACLS" ]; then
    "$SCRIPTSDIR/room_share_acl.sh" --deny || true
+  fi
+
+  # fix apache SSLv3 usage
+  conf="/etc/apache2/mods-available/ssl.conf"
+  searchstr="\-SSLv3"
+  if ! grep -q "$searchstr" "$conf"; then
+  
   fi
 
   # updating release information
