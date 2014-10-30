@@ -22,7 +22,7 @@ linuxmuster-base (6.1.0-27ubuntu0) babo; urgency=low
     through internal firewall if no hosts have been registered yet
     (closes #386).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 30 Oct 2014 17:17:56 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 30 Oct 2014 17:50:17 +0100
 
 linuxmuster-base (6.1.0-26ubuntu1) babo; urgency=low
 
