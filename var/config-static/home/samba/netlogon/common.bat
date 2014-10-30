@@ -1,6 +1,6 @@
 REM Windows logon script common stuff, called by logon.bat
 REM thomas@linuxmuster.net
-REM 28.10.2014
+REM 30.10.2014
 
 @echo off
 
@@ -60,6 +60,26 @@ cscript \\%SERVER%\netlogon\replace.vbs \\"%TEMPLATE%"\\ \\"%USERNAME%"\\ %USERN
 reg import %USERNAME%.reg
 
 del %USERNAME%.reg
+
+REM Patch drive names
+
+REM pgm
+reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\MountPoints2\##%SERVER%#pgm /v _LabelFromReg /t REG_SZ /f /d "Programme"
+
+REM cdrom
+reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\MountPoints2\##%SERVER%#cdrom /v _LabelFromReg /t REG_SZ /f /d "CDs"
+
+REM share
+reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\MountPoints2\##%SERVER%#shares /v _LabelFromReg /t REG_SZ /f /d "Tauschen"
+
+REM tasks
+reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\MountPoints2\##%SERVER%#tasks /v _LabelFromReg /t REG_SZ /f /d "Vorlagen"
+
+REM students
+reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\MountPoints2\##%SERVER%#students /v _LabelFromReg /t REG_SZ /f /d "Schuelerhomes"
+
+REM home
+reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\MountPoints2\##%SERVER%#%USERNAME% /v _LabelFromReg /t REG_SZ /f /d "Home von %USERNAME%"
 
 :profile_end
 

@@ -1,7 +1,7 @@
 # linuxmuster shell helperfunctions
 #
 # thomas@linuxmuster.net
-# 27.05.2014
+# 30.10.2014
 # GPL v3
 #
 
@@ -629,7 +629,7 @@ discover_nics() {
 
  n=0
  # fetch all interfaces and their macs from /sys
- for i in /sys/class/net/bond* /sys/class/net/eth* /sys/class/net/wlan* /sys/class/net/intern /sys/class/net/extern /sys/class/net/dmz; do
+ for i in /sys/class/net/bond* /sys/class/net/eth* /sys/class/net/br* /sys/class/net/wlan* /sys/class/net/intern /sys/class/net/extern /sys/class/net/dmz; do
 
   [ -e $i/address ] || continue
 

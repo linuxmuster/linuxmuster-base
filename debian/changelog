@@ -1,9 +1,28 @@
 linuxmuster-base (6.1.0-27ubuntu0) babo; urgency=low
 
-  * fixed sslv3 exclusion in apache ssl.conf template.
-  * minor common.bat improvements.
+  * disabled SSLv3 in apache's ssl.conf.
+  * smb.conf, home share: added $RECYCLE.BIN and desktop.ini to hide files.
+  * common.bat:
+    - added drive name reg patches (closes #366).
+    - shorter names for personal folders.
+    - minor improvements concerning to control structure.
+  * workstations man page updated with field 6 and 7 infos.
+  * added syslinux to package dependencies (closes #387).
+  * merged Yannik's pull request #9, activates hostname lookups in
+    smb.conf (closes #350).
+  * merged Yannik's pull request #10, cron.daily fix (closes #351).
+  * merged Yannik's pull request #8, add missing quotes in cron.daily.
+  * merged jollyzsher's pull request #17, remove dist-upgrade suggestion
+    (closes #355).
+  * merged jollyzsher's pull request #15, added br interfaces to
+    discover_nics() in helperfunctions.sh.
+  * merged jollyzsher's pull request #18, fix doubled config templates
+    for workstations and subnets (closes #395).
+  * merged jollyzsher's pull request #19, fixes access to schulkonsole
+    through internal firewall if no hosts have been registered yet
+    (closes #386).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 30 Oct 2014 11:08:20 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 30 Oct 2014 17:17:56 +0100
 
 linuxmuster-base (6.1.0-26ubuntu1) babo; urgency=low
 
