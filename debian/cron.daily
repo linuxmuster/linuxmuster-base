@@ -20,16 +20,16 @@ cd $LOGINCACHE
 
 for h in *; do
 
-	for u in `cat $h`; do
+	for u in `cat "$h"`; do
 
-		if ! smbstatus -b -d 0 -u $u | grep -qw $u | grep -qw $h; then
+		if ! smbstatus -b -d 0 -u "$u" | grep -qw "$u" | grep -qw "$h"; then
 
 			locker=/tmp/.samba-userlog_${h}.lock
 			lockfile -l 5 $locker
 			echo "Removing user $u from login cache ..."
-			grep -vw $u $h > $h.tmp
-			mv $h.tmp $h
-			rm -f $locker
+			grep -vw "$u" "$h" > "$h.tmp"
+			mv "$h.tmp" "$h"
+			rm -f "$locker"
 
 		fi
 
@@ -38,10 +38,10 @@ for h in *; do
 	if [ ! -s "$h" ]; then
 
 		locker=/tmp/.samba-userlog_${h}.lock
-		lockfile -l 5 $locker
+		lockfile -l 5 "$locker"
 		echo "Removing host $h from login cache ..."
-		rm $h
-		rm -f $locker
+		rm "$h"
+		rm -f "$locker"
 
 	fi
 
