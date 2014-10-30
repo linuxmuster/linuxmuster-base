@@ -2,4 +2,6 @@ etc/*				etc/
 sbin/*			usr/sbin/
 share/*		usr/share/linuxmuster/
 var/*				var/lib/linuxmuster/
+var/config-static/etc/linuxmuster/subnets	etc/linuxmuster/
+var/config-static/etc/linuxmuster/workstations	etc/linuxmuster/
 
