@@ -1,3 +1,9 @@
+linuxmuster-base (6.1.0-27fschuett2) precise; urgency=low
+
+  * start.conf: Variable system=bios|bios64|efi32|efi64 (Standard: bios bedeutet bios 32bit linbo)
+
+ -- Frank Schütte <fschuett@gymnasium-himmelsthuer.de>  Fri, 17 Oct 2014 10:27:09 +0200
+
 linuxmuster-base (6.1.0-27fschuett) precise; urgency=low
 
   * DHCP boot ia32 / x64 / bios

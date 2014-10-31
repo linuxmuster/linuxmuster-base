@@ -199,6 +199,21 @@ Group = $group" -i $conf || RC="1"
  return "$RC"
 }
 
+# sets systemtype in start.conf
+set_systemtype(){
+ local systemtype="$1"
+ local conf="$LINBODIR/start.conf.$group"
+ local RC="0"
+ grep -qi ^"SystemType = $systemtype" $conf && return "$RC"
+ if grep -qwi ^SystemType $conf; then
+  sed -e "s/^[Ss][Yy][Ss][Tt][Ee][Mm][Tt][Yy][Pp][Ee].*/SystemType = $systemtype/" -i $conf || RC="1"
+ else
+  sed -e "/^Group/a\
+SystemType = $systemtype" -i $conf || RC="1"
+ fi
+ return "$RC"
+}
+
 # get reboot option from start.conf
 get_reboot(){
  local conf="$LINBODIR/start.conf.$1"
