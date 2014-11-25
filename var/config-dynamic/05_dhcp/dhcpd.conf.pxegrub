@@ -58,8 +58,15 @@ subnet @@internalnet@@ netmask @@dhcpmask@@ {
 }
 ### linuxmuster - end ### DON'T REMOVE THIS LINE ###
 
+group {
+# groessere lease time fuer feste ips
+default-lease-time 172800;
+max-lease-time 172800;
+
 # dynamically created stuff by import_workstations is included
 include "/etc/dhcp/dhcpd.conf.linuxmuster";
 
 # put your custom stuff in this included file
 include "/etc/dhcp/dhcpd.conf.custom";
+
+}

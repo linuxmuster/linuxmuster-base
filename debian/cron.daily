@@ -4,14 +4,14 @@
 #
 # Thomas Schmitt
 # <thomas@linuxmuster.net>
-# 30.05.2014
+# 30.10.2014
 #
 
 . /usr/share/linuxmuster/config/dist.conf
 . $HELPERFUNCTIONS
 
 # checking for dead logins and remove them
-if check_empty_dir $LOGINCACHE; then
+if check_empty_dir "$LOGINCACHE"; then
 	echo "$LOGINCACHE is empty. Doing nothing."
 	exit 0
 fi
@@ -20,18 +20,18 @@ cd $LOGINCACHE
 
 for h in *; do
 
-    chattr -i $h
+    chattr -i "$h"
 
 	for u in `cat $h`; do
 
-		if ! smbstatus -b -d 0 -u $u | grep -qw $u | grep -qw $h; then
+		if ! smbstatus -b -d 0 -u "$u" | grep -w "$u" | grep -qw "$h"; then
 
-			locker=/tmp/.samba-userlog_${h}.lock
-			lockfile -l 5 $locker
+			locker="/tmp/.samba-userlog_${h}.lock"
+			lockfile -l 5 "$locker"
 			echo "Removing user $u from login cache ..."
-			grep -vw $u $h > $h.tmp
-			mv $h.tmp $h
-			rm -f $locker
+			grep -vw "$u" "$h" > "$h.tmp"
+			mv "$h.tmp" "$h"
+			rm -f "$locker"
 
 		fi
 
@@ -39,15 +39,15 @@ for h in *; do
 
 	if [ -s "$h" ]; then
 
-        chattr +i $h
+        chattr +i "$h"
 
     else
 
-		locker=/tmp/.samba-userlog_${h}.lock
-		lockfile -l 5 $locker
+		locker="/tmp/.samba-userlog_${h}.lock"
+		lockfile -l 5 "$locker"
 		echo "Removing host $h from login cache ..."
-		rm $h
-		rm -f $locker
+		rm "$h"
+		rm -f "$locker"
 
 	fi
 

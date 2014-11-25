@@ -81,6 +81,17 @@ read_fwdata(){
  # get imported ip addresses
  IPS="$(grep -v ^# $WIMPORTDATA | awk -F\; '{ print $5 }')"
 
+ # on first time setup (when there is no diff to static config), ...
+ workstationdiff=$(diff $WIMPORTDATA $STATICTPLDIR$WIMPORTDATA)
+ # ... forcibly add all dhcp adresses
+ if [ -z "$workstationdiff" ]; then
+  echo $workstationdiff
+  myiprange=$(echo $serverip | cut -d "." -f 2)
+  for i in $( seq 100 200 ); do 
+   IPS="$IPS 10.$myiprange.1.$i"
+  done
+ fi
+
  # get subnets which are allowed to access intranet
  [ "$subnetting" = "true" ] && ALLOWEDNETS="$(get_allowed_subnets intern)"
  
@@ -107,6 +118,13 @@ read_fwdata(){
   done
  else
   UNBLOCKED_IPS="$IPS"
+ fi
+
+ # on first time setup, forcibly unblock all dhcp adresses
+ if [ -z "$workstationdiff" ]; then
+  for i in $( seq 100 200 ); do 
+   UNBLOCKED_IPS="$UNBLOCKED_IPS 10.$myiprange.1.$i"
+  done
  fi
 
  # read firewall port definitions
@@ -291,7 +309,7 @@ EOF
        echo "$RULE" >> "$IPTRULES"
       fi
      fi
-    else # create accept rules for ips which does not match an allowed subnet
+    else # create accept rules for ips which do not match an allowed subnet
      # for blocked ips do not create an accept rule
      if [ "$TYPE" = "BLOCKED" ]; then
       echo "$UNBLOCKED_IPS" | grep -qw "$i" || continue

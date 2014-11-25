@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 27.03.2014
+# 30.10.2014
 # GPL v3
 #
 
@@ -507,9 +507,27 @@ EOF
    "$SCRIPTSDIR/room_share_acl.sh" --deny || true
   fi
 
+  # fix apache SSLv3 usage
+  conf="/etc/apache2/mods-available/ssl.conf"
+  searchstr="\-SSLv3"
+  if ! grep ^SSLProtocol "$conf" | grep -q "$searchstr"; then
+   echo "Disabling SSLv3 in apache's ssl.conf."
+   cp "$conf" "${conf}.dpkg-bak"
+   sed "/^SSLProtocol/ s/$/ ${searchstr/\\/}/" -i "$conf"
+  fi
+
   # updating release information
   echo "$DISTNAME $DISTFULLVERSION / Codename $CODENAME" > /etc/issue
   cp /etc/issue /etc/issue.net
+
+  # remove upgrade-notice to 14.04 and make it not come back (closes #355)
+  conf="/etc/update-manager/release-upgrades"
+  if [ -s "$conf" ]; then
+   echo "Disabling release upgrade announcments."
+   cp "$conf" "${conf}.dpkg-bak"
+   sed -e "s/^Prompt=lts$/Prompt=never/" -i "$conf"
+  fi
+  rm -f /var/lib/update-notifier/release-upgrade-available
 
   # reload services
   apache2ctl graceful || true
