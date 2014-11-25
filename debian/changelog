@@ -1,3 +1,9 @@
+linuxmuster-base (6.1.0-28ubuntu0) babo; urgency=low
+
+  * fschuett: dhcp-lease-fix (closes #409).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 25 Nov 2014 20:04:48 +0100
+
 linuxmuster-base (6.1.0-27ubuntu0) babo; urgency=low
 
   * disabled SSLv3 in apache's ssl.conf.
