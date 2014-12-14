@@ -199,19 +199,13 @@ Group = $group" -i $conf || RC="1"
  return "$RC"
 }
 
-# sets systemtype in start.conf
-set_systemtype(){
- local systemtype="$1"
+# get systemtype 64bit from start.conf
+is_systemtype64(){
  local conf="$LINBODIR/start.conf.$group"
- local RC="0"
- grep -qi ^"SystemType = $systemtype" $conf && return "$RC"
- if grep -qwi ^SystemType $conf; then
-  sed -e "s/^[Ss][Yy][Ss][Tt][Ee][Mm][Tt][Yy][Pp][Ee].*/SystemType = $systemtype/" -i $conf || RC="1"
- else
-  sed -e "/^Group/a\
-SystemType = $systemtype" -i $conf || RC="1"
+ if [ -e "$conf" ]; then
+  grep -iw ^systemtype "$conf" | grep -q "64" && return 1
  fi
- return "$RC"
+ return 0
 }
 
 # get reboot option from start.conf
@@ -241,10 +235,20 @@ set_pxeconfig(){
  else
   default="linbo"
  fi
+ # get linbo kernel, initrd
+ if get_systemtype64 "$group"; then
+  kernel="linbo64"
+  kernelfs="linbofs64.lz"
+ else
+  kernel="linbo"
+  kernelfs="linbofs.lz"
+ fi
  # get kernel options
  kopts="$(linbo_kopts "$LINBODIR/start.conf.$group")"
  # create configfile
- sed -e "s|@@default@@|$default|
+ sed -e "s|@@kernel@@|$kernel|
+         s|@@kernelfs@@|$kernelfs|
+         s|@@default@@|$default|
          s|@@kopts@@|$kopts|g" "$LINBOPXETPL" > "$conf" || RC="1"
  return "$RC"
 }
