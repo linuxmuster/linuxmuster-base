@@ -236,7 +236,7 @@ set_pxeconfig(){
   default="linbo"
  fi
  # get linbo kernel, initrd
- if get_systemtype64 "$group"; then
+ if is_systemtype64 "$group"; then
   kernel="linbo64"
   kernelfs="linbofs64.lz"
  else
