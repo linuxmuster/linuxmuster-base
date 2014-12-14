@@ -203,9 +203,9 @@ Group = $group" -i $conf || RC="1"
 is_systemtype64(){
  local conf="$LINBODIR/start.conf.$group"
  if [ -e "$conf" ]; then
-  grep -iw ^systemtype "$conf" | grep -q "64" && return 1
+  grep -iw ^systemtype "$conf" | grep -q "64" && return 0
  fi
- return 0
+ return 1
 }
 
 # get reboot option from start.conf
