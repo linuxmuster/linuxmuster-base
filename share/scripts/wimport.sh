@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 08.07.2014
+# 20.01.2015
 # GPL v3
 #
 
@@ -172,6 +172,7 @@ test_subnet(){
 # sets serverip in start.conf
 set_serverip(){
  local conf="$LINBODIR/start.conf.$1"
+ local serverip="$2"
  local RC="0"
  grep -qi ^"server = $serverip" $conf && return "$RC"
  if grep -qwi ^server $conf; then
@@ -208,9 +209,10 @@ get_reboot(){
  return 1
 }
 
-# sets pxe config file
+# sets pxe config file, params: group kopts
 set_pxeconfig(){
  local group="$1"
+ local kopts="$2"
  local conf="$PXECFGDIR/$group"
  if ([ -s "$conf" ] && ! grep -q "$MANAGEDSTR" "$conf"); then
   echo -e "\tkeeping pxe config."
@@ -226,8 +228,6 @@ set_pxeconfig(){
  else
   default="linbo"
  fi
- # get kernel options
- kopts="$(linbo_kopts "$LINBODIR/start.conf.$group")"
  # create configfile
  sed -e "s|@@default@@|$default|
          s|@@kopts@@|$kopts|g" "$LINBOPXETPL" > "$conf" || RC="1"
@@ -240,6 +240,7 @@ do_pxe(){
  local group="$1"
  local ip="$2"
  local RC="0"
+ local server=""
  # copy default start.conf if there is none for this group
  if [ ! -e "$LINBODIR/start.conf.$group" ]; then
   echo "    Creating new linbo group $group."
@@ -250,12 +251,22 @@ do_pxe(){
  if ! echo "$groups_processed" | grep -qwi "$group"; then
   echo -en " * LINBO-Group\t$group"
   groups_processed="$groups_processed $group"
-  # set serverip in start.conf
-  set_serverip "$group" || RC="2"
+  # get kernel options from start.conf
+  kopts="$(linbo_kopts "$LINBODIR/start.conf.$group")"
+  # get custom serverip from kernel opts if set
+  if echo "$kopts" | grep -qw server; then
+   for i in $kopts; do eval "$i" &> /dev/null; done
+  fi
+  # set custom server ip in start.conf if defined in kernel opts
+  if validip "$server"; then
+   set_serverip "$group" "$server" || RC="2"
+  else # set default server ip
+   set_serverip "$group" "$serverip" || RC="2"
+  fi
   # set group in start.conf
   set_group "$group" || RC="2"
   # provide pxelinux configfile for group
-  set_pxeconfig "$group" || RC="2"
+  set_pxeconfig "$group" "$kopts" || RC="2"
  fi
 
  # create start.conf link for host

@@ -1,3 +1,9 @@
+linuxmuster-base (6.1.0-29ubuntu0) babo; urgency=low
+
+  * wimport.sh: start.conf server ip fix (closes #427).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 20 Jan 2015 14:33:39 +0100
+
 linuxmuster-base (6.1.0-28ubuntu0) babo; urgency=low
 
   * fschuett: dhcp-lease-fix (closes #409).
