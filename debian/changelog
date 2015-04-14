@@ -1,6 +1,19 @@
+linuxmuster-base (6.1.0-30ubuntu0) babo; urgency=low
+
+  * wwwadmin migration fix: added wwwadmin password templates needed by 
+    migration restore (closes #447).
+  * removed obsolete pgmadmin_confirm template.
+  * ip range modification fix for linuxmuster-setup (closes #448).
+  * minor improvements in linuxmuster-setup concerning to start time of 
+    linbo services and config files.
+  * postinst: fixed obsolete query for common.bat.win7.
+  * import_workstations: Bugfix for linbo group processing (closes #459). 
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 14 Apr 2015 18:35:15 +0200
+
 linuxmuster-base (6.1.0-29ubuntu0) babo; urgency=low
 
-  * wimport.sh: start.conf server ip fix (closes #427).
+  * wimport.sh: start.conf server ip fix (closes #427).* 
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 20 Jan 2015 14:33:39 +0100
 

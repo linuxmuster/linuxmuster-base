@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 20.01.2015
+# 11.04.2015
 # GPL v3
 #
 
@@ -248,9 +248,9 @@ do_pxe(){
  fi
 
  # process start.conf and pxelinux configfile for group
- if ! echo "$groups_processed" | grep -qwi "$group"; then
+ if ! echo "$groups_processed" | grep -qwi "#${group}#"; then
   echo -en " * LINBO-Group\t$group"
-  groups_processed="$groups_processed $group"
+  groups_processed="$groups_processed #${group}#"
   # get kernel options from start.conf
   kopts="$(linbo_kopts "$LINBODIR/start.conf.$group")"
   # get custom serverip from kernel opts if set

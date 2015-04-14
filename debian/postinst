@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 30.10.2014
+# 28.02.2015
 # GPL v3
 #
 
@@ -232,9 +232,10 @@ case "$1" in
   done
 
   # adding win7 netlogon example files.
-  for i in common.bat.win7 replace.vbs; do
-   [ -s "$NETLOGONDIR/$i" ] || cp $STATICTPLDIR/$NETLOGONDIR/$i $NETLOGONDIR
-  done
+  if ! grep -q replace.vbs "$NETLOGONDIR/common.bat"; then
+   [ -e "$NETLOGONDIR/common.bat.win7" ] || cp "$STATICTPLDIR/$NETLOGONDIR/common.bat" "$NETLOGONDIR/common.bat.win7"
+  fi
+  [ -e "$NETLOGONDIR/replace.vbs" ] || cp "$STATICTPLDIR/$NETLOGONDIR/replace.vbs" "$NETLOGONDIR"
 
   # provide teachers.bat if not yet there
   tpldir="$DYNTPLDIR/17_admins"
