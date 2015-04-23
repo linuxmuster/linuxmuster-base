@@ -1,4 +1,4 @@
-linuxmuster-base (6.1.0-29fschuett) babo; urgency=low
+linuxmuster-base (6.1.0-301fschuett) babo; urgency=low
 
   * start.conf: Variable system=bios|bios64|efi32|efi64 (Standard: bios bedeutet bios 32bit linbo)
   * DHCP boot ia32 / x64 / bios
@@ -6,6 +6,12 @@ linuxmuster-base (6.1.0-29fschuett) babo; urgency=low
   * import_workstations writes linbo/linbo64 to pxe-config
 
  -- Frank Schütte <fschuett@gymnasium-himmelsthuer.de>  Sun, 21 Sep 2014 15:04:45 +0200
+
+linuxmuster-base (6.1.0-29ubuntu0) babo; urgency=low
+
+  * wimport.sh: start.conf server ip fix (closes #427).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 20 Jan 2015 14:33:39 +0100
 
 linuxmuster-base (6.1.0-28ubuntu0) babo; urgency=low
 
