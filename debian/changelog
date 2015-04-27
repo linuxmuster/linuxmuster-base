@@ -1,4 +1,4 @@
-linuxmuster-base (6.1.0-301fschuett) babo; urgency=low
+linuxmuster-base (6.1.0-30fschuett) babo; urgency=low
 
   * start.conf: Variable system=bios|bios64|efi32|efi64 (Standard: bios bedeutet bios 32bit linbo)
   * DHCP boot ia32 / x64 / bios
