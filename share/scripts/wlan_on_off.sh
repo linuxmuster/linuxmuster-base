@@ -49,6 +49,11 @@ usage() {
 # check if task is locked
 checklock || exit 1
 
+# test fwtype
+fwtype="$(get_fwtype)"
+[ "$fwtype" = "ipfire" ] || cancel "Only ipfire is supported by this script!"
+[ "$fwtype" != "$fwconfig" ] && cancel "Misconfigured firewall! Check your setup!"
+
 # create a list of group names
 for i in ${grouplist//,/ }; do
  GROUPS_TO_PROCESS="$GROUPS_TO_PROCESS $i"
