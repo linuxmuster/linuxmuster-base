@@ -1,13 +1,10 @@
-# $Id: postpatch 1223 2012-01-16 19:42:26Z tschmitt $
+#
+# thomas@linuxmuster.net
+# 28.02.2015
+# GPL v3
+#
 
 echo "### 06_bind postpatch"
-
-# named.conf.extern must exist
-if [ ! -e /etc/bind/named.conf.extern ]; then
-  echo "// " >/etc/bind/named.conf.extern
-  echo "// Empty file" >>/etc/bind/named.conf.extern
-  echo "// " >>/etc/bind/named.conf.extern
-fi
 
 # fix permissions
 chown root:bind /etc/bind
@@ -31,4 +28,4 @@ else
 fi
 
 # start the service
-/etc/init.d/bind9 start
+service bind9 start

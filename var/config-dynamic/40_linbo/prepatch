@@ -1,10 +1,16 @@
 #
 # thomas@linuxmuster.net
-# 04.02.2014
+# 22.03.2015
 # GPL v3
 #
 
 echo "### 40_linbo prepatch"
+
+# stop relevant services if not done yet
+service rsync status | grep -q running && service rsync stop
+ps ax | grep -v grep | grep -q atftpd && service atftpd stop
+ps ax | grep -v grep | grep -q torrent && ( service linbo-bittorrent stop ; service bittorrent stop )
+ps ax | grep -v grep | grep -q mcast && service linbo-multicast stop
 
 # stuff to do on first time install
 if [ "$1" = "--first" ]; then
@@ -49,6 +55,7 @@ for i in `find $LINBODIR/ -type f -name '*.reg'`; do
 done
 
 # patch rsync start variable
+backup_file /etc/default/rsync
 sed -e "s/^RSYNC_ENABLE=.*/RSYNC_ENABLE=true/" -i /etc/default/rsync
 
 # linbo administrative user
@@ -73,11 +80,22 @@ fi
 maccts="$(ls "$LINBODIR"/*.macct 2> /dev/null)"
 if [ -n "$maccts" ]; then
  for i in $maccts; do
-  grep -q "$basedn" $i || sed -e "s|ou=machines,.*|ou=machines,$basedn|" -i $i
+  grep -q "$basedn" $i || ( backup_file "$i" ; sed -e "s|ou=machines,.*|ou=machines,$basedn|" -i "$i" )
  done
 fi
 
-# enable bittorrent by default
-[ -e /etc/default/bittorrent ] && sed -e 's|^START_BTTRACK=.*|START_BTTRACK=1|' -i /etc/default/bittorrent
-[ -e /etc/default/linbo-bittorrent ] && sed -e 's|^START_BITTORRENT=.*|START_BITTORRENT=1|' -i /etc/default/linbo-bittorrent
+# enable bittorrent by default, remove ALLOWED_DIR
+if [ -e /etc/default/bittorrent ]; then
+ backup_file /etc/default/bittorrent
+ sed -e 's|^START_BTTRACK=.*|START_BTTRACK=1|
+        's|^ALLOWED_DIR|#ALLOWED_DIR|g' -i /etc/default/bittorrent
+fi
+[ -e /etc/default/linbo-bittorrent ] && ( backup_file /etc/default/linbo-bittorrent ; sed -e 's|^START_BITTORRENT=.*|START_BITTORRENT=1|' -i /etc/default/linbo-bittorrent )
 
+# serverip in atftpd config
+[ "$serverip" = "$serverip_old" ] || ( backup_file /etc/default/atftpd ; sed -e "|$serverip_old|$serverip|g" -i /etc/default/atftpd )
+
+# start relevant services
+for i in atftpd rsync linbo-bittorrent linbo-multicast; do
+ service "$i" start
+done

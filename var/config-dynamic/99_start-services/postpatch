@@ -1,6 +1,6 @@
 #
 # thomas@linuxmuster.net
-# 04.07.2014
+# 28.02.2015
 # GPL v3
 #
 
@@ -61,12 +61,6 @@ if ping -c 2 www.linuxmuster.net &> /dev/null; then
 	hwclock --utc
 fi
 
-# start services not yet started
-services="dbus openbsd-inetd atd cron openntpd"
-for service in $services; do
- service $service start
-done
-
 # set installed flag
 touch $INSTALLED
 
@@ -88,25 +82,16 @@ if [ "$1" = "--modify" -a "$internsub" != "$internsub_old" ]; then
  done
  rm -f $LINBODIR/*.torrent
  import_printers
- impws="yes"
 fi
 
-# if subnetting has changed do an import_workstations
-[ "$subnetting" = "$subnetting_old" ] || impws="yes"
-
-# start linbo affected services
-for i in rsync atftpd linbo-bittorrent linbo-multicast; do
- service "$i" restart
+# start services not yet started
+for i in dbus openbsd-inetd atd cron openntpd linuxmuster-base isc-dhcp-server; do
+ service "$i" stop
+ service "$i" start
 done
 
-# import_workstations if necessary
-if [ -n "$impws" ]; then
- import_workstations
-else
- # start remaining services
- service linuxmuster-base start
- service isc-dhcp-server restart
-fi
+# import_workstations
+[ "$1" = "--modify" ] && import_workstations
 
 # update linbofs on initial setup or if certificates where renewed
 [ "$update_certs" = "yes" -o "$1" = "--first" ] && update-linbofs
