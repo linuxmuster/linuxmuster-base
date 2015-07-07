@@ -2,7 +2,7 @@
 # config script for linuxmuster.net
 #
 # thomas@linuxmuster.net
-# 16.04.2013
+# 11.07.2014
 # GPL v3
 #
 
@@ -15,24 +15,21 @@
 # read debconf database
 echo "Reading debconf database ..."
 for i in country state location servername domainname schoolname \
-         internmask internmask_short internsubrange fwconfig \
-         smtprelay sambasid adminpw pgmadminpw wwwadminpw \
-         ipcoppw workgroup iface_lan serverexternname; do
+         internsubrange fwconfig opsi smtprelay sambasid adminpw opsipw \
+         ipcoppw workgroup iface_lan serverexternname subnetting; do
   eval $i="$(echo get linuxmuster-base/$i | debconf-communicate | awk '{ print $2 }')"
 done
 
 # clear admin user passwords from debconf db
-for i in adminpw ipcoppw pgmadminpw wwwadminpw; do
+for i in adminpw ipcoppw opsipw; do
   RET=`echo set linuxmuster-base/$i "" | debconf-communicate`
 done
 
 # escaping special characters in passwords
 esc_spec_chars "$adminpw"
 adminpw=$RET
-esc_spec_chars "$pgmadminpw"
-pgmadminpw=$RET
-esc_spec_chars "$wwwadminpw"
-wwwadminpw=$RET
+esc_spec_chars "$opsipw"
+opsipw=$RET
 esc_spec_chars "$ipcoppw"
 ipcoppw=$RET
 
@@ -66,8 +63,6 @@ internsub=`echo $internsubrange | cut -f1 -d"-"`
 internsub_old=`echo $internsubrange_old | cut -f1 -d"-"`
 orangesub=$(( $internsub+1 ))
 ovpnsub=$(( $internsub+2 ))
-internbc=`echo $internsubrange | cut -f2 -d"-"`
-internbc_old=`echo $internsubrange_old | cut -f2 -d"-"`
 serverip=10.$internsub.1.1
 serverip_old=10.$internsub_old.1.1
 serverrev_short=1.1.$internsub
@@ -75,11 +70,34 @@ ipcopip=10.$internsub.1.254
 ipcopip_old=10.$internsub_old.1.254
 ipcoprev_short=254.1.$internsub
 internalnet=10.$internsub.0.0
-broadcast=10.$internbc.255.255
-broadcast_old=10.$internbc_old.255.255
+internalnet_old=10.$internsub_old.0.0
+broadcast="$(ipcalc -b "$internalnet/$INTERNMASK" | grep ^Broadcast | awk '{ print $2 }')"
+broadcast_old="$(ipcalc -b "$internalnet_old/$INTERNMASK" | grep ^Broadcast | awk '{ print $2 }')"
 ipcopblue=172.16.$internsub
 ipcoporange=172.16.$orangesub
 ipcopovpn=172.16.$ovpnsub
+if [ "$opsi" = "true" ]; then
+ opsiip=10.$internsub.1.2
+else
+ opsiip=""
+fi
+# save opsi ip from former setup, less work later if not set
+[ -e "$NETWORKSETTINGS" ] && opsiip_old="$(grep ^opsiip "$NETWORKSETTINGS" | awk -F\= '{ print $2 }' | sed -e 's|\"||g')"
+
+# values for subnetting
+srvnetip=10.$internsub.1.0
+srvnetip_old=10.$internsub_old.1.0
+srvnetgw=10.$internsub.1.253
+srvnetgw_old=10.$internsub_old.1.253
+srvnetbc="$(ipcalc -b "$srvnetip/$SUBNETMASK" | grep ^Broadcast | awk '{ print $2 }')"
+srvnetbc_old="$(ipcalc -b "$srvnetip_old/$SUBNETMASK" | grep ^Broadcast | awk '{ print $2 }')"
+if [ "$subnetting" = "true" ]; then
+ dhcpbc="$srvnetbc"
+ dhcpmask="$SUBNETMASK"
+else
+ dhcpbc="$broadcast"
+ dhcpmask="$INTERNMASK"
+fi
 
 # check for modified values
 if [ "$1" != "--first" ]; then
@@ -92,13 +110,13 @@ if [ "$1" != "--first" ]; then
   update_certs=yes && update_ldap=yes
  fi
  if [ "$domainname" != "$domainname_old" ]; then
-  update_certs=yes && update_ldap=yes
-  [ "$fwconfig" = "ipfire" -o "$fwconfig" = "ipcop" ] && update_fw_cert=yes
+  update_certs=yes
+  update_ldap=yes
+  [ "$fwconfig" != "custom" ] && update_fw_cert=yes
  fi
  [ "$serverexternname" = "$serverexternname_old" ] || update_extern=yes
  [ "$smptrelay" = "$smtprelay_old" ] || update_smtp=yes
  [ "$ipcopip" = "$ipcopip_old" ] || update_ssh=yes
- [ "$fwconfig" = "$fwconfig_old" ] || update_fwconfig=yes
 fi
 
 # compute basedn from domainname
@@ -112,11 +130,10 @@ cat <<EOF
 servername="$servername"
 serverip="$serverip"
 ipcopip="$ipcopip"
+opsiip="$opsiip"
 domainname="$domainname"
 serverexternname="$serverexternname"
 fwconfig="$fwconfig"
-internmask="$internmask"
-internmask_short="$internmask_short"
 internalnet="$internalnet"
 broadcast="$broadcast"
 ipcopblue="$ipcopblue"
@@ -131,6 +148,10 @@ location="$location"
 state="$state"
 country="$country"
 imaging="linbo"
+subnetting="$subnetting"
+srvnetip="$srvnetip"
+srvnetgw="$srvnetgw"
+srvnetbc="$srvnetbc"
 EOF
 ) > "$NETWORKSETTINGS"
 chmod 755 "$NETWORKSETTINGS"
@@ -171,6 +192,8 @@ $SCRIPTSDIR/cyradmpw.sh
 cyradmpw=`cat /etc/imap.secret`
 
 if [ "$1" = "--first" ]; then
+ # save opsi workstations entry
+ [ -n "$opsiip" ] && grep ^[a-zA-Z0-9] "$WIMPORTDATA" | grep ";$opsiip_old;" | sed -e "s|;$opsiip_old;|;$opsiip;|" > "$CACHEDIR/workstations.opsi"
  # copying default configuration an remove installed flag for first time installation
  echo "Copying default static configuration files ..." | tee -a $LOGDIR/setup.log
  cp -a $STATICTPLDIR/* /
@@ -226,11 +249,18 @@ for i in $DYNTPLDIR/*; do
               s/@@ipcopovpn@@/${ipcopovpn}/g
               s/@@iface_lan@@/${iface_lan}/g
               s/@@fwconfig@@/${fwconfig}/g
+              s/@@dhcpbc@@/${dhcpbc}/g
+              s/@@dhcpmask@@/${dhcpmask}/g
               s/@@broadcast@@/${broadcast}/g
               s/@@internsub@@/${internsub}/g
               s/@@internalnet@@/${internalnet}/g
-              s/@@internmask@@/${internmask}/g
-              s/@@internmask_short@@/${internmask_short}/g
+              s/@@internmask@@/${INTERNMASK}/g
+              s/@@internbitmask@@/${INTERNBITMASK}/g
+              s/@@srvnetip@@/${srvnetip}/g
+              s/@@subnetmask@@/${SUBNETMASK}/g
+              s/@@subnetbitmask@@/${SUBNETBITMASK}/g
+              s/@@srvnetbc@@/${srvnetbc}/g
+              s/@@srvnetgw@@/${srvnetgw}/g
               s/@@smtprelay@@/${smtprelay}/g
               s/@@adminmac@@/${adminmac}/g
               s/@@workgroup@@/${workgroup}/g

@@ -1,3 +1,4 @@
+etc/linuxmuster/import_workstations.d
 var/backup/linuxmuster
 var/cache/linuxmuster
 var/cache/linuxmuster/logins

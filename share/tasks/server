@@ -38,9 +38,7 @@ linuxmuster-nagios-base
 linuxmuster-schulkonsole
 linuxmuster-schulkonsole-template
 lzop
-mindi
 mnemo2
-mondo
 mysql-server
 nag2
 nscd
@@ -83,7 +81,6 @@ samba-common-bin
 sasl2-bin
 slapd
 sophomorix2
-tftpd-hpa
 turba2
 unace
 unrar

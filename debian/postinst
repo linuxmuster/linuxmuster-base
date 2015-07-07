@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 19.09.2013
+# 28.02.2015
 # GPL v3
 #
 
@@ -28,8 +28,7 @@ read_values(){
  echo "Reading values from debconf ..."
 
  for i in country state location schoolname servername domainname workgroup fwconfig \
-          smtprelay sambasid internmask internmask_short internsubrange iface_lan \
-          serverexternname; do
+          smtprelay sambasid internsubrange iface_lan serverexternname subnetting; do
   eval $i="$(echo "get linuxmuster-base/$i" | debconf-communicate | awk '{ print $2 }')"
  done
  
@@ -38,6 +37,9 @@ read_values(){
  serverrev_short=1.1.$internsub
  ipcoprev_short=254.1.$internsub
  basedn="dc=`echo $domainname|sed 's/\./,dc=/g'`"
+ srvnetip=10.$internsub.1.0
+ srvnetgw=10.$internsub.1.253
+ srvnetbc="$(ipcalc -b "$srvnetip/$subnetmask" | grep ^Broadcast | awk '{ print $2 }')"
  
  # update serverexternname
  if [ -z "$serverexternname" ]; then
@@ -61,8 +63,6 @@ ipcopip="$ipcopip"
 domainname="$domainname"
 serverexternname="$serverexternname"
 fwconfig="$fwconfig"
-internmask="$internmask"
-internmask_short="$internmask_short"
 internalnet="$internalnet"
 broadcast="$broadcast"
 ipcopblue="$ipcopblue"
@@ -77,6 +77,10 @@ location="$location"
 state="$state"
 country="$country"
 imaging="linbo"
+subnetting="$subnetting"
+srvnetip="$srvnetip"
+srvnetgw="$srvnetgw"
+srvnetbc="$srvnetbc"
 EOF
  ) > "$NETWORKSETTINGS"
  chmod 755 "$NETWORKSETTINGS"
@@ -152,9 +156,6 @@ case "$1" in
    exit 0
   fi
 
-  # remove stale obsolete registry-patches link in administrator's home
-  find "$ADMINSHOME/$ADMINISTRATOR" -xtype l -name registry-patches -exec rm '{}' \;
-  
   # messages for config file headers
   message1="Do not change this file! It will be overwritten!"
   message2="This configuration file was automatically created by linuxmuster-base!"
@@ -165,21 +166,22 @@ case "$1" in
   
   # test if fwconfig is valid
   case $fwconfig in
-   ipfire|ipcop|custom) ;;
-   *) fwconfig=ipcop
+   ipfire|custom) ;;
+   ipcop) echo "IPCop is no longer supported. Please change to IPFire ASAP!" ;;
+   *) fwconfig=custom
       echo "set linuxmuster-base/fwconfig $fwconfig" | debconf-communicate
       ;;
   esac
-  
+
   # update network.settings
-  grep -q ^serverexternname "$NETWORKSETTINGS" || write_networksettings
+  grep -q ^srvnetip "$NETWORKSETTINGS" || write_networksettings
 
   # patch samba
   [ -s "$SMBCONFTEMPLATE" ] && sed -e "s/@@message1@@/${message1}/g
           s/@@message2@@/${message2}/g
           s/@@message3@@/${message3}/g
           s/@@serverip@@/${serverip}/g
-          s/@@internmask@@/${internmask}/g
+          s/@@internmask@@/${INTERNMASK}/g
           s/@@workgroup@@/${workgroup}/g
           s/@@domadmin@@/${DOMADMIN}/g
           s/@@administrator@@/${ADMINISTRATOR}/g
@@ -212,12 +214,41 @@ case "$1" in
    [ -e "/etc/sophomorix/user/$i" ] || cp $STATICTPLDIR/etc/sophomorix/user/$i /etc/sophomorix/user
   done
 
-  # adding win7 netlogon example files.
-  for i in common.bat.win7 replace.vbs; do
-   [ -s "$NETLOGONDIR/$i" ] || cp $STATICTPLDIR/$NETLOGONDIR/$i $NETLOGONDIR
+  # create localized links in certain samba share folders (temporary workaround until sophomorix does the job)
+  chmod 755 "$SHAREHOME"
+  chmod 1775 "$TASKSCACHE"
+  for d in "$SHAREHOME" "$TASKSCACHE"; do
+   # remove obsolete links
+   for i in Lehrkräfte Prüfungen Räume; do
+    [ -L "$d/$i" ] && rm "$d/$i"
+   done
+   for i in "Klassen classes" "Kollegium teachers" "Projekte projects" "Schule school"; do
+    # no link for teachers in tasks
+    [ "$d" = "$TASKSCACHE" -a "$i" = "Kollegium teachers" ] && continue
+    lnk="$d/$(echo $i | awk '{ print $1 }')"
+    src="$(echo $i | awk '{ print $2 }')"
+    [ ! -L "$lnk" -a -e "$d/$src" ] && ln -sf "$src" "$lnk"
+   done
   done
 
-  # reparing permissions in netlogondir (1.5.3-1)
+  # adding win7 netlogon example files.
+  if ! grep -q replace.vbs "$NETLOGONDIR/common.bat"; then
+   [ -e "$NETLOGONDIR/common.bat.win7" ] || cp "$STATICTPLDIR/$NETLOGONDIR/common.bat" "$NETLOGONDIR/common.bat.win7"
+  fi
+  [ -e "$NETLOGONDIR/replace.vbs" ] || cp "$STATICTPLDIR/$NETLOGONDIR/replace.vbs" "$NETLOGONDIR"
+
+  # provide teachers.bat if not yet there
+  tpldir="$DYNTPLDIR/17_admins"
+  tpl="$tpldir/login.bat"
+  conf="$(cat $tpl.target)"
+  if ! grep -q 'teachers.bat' "$conf"; then
+   echo "Providing new netlogon script teachers.bat."
+   sed -e "s|@@servername@@|$servername|g" "$tpl" > "$conf"
+   tpl="$tpldir/teachers.bat"
+   conf="$(cat $tpl.target)"
+   sed -e "s|@@servername@@|$servername|g" "$tpl" > "$conf"
+  fi
+  # reparing permissions in netlogondir
   echo "Repairing permissions in $NETLOGONDIR ..."
   find $NETLOGONDIR/ -type f -exec chmod 664 '{}' \;
   find $NETLOGONDIR/ -type d -exec chmod 775 '{}' \;
@@ -226,6 +257,9 @@ case "$1" in
   chown $ADMINISTRATOR:$DOMADMINS $SAMBAHOME
   chown $ADMINISTRATOR:$DOMADMINS $SAMBAHOME/*
   chmod 775 $SAMBAHOME/*
+
+  # remove stale obsolete registry-patches link in administrator's home
+  find "$ADMINSHOME/$ADMINISTRATOR" -xtype l -name registry-patches -exec rm '{}' \;
 
   # linbo administrative user
   if ps ax | grep -v grep | grep -q slapd && ps ax | grep -v grep | grep -q postgresql; then
@@ -270,10 +304,10 @@ EOF
     chmod +x "$conf"
    fi
   done
-  
+
   # expand allow-query list in named.conf.options (#18)
   conf=/etc/bind/named.conf.options
-  searchstr="allow-query { $internalnet/$internmask_short; $ipcopblue.0/24; $ipcoporange.0/24; $ipcopovpn.0/24; };"
+  searchstr="allow-query { $internalnet/$INTERNBITMASK; $ipcopblue.0/24; $ipcoporange.0/24; $ipcopovpn.0/24; };"
   if ! grep -q "$searchstr" $conf; then
     echo "Backing up $conf to $conf.dpkg-bak."
     cp $conf $conf.dpkg-bak
@@ -282,20 +316,16 @@ EOF
     bind_reload=yes
   fi
   # fix firewall hostname resolution for nagios checks (see #81)
-  case "$fwconfig" in
-   "ipfire") searchstr="ipcop"
-    ;;
-   "ipcop") searchstr="ipfire"
-    ;;
-    *) ;;
-  esac
-  conf=/etc/bind/db.linuxmuster
-  if grep -q ^"$searchstr" "$conf"; then
-   echo "Backing up $conf to $conf.dpkg-bak."
-   cp $conf $conf.dpkg-bak
-   echo "Removing $searchstr from $conf."
-   sed -e "/^$searchstr/d" -i $conf
-   bind_reload=yes
+  if [ "$fwconfig" != "ipcop" ]; then
+   searchstr="ipcop"
+   conf=/etc/bind/db.linuxmuster
+   if grep -q ^"$searchstr" "$conf"; then
+    echo "Backing up $conf to $conf.dpkg-bak."
+    cp $conf $conf.dpkg-bak
+    echo "Removing $searchstr from $conf."
+    sed -e "/^$searchstr/d" -i $conf
+    bind_reload=yes
+   fi
   fi
 
   # update turba's sources.php (closes #83 & #184)
@@ -312,55 +342,44 @@ EOF
    chmod 440 "$conf"
   fi
 
-  # update gollems's prefs.php (closes #80)
-  conf="/etc/horde/gollem/prefs.php"
-  searchstr="* 19.02.2013"
-  if ! grep -q "$searchstr" $conf; then
-   echo "Backing up $conf to $conf.dpkg-bak."
-   cp $conf $conf.dpkg-bak
-   echo "Fixing gollem's prefs.php."
+  # update gollem configs
+  confdir="/etc/horde/gollem"
+  conf="$confdir/prefs.php"
+  searchstr='* 19.02.2013'
+  if ! grep -q "$searchstr" "$conf"; then
+   echo "Fixing gollem's $(basename $conf)."
    cp "${STATICTPLDIR}${conf}" "$conf"
    chown root:www-data "$conf"
    chmod 440 "$conf"
   fi
-    
-  # repair permissions for horde log dir (closes #82)
-  [ -e /var/log/horde ] && chown www-data:www-data /var/log/horde -R
-  
-  # fix cups configuration (closes #101)
-  searchstr="# 15.03.2013"
-  for i in cupsd.conf cups-files.conf; do
-   conf="/etc/cups/$i"
-   tpl="${STATICTPLDIR}${conf}"
-   if ! grep -q "$searchstr" "$conf"; then
-    echo "Fixing $i ..."
-    cp "$conf" "${conf}.dpkg-bak"
-    cp "$tpl" "$conf"
-    cups_reload=yes
-   fi
-  done
-
-  # fix horde/ingo's sieve configuration (closes #102)
-  searchstr="/* 16.03.2013"
-  conf="/etc/horde/ingo1/backends.php"
+  conf="$confdir/backends.php"
+  searchstr='* 27.01.2014'
   if ! grep -q "$searchstr" "$conf"; then
-   echo "Fixing horde/ingo's sieve configuration ..."
-   cp "$conf" "${conf}.dpkg-bak"
-   tpl="${STATICTPLDIR}${conf}"
-   cp "$tpl" "$conf"
+   echo "Fixing gollem's $(basename $conf)."
+   cp "${STATICTPLDIR}${conf}" "$conf"
    chown root:www-data "$conf"
    chmod 440 "$conf"
   fi
 
-  # fix altnamespace in imapd.conf (see #102)
-  searchstr="# 16.03.2013"
-  conf="/etc/imapd.conf"
-  if ! grep -q "$searchstr" "$conf"; then
-   echo "Fixing altnamespace in imapd.conf ..."
+  # repair permissions for horde log dir (closes #82)
+  [ -e /var/log/horde ] && chown www-data:www-data /var/log/horde -R
+
+  # fix cups configuration (closes #101)
+  conf="/etc/cups/cupsd.conf"
+  tpl="${STATICTPLDIR}${conf}"
+  if ! grep -q ^"BrowseAddress 10.*" "$conf"; then
+   echo "Fixing $conf ..."
    cp "$conf" "${conf}.dpkg-bak"
-   tpl="${STATICTPLDIR}${conf}"
    cp "$tpl" "$conf"
-   cyrus_reload=yes
+   cups_reload=yes
+  fi
+  conf="/etc/cups/cups-files.conf"
+  tpl="${STATICTPLDIR}${conf}"
+  if [ ! -e "$conf" ]; then
+   echo "Creating $conf ..."
+   cp "$conf" "${conf}.dpkg-bak"
+   cp "$tpl" "$conf"
+   cups_reload=yes
   fi
 
   # adding apparmor profile for linuxmuster (see #156)
@@ -374,6 +393,29 @@ EOF
    [ -s "/etc/init.d/apparmor" ] && apparmor_reload=yes
   fi
 
+  # fix horde/ingo's sieve configuration (closes #102)
+  searchstr="/* 16.03.2013"
+  conf="/etc/horde/ingo1/backends.php"
+  if ! grep -q "$searchstr" "$conf"; then
+   echo "Fixing horde/ingo's sieve configuration ..."
+   cp "$conf" "${conf}.dpkg-bak"
+   tpl="${STATICTPLDIR}${conf}"
+   cp "$tpl" "$conf"
+   chown root:www-data "$conf"
+   chmod 440 "$conf"
+  fi
+
+  # add allowusermoves to imapd.conf (see #216)
+  searchstr="# 27.01.2014"
+  conf="/etc/imapd.conf"
+  if ! grep -q "$searchstr" "$conf"; then
+   echo "Adding allowusermoves option to imapd.conf ..."
+   cp "$conf" "${conf}.dpkg-bak"
+   tpl="${STATICTPLDIR}${conf}"
+   cp "$tpl" "$conf"
+   cyrus_reload=yes
+  fi
+
   # rename old shit
   conf_old=/etc/php5/conf.d/paedml.ini
   if [ -e "$conf_old" ]; then
@@ -381,28 +423,141 @@ EOF
    mv "$conf_old" "$conf"
   fi
 
+  # convert macs to ips for ip based internal firewall
+  for conf in $BLOCKEDHOSTSINTRANET $UNFILTEREDHOSTS; do
+   searchstr="$(head -1 $conf)"
+   if validmac "$searchstr"; then
+    echo "Converting macs to ips in $conf."
+    macs="$(cat $conf)"
+    rm $conf
+    touch $conf
+    for i in $macs; do
+     if validip "$i"; then
+      echo "$i" >> $conf
+     else
+      get_ip "$i"
+      echo "$RET" >> $conf
+     fi
+    done
+    fwint_reload=yes
+   fi
+  done
+
+  # check for obsolete mac based iptables rules file
+  IPTRULES="$CACHEDIR/iptables"
+  if [ -e "$IPTRULES" ]; then
+   grep -q mac-source "$IPTRULES" && fwint_reload=yes
+  fi
+
+  # dhcpd.conf update
+  echo "DHCP configuration update"
+  conf="/etc/dhcp/dhcpd.conf"
+  # determine pxe boot method
+  if [ -e "$LINBODIR/grub/pxegrub.0" ]; then
+   suffix="pxegrub"
+  else
+   suffix="pxelinux"
+  fi
+  # according to subnetting
+  if [ "$subnetting" = "true" ]; then
+   dhcpbc="$srvnetbc"
+   dhcpmask="$SUBNETMASK"
+  else
+   dhcpbc="$broadcast"
+   dhcpmask="$INTERNMASK"
+  fi
+  # patch the according template
+  tpl="$DYNTPLDIR/05_dhcp/$(basename "$conf").$suffix"
+  cp "$conf" "${conf}.dpkg-bak"
+  sed -e "s/@@servername@@/${servername}/g
+          s/@@domainname@@/${domainname}/g
+          s/@@serverip@@/${serverip}/g
+          s/@@ipcopip@@/${ipcopip}/g
+          s/@@dhcpbc@@/${dhcpbc}/g
+          s/@@internsub@@/${internsub}/g
+          s/@@internalnet@@/${internalnet}/g
+          s/@@dhcpmask@@/${dhcpmask}/g" "$tpl" > "$conf"
+  # patch dhcp host definitions if necessary
+  if [ "$suffix" = "pxegrub" ]; then
+   if grep -q pxelinux.configfile "${conf}.linuxmuster"; then
+    sed -e 's/pxelinux.configfile \"pxelinux.cfg\//extensions-path \"/g' -i "${conf}.linuxmuster"
+   fi
+  else
+   if grep -q extensions-path "${conf}.linuxmuster"; then
+    sed -e 's/extensions-path \"/pxelinux.configfile \"pxelinux.cfg\//g' -i "${conf}.linuxmuster"
+   fi
+  fi
+  # remove free range if subnetting is set
+  [ "$subnetting" = "true" ] && removefrom_file "$conf" "$BEGINSTR" "$ENDSTR"
+  # provide custom file
+  conf="/etc/dhcp/dhcpd.conf.custom"
+  [ -e "$conf" ] || cp "$STATICTPLDIR/$conf" "$conf"
+  dhcp_reload=yes
+
+  # remove obsolete backup settings from schulkonsole
+  conf="$SYSCONFDIR/schulkonsole/permissions.conf"
+  searchstr="settings_backup"
+  if grep -q "$searchstr" "$SYSCONFDIR/schulkonsole"; then
+   echo "Removing backup settings from schulkonsole."
+   cp "$conf" "$conf.dpkg-bak"
+   sed -e "s|$searchstr||" -i "$conf"
+  fi
+
+  # withdraw access rights for room on /home/share
+  if [ ! -e "$ROOM_SHARE_ACLS" ]; then
+   "$SCRIPTSDIR/room_share_acl.sh" --deny || true
+  fi
+
+  # fix apache SSLv3 usage
+  conf="/etc/apache2/mods-available/ssl.conf"
+  searchstr="\-SSLv3"
+  if ! grep ^SSLProtocol "$conf" | grep -q "$searchstr"; then
+   echo "Disabling SSLv3 in apache's ssl.conf."
+   cp "$conf" "${conf}.dpkg-bak"
+   sed "/^SSLProtocol/ s/$/ ${searchstr/\\/}/" -i "$conf"
+  fi
+
   # updating release information
   echo "$DISTNAME $DISTFULLVERSION / Codename $CODENAME" > /etc/issue
   cp /etc/issue /etc/issue.net
+
   # remove upgrade-notice to 14.04 and make it not come back (closes #355)
-  sed -i "s/^Prompt=lts$/Prompt=never/" /etc/update-manager/release-upgrades
+  conf="/etc/update-manager/release-upgrades"
+  if [ -s "$conf" ]; then
+   echo "Disabling release upgrade announcments."
+   cp "$conf" "${conf}.dpkg-bak"
+   sed -e "s/^Prompt=lts$/Prompt=never/" -i "$conf"
+  fi
   rm -f /var/lib/update-notifier/release-upgrade-available
 
   # reload services
   apache2ctl graceful || true
   reload smbd || true
-  reload nmbd || true
+  #reload nmbd || true
   [ -n "$apparmor_reload" ] && /etc/init.d/apparmor restart
   [ -n "$cups_reload" ] && reload cups
   [ -n "$cyrus_reload" ] && /etc/init.d/cyrus-imapd reload
   [ -n "$nagios_reload" ] && /etc/init.d/nagios3 restart
   [ -n "$bind_reload" ] && /etc/init.d/bind9 force-reload
-  [ -n "$dhcp_reload" ] && restart isc-dhcp-server
+  if [ -n "$dhcp_reload" ]; then
+   if status isc-dhcp-server | grep -q running; then
+    reload isc-dhcp-server
+   else
+    start isc-dhcp-server
+   fi
+  fi
   [ -n "$slapd_reload" ] && /etc/init.d/slapd restart
   [ -n "$postgres_reload" ] && /etc/init.d/postgresql reload
-  
+  [ -n "$fwint_reload" ] && /etc/init.d/linuxmuster-base reload
+
   # add config patches
   run-parts "$ADDTPLDIR"
+
+  # remove obsolete config dirs
+  for i in 03_dhcp3-server 01_network; do
+   conf="$DYNTPLDIR/$i"
+   [ -e "$conf" ] && rm -rf "$conf"
+  done
 
   # notify if upgrade is necessary
   if [ -n "$upgrade" ]; then

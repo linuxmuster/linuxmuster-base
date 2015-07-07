@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH WORKSTATIONS 5 "12. März 2013"
+.TH WORKSTATIONS 5 "30. Oktober 2014"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -23,12 +23,12 @@
 .
 Jede Zeile beschreibt ein Gerät (Computer, Drucker, ...)  und hat die folgende Syntax:
 .sp
-.B Raum;Hostname;Gruppe;MAC;IP;Netzmaske;1;1;1;1;PXE;Optionen
+.B Raum;Hostname;Gruppe;MAC;IP;1;1;1;1;1;PXE;Optionen
 .
 .PP
 .SH BEISPIEL
 .
-r66;r66-pc03;hd;00:11:22:3A:4B:5F;10.20.66.3;255.240.0.0;1;1;1;1;1
+r66;r66-pc03;hd;00:11:22:3A:4B:5F;10.20.66.3;1;1;1;1;1;1
 .PP
 .SH BESCHREIBUNG
 .
@@ -106,29 +106,47 @@ Beispielsweise gehören alle Rechner mit einer IP-Adresse
 der Form 10.17.113.x zum selben Raum.
 .RE
 .TP
-.B Feld 6: Netzmaske
+.B Feld 6: MSOffice-Key für Reaktivierung nach Synchronisation
 .br
-Die verwendete Netzmaske. Derzeit ist dies 255.240.0.0
+Feld derzeit ungenutzt.
 .TP
-.B Felder 7-10: Derzeit nicht genutzt
-.TP
-.B Feld 11: PXE
+.B Feld 7: Windows-MAK- oder OEM-Key für Reaktivierung nach Synchronisation
 .br
-Steht hier eine Zahl größer Null, 
-so wird der Rechner bei Linbo angemeldet 
-und eine entsprechende Startkonfiguration erstellt. 
-Steht hier eine 0, so unterbleibt dies.
+Feld derzeit ungenutzt.
 .TP
-.B Feld 12: Optionen
+.B Feld 8: Momentan unbenutzt. Für linuxmuster.net reserviert
 .br
-Hier können optional weitere Parameter angegeben werden,
-bei mehr als einer Option durch durch Kommata getrennt.
-Rembo kennt die beiden Schlüsselwörter
-.B nodma
-und
-.B unicast.
-Bei Linbo werden etwaige Optionen ignoriert 
-und man kann das Feld weglassen.
+Für zukünftige, jetzt noch nicht vorhersehbare Angaben zum Rechner.
+.br
+Zulässige Zeichen: [0-9a-zA-Z_-.,]
+.TP
+.B Feld 9: Dauerhaft unbenutzt von linuxmuster.net
+.br
+Kann vom Netzwerkbetreuer genutzt werden.
+.br
+Zulässige Zeichen: [0-9a-zA-Z_-.,]
+.TP
+.B Feld 10: Account flag (number)
+.br
+0: Device ohne Account, mit Firewall
+.br
+1: Device ohne Account, ohne Firewall
+.br
+2-6: ???
+.TP
+.B Feld 11: PXE Flag (number)
+.br
+0: kein PXE-Boot, kein Imaging, mit Sambakonto
+.br
+1: LINBO-PXE-Boot, verwaltet von LINBO, mit Sambakonto
+.br
+2: LINBO-PXE-Boot, verwaltet von LINBO & OPSI, mit Sambakonto
+.br
+3: OPSI-PXE-Boot, verwaltet von OPSI, mit Sambakonto
+.TP
+.SH SEE ALSO
+.BR sophomorix-workstation (8),
+
 .
 .SH AUTOR
-Jörg Richter <mail@jrichter.de>
+Jörg Richter <mail@jrichter.de> und Rüdiger Beck <jeffbeck@web.de>

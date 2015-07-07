@@ -1,0 +1,17 @@
+#
+# thomas@linuxmuster.net
+# 01.06.2014
+# GPL v3
+#
+
+echo "### 00_opsi prepatch"
+
+# if ipaddress has changed invoke 
+if [ -n "$opsiip" -a "$opsiip" != "$opsiip_old" ]; then
+ opsi_reboot="--reboot"
+ opsi_changed="--oldip=$opsiip_old"
+fi
+
+
+# invoke setup if opsi is reachable
+test_pwless_ssh $opsiip_old 22 Opsi && linuxmuster-opsi --quiet --setup $opsi_reboot $opsi_changed

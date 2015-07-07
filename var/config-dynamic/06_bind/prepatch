@@ -1,0 +1,19 @@
+#
+# thomas@linuxmuster.net
+# 28.02.2015
+# GPL v3
+#
+
+echo "### 06_bind prepatch"
+
+# stop service if it is not stopped yet
+service bind9 status | grep -q running && service bind9 stop
+
+if [ "$1" = "--modify" ]; then
+
+ # backup old config
+ for i in /etc/bind/*; do
+  backup_file "$i"
+ done
+
+fi

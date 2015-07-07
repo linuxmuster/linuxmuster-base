@@ -2,16 +2,16 @@
 #
 # linuxmuster daily housekeeping cron job
 #
-# Thomas Schmitz
-# <tschmitt@linuxmuster.de>
-# 07.02.2008
+# Thomas Schmitt
+# <thomas@linuxmuster.net>
+# 30.10.2014
 #
 
 . /usr/share/linuxmuster/config/dist.conf
 . $HELPERFUNCTIONS
 
 # checking for dead logins and remove them
-if check_empty_dir $LOGINCACHE; then
+if check_empty_dir "$LOGINCACHE"; then
 	echo "$LOGINCACHE is empty. Doing nothing."
 	exit 0
 fi
@@ -20,12 +20,14 @@ cd $LOGINCACHE
 
 for h in *; do
 
-	for u in `cat "$h"`; do
+    chattr -i "$h"
 
-		if ! smbstatus -b -d 0 -u "$u" | grep -qw "$u" | grep -qw "$h"; then
+	for u in `cat $h`; do
 
-			locker=/tmp/.samba-userlog_${h}.lock
-			lockfile -l 5 $locker
+		if ! smbstatus -b -d 0 -u "$u" | grep -w "$u" | grep -qw "$h"; then
+
+			locker="/tmp/.samba-userlog_${h}.lock"
+			lockfile -l 5 "$locker"
 			echo "Removing user $u from login cache ..."
 			grep -vw "$u" "$h" > "$h.tmp"
 			mv "$h.tmp" "$h"
@@ -35,9 +37,13 @@ for h in *; do
 
 	done
 
-	if [ ! -s "$h" ]; then
+	if [ -s "$h" ]; then
 
-		locker=/tmp/.samba-userlog_${h}.lock
+        chattr +i "$h"
+
+    else
+
+		locker="/tmp/.samba-userlog_${h}.lock"
 		lockfile -l 5 "$locker"
 		echo "Removing host $h from login cache ..."
 		rm "$h"

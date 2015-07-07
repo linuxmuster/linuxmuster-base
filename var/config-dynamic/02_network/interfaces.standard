@@ -1,0 +1,22 @@
+# standard network interfaces template for linuxmuster.net
+# For more information, see interfaces(5).
+#
+# thomas@linuxmuster.net
+# 18.12.2013
+#
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# These interfaces are brought up automatically
+auto @@iface_lan@@
+iface @@iface_lan@@ inet static
+	address @@serverip@@
+	netmask @@internmask@@
+	network @@internalnet@@
+	broadcast @@broadcast@@
+	gateway @@ipcopip@@
+	# dns-* options are implemented by the resolvconf package, if installed
+	dns-nameservers @@serverip@@
+	dns-search @@domainname@@

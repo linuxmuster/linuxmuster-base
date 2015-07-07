@@ -1,0 +1,68 @@
+# linuxmuster.net: named.conf.options configuration template
+# tschmitt 20121022
+
+options {
+	directory "/var/cache/bind";
+
+	// If there is a firewall between you and nameservers you want
+	// to talk to, you might need to uncomment the query-source
+	// directive below.  Previous versions of BIND always asked
+	// questions using port 53, but BIND 8.1 and later use an unprivileged
+	// port by default.
+
+	// query-source address * port 53;
+
+	// If your ISP provided one or more IP addresses for stable 
+	// nameservers, you probably want to use them as forwarders.  
+	// Uncomment the following block, and insert the addresses replacing 
+	// the all-0's placeholder.
+
+	forwarders {
+		@@ipcopip@@;
+	};
+	# Enable the next entry to prefer usage of the name 
+	# server declared in the forwarders section.
+
+	forward first;
+
+	# The listen-on record contains a list of local network
+	# interfaces to listen on. Optionally the port can be 
+	# specified. Default is to listen on all interfaces found
+	# on your system. The default port is 53.
+
+	#listen-on port 53 { 127.0.0.1; };
+	listen-on port 53 { @@internalnet@@/@@internbitmask@@; };
+
+	# The listen-on-v6 record enables or disables listening
+	# on IPV6 interfaces. Allowed values are 'any' and 'none'
+	# or a list of addresses. IPv6 can only be used with 
+	# kernel 2.4 in this release.
+
+	#listen-on-v6 { any; };
+
+	# The next three statements may be needed if a firewall
+	# stands between the local server and the internet.
+
+	#query-source address * port 53;
+	#transfer-source * port 53;
+	#notify-source * port 53;
+
+	# The allow-query record contains a list of networks or
+	# IP-addresses to accept and deny queries from. The 
+	# default is to allow queries from all hosts.
+
+	#allow-query { 127.0.0.1; };
+	allow-query { @@internalnet@@/@@internbitmask@@; @@ipcopblue@@.0/24; @@ipcoporange@@.0/24; @@ipcopovpn@@.0/24; };
+
+	# If notify is set to yes (default), notify messages are
+	# sent to other name servers when the the zone data is
+	# changed. Instead of setting a global 'notify' statement
+	# in the 'options' section, a separate 'notify' can be
+	# added to each zone definition.
+
+	notify no;
+
+	auth-nxdomain no;    # conform to RFC1035
+
+};
+

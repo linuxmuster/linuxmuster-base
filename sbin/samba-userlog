@@ -2,7 +2,7 @@
 #
 # logs when users login and logout
 # thomas@linuxmuster.net
-# 03.05.2013
+# 30.05.2014
 #
 
 #set -x
@@ -85,7 +85,8 @@ if check_id $hostname; then
   [ -d "$LOGINCACHE" ] || mkdir -p $LOGINCACHE
   cachefile=$LOGINCACHE/$hostname
   locker=/tmp/.samba-userlog_${hostname}.lock
-  touch $cachefile || cancel "Cannot create $cachefile!"
+  [ -e "$cachefile" ] || touch $cachefile
+  chattr -i $cachefile
   lockfile -l 5 $locker
 
   if [ "$log" = "in" ]; then
@@ -94,7 +95,7 @@ if check_id $hostname; then
 
     if ! grep -qw $username $cachefile; then
       echo $username >> $cachefile
-      chmod 644 $cachefile
+      chattr +i $cachefile
     fi
 
     prep=on
@@ -105,7 +106,7 @@ if check_id $hostname; then
     mv $cachefile.tmp $cachefile
 
     if [ -s "$cachefile" ]; then
-      chmod 644 $cachefile
+      chattr +i $cachefile
     else
       rm -f $cachefile
     fi

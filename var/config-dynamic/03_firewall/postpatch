@@ -1,0 +1,17 @@
+#
+# thomas@linuxmuster.net
+# 31.05.2014
+# GPL v3
+#
+
+echo "### 02_firewall postpatch"
+
+# remove firewall from known_hosts if it is there, on first install or certificates need to be renewed
+if [ -e /root/.ssh/known_hosts -a -n "$ipcoppw" ]; then
+ for f in $ipcopip $ipcopip_old ipcop ipfire; do
+  ssh-keygen -f /root/.ssh/known_hosts -R ["$f"]:222
+ done
+fi
+
+# initial firewall configuration on first install or firewall change
+[ -n "$ipcoppw" ] && /usr/sbin/linuxmuster-ipfire --setup --first --password="$ipcoppw"

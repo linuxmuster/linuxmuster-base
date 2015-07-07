@@ -3,7 +3,7 @@
 # add|remove ips to|from urlfilter
 #
 # thomas@linuxmuster.net
-# 20.01.2013
+# 09.11.2013
 # GPL v3
 #
 
@@ -22,14 +22,14 @@ usage() {
   echo "                           --hostlist=<host1,host2,...,hostn>"
   echo
   echo "  trigger:  trigger on or off"
-  echo "  hostlist: comma separated list of hostnames"
+  echo "  hostlist: comma separated list of hostnames or ip adresses"
   echo
   exit 1
 }
 
 # test parameters
-[[ "$trigger" != "on" && "$trigger" != "off" ]] && usage
-[[ -z "$hostlist" ]] && usage
+[ "$trigger" != "on" -a "$trigger" != "off" ] && usage
+[ -z "$hostlist" ] && usage
 
 # check if task is locked
 checklock || exit 1
@@ -40,33 +40,26 @@ test_pwless_fw || exit 1
 # check if urlfilter is active at all
 check_urlfilter || cancel "Urlfilter is not active!"
 
-# get fwtype
+# test fwtype
 fwtype="$(get_fwtype)"
+[ "$fwtype" = "ipfire" ] || cancel "Only ipfire is supported by this script!"
+[ "$fwtype" != "$fwconfig" ] && cancel "Misconfigured firewall! Check your setup!"
 
-# parse hostlist
-n=0
-OIFS=$IFS
-IFS=","
-for i in $hostlist; do
-  host[$n]=$i
-  let n+=1
+# create a list of ip addresses
+for i in ${hostlist//,/ }; do
+ if validip $i; then
+  IPS_TO_PROCESS="$IPS_TO_PROCESS $i"
+ else
+  get_ip $i
+  validip $RET && IPS_TO_PROCESS="$IPS_TO_PROCESS $RET"
+ fi
 done
-IFS=$OIFS
-nr_of_hosts=$n
-[[ $nr_of_hosts -eq 0 ]] && cancel "No hostnames found!"
-
-# get ips
-n=0; m=0
-while [[ $n -lt $nr_of_hosts ]]; do
-  get_ip ${host[$n]} || cancel "Read failure! Cannot determine ip address!"
-  if validip $RET; then
-    ip[$m]=$RET
-    let m+=1
-  fi
-  let n+=1
-done
-nr_of_ips=$m
-[[ $nr_of_ips -eq 0 ]] && cancel "No ip addresses found!"
+strip_spaces "$IPS_TO_PROCESS"
+if [ -n "$RET" ]; then
+ IPS_TO_PROCESS="$RET"
+else
+ cancel "No valid ip addresses!"
+fi
 
 # get urlfilter configuration
 [ -e "$CACHEDIR/urlfilter.settings" ] && rm -f $CACHEDIR/urlfilter.settings
@@ -96,25 +89,21 @@ strip_ip() {
 # add ips to list
 if [ "$trigger" = "off" ]; then
 
-  n=0
-  while [[ $n -lt $nr_of_ips ]]; do
-    if ! echo "$IPLIST" | grep -wq "${ip[$n]}"; then
-      if [ -z "$IPLIST" ]; then
-	IPLIST="${ip[$n]}"
-      else
-	IPLIST="$IPLIST ${ip[$n]}"
-      fi
-    fi
-    let n+=1
-  done
+ for i in $IPS_TO_PROCESS; do
+  if ! echo "$IPLIST" | grep -wq "$i"; then
+   if [ -z "$IPLIST" ]; then
+    IPLIST="$i"
+   else
+    IPLIST="$IPLIST $i"
+   fi
+  fi
+ done
 
 else # remove ips from list
 
-  n=0
-  while [[ $n -lt $nr_of_ips ]]; do
-    echo "$IPLIST" | grep -wq "${ip[$n]}" && strip_ip "${ip[$n]}"
-    let n+=1
-  done
+ for i in $IPS_TO_PROCESS; do
+  echo "$IPLIST" | grep -wq "$i" && strip_ip "$i"
+ done
 
 fi
 
@@ -133,12 +122,9 @@ touch $UNFILTEREDHOSTS || cancel "Cannot create $UNFILTEREDHOSTS!"
 
 # create new list
 if [ -n "$IPLIST" ]; then
-  for i in $IPLIST; do
-    get_mac $i || cancel "Read failure! Cannot determine mac address!"
-    if [ -n "$RET" ]; then
-      echo $RET >> $UNFILTEREDHOSTS || cancel "Cannot write $UNFILTEREDHOSTS!"
-    fi
-  done
+ for i in $IPLIST; do
+  echo $i >> $UNFILTEREDHOSTS || cancel "Cannot write $UNFILTEREDHOSTS!"
+ done
 fi
 
 # end, delete lockfile and cache files

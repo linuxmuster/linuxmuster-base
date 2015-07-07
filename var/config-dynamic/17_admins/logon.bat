@@ -49,4 +49,6 @@ REM *******************************************************
 REM *                 Sonstige Anpassungen                *
 REM *******************************************************
 if exist \\%SERVER%\netlogon\common.bat call \\%SERVER%\netlogon\common.bat
+
+if exist \\%SERVER%\netlogon\custom.bat call \\%SERVER%\netlogon\custom.bat
 rem pause

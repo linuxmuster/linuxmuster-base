@@ -1,7 +1,7 @@
 # linuxmuster shell helperfunctions
 #
 # thomas@linuxmuster.net
-# 25.05.2014
+# 30.10.2014
 # GPL v3
 #
 
@@ -50,7 +50,7 @@ checklock() {
   if [ -e "$lockflag" ]; then
     echo "Found lockfile $lockflag!"
     n=0
-    while [[ $n -lt $TIMEOUT ]]; do
+    while [ $n -lt $TIMEOUT ]; do
       remaining=$(($(($TIMEOUT-$n))*10))
       echo "Remaining $remaining seconds to wait ..."
       sleep 1
@@ -59,7 +59,7 @@ checklock() {
         echo "Lockfile released!"
         return 0
       fi
-      let n+=1
+      n=$(( $n + 1 ))
     done
     echo "Timed out! Exiting!"
     return 1
@@ -205,6 +205,22 @@ validhostname() {
 }
 
 
+###############
+# linbo stuff #
+###############
+
+# print kernel options from start.conf
+linbo_kopts(){
+ local conf="$1"
+ [ -z "$conf" ] && return
+ local kopts
+ if [ -e "$conf" ]; then
+  kopts="$(grep -i ^kerneloptions "$conf" | tail -1 | sed -e 's/#.*$//' -e 's/kerneloptions//I' | awk -F\= '{ print substr($0, index($0,$2)) }' | sed -e 's/ =//' -e 's/^ *//g' -e 's/ *$//g')"
+ fi
+ echo "$kopts"
+}
+
+
 #######################
 # workstation related #
 #######################
@@ -290,6 +306,62 @@ get_room() {
   return 0
 }
 
+# get pxe flag: get_pxe ip|host
+get_pxe() {
+ [ -f "$WIMPORTDATA" ] || return 1
+ local pattern="$1"
+ local res
+ local i
+ if validip "$pattern"; then
+  res="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | grep \;$pattern\; | awk -F\; '{ print $11 }')"
+ else
+  # assume hostname
+  get_ip "$pattern"
+  # perhaps a host with 2 ips
+  for i in $RET; do
+   if [ -z "$res" ]; then
+    res="$(get_pxe "$i")"
+   else
+    res="$res $(get_pxe "$i")"
+   fi
+  done
+ fi
+ echo "$res"
+}
+
+# test if host is opsimanaged: opsimanaged ip|host
+opsimanaged() {
+ local res="$(get_pxe "$1")"
+ local i
+ for i in $res; do
+  isinteger "$i" || continue
+  [ "$i" = "2" -o "$i" = "3" ] && return 0
+ done
+ return 1
+}
+
+# test if host is configured to pxe boot opsi: opsipxe ip|host
+opsipxe() {
+ local res="$(get_pxe "$1")"
+ local i
+ for i in $res; do
+  isinteger "$i" || continue
+  [ "$i" = "3" ] && return 0
+ done
+ return 1
+}
+
+# test if host is configured to pxe boot linbo: linbopxe ip|host
+linbopxe() {
+ local res="$(get_pxe "$1")"
+ local i
+ for i in $res; do
+  isinteger "$i" || continue
+  [ "$i" = "1" -o "$i" = "22" ] && return 0
+ done
+ return 1
+}
+
 # needed by internet & intranet on off scripts
 # test valid mac, change hostname to mac, returns space separated list of macs
 test_maclist() {
@@ -323,29 +395,45 @@ test_maclist() {
  return 0
 }
 
-
-##################
-# Firewall stuff #
-##################
+#################
+# Firewall/OPSI #
+#################
 
 # test if firewall can be connected passwordless
-test_pwless_fw(){
- if ! ssh -oNumberOfPasswordPrompts=0 -oStrictHostKeyChecking=no -p222 $ipcopip "echo 'Passwordless ssh connection to Firewall is available. :-)'"; then
-  echo "Cannot establish ssh connection to Firewall!"
+test_pwless_ssh(){
+ local ip="$1"
+ local port="$2"
+ local target="$3"
+ if ! ssh -oNumberOfPasswordPrompts=0 -oStrictHostKeyChecking=no -p "$port" "$ip" echo "Passwordless ssh connection to $target is available."; then
+  echo "Cannot establish ssh connection to $target!"
   return 1
  else
   return 0
  fi
 }
 
+# test if firewall can be connected passwordless
+test_pwless_opsi(){
+ if test_pwless_ssh "$opsiip" 22 OPSI; then
+  return 0
+ else
+  return 1
+ fi
+}
+
+# test if firewall can be connected passwordless
+test_pwless_fw(){
+ if test_pwless_ssh "$ipcopip" 222 Firewall; then
+  return 0
+ else
+  return 1
+ fi
+}
+
 # returns ipfire, ipcop or none
 get_fwtype(){
  local fwtype="custom"
- if ssh -p 222 root@$ipcopip /bin/ls /var/ipfire &> /dev/null; then
-  fwtype="ipfire"
- else
-  ssh -p 222 root@$ipcopip /bin/ls /var/ipcop &> /dev/null && fwtype="ipcop"
- fi
+ ssh -p 222 root@$ipcopip /bin/ls /var/ipfire &> /dev/null && fwtype="ipfire"
  echo "$fwtype"
 }
 
@@ -353,7 +441,7 @@ get_fwtype(){
 check_urlfilter() {
  # get advanced proxy settings
  local fwtype="$(get_fwtype)"
- [ "$fwtype" != "ipfire" -a "$fwtype" != "ipcop" ] && cancel "None or custom firewall!"
+ [ "$fwtype" != "ipfire" ] && cancel "Custom firewall is not supported!"
  get_ipcop /var/$fwtype/proxy/advanced/settings $CACHEDIR/proxy.advanced.settings || cancel "Cannot download proxy advanced settings!"
  . $CACHEDIR/proxy.advanced.settings || cancel "Cannot read $CACHEDIR/proxy.advanced.settings!"
  rm -f $CACHEDIR/proxy.advanced.settings
@@ -370,25 +458,45 @@ exec_ipcop() {
 
 # fetch file from firewall
 get_ipcop() {
- # test connection
  scp -r -P 222 root@$ipcopip:$1 $2 &> /dev/null || return 1
  return 0
 }
 
 # upload file to firewall
 put_ipcop() {
- # test connection
  scp -r -P 222 $1 root@$ipcopip:$2 &> /dev/null || return 1
  return 0
+}
+
+# create and upload custom networks file to firewall
+fw_do_customnets(){
+ rm -rf $FWCUSTOMNETWORKS
+ touch $FWCUSTOMNETWORKS
+ if [ "$subnetting" = "true" ]; then
+  local line
+  local network
+  local netmask
+  local netname
+  local c=1
+  grep ^[1-2] $SUBNETDATA | awk -F\; '{ print $1 }' | while read line; do
+   netname="$(echo $line | awk -F\/ '{ print $1 }')"
+   netmask="$(ipcalc -b $line | grep ^Netmask: | awk '{ print $2 }')"
+   echo "$c,net $netname,$netname,$netmask,created by import_workstations" >> $FWCUSTOMNETWORKS
+   c="$(( $c + 1 ))"
+  done
+ fi
+ local RC=0
+ put_ipcop $FWCUSTOMNETWORKS /var/ipfire/fwhosts/customnetworks.import || RC=1
+ [ "$RC" = "1" ] && rm -rf $FWCUSTOMNETWORKS
+ [ "$RC" = "0" ] && touch $FWCUSTOMNETWORKS
+ return "$RC"
 }
 
 # create and upload custom hosts file to firewall
 fw_do_customhosts(){
  rm -rf $FWCUSTOMHOSTS
- # test if necessary dir is present
- exec_ipcop ls /var/ipfire/fwhosts || return 1
  local RC=0
- grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F \; '{ print "#,host " $2 ",mac," $4 }' | awk 'sub(/#/,++c)' > $FWCUSTOMHOSTS || RC=1
+ grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F \; '{ print "#,host " $5 ",ip," $5 "," $2 }' | awk 'sub(/#/,++c)' > $FWCUSTOMHOSTS || RC=1
  ([ "$RC" = "0" ] && put_ipcop $FWCUSTOMHOSTS /var/ipfire/fwhosts) || RC=1
  ([ "$RC" = "0" ] && exec_ipcop chown nobody:nobody /var/ipfire/fwhosts/customhosts) || RC=1
  if [ "$RC" = "1" ]; then
@@ -398,6 +506,121 @@ fw_do_customhosts(){
  fi
  return "$RC"
 }
+
+# create and upload custom firewall stuff
+fw_do_custom(){
+ [ "$1" = "omit_hosts" ] && local omit_hosts="yes"
+ # test if necessary dir is present
+ exec_ipcop ls /var/ipfire/fwhosts || return 1
+ if [ -z "$omit_hosts" ]; then
+  fw_do_customhosts || return 1
+ fi
+ fw_do_customnets || return 1
+}
+
+
+#########################
+# ip & subnetting stuff #
+#########################
+
+# print list of subnets which are allowed to access intranet
+# get_allowed_subnets <intern|extern>
+get_allowed_subnets() {
+ case $1 in
+  intern|extern) ;;
+  *) return 0 ;;
+ esac
+ # senseless if internal firewall is deactivated
+ if [ "$1" = "intern" ]; then
+  . $DEFAULTCONF
+  local active="$(echo "$START_LINUXMUSTER" | tr A-Z a-z)"
+  [ "$active" = "yes" ] || return 0
+ fi
+ local subnetlist
+ # get ranges from subnets
+ for line in `sort -b -d -t';' -k1 $SUBNETDATA | grep ^[0-9]`; do
+  if [ "$1" = "intern" ]; then
+   local allowed="$(echo $line | awk -F\; '{ print $5 }')"
+  else
+   local allowed="$(echo $line | awk -F\; '{ print $6 }')"
+  fi
+  [ "$allowed" = "1" ] || continue
+  local network="$(echo $line | awk -F\; '{ print $1 }')"
+  if [ -z "$subnetlist" ]; then
+   subnetlist="$network"
+  else
+   subnetlist="$subnetlist $network"
+  fi
+ done
+ echo "$subnetlist"
+}
+
+# test if ip matches a subnet
+# ipsubmatch <ip> <list of nets>
+ipsubmatch(){
+ local ip="$1"
+ local netlist="$2"
+ local netid
+ local prefix
+ local i
+ for i in $netlist; do
+  netid="$(echo $i | awk -F\/ '{ print $1}')"
+  prefix="$(echo $i | awk -F\/ '{ print $2}')"
+  [ -n "$netid" -a -n "$prefix" ] || continue
+  local netid_test="$(ipcalc -b "$ip"/"$prefix" | grep ^Network | awk '{ print $2 }' | awk -F\/ '{ print $1 }')"
+  [ "$netid_test" = "$netid" ] && return 0
+ done
+ return 1
+}
+
+# prints all ips of a subnet (from http://stackoverflow.com/questions/16986879/bash-script-to-list-all-ips-in-prefix)
+# network_address_to_ips <netip/netmask>
+network_address_to_ips() {
+ [ -z "$1" ] && return 0
+ local ips
+ local network
+ local iparr
+ local netmaskarr
+ local i
+ local j
+ local k
+ local l
+ # define empty array to hold the ip addresses
+ ips=()
+ # create array containing network address and subnet
+ network=(${1//\// })
+ # split network address by dot
+ iparr=(${network[0]//./ })
+ # check for subnet mask or create subnet mask from CIDR notation
+ if [[ ${network[1]} =~ '.' ]]; then
+  netmaskarr=(${network[1]//./ })
+ else
+  if [[ $((8-${network[1]})) > 0 ]]; then
+   netmaskarr=($((256-2**(8-${network[1]}))) 0 0 0)
+  elif  [[ $((16-${network[1]})) > 0 ]]; then
+   netmaskarr=(255 $((256-2**(16-${network[1]}))) 0 0)
+  elif  [[ $((24-${network[1]})) > 0 ]]; then
+   netmaskarr=(255 255 $((256-2**(24-${network[1]}))) 0)
+  elif [[ $((32-${network[1]})) > 0 ]]; then 
+   netmaskarr=(255 255 255 $((256-2**(32-${network[1]}))))
+  fi
+ fi
+ # correct wrong subnet masks (e.g. 240.192.255.0 to 255.255.255.0)
+ [[ ${netmaskarr[2]} == 255 ]] && netmaskarr[1]=255
+ [[ ${netmaskarr[1]} == 255 ]] && netmaskarr[0]=255
+ # generate list of ip addresses
+ for i in $(seq 0 $((255-${netmaskarr[0]}))); do
+  for j in $(seq 0 $((255-${netmaskarr[1]}))); do
+   for k in $(seq 0 $((255-${netmaskarr[2]}))); do
+    for l in $(seq 1 $((255-${netmaskarr[3]}))); do
+     ips+=( $(( $i+$(( ${iparr[0]}  & ${netmaskarr[0]})) ))"."$(( $j+$(( ${iparr[1]} & ${netmaskarr[1]})) ))"."$(($k+$(( ${iparr[2]} & ${netmaskarr[2]})) ))"."$(($l+$((${iparr[3]} & ${netmaskarr[3]})) )) )
+    done
+   done
+  done
+ done
+ echo ${ips[@]}
+}
+
 
 #################
 # nic setup     #

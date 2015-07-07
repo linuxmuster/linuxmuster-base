@@ -1,4 +1,7 @@
-# $Id: prepatch 1334 2012-07-20 12:03:39Z tschmitt $
+#
+# thomas@linuxmuster.net
+# 13.02.2014
+#
 
 echo "### 17_admins prepatch"
 
@@ -21,8 +24,8 @@ if [ "$1" = "--first" ]; then
   if which sophomorix-passwd &> /dev/null; then
    sophomorix-passwd --force --user $DOMADMIN --pass $adminpw
    sophomorix-passwd --user $ADMINISTRATOR --pass $adminpw
-   sophomorix-passwd --user $PGMADMIN --pass $pgmadminpw
-   sophomorix-passwd --user $WWWADMIN --pass $wwwadminpw
+   sophomorix-passwd --user $PGMADMIN --pass $adminpw
+   sophomorix-passwd --user $WWWADMIN --pass $adminpw
    sophomorix-usermod -I wwwadmin
   else
    for i in $ADMINISTRATOR $PGMADMIN $WWWADMIN; do
@@ -31,8 +34,8 @@ if [ "$1" = "--first" ]; then
    done
    echo -e "$adminpw\n$adminpw\n" | smbldap-passwd -s $DOMADMIN
    echo -e "$adminpw\n$adminpw\n" | smbldap-passwd -s $ADMINISTRATOR
-   echo -e "$pgmadminpw\n$pgmadminpw\n" | smbldap-passwd -s $PGMADMIN
-   echo -e "$wwwadminpw\n$wwwadminpw\n" | smbldap-passwd -s $WWWADMIN
+   echo -e "$adminpw\n$adminpw\n" | smbldap-passwd -s $PGMADMIN
+   echo -e "$adminpw\n$adminpw\n" | smbldap-passwd -s $WWWADMIN
    smbldap-usermod -I $WWWADMIN
   fi
 
@@ -48,15 +51,6 @@ else
 
   # prevent access.conf from being patched
   mv access.conf.target access.conf.target.nopatch
-
-  # prevent login.bat from being patched
-  mv login.bat.target login.bat.target.nopatch
-
-  # patch login.bat with new servername if necessary
-  if [ "$servername" != "$servername_old" ]; then
-    backup_file $NETLOGONDIR/login.bat
-    sed -e 's%^call \\\\'$servername_old'\\%call \\\\'$servername'\\%g' -i $NETLOGONDIR/login.bat
-  fi
 
 fi
 

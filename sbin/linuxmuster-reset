@@ -4,7 +4,7 @@
 # resets the internet, intranet, webfilter, lession state of rooms/hosts
 #
 # thomas@linuxmuster.net
-# 28.02.2013
+# 28.01.2014
 # GPL V3
 #
 
@@ -26,9 +26,9 @@ exit_script() {
  local RC=1
  [ -n "$1" ] && RC="$1"
  echo | tee -a $LOGFILE
- echo "Ending linuxmuster-reset session at `date`" | tee -a $LOGFILE
+ echo "Terminating linuxmuster-reset session at `date`" | tee -a $LOGFILE
  echo "#####################################################################" | tee -a $LOGFILE
- rm -f $locker $ROOMDEFAULTS_TEMP $WIMPORTDATA_TEMP
+ rm -f $locker $HOSTLIST $ROOMLIST
  exit "$RC"
 }
 
@@ -52,7 +52,8 @@ usage() {
   echo
   echo "--room : reset all hosts of this room."
   echo "--host : reset only this specific host."
-  echo "--all  : reset all rooms and hosts defined in $ROOMDEFAULTS."
+  echo "--all  : reset all rooms and hosts defined in $(basename $ROOMDEFAULTS)"
+  echo "         and $(basename $CLASSROOMS)."
   echo "--kill : kill the room's active lession, if there is one (optional)."
   echo "         Use this with care!"
   echo
@@ -75,9 +76,9 @@ if [ ! -e "$ROOMDEFAULTS" ]; then
 	exit_script
 fi
 
-# check for ipcop availability
-if ! test_pwless_fw; then
- echo "Passwordless connection to firewall is not available!"
+# check for firewall availability
+if ! test_pwless_fw 2>> $LOGFILE 1>> $LOGFILE; then
+ echo "Passwordless connection to firewall is not available!" | tee -a $LOGFILE
  exit_script
 fi
 
@@ -85,204 +86,245 @@ fi
 echo | tee -a $LOGFILE
 echo "#####################################################################" | tee -a $LOGFILE
 echo "Starting linuxmuster-reset session at `date`" | tee -a $LOGFILE
-echo | tee -a $LOGFILE
-
-# first convert all input files to lower case
-ROOMDEFAULTS_TEMP=/var/tmp/room_defaults.$$
-WIMPORTDATA_TEMP=/var/tmp/workstations.$$
-grep -v ^# $ROOMDEFAULTS | tr A-Z a-z > $ROOMDEFAULTS_TEMP
-grep -v ^# $WIMPORTDATA | tr A-Z a-z > $WIMPORTDATA_TEMP
-
-# create resetlist
-if [ -n "$all" ]; then
-	resetlist=`awk '{ print $1 }' $ROOMDEFAULTS_TEMP`
-elif [ -n "$host" ]; then
-	resetlist=`echo $host | tr A-Z a-z`
-elif [ -n "$room" ]; then
-	resetlist=`echo $room | tr A-Z a-z`
-	# fetch hosts for this room and look for host definitions in $ROOMDEFAULTS_TEMP
-	hosts=`grep ^$room\; $WIMPORTDATA_TEMP | cut -f2 -d";"`
-	if [ -n "$hosts" ]; then
-		for h in $hosts; do
-			grep -q ^$h[[:space:]] $ROOMDEFAULTS_TEMP && resetlist="$resetlist $h"
-		done
-	fi
-fi
 
 
-# check resetlist for valid entries and clean it up
-for r in $resetlist; do
+# get default values from room_defaults or set it to on if not defined
+defaults="$(grep -iw ^default $ROOMDEFAULTS | tr A-Z a-z)"
+internet_default="$(echo $defaults | awk '{ print $2 }')"
+[ -z "$internet_default" ] && internet_default=on
+intranet_default="$(echo $defaults | awk '{ print $3 }')"
+[ -z "$intranet_default" ] && intranet_default=on
+webfilter_default="$(echo $defaults | awk '{ print $4 }')"
+[ -z "$webfilter_default" ] && webfilter_default=on
 
-	# skip rooms or hosts which are named "default"
-	[ "$r" = "default" ] && continue
 
-	# check if room/host is defined in $WIMPORTDATA_TEMP
-	if ! grep -qw $r $WIMPORTDATA_TEMP; then
-		echo "Skipping room or host $r which is not defined in $WIMPORTDATA!" | tee -a $LOGFILE
-		continue
-	fi
-
-	# create cleaned resetlist
-	if [ -z "$tmplist" ]; then
-		tmplist=$r
-	else
-		tmplist="$tmplist $r"
-	fi
-
+# create empty list files
+HOSTLIST="/var/tmp/hosts_to_reset.$$"
+ROOMLIST="/var/tmp/rooms_to_reset.$$"
+for i in "$HOSTLIST" "$ROOMLIST"; do
+ rm -f "$i"
+ touch "$i"
 done
 
+# all is given on cl
+if [ -n "$all" ]; then
 
-# exit if list is emtpy
-if [ -z "$tmplist" ]; then
- echo "There are no valid rooms or hosts to reset!" | tee -a $LOGFILE
+ # process all entries in room_defaults and create first a roomlist and a hostlist
+ grep ^[A-Za-z0-9] $ROOMDEFAULTS | tr A-Z a-z | while read line; do
+  item="$(echo $line | awk '{ print $1 }')"
+  # room
+  if grep -qi ^$item\; $WIMPORTDATA; then
+   echo "$line" >> "$ROOMLIST"
+  # host
+  elif grep ^[A-Za-z] $WIMPORTDATA | awk -F\; '{ print "X"$2"X" }' | grep -qiw X${item}X; then
+   echo "$line" >> "$HOSTLIST"
+  else
+   continue
+  fi
+ done
+ 
+ # process roomlists, look for already defined hosts, add hosts not defined with defaults
+ for i in $(cat $ROOMLIST $CLASSROOMS | grep ^[A-Za-z0-9] | awk '{ print $1 }' | tr A-Z a-z | sort -u); do
+  # read defaults for room
+  defaults="$(grep -iw ^$i $ROOMDEFAULTS | tr A-Z a-z)"
+  internet_room="$(echo $defaults | awk '{ print $2 }')"
+  [ -z "$internet_room" ] && internet_room="$internet_default"
+  intranet_room="$(echo $defaults | awk '{ print $3 }')"
+  [ -z "$intranet_room" ] && intranet_room="$intranet_default"
+  webfilter_room="$(echo $defaults | awk '{ print $4 }')"
+  [ -z "$webfilter_room" ] && webfilter_room="$webfilter_default"
+  # get hosts for room from workstations file
+  for h in $(grep -i ^$i\; $WIMPORTDATA | awk -F\; '{ print $2 }' | tr A-Z a-z | sort -u); do
+   # write hosts to hostlist if not yet there
+   grep -qi ^$h "$HOSTLIST" || echo "$h $internet_room $intranet_room $webfilter_room" >> "$HOSTLIST"
+  done
+ done
+
+# a single host is given on cl
+elif [ -n "$host" ]; then
+
+ # test if host is defined in workstations file
+ if ! grep ^[A-Za-z] $WIMPORTDATA | awk -F\; '{ print "X"$2"X" }' | grep -qiw X${host}X; then
+  echo "Host $host is not known to the system." | tee -a $LOGFILE
+  exit_script
+ fi
+ # read defaults for host
+ defaults="$(grep -iw ^$host $ROOMDEFAULTS | tr A-Z a-z)"
+ internet_host="$(echo $defaults | awk '{ print $2 }')"
+ [ -z "$internet_host" ] && internet_host="$internet_default"
+ intranet_host="$(echo $defaults | awk '{ print $3 }')"
+ [ -z "$intranet_host" ] && intranet_host="$intranet_default"
+ webfilter_host="$(echo $defaults | awk '{ print $4 }')"
+ [ -z "$webfilter_host" ] && webfilter_host="$webfilter_default"
+ # write hostlist
+ echo "$host $internet_host $intranet_host $webfilter_host" > "$HOSTLIST"
+
+# a specific room is given on cl
+elif [ -n "$room" ]; then
+
+ # read defaults for room
+ defaults="$(grep -iw ^$room $ROOMDEFAULTS | tr A-Z a-z)"
+ internet_room="$(echo $defaults | awk '{ print $2 }')"
+ [ -z "$internet_room" ] && internet_room="$internet_default"
+ intranet_room="$(echo $defaults | awk '{ print $3 }')"
+ [ -z "$intranet_room" ] && intranet_room="$intranet_default"
+ webfilter_room="$(echo $defaults | awk '{ print $4 }')"
+ [ -z "$webfilter_room" ] && webfilter_room="$webfilter_default"
+ # write room list
+ echo "$room $internet_room $intranet_room $webfilter_room" > "$ROOMLIST"
+ # get hosts for room from workstations file
+ for h in $(grep -i ^$room\; $WIMPORTDATA | awk -F\; '{ print $2 }' | tr A-Z a-z | sort -u); do
+  # write hosts to hostlist if not yet there
+  line="$(grep -wi ^$h $ROOMDEFAULTS | tr A-Z a-z)"
+  if [ -n "$line" ]; then
+   echo "$line" >> "$HOSTLIST"
+  else
+   echo "$h $internet_room $intranet_room $webfilter_room" >> "$HOSTLIST"
+  fi
+ done
+
+fi
+
+
+# exit if hostlist is empty
+if [ ! -s "$HOSTLIST" ]; then
+ echo | tee -a $LOGFILE
+ echo "No items to process." | tee -a $LOGFILE
  exit_script 0
-else
- resetlist=$tmplist
 fi
 
 
-# set overall default values
-internet_default=on
-intranet_default=on
-webfilter_default=on
-
-roomfile_prefix="/var/lib/schulkonsole/room_"
-
-
-# read default values from $ROOMDEFAULTS_TEMP if set
-if line=`grep ^default[[:space:]] $ROOMDEFAULTS_TEMP`; then
-	internet_default=`echo $line | awk '{ print $2 }'`
-	intranet_default=`echo $line | awk '{ print $3 }'`
-	webfilter_default=`echo $line | awk '{ print $4 }'`
-fi
-
-
-# check for internal firewall
+# read variable for internal firewall
 . /etc/default/linuxmuster-base || exit_script
-if [ "$START_LINUXMUSTER" != "yes" ]; then
-	echo "Internal firewall is deactivated!" | tee -a $LOGFILE
-	skip_intra=yes
-else
-	if ! iptables -L | grep -q "$FIREWALLTEST"; then
-		echo "Internal firewall is activated but not running!" | tee -a $LOGFILE
-		skip_intra=yes
-	fi
-fi
-[ -z "$skip_intra" ] && echo "Internal firewall is active!"
 
 
 # check if urlfilter is active
-$SCRIPTSDIR/check_urlfilter.sh && uf_active=yes
+$SCRIPTSDIR/check_urlfilter.sh &> /dev/null && uf_active=yes
 
 
-# processing resetlist
-for r in $resetlist; do
+# call internet/intranet/urlfilter on_off script
+call_script() {
+ local target="$1"
+ local trigger="$2"
+ local hostlist="$(echo $3 | sed -e 's| |,|g')"
+ local script="$SCRIPTSDIR/$(echo $target | tr A-Z a-z)_on_off.sh"
+ local RCTMP="0"
+ echo | tee -a $LOGFILE
+ echo " * $target $(echo $trigger | tr a-z A-Z)" | tee -a $LOGFILE
+ echo "   -> $(echo $hostlist | sed -e 's|,|\n   -> |g')" | tee -a $LOGFILE
+ $script --trigger=$trigger --hostlist=$hostlist 2>> $LOGFILE 1>> $LOGFILE ; RCTMP="$?"
+ if [ "$RCTMP" = "0" ]; then
+  echo "   OK!"
+ else
+  echo "   FAILED!"
+  RC="1"
+ fi
+ return "$RCTMP"
+}
 
-	# check if $r is a room
-	if grep -q ^$r\; $WIMPORTDATA_TEMP; then
-		room=yes; typ=room; typm=Room
-	else
-		room=no; typ=host; typm=Host
-	fi
 
-	echo
-	echo "Processing $typ $r ..." | tee -a $LOGFILE
+RC="0"
 
-	# check if room/host is defined in $ROOMDEFAULTS_TEMP
-	if ! grep -q ^$r[[:space:]] $ROOMDEFAULTS_TEMP; then
-		# if not use default values
-		echo "  * $typm $r is not defined in $ROOMDEFAULTS_TEMP! Using default values!" | tee -a $LOGFILE
-		internet=$internet_default
-		intranet=$intranet_default
-		webfilter=$webfilter_default
-	else
-		# else read room/host values from $ROOMDEFAULTS_TEMP
-		line=`grep ^$r[[:space:]] $ROOMDEFAULTS_TEMP`
-		internet=`echo $line | awk '{ print $2 }'`
-		intranet=`echo $line | awk '{ print $3 }'`
-		webfilter=`echo $line | awk '{ print $4 }'`
-	fi
+# do internet reset
+# hosts to trigger on
+internet_on="$(grep ^[A-Za-z0-9] $HOSTLIST | awk '{ print $1 " " $2 }' | grep -i " on" | awk '{ print $1 }')"
+[ -n "$internet_on" ] && call_script Internet on "$internet_on"
 
-	if [ "$room" = "yes" ]; then
-		# fetch room's hostlist from $WIMPORTDATA_TEMP
-		hostlist=`grep ^$r\; $WIMPORTDATA_TEMP | cut -f2 -d\;`
-		hostlist=`echo $hostlist | sed -e 's/ /,/g'`
-		# skips if hostlist is empty
-		if [ -z "$hostlist" ]; then
-			echo "  * No hosts found for room $r! Skipping $r!" | tee -a $LOGFILE
-			continue
-		fi
-	else
-		hostlist=$r
-	fi
+# hosts to trigger off
+internet_off="$(grep ^[A-Za-z0-9] $HOSTLIST | awk '{ print $1 " " $2 }' | grep -i " off" | awk '{ print $1 }')"
+[ -n "$internet_off" ] && call_script Internet off "$internet_off"
 
-	# triggers intranet access if internal firewall is active
-	if [ -z "$skip_intra" ]; then
-		if [[ "$intranet" = "on" || "$intranet" = "off" ]]; then
-			echo -n "  * Changing intranet status to $intranet for $hostlist ... " | tee -a $LOGFILE
-			$SCRIPTSDIR/intranet_on_off.sh --trigger=$intranet --hostlist=$hostlist | tee -a $LOGFILE
-		else
-			echo "  * Skipping intranet status change for $hostlist ..." | tee -a $LOGFILE
-		fi
-	else
-		echo "  * Skipping intranet status change for $hostlist ..." | tee -a $LOGFILE
-	fi
 
-	# triggers internet access
-	if [[ "$internet" = "on" || "$internet" = "off" ]]; then
-		echo -n "  * Changing internet status to $internet for $hostlist ... " | tee -a $LOGFILE
-		$SCRIPTSDIR/internet_on_off.sh --trigger=$internet --hostlist=$hostlist | tee -a $LOGFILE
-	else
-		echo "  * Skipping internet status change for $hostlist ..." | tee -a $LOGFILE
-	fi
+# do intranet reset, only if internal firewall is active
+if [ "$START_LINUXMUSTER" = "yes" ]; then
 
-	# triggers urlfilter if active
-	if [ -n "$uf_active" ]; then
-		if [[ "$webfilter" = "on" || "$webfilter" = "off" ]]; then
-			echo -n "  * Changing webfilter status to $webfilter for $hostlist ... " | tee -a $LOGFILE
-			$SCRIPTSDIR/urlfilter_on_off.sh --trigger=$webfilter --hostlist=$hostlist | tee -a $LOGFILE
-		else
-			echo "  * Skipping webfilter status change for $hostlist ..." | tee -a $LOGFILE
-		fi
-	else
-		echo "  * Skipping webfilter status change for $hostlist ..." | tee -a $LOGFILE
-	fi
+ # hosts to trigger on
+ intranet_on="$(grep ^[A-Za-z0-9] $HOSTLIST | awk '{ print $1 " " $3 }' | grep -i " on" | awk '{ print $1 }')"
+ [ -n "$intranet_on" ] && call_script Intranet on "$intranet_on"
 
-	# kill lession for room
-	if [[ "$room" = "yes" && -n "$kill" ]]; then
-		roomfile=${roomfile_prefix}`echo -n $r | md5sum | awk '{ print $1 }'`
-		if [ -e "$roomfile" ]; then
-			# check if exam is active
-			if grep -q test_step $roomfile; then
-				OIFS="$IFS"
-				IFS=","
-				for i in `cat $roomfile`; do
-					if stringinstring user_id "$i"; then
-						user_id=`echo "$i" | awk -F\' '{ print $4 }'`
-						break
-					fi
-				done
-				IFS="$OIFS"
-				get_login_by_id $user_id
-				teacher=$RET
-				if check_teacher $teacher; then
-					echo "  * WARNING: Finishing test of teacher $teacher in room $r!" | tee -a $LOGFILE
-					echo "    For detailed output of sophomorix-teacher see $LOGFILE!"
-					sophomorix-teacher --teacher $teacher --room $r --exam --collect 2>> $LOGFILE 1>> $LOGFILE
-				fi
-			fi
-			echo "  * WARNING: I'm killing an active lession in room $r!" | tee -a $LOGFILE
-			rm -f $roomfile
-		fi
-	fi
+ # hosts to trigger off
+ intranet_off="$(grep ^[A-Za-z0-9] $HOSTLIST | awk '{ print $1 " " $3 }' | grep -i " off" | awk '{ print $1 }')"
+ [ -n "$intranet_off" ] && call_script Intranet off "$intranet_off"
 
-done
+else
+
+ echo | tee -a $LOGFILE
+ echo " * Skipping intranet reset." | tee -a $LOGFILE
+
+fi
+
+
+# do urlfilter reset, only if urlfilter is active
+if [ -n "$uf_active" ]; then
+
+ # hosts to trigger on
+ urlfilter_on="$(grep ^[A-Za-z0-9] $HOSTLIST | awk '{ print $1 " " $4 }' | grep -i " on" | awk '{ print $1 }')"
+ [ -n "$urlfilter_on" ] && call_script Urlfilter on "$urlfilter_on"
+
+ # hosts to trigger off
+ urlfilter_off="$(grep ^[A-Za-z0-9] $HOSTLIST | awk '{ print $1 " " $4 }' | grep -i " off" | awk '{ print $1 }')"
+ [ -n "$urlfilter_off" ] && call_script Urlfilter off "$urlfilter_off"
+
+else
+
+ echo | tee -a $LOGFILE
+ echo " * Skipping urlfilter reset." | tee -a $LOGFILE
+
+fi
+
+
+# kill active lessions
+if [ -s "$ROOMLIST" -a -n "$kill" ]; then
+
+ # set session file prefix
+ roomfile_prefix="/var/lib/schulkonsole/room_"
+
+ # process rooms from roomlist
+ for r in $(grep -i ^[A-Za-z0-9] $ROOMLIST | awk '{ print $1 }'); do
+ 
+  roomfile=${roomfile_prefix}$(echo -n $r | md5sum | awk '{ print $1 }')
+  if [ -e "$roomfile" ]; then
+   # check if exam is active
+   if grep -q test_step $roomfile; then
+    OIFS="$IFS"
+    IFS=","
+    for i in `cat $roomfile`; do
+     if stringinstring user_id "$i"; then
+      user_id="$(echo "$i" | awk -F\' '{ print $4 }')"
+      break
+     fi
+    done
+    IFS="$OIFS"
+    get_login_by_id $user_id
+    teacher=$RET
+    if check_teacher $teacher; then
+     echo " * WARNING: Terminating ongoing exam of teacher $teacher in room $r!" | tee -a $LOGFILE
+     if sophomorix-teacher --teacher $teacher --room $r --exam --collect 2>> $LOGFILE 1>> $LOGFILE; then
+      echo "   For detailed output of sophomorix-teacher see $LOGFILE!"
+     else
+      echo "   sophomorix-teacher failed! See $LOGFILE for details."
+      RC="1"
+     fi
+    fi
+   fi
+   echo " * WARNING: I'm killing an active lession in room $r!" | tee -a $LOGFILE
+   rm -f $roomfile
+  fi
+ 
+ done
+
+fi
+
 
 # start nscd if not running
 if ! ps ax | grep nscd | grep -v grep &> /dev/null; then
-	echo | tee -a $LOGFILE
-	/etc/init.d/nscd start | tee -a $LOGFILE
+ echo | tee -a $LOGFILE
+ service nscd start | tee -a $LOGFILE
 fi
 
-exit_script 0
 
+if [ "$RC" != "0" ]; then
+ echo | tee -a $LOGFILE
+ echo "Terminated with error(s)!" | tee -a $LOGFILE
+fi
+exit_script "$RC"

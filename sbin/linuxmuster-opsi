@@ -1,0 +1,209 @@
+#!/bin/bash
+#
+# linuxmuster-opsi configuration script
+#
+# thomas@linuxmuster.net
+# 11.07.2014
+# GPL v3
+#
+
+# read linuxmuster.net settings
+. /usr/share/linuxmuster/config/dist.conf || exit 1
+. $HELPERFUNCTIONS || exit 1
+
+# parsing parameters
+getopt $*
+
+header(){
+ [ -n "$quiet" ] && return 0
+ local opt="$1"
+ local msg="# linuxmuster-opsi $opt # $(date)"
+ local chars="$(echo "$msg" | wc -m)"
+ echo
+ seq -s"#" $chars | tr -d '[:digit:]'
+ echo "$msg"
+ seq -s"#" $chars | tr -d '[:digit:]'
+ echo
+}
+
+usage() {
+  header "usage"
+  echo "linuxmuster-opsi --setup [--password=<password>]"
+  echo "                         [--first]"
+  echo "                         [--reboot]"
+  echo "                 --disable"
+  echo "                 --wsimport"
+  echo "                 --quiet"
+  echo "                 --help"
+  echo
+  echo "  setup:      Starts linuxmuster.net specific OPSI support setup."
+  echo "              It does an initial setup of passwordless ssh"
+  echo "              connection to OPSI server first."
+  echo "              If password is not given it will be asked."
+  echo "  first:      Force creation of certificates on opsi server."
+  echo "              To be used for initial setup."
+  echo "  reboot:     Reboots opsi server."
+  echo "  disable:    Disables OPSI support."
+  echo "  wsimport:   Import workstations on OPSI host."
+  echo "  quiet:      Minimal console output."
+  echo "  help:       Shows this help"
+  echo
+  exit 1
+}
+
+# test parameters
+[ -n "$help" ] && usage
+[ -z "$disable" -a -z "$setup" -a -z "$wsimport" ] && usage
+[ -n "$disable" -a -n "$wsimport" ] && usage
+[ -n "$setup" -a -n "$wsimport" ] && usage
+[ -n "$disable" -a -n "$setup" ] && usage
+
+# get action
+[ -n "$disable" ] && action="disable"
+[ -n "$setup" ] && action="setup"
+[ -n "$wsimport" ] && action="wsimport"
+
+# print script header
+header "$action"
+
+# check if i am already running
+mypid=$$
+if [ -n "$wsimport" ]; then
+ mypidfile="/var/run/linuxmuster-opsi-$action.pid"
+else
+ mypidfile="/var/run/linuxmuster-opsi-setup.pid"
+fi
+if [ -e "$mypidfile" ]; then
+ echo "There is already an linuxmuster-opsi process running! Exiting!"
+ echo "If this is not correct you have to delete $mypidfile!"
+ exit 0
+fi
+echo "$mypid" > $mypidfile
+
+# exit if error occurs
+bailout(){
+ local msg="$1"
+ echo "$msg"
+ rm -f $mypidfile
+ exit 1
+}
+
+# test connection
+test_connection(){
+ local opsiip="${serverip/.1.1/.1.2}"
+ if ping -c1 -q "$opsiip"; then
+  echo
+  return 0
+ else
+  bailout "Connection to opsi not available!"
+ fi
+}
+
+# setup
+do_setup(){
+ test_connection
+ # update opsi debconf value
+ local status="$(debconf-show linuxmuster-base | grep /opsi | awk -F\: '{ print $2 }' | awk '{ print $1 }')"
+ if [ "$status" != "true" ]; then
+  echo "Updating debconf variable."
+  status="true"
+  echo "set linuxmuster-base/opsi $status" | debconf-communicate || bailout "Debconf update failed!"
+ else
+  echo "Debconf variable already set."
+ fi
+ # ip
+ local ip="10.$(debconf-show linuxmuster-base | grep /internsubrange | awk -F\: '{ print $2 }' | awk -F\- '{ print $1 }' | awk '{ print $1 }').1.2"
+ validip "$ip" || bailout "Cannot set opsi ip!"
+ if [ "$ip" != "$opsiip" ]; then
+  echo "Setting up ip address."
+  opsiip="$ip"
+  if grep -q ^opsiip "$NETWORKSETTINGS"; then
+   sed -e "s|^opsiip=.*|opsiip=\"$opsiip\"|" -i "$NETWORKSETTINGS"
+  else
+   echo "opsiip=\"$opsiip\"" >> "$NETWORKSETTINGS"
+  fi
+ else
+  echo "Ip address already set up."
+ fi
+
+ # setup ssh connection
+ ssh-keygen -f "/root/.ssh/known_hosts" -R "$opsiip"
+ if ! test_pwless_opsi; then
+  echo "Setting up passwordless ssh connection."
+  if [ -z "$password" -a -z "$unattended" ]; then
+   echo
+   stty -echo
+   read -p "Please enter OPSI's root password: " password; echo
+   stty echo
+  fi
+  [ -z "$password" -a -z "$unattended" ] && bailout "No password given!"
+  mykey="$(cat /root/.ssh/id_dsa.pub)"
+  [ -z "$mykey" ] && bailout "No ssh key available!"
+  if [ -s /root/.ssh/known_hosts ]; then
+   ssh-keygen -f /root/.ssh/known_hosts -R "$opsiip" &> /dev/null
+   ssh-keygen -f /root/.ssh/known_hosts -R opsi &> /dev/null
+  fi
+  # upload root's public key
+  echo "$password" | "$SCRIPTSDIR/sshaskpass.sh" ssh -oStrictHostKeyChecking=no "$opsiip" "mkdir -p /root/.ssh && echo "$mykey" >> /root/.ssh/authorized_keys"
+  # test passwordless ssh connection again
+  test_pwless_opsi || bailout "Aborting!"
+  echo
+ fi
+
+ # upload settings file
+ rsync "$NETWORKSETTINGS" "$opsiip":"$OPSILMNSETTINGS" || bailout "Upload of settings failed!"
+
+ # do setup on opsi server
+ OPSISETUP="$OPSISETUP --quiet"
+ [ -n "$first" ] && OPSISETUP="$OPSISETUP --first"
+ [ -n "$reboot" ] && OPSISETUP="$OPSISETUP --reboot"
+ ssh "$opsiip" $OPSISETUP || bailout "Setup on opsi server failed!"
+ ssh-keygen -f "/root/.ssh/known_hosts" -R "$opsiip"
+ test_pwless_opsi
+}
+
+# disable
+do_disable(){
+ # debconf
+ echo "Unsetting debconf variable."
+ echo "set linuxmuster-base/opsi false" | debconf-communicate || bailout "Debconf update failed!"
+ echo "Removing ip address."
+ ssh-keygen -f "/root/.ssh/known_hosts" -R "$opsiip"
+ ssh-keygen -f "/root/.ssh/known_hosts" -R opsi
+ if grep -q ^opsiip "$NETWORKSETTINGS"; then
+  sed -e "s|^opsiip=.*|opsiip=\"\"|" -i "$NETWORKSETTINGS" || bailout "Debconf update failed!"
+ else
+  echo "opsiip=\"\"" >> "$NETWORKSETTINGS" || bailout "Debconf update failed!"
+ fi
+}
+
+# wsimport
+do_wsimport(){
+ test_connection
+ echo "Processing opsi workstations:"
+ # upload workstations file
+ rsync "$WIMPORTDATA" "$opsiip:$OPSIWSDATA"
+ # execute script
+ ssh "$opsiip" $OPSIWSIMPORT --quiet
+ # download opsi host keys
+ rsync "$opsiip:$OPSIPCKEYS" "$LINBOOPSIKEYS"
+ chmod 600 "$LINBOOPSIKEYS"
+}
+
+case "$action" in
+
+ setup) do_setup ;;
+ disable) do_disable ;;
+ wsimport) do_wsimport ;;
+ *) ;;
+
+esac
+
+header "$action"
+echo
+
+
+# delete pid file
+rm -f $mypidfile
+
+exit 0

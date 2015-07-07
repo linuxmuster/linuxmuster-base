@@ -1,0 +1,38 @@
+#
+# thomas@linuxmuster.net
+# 26.11.2013
+# GPL v3
+#
+
+echo "### 02_network prepatch"
+
+stop networking
+
+# write servername to /etc/hostname
+backup_file /etc/hostname
+echo $servername > /etc/hostname
+
+# patch linuxmuster-base defaults
+backup_file /etc/default/linuxmuster-base
+sed -e "s/^IFACE=.*/IFACE=$iface_lan/" -i /etc/default/linuxmuster-base
+
+# provide relevant interfaces file
+if [ "$subnetting" = "true" ]; then
+ cp interfaces.subnets interfaces
+else
+ cp interfaces.standard interfaces
+fi
+
+if [ "$1" = "--first" ]; then
+
+ # start internal firewall on boot
+ sed -e "s/^START_LINUXMUSTER=.*/START_LINUXMUSTER=yes/" -i /etc/default/linuxmuster-base
+
+else
+
+ # backup network configuration
+ for i in /etc/network/interfaces /etc/hosts /etc/resolv.conf; do
+  backup_file $i
+ done
+
+fi

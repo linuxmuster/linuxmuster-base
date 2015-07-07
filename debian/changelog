@@ -1,69 +1,327 @@
-linuxmuster-base (6.0.46-1ubuntu0) precise; urgency=low
+linuxmuster-base (6.1.1-0ubuntu0) babo; urgency=low
+
+  * Merge pull request #23 from fschuett/fix-461: calling custom.bat if it exists (closes #461).
+  * Merge pull request #22 from fschuett/fix-349: cupsd.conf BrowseAddress fix (closes #349).
+  * Merge pull request #21 from fschuett/fix-419: wimport.sh: Added test for room - ipranges (closes #419).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 7 Jul 2015 10:34:00 +0200
+
+linuxmuster-base (6.1.0-30ubuntu0) babo; urgency=low
+
+  * wwwadmin migration fix: added wwwadmin password templates needed by 
+    migration restore (closes #447).
+  * removed obsolete pgmadmin_confirm template.
+  * ip range modification fix for linuxmuster-setup (closes #448).
+  * minor improvements in linuxmuster-setup concerning to start time of 
+    linbo services and config files.
+  * postinst: fixed obsolete query for common.bat.win7.
+  * import_workstations: Bugfix for linbo group processing (closes #459). 
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 14 Apr 2015 18:35:15 +0200
+
+linuxmuster-base (6.1.0-29ubuntu0) babo; urgency=low
+
+  * wimport.sh: start.conf server ip fix (closes #427).* 
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 20 Jan 2015 14:33:39 +0100
+
+linuxmuster-base (6.1.0-28ubuntu0) babo; urgency=low
+
+  * fschuett: dhcp-lease-fix (closes #409).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 25 Nov 2014 20:04:48 +0100
+
+linuxmuster-base (6.1.0-27ubuntu0) babo; urgency=low
+
+  * disabled SSLv3 in apache's ssl.conf.
+  * smb.conf, home share: added $RECYCLE.BIN and desktop.ini to hide files.
+  * common.bat:
+    - added drive name reg patches (closes #366).
+    - shorter names for personal folders.
+    - minor improvements concerning to control structure.
+  * workstations man page updated with field 6 and 7 infos.
+  * added syslinux to package dependencies (closes #387).
+  * merged Yannik's pull request #9, activates hostname lookups in
+    smb.conf (closes #350).
+  * merged Yannik's pull request #10, cron.daily fix (closes #351).
+  * merged Yannik's pull request #8, add missing quotes in cron.daily.
+  * merged jollyzsher's pull request #17, remove dist-upgrade suggestion
+    (closes #355).
+  * merged jollyzsher's pull request #15, added br interfaces to
+    discover_nics() in helperfunctions.sh.
+  * merged jollyzsher's pull request #18, fix doubled config templates
+    for workstations and subnets (closes #395).
+  * merged jollyzsher's pull request #19, fixes access to schulkonsole
+    through internal firewall if no hosts have been registered yet
+    (closes #386).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 30 Oct 2014 18:28:03 +0100
+
+linuxmuster-base (6.1.0-26ubuntu1) babo; urgency=low
+
+  * Fixed update-logins.sh for compatibility with ubuntu 14.04 clients (#317)
+
+ -- Frank Schiebel <frank@linuxmuster.net>  Tue, 12 Aug 2014 11:35:35 +0200
+
+linuxmuster-base (6.1.0-26ubuntu0) babo; urgency=low
 
   * linuxmuster-setup:
-    - sets default firewall to ipfire.
-    - sets linux-image-generic instead of linux-image-server in server task.
+    - removed opsi question, not necessary, job is done by linuxmuster-opsi.
+    - minor fixes.
+  * room_share_acl.sh: filters out hosts without exam account additionally.
+  * linuxmuster-opsi: fixed availability test for opsi again.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 28 Jun 2014 13:12:04 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 11 Jul 2014 17:41:10 +0200
 
-linuxmuster-base (6.0.46-0ubuntu0) precise; urgency=low
+linuxmuster-base (6.1.0-25ubuntu0) precise-testing; urgency=low
 
-  * wimport.sh, internet_on_off.sh: modifications due to IPFire 2.15 core update 77 (closes #307).
+  * linuxmuster-opsi: fixed availability test for opsi.
+  * linuxmuster-setup:
+    - improved opsi ip handling.
+    - added acl remove for /home/share on first time installation.
+    - improved firewall setup.
+  * wimport.sh:
+    - improved acl handling for /home/share.
+    - doing opsi stuff after service restarts.
+  * room_share_acl.sh: fixed setfacl invokation if acl file is empty.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 25 May 2014 16:14:51 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 08 Jul 2014 15:09:38 +0200
 
-linuxmuster-base (6.0.45-0ubuntu0) precise; urgency=low
+linuxmuster-base (6.1.0-24ubuntu0) precise-testing; urgency=low
 
-  * linuxmuster-ovpn: IPFire-Adresse in Administratormail gefixt (schließt #285).
+  * samba-userlog, cron.daily: improved userlogin cachefile handling.
+  * added acl to package dependencies.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 28 Feb 2014 18:50:37 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 30 May 2014 14:24:38 +0200
 
-linuxmuster-base (6.0.44-1ubuntu0) precise; urgency=low
+linuxmuster-base (6.1.0-23ubuntu0) precise-testing; urgency=low
 
-  * postinst: prüft auf vollständige apparmor-Installation bevor Profil bereitgestellt wird.
+  * added script room_share_acl.sh to withdraw access rights for exam accounts to /home/share.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 19 Sep 2013 20:19:48 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 28 May 2014 17:42:17 +0200
 
-linuxmuster-base (6.0.44-0ubuntu0) precise; urgency=low
+linuxmuster-base (6.1.0-22ubuntu1) precise-testing; urgency=low
+
+  * internet_on_off.sh:
+    - allowedhosts: fixed ip removal.
+    - allowednetworks: removed comments, added net identifier.
+  * helperfunctions, fw_do_customnets(): added net identifier.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 28 May 2014 10:40:29 +0200
+
+linuxmuster-base (6.1.0-22ubuntu0) precise-testing; urgency=low
+
+  * linuxmuster-setup: added update-linbofs on initial setup or if certs were renewed.
+  * wimport.sh, internet_on_off.sh: modifications due to IPFire 2.15 core update 77 (closes #308).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 27 May 2014 18:58:54 +0200
+
+linuxmuster-base (6.1.0-21ubuntu0) precise-testing; urgency=low
+
+  * linuxmuster-setup: 
+    - removed tftpd-hpa from server tasks (closes #303).
+    - added --prepare parameter to install only the packages needed for setup.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 07 Apr 2014 14:41:51 +0200
+
+linuxmuster-base (6.1.0-20ubuntu1) precise-testing; urgency=low
+
+  * postinst: fixed cupsd.conf update again (closes #302).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 27 Mar 2014 11:42:56 +0100
+
+linuxmuster-base (6.1.0-20ubuntu0) precise-testing; urgency=low
+
+  * postinst: fixed cupsd.conf update (closes #302).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 26 Mar 2014 18:11:44 +0100
+
+linuxmuster-base (6.1.0-19ubuntu0) precise-testing; urgency=low
+
+  * linuxmuster-opsi
+    - setup: removing hostname opsi also from known_hosts during ssh setup.
+    - fixed debconf update.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 18 Mar 2014 19:51:20 +0100
+
+linuxmuster-base (6.1.0-18ubuntu0) precise-testing; urgency=low
+
+  * linuxmuster-reset: improved return codes and console output.
+  * implemented opsi support, added script /usr/sbin/linuxmuster-opsi for
+    setup and workstations import (see #282).
+  * import_workstations:
+    - code cleanup, improved checks.
+    - updated pxe/linbo config handling.
+    - removed unnecessary invokation of update-linbofs.
+    - added opsi support depending on value of field 11 in workstations file.
+  * updated man page for workstations file for field 11 (pxe flag).
+  * linuxmuster-setup:
+    - cleaned up linbo stuff.
+    - added opsi support activation and password question.
+    - removed pgmadmin and wwwadmin password question, 
+      using admin password for these accounts.
+    - fixed servername change in user db (closes #284).
+  * postinst: fixed gollem config update.
+  * removed linuxmuster-backup and dependencies (see #283).
+  * linuxmuster-ovpn: Firewall-Adresse in Adminmail gefixt (schließt #285).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 06 Mar 2014 13:09:05 +0100
+
+linuxmuster-base (6.1.0-17ubuntu0) precise-testing; urgency=low
+
+  * Adding "allowusermoves: yes" to imapd.conf to allow renaming of top level
+    mailboxes (closes #216).
+  * removed tasks share from gollem's backends.php (see #237).
+  * link consolidation under /home/share and /var/cache/sophomorix/tasks due to
+    substitution of bind mounts (see #237).
+  * linuxmuster-reset: resets also rooms defined in classrooms (closes #92).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 27 Jan 2014 21:17:50 +0100
+
+linuxmuster-base (6.1.0-16ubuntu1) precise-testing; urgency=low
+
+  * wimport.sh: fixed servernet handling.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 20 Dec 2013 16:21:37 +0100
+
+linuxmuster-base (6.1.0-16ubuntu0) precise-testing; urgency=low
+
+  * renamed several network specific environment variables.
+  * linuxmuster-setup: improved servernet/dhcp handling.
+  * new config file dhcpd.conf.custom (included in main dhcp config file).
+  * smb.conf: improved task share definition due to files to hide.
+  * netlogon improvements due to students share for teachers.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 18 Dec 2013 18:07:53 +0100
+
+linuxmuster-base (6.1.0-15ubuntu0) precise-testing; urgency=low
+
+  * several modifications due to substitution of bind mounts (see #237).
+  * improved handling of servernet in case of subnetting.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 17 Dec 2013 19:50:39 +0100
+
+linuxmuster-base (6.1.0-14ubuntu0) precise-testing; urgency=low
+
+  * linuxmuster-setup: do finally an import_workstations if subnetting has changed.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 08 Dec 2013 18:24:33 +0100
+
+linuxmuster-base (6.1.0-13ubuntu0) precise-testing; urgency=low
+
+  * added subnetting support.
+  * linuxmuster-setup:
+    - removed ipcop and other obsolete stuff.
+    - renumbered several folders below config-dynamic.
+  * added --nofirewall option to internet_on_off.sh (updates only allowed ips file).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 30 Nov 2013 17:05:58 +0100
+
+linuxmuster-base (6.1.0-12ubuntu0) precise-testing; urgency=low
+
+  * urlfilter_on_off: changed from mac to ip address based cache store.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 09 Nov 2013 21:47:34 +0100
+
+linuxmuster-base (6.1.0-11ubuntu0) precise-testing; urgency=low
+
+  * merged dhcp configuration from master branch to be able to use
+    ip based firewall independend from linbo version.
+  * added run-parts dir /etc/linuxmuster/import_workstations.d for custom scripts
+    invoked at the end of import_workstations.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 08 Nov 2013 20:41:28 +0100
+
+linuxmuster-base (6.1.0-10ubuntu0) precise-testing; urgency=low
+
+  * postinst: added creation of /etc/apparmor.d/tunables/home.d directory.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 19 Sep 2013 20:08:50 +0200
+
+linuxmuster-base (6.1.0-9ubuntu0) precise-testing; urgency=low
 
   * import_workstations: fixed writing of host entries to bind config (closes #202).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 19 Sep 2013 19:37:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 19 Sep 2013 19:50:39 +0200
 
-linuxmuster-base (6.0.43-0ubuntu0) precise; urgency=low
+linuxmuster-base (6.1.0-8ubuntu0) precise; urgency=low
 
   * postinst: fixed turba's sources.php (closes #184).
   * added apparmor profile for cups-pdf (closes #156).
-  * final fix for #195 at least (see 6.0.39 below).
+  * final fix for #195 at least (see 6.1.0-5ubuntu0 below).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 17 Sep 2013 16:51:40 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 17 Sep 2013 17:19:50 +0200
 
-linuxmuster-base (6.0.42-1ubuntu0) precise; urgency=low
+linuxmuster-base (6.1.0-7ubuntu0) precise; urgency=low
 
   * internal firewall ini script: fixed multiport portrange issue (closes #169).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 15 Sep 2013 13:15:47 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 15 Sep 2013 13:23:09 +0200
 
-linuxmuster-base (6.0.41-0ubuntu0) precise; urgency=low
-
-  * internet_on_off.sh: fixed broken ipcop support (closes #196).
-
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 14 Sep 2013 15:57:59 +0200
-
-linuxmuster-base (6.0.40-0ubuntu0) precise; urgency=low
+linuxmuster-base (6.1.0-6ubuntu0) precise; urgency=low
 
   * tweaked init system forcing cups to start after openldap (closes #199).
   * added a run-parts dir /var/lib/linuxmuster/config-add for scripts
     which are adding necessary entries to system config files.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 11 Sep 2013 18:09:42 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 11 Sep 2013 17:41:50 +0200
 
-linuxmuster-base (6.0.39-0ubuntu0) precise; urgency=low
+linuxmuster-base (6.1.0-5ubuntu0) precise; urgency=low
 
   * import_workstations: removes falsely rooms from /etc/linuxmuster/room_defaults
     if there is no hyphen after room name in the hostname (closes #195).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 10 Sep 2013 17:37:46 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 10 Sep 2013 17:44:36 +0200
+
+linuxmuster-base (6.1.0-4ubuntu0) precise; urgency=low
+
+  * modifications concerning to linbo's new grub2 based bootloader.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 05 Jul 2013 12:56:47 +0000
+
+linuxmuster-base (6.1.0-3ubuntu0) precise; urgency=low
+
+  * made access rights for guests/not imported machines configurable (# 139).
+    - debian/init: considers guest ips for internal firewall if configured in dhcpd.conf.
+    - debian/postinst: added modifications due to IPCops end of support,
+      dhcpd.conf update and missing check for internal firewall.
+    - share/config/dist.conf: added new environment variable GUESTIPLIST.
+    - share/scripts/helperfunctions.sh: added function update_guestiplist()
+      which creates a list of all guest ips due to the range defined in dhcpd.conf
+      for use in firewall scripts.
+    - share/scripts/internet_on_off.sh: considers guest ips for external firewall
+      if configured in dhcpd.conf.
+    - share/scripts/wimport.sh: invokes restart-fw instead of internal and external
+      firewall and dhcp restart scripts.
+    - var/config-dynamic/03_dhcp3-server/dhcpd.conf: added config options to
+      control firewall access for guest ip range.
+    - sbin/restart-fw: new script for easyly restarting the internal and external
+      firewalls.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 25 May 2013 17:51:54 +0200
+
+linuxmuster-base (6.1.0-2ubuntu0) precise; urgency=low
+
+  * postinst: added internal firewall check to see if rules are already ip based
+    and reload if not.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 22 May 2013 17:35:37 +0200
+
+linuxmuster-base (6.1.0-1ubuntu0) precise; urgency=low
+
+  * internet_on_off.sh: removed upload of blocked ips list.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 22 May 2013 16:58:52 +0200
+
+linuxmuster-base (6.1.0-0ubuntu0) precise; urgency=low
+
+  * init, intranet_on_off.sh: changed internal firewall to ip based rules.
+  * internet_on_off.sh: changed external firewall to ip based rules, removed IPCop support.
+  * postinst:
+    - changes content of internal firewall's blocked hosts file from mac to ip addresses.
+    - warns if IPCop is detected.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 21 May 2013 18:51:33 +0200
 
 linuxmuster-base (6.0.38-0ubuntu0) precise; urgency=low
 

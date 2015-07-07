@@ -1,0 +1,12 @@
+#
+# thomas@linuxmuster.net
+# 26.11.2013
+# GPL v3
+#
+
+echo "### 02_network postpatch"
+
+/etc/init.d/networking restart
+
+# set host and domain name
+hostname $servername.$domainname

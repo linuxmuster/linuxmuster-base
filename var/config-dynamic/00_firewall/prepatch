@@ -1,0 +1,86 @@
+#
+# thomas@linuxmuster.net
+# 18.12.2013
+# GPL v3
+#
+
+echo "### 00_firewall prepatch"
+
+# not on first install and only if firewall ist not custom and has not changed
+if [ "$1" = "--modify" -a "$fwconfig" != "custom" -a "$fwconfig" = "$fwconfig_old" ]; then
+
+	# patch ips if internal net address has changed
+	if [ "$internsub" != "$internsub_old" ]; then
+		echo "  Changing internal net address from 10.$internsub_old.0.0 to 10.$internsub.0.0 ..."
+		ssh -p 222 $ipcopip_old /var/linuxmuster/patch-ips.sh $internsub_old $internsub
+		fw_modified=yes
+	fi
+
+	# patch netmask if subnetting has changed
+	if [ "$subnetting" != "$subnetting_old" ]; then
+	 if [ "$subnetting" = "true" ]; then
+	  echo "  Adding subnetting capabilities ..."
+	 else
+	  echo "  Removing subnetting capabilities ..."
+	 fi
+	 ssh -p 222 $ipcopip_old /var/linuxmuster/patch-subnet.sh $internalnet $INTERNMASK $broadcast $srvnetgw $SUBNETMASK $srvnetbc $subnetting
+     fw_modified=yes
+	fi
+
+	# patch servername if it has changed
+	if [ "$servername" != "$servername_old" ]; then
+		echo "  Changing servername from $servername_old to $servername ..."
+		ssh -p 222 $ipcopip_old /var/linuxmuster/patch-servername.sh $servername_old $servername
+		fw_modified=yes
+	fi
+
+	# patch domainname if it has changed
+	if [ "$domainname" != "$domainname_old" ]; then
+		echo "  Changing domainname from $domainname_old to $domainname ..."
+		ssh -p 222 $ipcopip_old /var/linuxmuster/patch-domainname.sh $domainname_old $domainname $servername
+		fw_modified=yes
+	fi
+
+	# create new firewall http cert
+	if [ "$update_fw_cert" = "yes" ]; then
+		echo " Creating new https and ssh certificate ..."
+		ssh -p 222 $ipcopip_old /usr/local/bin/httpscert new
+		fw_modified=yes
+	fi
+
+	# patch openvpn config
+	if [ "$update_certs" = "yes" ]; then
+		echo "  Changing Patching OpenVPN configuration ..."
+		ssh -p 222 $ipcopip_old /var/linuxmuster/patch-ovpn.sh "$country" "$state" "$location" "$schoolname"
+		fw_modified=yes
+	fi
+	# serverexternname has changed
+	if [ "$update_extern" = "yes" -a "$fwconfig" = "ipfire" ]; then
+	 ssh -p 222 $ipcopip_old "/bin/sed -e \"s|^ROOTCERT_HOSTNAME=.*|ROOTCERT_HOSTNAME=$serverexternname|\" -i /var/ipfire/ovpn/settings"
+	 ssh -p 222 $ipcopip_old "/bin/sed -e \"s|^VPN_IP=.*|VPN_IP=$serverexternname|\" -i /var/ipfire/ovpn/settings"
+	fi
+
+	# delete obsolete keys and certs and reboot, if necessary
+	if [ "$update_certs" = "yes" -a "$update_fw_cert" = "yes" ]; then
+		echo "  Deleting firewall's host and OpenVPN keys and certificates ..."
+		if [ "$fwconfig" = "ipfire" ]; then
+		 ssh -p 222 $ipcopip_old "/bin/rm /etc/ssh/*key* /root/.ssh/authorized_keys && /var/linuxmuster/create-ovpn-certs && /sbin/reboot"
+		else
+		 ssh -p 222 $ipcopip_old "/bin/rm /etc/ssh/*key* /var/$fwconfig/ovpn/ca/dh1024.pem /root/.ssh/authorized_keys && /sbin/reboot"
+		fi
+	elif [ "$update_fw_cert" = "yes" ]; then
+		echo "  Deleting firewall's host key ..."
+		ssh -p 222 $ipcopip_old "/bin/rm /etc/ssh/*key* && /sbin/reboot"
+	elif [ "$update_certs" = "yes" ]; then
+		echo "  Deleting firewall's OpenVPN keys and certificates ..."
+		if [ "$fwconfig" = "ipfire" ]; then
+		 ssh -p 222 $ipcopip_old "/bin/rm /root/.ssh/authorized_keys && /var/linuxmuster/create-ovpn-certs && /sbin/reboot"
+		else
+		 ssh -p 222 $ipcopip_old "/bin/rm /var/$fwconfig/ovpn/ca/dh1024.pem /root/.ssh/authorized_keys && /sbin/reboot"
+		fi
+	elif [ "$fw_modified" = "yes" ]; then
+		ssh -p 222 $ipcopip_old /sbin/reboot
+	fi
+
+fi
+
