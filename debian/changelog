@@ -3,8 +3,9 @@ linuxmuster-base (6.1.1-0ubuntu0) babo; urgency=low
   * Merge pull request #23 from fschuett/fix-461: calling custom.bat if it exists (closes #461).
   * Merge pull request #22 from fschuett/fix-349: cupsd.conf BrowseAddress fix (closes #349).
   * Merge pull request #21 from fschuett/fix-419: wimport.sh: Added test for room - ipranges (closes #419).
+  * Fixed discovering of network interfaces which are named like em* (closes #468).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 7 Jul 2015 10:34:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 7 Jul 2015 11:16:00 +0200
 
 linuxmuster-base (6.1.0-30ubuntu0) babo; urgency=low
 
