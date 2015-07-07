@@ -344,6 +344,14 @@ rooms="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $1 }' | sort -u)"
 for i in $rooms; do
  check_string "$i" || exitmsg "$i is no valid room name!"
 done
+# rooms;ips
+roomsips="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $1";"gensub(".[[:digit:]]+","",4,$5) }' | sort -u)"
+for i in $roomsips; do
+ r=$(echo $i|awk -F\; '{ print $1 }')
+ n=$(echo $roomsips|tr ' ' '\n'|grep ^"$r;" | wc -l)
+ ips=$(echo $roomsips|tr ' ' '\n'|grep ^"$r;"| cut -d\; -f2| tr '\n' ' ')
+ [ $n -eq 1 ] || exitmsg "room $r has multiple ip ranges $ips!"
+done
 
 # hostgroups
 hostgroups="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print "#"$3"#" }' | sort -u)"
