@@ -38,7 +38,13 @@ log-facility local7;
 allow booting;
 allow bootp;
 
+option arch code 93 = unsigned integer 16; #RFC4578
+option configfile code 150 = string;
+if option arch = 00:07 {
+filename "grub.efi";
+} else {
 filename "grub/pxegrub.0";
+}
 
 next-server @@serverip@@;
 

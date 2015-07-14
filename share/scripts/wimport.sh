@@ -200,6 +200,15 @@ Group = $group" -i $conf || RC="1"
  return "$RC"
 }
 
+# get systemtype 64bit from start.conf
+is_systemtype64(){
+ local conf="$LINBODIR/start.conf.$group"
+ if [ -e "$conf" ]; then
+  grep -iw ^systemtype "$conf" | grep -q "64" && return 0
+ fi
+ return 1
+}
+
 # get reboot option from start.conf
 get_reboot(){
  local conf="$LINBODIR/start.conf.$1"
@@ -228,8 +237,20 @@ set_pxeconfig(){
  else
   default="linbo"
  fi
+ # get linbo kernel, initrd
+ if is_systemtype64 "$group"; then
+  kernel="linbo64"
+  kernelfs="linbofs64.lz"
+ else
+  kernel="linbo"
+  kernelfs="linbofs.lz"
+ fi
+ # get kernel options
+ kopts="$(linbo_kopts "$LINBODIR/start.conf.$group")"
  # create configfile
- sed -e "s|@@default@@|$default|
+ sed -e "s|@@kernel@@|$kernel|
+         s|@@kernelfs@@|$kernelfs|
+         s|@@default@@|$default|
          s|@@kopts@@|$kopts|g" "$LINBOPXETPL" > "$conf" || RC="1"
  return "$RC"
 }
@@ -344,6 +365,15 @@ rooms="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $1 }' | sort -u)"
 for i in $rooms; do
  check_string "$i" || exitmsg "$i is no valid room name!"
 done
+# rooms;ips
+roomsips="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $1";"gensub(".[[:digit:]]+","",4,$5) }' | sort -u)"
+for i in $roomsips; do
+ r=$(echo $i|awk -F\; '{ print $1 }')
+ n=$(echo $roomsips|tr ' ' '\n'|grep ^"$r;" | wc -l)
+ ips=$(echo $roomsips|tr ' ' '\n'|grep ^"$r;"| cut -d\; -f2| tr '\n' ' ')
+ [ $n -eq 1 ] || exitmsg "room $r has multiple ip ranges $ips!"
+done
+
 # rooms;ips
 roomsips="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $1";"gensub(".[[:digit:]]+","",4,$5) }' | sort -u)"
 for i in $roomsips; do
