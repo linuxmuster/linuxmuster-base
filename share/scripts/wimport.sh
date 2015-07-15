@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 11.04.2015
+# 14.07.2015
 # GPL v3
 #
 

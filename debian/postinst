@@ -452,12 +452,6 @@ EOF
   # dhcpd.conf update
   echo "DHCP configuration update"
   conf="/etc/dhcp/dhcpd.conf"
-  # determine pxe boot method
-  if [ -e "$LINBODIR/grub/pxegrub.0" ]; then
-   suffix="pxegrub"
-  else
-   suffix="pxelinux"
-  fi
   # according to subnetting
   if [ "$subnetting" = "true" ]; then
    dhcpbc="$srvnetbc"
@@ -467,7 +461,7 @@ EOF
    dhcpmask="$INTERNMASK"
   fi
   # patch the according template
-  tpl="$DYNTPLDIR/05_dhcp/$(basename "$conf").$suffix"
+  tpl="$DYNTPLDIR/05_dhcp/$(basename "$conf")"
   cp "$conf" "${conf}.dpkg-bak"
   sed -e "s/@@servername@@/${servername}/g
           s/@@domainname@@/${domainname}/g
@@ -478,14 +472,8 @@ EOF
           s/@@internalnet@@/${internalnet}/g
           s/@@dhcpmask@@/${dhcpmask}/g" "$tpl" > "$conf"
   # patch dhcp host definitions if necessary
-  if [ "$suffix" = "pxegrub" ]; then
-   if grep -q pxelinux.configfile "${conf}.linuxmuster"; then
-    sed -e 's/pxelinux.configfile \"pxelinux.cfg\//extensions-path \"/g' -i "${conf}.linuxmuster"
-   fi
-  else
-   if grep -q extensions-path "${conf}.linuxmuster"; then
-    sed -e 's/extensions-path \"/pxelinux.configfile \"pxelinux.cfg\//g' -i "${conf}.linuxmuster"
-   fi
+  if grep -q extensions-path "${conf}.linuxmuster"; then
+   sed -e 's/extensions-path \"/pxelinux.configfile \"pxelinux.cfg\//g' -i "${conf}.linuxmuster"
   fi
   # remove free range if subnetting is set
   [ "$subnetting" = "true" ] && removefrom_file "$conf" "$BEGINSTR" "$ENDSTR"

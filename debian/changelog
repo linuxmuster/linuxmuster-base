@@ -1,11 +1,13 @@
-linuxmuster-base (6.1.1-1fschuett) babo; urgency=low
+linuxmuster-base (6.1.2-0ubuntu0) babo-testing; urgency=low
 
-  * start.conf: Variable system=bios|bios64|efi32|efi64 (Standard: bios bedeutet bios 32bit linbo)
-  * DHCP boot ia32 / x64 / bios
-  * added wlan (ticket #98)
-  * import_workstations writes linbo/linbo64 to pxe-config
+  * Merged feature/wlan from Frank Schütte:
+    * start.conf: Variable system=bios|bios64|efi32|efi64 (Standard: bios bedeutet bios 32bit linbo)
+    * DHCP boot ia32 / x64 / bios
+    * added wlan (ticket #98)
+    * import_workstations writes linbo/linbo64 to pxe-config
+  * removed experimental pxegrub support finally.
 
- -- Frank Schütte <fschuett@gymnasium-himmelsthuer.de>  Sun, 21 Sep 2014 15:04:45 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 14 Jul 2015 15:33:38 +0000
 
 linuxmuster-base (6.1.1-0ubuntu0) babo; urgency=low
 
