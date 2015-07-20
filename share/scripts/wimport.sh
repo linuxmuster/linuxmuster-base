@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 14.07.2015
+# 20.07.2015
 # GPL v3
 #
 
@@ -9,7 +9,6 @@ DB10TMP=/var/tmp/db10.$$
 DBREVTMP=/var/tmp/dbrev.$$
 SERVERNET="${srvnetip}/${SUBNETBITMASK}"
 SRVNETLINE="$SERVERNET;$srvnetgw;;;0;0"
-LINBOPXETPL="$LINBOTPLDIR/default.pxe"
 
 RC=0
 
@@ -200,58 +199,98 @@ Group = $group" -i $conf || RC="1"
  return "$RC"
 }
 
+# deprecated because of grub2
 # get systemtype 64bit from start.conf
-is_systemtype64(){
- local conf="$LINBODIR/start.conf.$group"
- if [ -e "$conf" ]; then
-  grep -iw ^systemtype "$conf" | grep -q "64" && return 0
- fi
- return 1
-}
+#is_systemtype64(){
+# local conf="$LINBODIR/start.conf.$group"
+# if [ -e "$conf" ]; then
+#  grep -iw ^systemtype "$conf" | grep -q "64" && return 0
+# fi
+# return 1
+#}
 
+# deprecated because of grub2
 # get reboot option from start.conf
-get_reboot(){
- local conf="$LINBODIR/start.conf.$1"
- if [ -e "$conf" ]; then
-  grep -iw ^kernel "$conf" | grep -qiw reboot && return 0
- fi
- return 1
+#get_reboot(){
+# local conf="$LINBODIR/start.conf.$1"
+# if [ -e "$conf" ]; then
+#  grep -iw ^kernel "$conf" | grep -qiw reboot && return 0
+# fi
+# return 1
+#}
+
+# compute and print grub2 compliant disk name
+grubdisk(){
+ local partition="$1"
+ local partnr="$(echo "$partition" | sed -e 's|/dev/[hsv]da||')"
+ local ord="$(printf "$(echo $partition | sed 's|[1-9]||' | sed 's|/dev/[hsv]d||')" | od -A n -t d1)"
+ local disknr=$(( $ord - 97 ))
+ echo "(hd${disknr},msdos${partnr})"
 }
 
 # sets pxe config file, params: group kopts
 set_pxeconfig(){
  local group="$1"
  local kopts="$2"
- local conf="$PXECFGDIR/$group"
- if ([ -s "$conf" ] && ! grep -q "$MANAGEDSTR" "$conf"); then
+ local RC="0"
+ local startconf="$LINBODIR/start.conf.$group"
+ local targetconf="$LINBODIR/grub/$group.cfg"
+ local globaltpl="$LINBOTPLDIR/grub.cfg.global"
+ local ostpl
+ local ostype
+ if ([ -s "$targetconf" ] && ! grep -q "$MANAGEDSTR" "$targetconf"); then
   echo -e "\tkeeping pxe config."
   return 0
  fi
+
+ # create gobal part for group cfg
  echo -e "\twriting pxe config."
- local default
- local kopts
- local RC="0"
- # get default boot label
- if get_reboot "$group"; then
-  default="reboot"
- else
-  default="linbo"
- fi
- # get linbo kernel, initrd
- if is_systemtype64 "$group"; then
-  kernel="linbo64"
-  kernelfs="linbofs64.lz"
- else
-  kernel="linbo"
-  kernelfs="linbofs.lz"
- fi
- # get kernel options
- kopts="$(linbo_kopts "$LINBODIR/start.conf.$group")"
- # create configfile
- sed -e "s|@@kernel@@|$kernel|
-         s|@@kernelfs@@|$kernelfs|
-         s|@@default@@|$default|
-         s|@@kopts@@|$kopts|g" "$LINBOPXETPL" > "$conf" || RC="1"
+ sed -e "s|@@group@@|$group|
+         s|@@kopts@@|$kopts|g" "$globaltpl" > "$targetconf" || RC="1"
+
+ # collect boot parameters from start.conf and write os parts for group cfg
+ local line
+ local partition
+ local osname
+ local osroot
+ local kernel
+ local initrd
+ local append
+ local n=0
+ local count="$(grep -ciw ^name "$startconf")"
+ while true; do
+  n=$((n + 1))
+  [ $n -gt $count ] && break
+  # kernel
+  kernel="$(grep -iw -m $n ^kernel "$startconf" | tail -n1 | awk -F\= '{ print $2 }' | awk -F\# '{ print $1 }' | sed 's|^ *||g' | sed 's| *$||g' | sed 's|^\/||')"
+  [ -z "kernel" ] && continue
+  # name of os
+  osname="$(grep -iw -m $n ^name "$startconf" | tail -n1 | awk -F\= '{ print $2 }' | awk -F\# '{ print $1 }' | sed 's|^ *||g' | sed 's| *$||g')"
+  # boot/osroot
+  partition="$(grep -iw -m $n ^boot "$startconf" | tail -n1 | awk -F\= '{ print $2 }' | awk -F\# '{ print $1 }' | sed 's|^ *||g' | sed 's| *$||g')"
+  osroot="$(grubdisk "$partition")"
+  # initrd
+  initrd="$(grep -iw -m $n ^initrd "$startconf" | tail -n1 | awk -F\= '{ print $2 }' | awk -F\# '{ print $1 }' | sed 's|^ *||g' | sed 's| *$||g' | sed 's|^\/||')"
+  # append
+  append="$(grep -iw -m $n ^append "$startconf" | tail -n1 | awk -F\= '{ print $2 }' | awk -F\# '{ print $1 }' | sed 's|^ *||g' | sed 's| *$||g')"
+  # detect os type
+  if [ -n "$kernel" -a -n "$initrd" ]; then
+   ostype="linux"
+  elif [ "$kernel" = "grub.exe" -o "$kernel" = "reboot" ]; then
+   ostype="windows"
+  else
+   ostype="other"
+  fi
+  ostpl="$LINBOTPLDIR/grub.cfg.$ostype"
+  sed -e "s|@@nr@@|$n|g
+          s|@@kernel@@|$kernel|g
+          s|@@initrd@@|$initrd|g
+          s|@@append@@|$append|g
+          s|@@partition@@|$partition|
+          s|@@osroot@@|$osroot|
+          s|@@osname@@|$osname|" "$ostpl" >> "$targetconf" || RC="1"
+ done
+
  return "$RC"
 }
 
@@ -286,17 +325,18 @@ do_pxe(){
   fi
   # set group in start.conf
   set_group "$group" || RC="2"
-  # provide pxelinux configfile for group
+  # provide grub2 pxe configfile for group
   set_pxeconfig "$group" "$kopts" || RC="2"
  fi
 
  # create start.conf link for host
  ln -sf "start.conf.$group" "$LINBODIR/start.conf-$ip" || RC="1"
+ # deprecated because of grub2
  # create pxelinux cfg link for host
- local hostip="$(gethostip -x "$ip")" || RC="1"
- if [ -n "$hostip" ]; then
-  ln -sf "$group" "$PXECFGDIR/$hostip" || RC="1"
- fi
+# local hostip="$(gethostip -x "$ip")" || RC="1"
+# if [ -n "$hostip" ]; then
+#  ln -sf "$group" "$PXECFGDIR/$hostip" || RC="1"
+# fi
  case "$RC" in
   1) echo "   ERROR in pxe host configuration!" ;;
   2) echo "   ERROR in pxe group configuration!" ;;
@@ -320,10 +360,8 @@ write_dhcp_host() {
  [ "$pxe" = "3" -a -z "$opsiip" ] && pxe="1"
  case "$pxe" in
   1|2|22)
-   # experimental pxegrub support
-   if [ -e "$LINBODIR/grub/pxegrub.0" ]; then
-    echo "  option extensions-path \"${hostgroup}\";"
-   fi
+   # needed by grub2 pxe
+   echo "  option extensions-path \"${hostgroup}\";"
   ;;
   3)
    echo "  next-server $opsiip;"
@@ -519,9 +557,10 @@ echo ";$BEGINSTR" > $DBREVTMP
 # remove linbo/pxe links
 echo -n "Removing old links under $LINBODIR ... "
 find "$LINBODIR" -name "start.conf-*" -type l -exec rm '{}' \;
-for i in $PXECFGDIR/*; do
- if [ -L "$i" ] && [[ "$(basename $i)" =~ [A-F0-9]{4} ]]; then rm "$i"; fi
-done
+# deprecated because of grub2
+#for i in $PXECFGDIR/*; do
+# if [ -L "$i" ] && [[ "$(basename $i)" =~ [A-F0-9]{4} ]]; then rm "$i"; fi
+#done
 echo "Done!"
 echo
 

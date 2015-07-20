@@ -1,7 +1,7 @@
 # linuxmuster shell helperfunctions
 #
 # thomas@linuxmuster.net
-# 30.10.2014
+# 20.07.2015
 # GPL v3
 #
 
