@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 20.07.2015
+# 24.07.2015
 # GPL v3
 #
 
@@ -199,15 +199,13 @@ Group = $group" -i $conf || RC="1"
  return "$RC"
 }
 
-# deprecated because of grub2
-# get systemtype 64bit from start.conf
-#is_systemtype64(){
-# local conf="$LINBODIR/start.conf.$group"
-# if [ -e "$conf" ]; then
-#  grep -iw ^systemtype "$conf" | grep -q "64" && return 0
-# fi
-# return 1
-#}
+# get systemtype from start.conf
+get_systemtype(){
+ local group="$1"
+ local conf="$LINBODIR/start.conf.$group"
+ [ -e "$conf" ] || return 1
+ grep -iw ^systemtype "$conf" | tail -1 | awk -F\= '{ print $2 }' | awk '{ print $1 }'
+}
 
 # deprecated because of grub2
 # get reboot option from start.conf
@@ -222,10 +220,12 @@ Group = $group" -i $conf || RC="1"
 # compute and print grub2 compliant disk name
 grubdisk(){
  local partition="$1"
+ local group="$2"
+ local startconf="$LINBODIR/start.conf.$group"
  local partnr="$(echo "$partition" | sed -e 's|/dev/[hsv]da||')"
  local ord="$(printf "$(echo $partition | sed 's|[1-9]||' | sed 's|/dev/[hsv]d||')" | od -A n -t d1)"
  local disknr=$(( $ord - 97 ))
- echo "(hd${disknr},msdos${partnr})"
+ echo "(hd${disknr},${partnr})"
 }
 
 # sets pxe config file, params: group kopts
@@ -234,7 +234,7 @@ set_pxeconfig(){
  local kopts="$2"
  local RC="0"
  local startconf="$LINBODIR/start.conf.$group"
- local targetconf="$LINBODIR/grub/$group.cfg"
+ local targetconf="$LINBODIR/boot/grub/$group.cfg"
  local globaltpl="$LINBOTPLDIR/grub.cfg.global"
  local ostpl
  local ostype
@@ -268,7 +268,7 @@ set_pxeconfig(){
   osname="$(grep -iw -m $n ^name "$startconf" | tail -n1 | awk -F\= '{ print $2 }' | awk -F\# '{ print $1 }' | sed 's|^ *||g' | sed 's| *$||g')"
   # boot/osroot
   partition="$(grep -iw -m $n ^boot "$startconf" | tail -n1 | awk -F\= '{ print $2 }' | awk -F\# '{ print $1 }' | sed 's|^ *||g' | sed 's| *$||g')"
-  osroot="$(grubdisk "$partition")"
+  osroot="$(grubdisk "$partition" "$group")"
   # initrd
   initrd="$(grep -iw -m $n ^initrd "$startconf" | tail -n1 | awk -F\= '{ print $2 }' | awk -F\# '{ print $1 }' | sed 's|^ *||g' | sed 's| *$||g' | sed 's|^\/||')"
   # append
@@ -360,8 +360,15 @@ write_dhcp_host() {
  [ "$pxe" = "3" -a -z "$opsiip" ] && pxe="1"
  case "$pxe" in
   1|2|22)
-   # needed by grub2 pxe
+   # inform grub about hostgroup
    echo "  option extensions-path \"${hostgroup}\";"
+   # bootfiles for efi netboot
+   local systemtype="$(get_systemtype "$hostgroup")"
+   if [ "$systemtype" = "efi64" ]; then
+    echo "  filename \"boot/grub/x86_64-efi/core.efi\";"
+   elif [ "$systemtype" = "efi32" ]; then
+    echo "  filename \"boot/grub/i386-efi/core.efi\";"
+   fi
   ;;
   3)
    echo "  next-server $opsiip;"
