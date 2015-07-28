@@ -256,39 +256,40 @@ set_pxeconfig(){
  local kernel
  local initrd
  local append
+ local ostpl="$LINBOTPLDIR/grub.cfg.os"
  local n=0
- local count="$(grep -ciw ^name "$startconf")"
- while true; do
-  n=$((n + 1))
-  [ $n -gt $count ] && break
-  # kernel
-  kernel="$(grep -iw -m $n ^kernel "$startconf" | tail -n1 | awk -F\= '{ print $2 }' | awk -F\# '{ print $1 }' | sed 's|^ *||g' | sed 's| *$||g' | sed 's|^\/||')"
-  [ -z "kernel" ] && continue
-  # name of os
-  osname="$(grep -iw -m $n ^name "$startconf" | tail -n1 | awk -F\= '{ print $2 }' | awk -F\# '{ print $1 }' | sed 's|^ *||g' | sed 's| *$||g')"
-  # boot/osroot
-  partition="$(grep -iw -m $n ^boot "$startconf" | tail -n1 | awk -F\= '{ print $2 }' | awk -F\# '{ print $1 }' | sed 's|^ *||g' | sed 's| *$||g')"
-  osroot="$(grubdisk "$partition" "$group")"
-  # initrd
-  initrd="$(grep -iw -m $n ^initrd "$startconf" | tail -n1 | awk -F\= '{ print $2 }' | awk -F\# '{ print $1 }' | sed 's|^ *||g' | sed 's| *$||g' | sed 's|^\/||')"
-  # append
-  append="$(grep -iw -m $n ^append "$startconf" | tail -n1 | awk -F\= '{ print $2 }' | awk -F\# '{ print $1 }' | sed 's|^ *||g' | sed 's| *$||g')"
-  # detect os type
-  if [ -n "$kernel" -a -n "$initrd" ]; then
-   ostype="linux"
-  elif [ "$kernel" = "grub.exe" -o "$kernel" = "reboot" ]; then
-   ostype="windows"
-  else
-   ostype="other"
+ echo "[EOF]" | cat "$startconf" - | grep -v '^$\|^\s*\#' | awk -F\# '{ print $1 }' | sed -e 's|^ *||g' -e 's| *$||g' -e 's| =|=|g' -e 's|= |=|g' | while read line; do
+  if [ "${line:0:1}" = "[" ]; then
+   if [ -n "$kernel" ]; then
+    n=$((n + 1))
+    if [ "$kernel" = "reboot" ]; then
+     kernel="nokernel_placeholder"
+    else
+     kernel="$(echo $kernel | sed 's|\/||')"
+    fi
+    if [ -z "$initrd" ]; then
+     initrd="noinitrd_placeholder"
+    else
+     initrd="$(echo $initrd | sed 's|\/||')"
+    fi
+    osroot="$(grubdisk "$boot" "$group")"
+    # create config from template
+    sed -e "s|@@nr@@|$n|
+            s|@@kernel@@|$kernel|g
+            s|@@initrd@@|$initrd|g
+            s|@@append@@|$append|g
+            s|@@partition@@|$boot|g
+            s|@@osroot@@|$osroot|
+            s|@@osname@@|$name|" "$ostpl" >> "$targetconf" || RC="1"
+   fi
+   name=""; boot=""; kernel=""; initrd=""; append=""; osroot=""
+   continue
   fi
-  ostpl="$LINBOTPLDIR/grub.cfg.$ostype"
-  sed -e "s|@@nr@@|$n|g
-          s|@@kernel@@|$kernel|g
-          s|@@initrd@@|$initrd|g
-          s|@@append@@|$append|g
-          s|@@partition@@|$partition|
-          s|@@osroot@@|$osroot|
-          s|@@osname@@|$osname|" "$ostpl" >> "$targetconf" || RC="1"
+  case "$line" in
+   [Nn][Aa][Mm][Ee]=*) name="$(echo $line | awk -F\= '{ print $2 }')" ;;
+   [Aa][Pp][Pp][Ee][Nn][Dd]=*) append="$(echo $line | awk -F\= '{ print $2 }')" ;;
+   [Bb][Oo][Oo][Tt]=*|[Kk][Ee][Rr][Nn][Ee][Ll]=*|[Ii][Nn][Ii][Tt][Rr][Dd]=*) eval "$(echo $line | tr A-Z a-z)" ;;
+  esac
  done
 
  return "$RC"

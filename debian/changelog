@@ -1,13 +1,14 @@
 linuxmuster-base (6.1.3-1ubuntu0) babo-testing; urgency=low
 
   * changed grub prefix to boot/grub in wimport.sh.
-  * grub loader paths in dhcpd.conf template.
+  * added grub loader paths in dhcpd.conf template.
+  * fixed typo in 40_linbo/prepatch.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 24 Jul 2015 20:45:49 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 28 Jul 2015 09:23:23 +0200
 
 linuxmuster-base (6.1.3-0ubuntu0) babo-testing; urgency=low
 
-  * feature/grub2.
+  * initial implementation of feature/grub2.
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 20 Jul 2015 21:39:10 +0200
 
