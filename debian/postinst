@@ -222,9 +222,11 @@ case "$1" in
    for i in Lehrkräfte Prüfungen Räume; do
     [ -L "$d/$i" ] && rm "$d/$i"
    done
-   for i in "Klassen classes" "Kollegium teachers" "Projekte projects" "Schule school"; do
+   for i in "Klassen classes" "Kollegium teachers" "Projekte projects" "Schule school" "Räume rooms"; do
     # no link for teachers in tasks
     [ "$d" = "$TASKSCACHE" -a "$i" = "Kollegium teachers" ] && continue
+    # no link for rooms in share
+    [ "$d" = "$SHAREHOME" -a "$i" = "Räume rooms" ] && continue
     lnk="$d/$(echo $i | awk '{ print $1 }')"
     src="$(echo $i | awk '{ print $2 }')"
     [ ! -L "$lnk" -a -e "$d/$src" ] && ln -sf "$src" "$lnk"
