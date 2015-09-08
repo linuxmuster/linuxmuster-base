@@ -1,3 +1,11 @@
+linuxmuster-base (6.1.3-2ubuntu0) babo-testing; urgency=low
+
+  * wimport.sh, set_pxe_config():
+    * added cache partition in grub.cfg global template.
+    * kernel and initrd fix for grub.cfg os template (closes #479).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 08 Sep 2015 09:10:27 +0200
+ 
 linuxmuster-base (6.1.3-1ubuntu0) babo-testing; urgency=low
 
   * changed grub prefix to boot/grub in wimport.sh.

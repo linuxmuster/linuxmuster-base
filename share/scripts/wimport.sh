@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 24.07.2015
+# 08.09.2015
 # GPL v3
 #
 
@@ -236,6 +236,8 @@ set_pxeconfig(){
  local startconf="$LINBODIR/start.conf.$group"
  local targetconf="$LINBODIR/boot/grub/$group.cfg"
  local globaltpl="$LINBOTPLDIR/grub.cfg.global"
+ local cache="$(grep -i ^cache /$startconf | tail -1 | awk -F\= '{ print $2 }' | awk '{ print $1 }' 2> /dev/null)"
+ local cacheroot="$(grubdisk "$cache" "$group")"
  local ostpl
  local ostype
  if ([ -s "$targetconf" ] && ! grep -q "$MANAGEDSTR" "$targetconf"); then
@@ -246,6 +248,7 @@ set_pxeconfig(){
  # create gobal part for group cfg
  echo -e "\twriting pxe config."
  sed -e "s|@@group@@|$group|
+         s|@@cacheroot@@|$cacheroot|
          s|@@kopts@@|$kopts|g" "$globaltpl" > "$targetconf" || RC="1"
 
  # collect boot parameters from start.conf and write os parts for group cfg
@@ -265,12 +268,12 @@ set_pxeconfig(){
     if [ "$kernel" = "reboot" ]; then
      kernel="nokernel_placeholder"
     else
-     kernel="$(echo $kernel | sed 's|\/||')"
+     kernel="$(echo $kernel | sed 's|^\/||')"
     fi
     if [ -z "$initrd" ]; then
      initrd="noinitrd_placeholder"
     else
-     initrd="$(echo $initrd | sed 's|\/||')"
+     initrd="$(echo $initrd | sed 's|^\/||')"
     fi
     osroot="$(grubdisk "$boot" "$group")"
     # create config from template
@@ -302,6 +305,7 @@ do_pxe(){
  local ip="$2"
  local RC="0"
  local server=""
+ local kopts=""
  # copy default start.conf if there is none for this group
  if [ ! -e "$LINBODIR/start.conf.$group" ]; then
   echo "    Creating new linbo group $group."
