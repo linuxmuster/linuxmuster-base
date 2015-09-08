@@ -409,7 +409,7 @@ sed -e 's/\(^[A-Za-z0-9].*\)/\L\1/
 
 
 # check workstation data
-echo -n "Checking workstation data ..."
+echo "Checking workstation data ..."
 # rooms
 rooms="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $1 }' | sort -u)"
 for i in $rooms; do
@@ -421,16 +421,7 @@ for i in $roomsips; do
  r=$(echo $i|awk -F\; '{ print $1 }')
  n=$(echo $roomsips|tr ' ' '\n'|grep ^"$r;" | wc -l)
  ips=$(echo $roomsips|tr ' ' '\n'|grep ^"$r;"| cut -d\; -f2| tr '\n' ' ')
- [ $n -eq 1 ] || exitmsg "room $r has multiple ip ranges $ips!"
-done
-
-# rooms;ips
-roomsips="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $1";"gensub(".[[:digit:]]+","",4,$5) }' | sort -u)"
-for i in $roomsips; do
- r=$(echo $i|awk -F\; '{ print $1 }')
- n=$(echo $roomsips|tr ' ' '\n'|grep ^"$r;" | wc -l)
- ips=$(echo $roomsips|tr ' ' '\n'|grep ^"$r;"| cut -d\; -f2| tr '\n' ' ')
- [ $n -eq 1 ] || exitmsg "room $r has multiple ip ranges $ips!"
+ [ $n -eq 1 ] || echo "WARNING: room $r has multiple ip ranges $ips!"
 done
 
 # hostgroups

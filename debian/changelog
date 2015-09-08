@@ -1,3 +1,11 @@
+linuxmuster-base (6.1.3-3ubuntu0) babo-testing; urgency=low
+
+  * wimport.sh:
+    * Changed multiple ip ranges check of rooms from error to warning.
+    * fixed double room check.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 08 Sep 2015 12:26:58 +0000
+ 
 linuxmuster-base (6.1.3-2ubuntu0) babo-testing; urgency=low
 
   * wimport.sh, set_pxe_config():
