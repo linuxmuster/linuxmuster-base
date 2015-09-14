@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 08.09.2015
+# 14.09.2015
 # GPL v3
 #
 
@@ -222,7 +222,7 @@ grubdisk(){
  local partition="$1"
  local group="$2"
  local startconf="$LINBODIR/start.conf.$group"
- local partnr="$(echo "$partition" | sed -e 's|/dev/[hsv]da||')"
+ local partnr="$(echo "$partition" | sed -e 's|/dev/[hsv]d[abcdefgh]||')"
  local ord="$(printf "$(echo $partition | sed 's|[1-9]||' | sed 's|/dev/[hsv]d||')" | od -A n -t d1)"
  local disknr=$(( $ord - 97 ))
  echo "(hd${disknr},${partnr})"
