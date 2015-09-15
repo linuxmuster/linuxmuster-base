@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 14.09.2015
+# 15.09.2015
 # GPL v3
 #
 
@@ -290,7 +290,7 @@ set_pxeconfig(){
   fi
   case "$line" in
    [Nn][Aa][Mm][Ee]=*) name="$(echo $line | awk -F\= '{ print $2 }')" ;;
-   [Aa][Pp][Pp][Ee][Nn][Dd]=*) append="$(echo $line | awk -F\= '{ print $2 }')" ;;
+   [Aa][Pp][Pp][Ee][Nn][Dd]=*) append="$(echo $line | sed s'|^[Aa][Pp][Pp][Ee][Nn][Dd]=||')" ;;
    [Bb][Oo][Oo][Tt]=*|[Kk][Ee][Rr][Nn][Ee][Ll]=*|[Ii][Nn][Ii][Tt][Rr][Dd]=*) eval "$(echo $line | tr A-Z a-z)" ;;
   esac
  done
