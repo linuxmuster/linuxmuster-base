@@ -1,4 +1,4 @@
-linuxmuster-base (6.1.4-4ubuntu0) babo-testing; urgency=low
+linuxmuster-base (6.1.4-0ubuntu0) babo-testing; urgency=low
 
   * wimport.sh:
     * append fix for grub.cfg os template (closes #479 finally).
