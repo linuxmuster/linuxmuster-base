@@ -1,6 +1,12 @@
+linuxmuster-base (6.1.6-0ubuntu0) babo-testing; urgency=low
+
+  * helperfunctions.sh: minor code improvements, increased sleep to 10 in checklock().
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 30 Oct 2015 10:57:46 +0100
+
 linuxmuster-base (6.1.5-0ubuntu0) babo-testing; urgency=low
 
-  * merged Frank Schütttes pull requests #28 & #29:
+  * merged Frank Schüttes pull requests #28 & #29:
     - Add link Räume -> rooms for tasks (#475).
     - Remove wlan related files (moved to schulkonsole-0.19.0-1).
     - group_defaults no longer needed.

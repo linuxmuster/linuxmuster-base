@@ -1,7 +1,7 @@
 # linuxmuster shell helperfunctions
 #
 # thomas@linuxmuster.net
-# 20.07.2015
+# 30.10.2015
 # GPL v3
 #
 
@@ -53,7 +53,7 @@ checklock() {
     while [ $n -lt $TIMEOUT ]; do
       remaining=$(($(($TIMEOUT-$n))*10))
       echo "Remaining $remaining seconds to wait ..."
-      sleep 1
+      sleep 10
       if [ ! -e "$lockflag" ]; then
         touch $lockflag || return 1
         echo "Lockfile released!"
@@ -740,6 +740,7 @@ assign_nics() {
 # uid=$1
 get_login_by_id() {
   unset RET
+  [ -z "$1" ] && return 1
   RET=`psql -U ldap -d ldap -t -c "select uid from userdata where id = '$1';"`
 }
 
@@ -747,6 +748,7 @@ get_login_by_id() {
 # username=$1
 get_uidnumber() {
   unset RET
+  [ -z "$1" ] && return 1
   RET=`psql -U ldap -d ldap -t -c "select uidnumber from posix_account where uid = '$1';"`
 }
 
@@ -754,6 +756,7 @@ get_uidnumber() {
 # group=$1
 get_gidnumber() {
   unset RET
+  [ -z "$1" ] && return 1
   RET=`psql -U ldap -d ldap -t -c "select gidnumber from groups where gid = '$1';"`
 }
 
@@ -762,7 +765,9 @@ get_gidnumber() {
 get_pgroup() {
   unset T_RET
   unset RET
+  [ -z "$1" ] && return 1
   T_RET=`psql -U ldap -d ldap -t -c "select gidnumber from posix_account where uid = '$1';"`
+  [ -z "$T_RET" ] && return 1
   RET=`psql -U ldap -d ldap -t -c "select gid from groups where gidnumber = '$T_RET';"`
 }
 
@@ -770,6 +775,7 @@ get_pgroup() {
 # username=$1
 get_homedir() {
   unset RET
+  [ -z "$1" ] && return 1
   RET=`psql -U ldap -d ldap -t -c "select homedirectory from posix_account where uid = '$1';"`
 }
 
@@ -777,6 +783,7 @@ get_homedir() {
 # username=$1
 get_realname() {
   unset RET
+  [ -z "$1" ] && return 1
   RET=`psql -U ldap -d ldap -t -c "select gecos from posix_account where uid = '$1';"`
 }
 
@@ -784,6 +791,7 @@ get_realname() {
 # group=$1
 get_pgroup_members() {
   unset RET
+  [ -z "$1" ] && return 1
   RET=`psql -U ldap -d ldap -t -c "select uid from memberdata where adminclass = '$1';"`
 }
 
@@ -791,6 +799,7 @@ get_pgroup_members() {
 # group=$1
 get_group_members() {
   unset RET
+  [ -z "$1" ] && return 1
   RET=`psql -U ldap -d ldap -t -c "select uid from memberdata where adminclass = '$1' or gid = '$1';"`
 }
 
@@ -798,6 +807,7 @@ get_group_members() {
 # group=$1
 check_project() {
   unset RET
+  [ -z "$1" ] && return 1
   RET=`psql -U ldap -d ldap -t -c "select gid from projectdata where gid = '$1';"`
   strip_spaces $RET
   [ "$RET" = "$1" ] && return 0
@@ -809,6 +819,8 @@ check_project() {
 check_group() {
   # check valid gid
   unset RET
+  [ -z "$1" ] && return 1
+
   get_gidnumber $1
   [ -z "$RET" ] && return 1
   [ "$RET" -lt 10000 ] && return 1
@@ -916,29 +928,17 @@ check_id() {
 # check if user is teacher
 # teacher=$1
 check_teacher() {
-  unset RET
   [ -z "$1" ] && return 1
-  local RC=1
-  get_group_members $TEACHERSGROUP
-  if echo "$RET" | grep -qw $1; then
-    RC=0
-  fi
-  unset RET
-  return $RC
+  groups "$1" | grep -qw "$TEACHERSGROUP" && return 0
+  return 1
 }
 
 # check if user is admin
 # admin=$1
 check_admin() {
-  unset RET
-  [ -z "$1" ] && return 1
-  local RC=1
-  get_group_members $DOMADMINS
-  if echo "$RET" | grep -qw $1; then
-    RC=0
-  fi
-  unset RET
-  return $RC
+ [ -z "$1" ] && return 1
+ groups "$1" | grep -qw "$DOMADMINS" && return 0
+ return 1
 }
 
 
