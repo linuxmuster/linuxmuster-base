@@ -33,6 +33,7 @@ if [ "$1" = "--first" -o "$update_certs" = "yes" ]; then
   [ -d /root/.ssh ] && rm -rf /root/.ssh
   mkdir /root/.ssh
   ssh-keygen -N "" -q -t dsa -f /root/.ssh/id_dsa
+  ssh-keygen -N "" -q -t rsa -f /root/.ssh/id_rsa
 
 fi
 
