@@ -14,15 +14,13 @@ if [ "$1" = "--first" -o "$update_certs" = "yes" ]; then
   # new apache cert
   $SCRIPTSDIR/create-ssl-cert.sh
 
-  # delete ssh host keys
+  # delete old ssh keys
   rm -f /etc/ssh/*key*
-
-  # delete root ssh keys
   rm -rf /root/.ssh
   mkdir -p /root/.ssh
 
-  # create new ssh host key
-  for i in dsa rsa ecdsa ed25519; do
+  # create new ssh keys for root and host
+  for i in dsa rsa ecdsa; do
    rootkey="/root/.ssh/id_${i}"
    hostkey="/etc/ssh/ssh_host_${i}_key"
    ssh-keygen -t "$i" -f "$hostkey" -N ''

@@ -1,8 +1,8 @@
 linuxmuster-base (6.2.0-0ubuntu0) babo-testing; urgency=low
 
-  * added ecdsa and ed25519 ssh root and host keys (see #468).
+  * added ecdsa ssh root and host keys (see #468).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 04 Nov 2015 13:20:16 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 04 Nov 2015 13:48:59 +0100
 
 linuxmuster-base (6.1.6-0ubuntu0) babo-testing; urgency=low
 
