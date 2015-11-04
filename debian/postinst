@@ -530,13 +530,14 @@ EOF
   fi
   rm -f /var/lib/update-notifier/release-upgrade-available
 
-  # create missing ssh keys (#498)
-  for i in ecdsa ed25519; do
-   rootkey="/root/.ssh/id_${i}"
-   hostkey="/etc/ssh/ssh_host_${i}_key"
-   [ -e "$rootkey" ] || ssh-keygen -N "" -q -t "$i" -f "$rootkey"
-   if [ ! -e "$hostkey" ]; then
-    ssh-keygen -N "" -q -t "$i" -f "$hostkey"
+  # create missing ecdsa ssh keys (#498)
+  rootkey="/root/.ssh/id_ecdsa"
+  hostkey="/etc/ssh/ssh_host_ecdsa_key"
+  for i in $rootkey $hostkey; do
+   if [ ! -e "$i" ]; then
+    echo -n "Creating ssh key $i ... "
+    ssh-keygen -N "" -q -t ecdsa -f "$i"
+    echo "Done!"
     ssh_reload="yes"
    fi
   done
