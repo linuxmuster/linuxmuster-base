@@ -1,6 +1,6 @@
 #
 # thomas@linuxmuster.net
-# 26.11.2013
+# 04.11.2015
 # GPL v3
 #
 
@@ -12,30 +12,27 @@ chmod 744 $SCRIPTSDIR/create-ssl-cert.sh
 if [ "$1" = "--first" -o "$update_certs" = "yes" ]; then
 
   # new apache cert
-  $SCRIPTSDIR//create-ssl-cert.sh
+  $SCRIPTSDIR/create-ssl-cert.sh
 
-  # delete ssh host key
-  rm /etc/ssh/*key*
+  # delete ssh host keys
+  rm -f /etc/ssh/*key*
+
+  # delete root ssh keys
+  rm -rf /root/.ssh
+  mkdir -p /root/.ssh
 
   # create new ssh host key
-  ssh-keygen -t dsa -f /etc/ssh/ssh_host_dsa_key -N ''
-  ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -N ''
+  for i in dsa rsa ecdsa ed25519; do
+   rootkey="/root/.ssh/id_${i}"
+   hostkey="/etc/ssh/ssh_host_${i}_key"
+   ssh-keygen -t "$i" -f "$hostkey" -N ''
+   ssh-keygen -t "$i" -f "$rootkey" -N ''
+  done
 
 fi
 
-# start ssh
-start ssh
-
-if [ "$1" = "--first" -o "$update_certs" = "yes" ]; then
-
-  # ssh key for root
-  rm /root/.ssh/known_hosts
-  [ -d /root/.ssh ] && rm -rf /root/.ssh
-  mkdir /root/.ssh
-  ssh-keygen -N "" -q -t dsa -f /root/.ssh/id_dsa
-
-fi
+service ssh start
 
 # ssl-cert permissions
-[ "$1" = "--first" ] && chown root:ssl-cert /etc/ssl/private -R
-
+chown root:ssl-cert /etc/ssl/private -R
+chmod 750 /etc/ssl/private

@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 15.10.2015
+# 04.11.2015
 # GPL v3
 #
 
@@ -507,6 +507,17 @@ EOF
    sed "/^SSLProtocol/ s/$/ ${searchstr/\\/}/" -i "$conf"
   fi
 
+  # create missing ssh keys (#498)
+  for i in ecdsa ed25519; do
+   rootkey="/root/.ssh/id_${i}"
+   hostkey="/etc/ssh/ssh_host_${i}_key"
+   [ -e "$rootkey" ] || ssh-keygen -N "" -q -t "$i" -f "$rootkey"
+   if [ ! -e "$hostkey" ]; then
+    ssh-keygen -N "" -q -t "$i" -f "$hostkey"
+    ssh_reload="yes"
+   fi
+  done
+
   # updating release information
   echo "$DISTNAME $DISTFULLVERSION / Codename $CODENAME" > /etc/issue
   cp /etc/issue /etc/issue.net
@@ -523,12 +534,12 @@ EOF
   # reload services
   apache2ctl graceful || true
   reload smbd || true
-  #reload nmbd || true
-  [ -n "$apparmor_reload" ] && /etc/init.d/apparmor restart
+  [ -n "$ssh_reload" ] && service ssh reload
+  [ -n "$apparmor_reload" ] && service apparmor restart
   [ -n "$cups_reload" ] && reload cups
-  [ -n "$cyrus_reload" ] && /etc/init.d/cyrus-imapd reload
-  [ -n "$nagios_reload" ] && /etc/init.d/nagios3 restart
-  [ -n "$bind_reload" ] && /etc/init.d/bind9 force-reload
+  [ -n "$cyrus_reload" ] && service cyrus-imapd reload
+  [ -n "$nagios_reload" ] && service nagios3 restart
+  [ -n "$bind_reload" ] && service bind9 force-reload
   if [ -n "$dhcp_reload" ]; then
    if status isc-dhcp-server | grep -q running; then
     reload isc-dhcp-server
