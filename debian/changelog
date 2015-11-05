@@ -1,3 +1,9 @@
+linuxmuster-base (6.2.0-1ubuntu0) babo-testing; urgency=low
+
+  * wimport.sh: modifications due to extended linbo's grub config templates.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 05 Nov 2015 13:54:48 +0100
+
 linuxmuster-base (6.2.0-0ubuntu0) babo-testing; urgency=low
 
   * added ecdsa ssh root and host keys (see #468).

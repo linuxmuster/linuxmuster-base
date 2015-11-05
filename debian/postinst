@@ -526,7 +526,7 @@ EOF
   # remove upgrade-notice to 14.04 and make it not come back (closes #355)
   conf="/etc/update-manager/release-upgrades"
   if [ -s "$conf" ]; then
-   echo "Disabling release upgrade announcments."
+   echo "Disabling release upgrade announcements."
    cp "$conf" "${conf}.dpkg-bak"
    sed -e "s/^Prompt=lts$/Prompt=never/" -i "$conf"
   fi

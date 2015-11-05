@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 15.09.2015
+# 05.10.2015
 # GPL v3
 #
 
@@ -247,24 +247,26 @@ set_pxeconfig(){
 
  # create gobal part for group cfg
  echo -e "\twriting pxe config."
- sed -e "s|@@group@@|$group|
-         s|@@cacheroot@@|$cacheroot|
+ sed -e "s|@@group@@|$group|g
+         s|@@cacheroot@@|$cacheroot|g
          s|@@kopts@@|$kopts|g" "$globaltpl" > "$targetconf" || RC="1"
 
  # collect boot parameters from start.conf and write os parts for group cfg
  local line
- local partition
+ local partnr
+ local root
+ local name
  local osname
  local osroot
  local kernel
  local initrd
  local append
  local ostpl="$LINBOTPLDIR/grub.cfg.os"
- local n=0
+ local osnr=0
  echo "[EOF]" | cat "$startconf" - | grep -v '^$\|^\s*\#' | awk -F\# '{ print $1 }' | sed -e 's|^ *||g' -e 's| *$||g' -e 's| =|=|g' -e 's|= |=|g' | while read line; do
   if [ "${line:0:1}" = "[" ]; then
    if [ -n "$kernel" ]; then
-    n=$((n + 1))
+    osnr=$((osnr + 1))
     if [ "$kernel" = "reboot" ]; then
      kernel="nokernel_placeholder"
     else
@@ -275,23 +277,28 @@ set_pxeconfig(){
     else
      initrd="$(echo $initrd | sed 's|^\/||')"
     fi
-    osroot="$(grubdisk "$boot" "$group")"
+    osroot="$(grubdisk "$root" "$group")"
+    partnr="$(grep -i ^dev "$startconf" | grep -n "$root" | awk -F\: '{ print $1 }')"
     # create config from template
-    sed -e "s|@@nr@@|$n|
+    sed -e "s|@@osnr@@|$osnr|g
             s|@@kernel@@|$kernel|g
             s|@@initrd@@|$initrd|g
             s|@@append@@|$append|g
-            s|@@partition@@|$boot|g
-            s|@@osroot@@|$osroot|
-            s|@@osname@@|$name|" "$ostpl" >> "$targetconf" || RC="1"
+            s|@@partition@@|$root|g
+            s|@@partnr@@|$partnr|g
+            s|@@osroot@@|$osroot|g
+            s|@@osname@@|$name|g
+            s|@@group@@|$group|g
+            s|@@cacheroot@@|$cacheroot|g
+            s|@@kopts@@|$kopts|g" "$ostpl" >> "$targetconf" || RC="1"
    fi
-   name=""; boot=""; kernel=""; initrd=""; append=""; osroot=""
+   name=""; root=""; kernel=""; initrd=""; append=""; osroot=""
    continue
   fi
   case "$line" in
    [Nn][Aa][Mm][Ee]=*) name="$(echo $line | awk -F\= '{ print $2 }')" ;;
    [Aa][Pp][Pp][Ee][Nn][Dd]=*) append="$(echo $line | sed s'|^[Aa][Pp][Pp][Ee][Nn][Dd]=||')" ;;
-   [Bb][Oo][Oo][Tt]=*|[Kk][Ee][Rr][Nn][Ee][Ll]=*|[Ii][Nn][Ii][Tt][Rr][Dd]=*) eval "$(echo $line | tr A-Z a-z)" ;;
+   [Rr][Oo][Oo][Tt]=*|[Kk][Ee][Rr][Nn][Ee][Ll]=*|[Ii][Nn][Ii][Tt][Rr][Dd]=*) eval "$(echo $line | tr A-Z a-z)" ;;
   esac
  done
 
