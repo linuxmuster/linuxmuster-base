@@ -1,3 +1,9 @@
+linuxmuster-base (6.2.0-2ubuntu0) babo-testing; urgency=low
+
+  * wimport.sh: modifications due to linbo's grub theme support.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 06 Nov 2015 21:53:28 +0100
+
 linuxmuster-base (6.2.0-1ubuntu0) babo-testing; urgency=low
 
   * wimport.sh: modifications due to extended linbo's grub config templates.

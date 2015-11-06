@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 05.10.2015
+# 06.10.2015
 # GPL v3
 #
 
@@ -256,7 +256,6 @@ set_pxeconfig(){
  local partnr
  local root
  local name
- local osname
  local osroot
  local kernel
  local initrd
@@ -277,8 +276,27 @@ set_pxeconfig(){
     else
      initrd="$(echo $initrd | sed 's|^\/||')"
     fi
+    # convert partition to grub syntax
     osroot="$(grubdisk "$root" "$group")"
+    # computer partition number from start.conf
     partnr="$(grep -i ^dev "$startconf" | grep -n "$root" | awk -F\: '{ print $1 }')"
+    # get ostype from osname
+    case "$(echo "$name" | tr A-Z a-z)" in
+     *windows*) ostype="win" ;;
+     *kubuntu*) ostype="kubuntu" ;;
+     *lubuntu*) ostype="lubuntu" ;;
+     *xubuntu*) ostype="xubuntu" ;;
+     *ubuntu*|*trusty*|*wily*) ostype="ubuntu" ;;
+     *centos*) ostype="centos" ;;
+     *arch*) ostype="arch" ;;
+     *linuxmint*) ostype="linuxmint" ;;
+     *fedora*) ostype="fedora" ;;
+     *gentoo*) ostype="gentoo" ;;
+     *debian*) ostype="debian" ;;
+     *suse*) ostype="opensuse" ;;
+     *linux*) ostype="linux" ;;
+     *) ostype="unknown" ;;
+    esac
     # create config from template
     sed -e "s|@@osnr@@|$osnr|g
             s|@@kernel@@|$kernel|g
@@ -288,11 +306,12 @@ set_pxeconfig(){
             s|@@partnr@@|$partnr|g
             s|@@osroot@@|$osroot|g
             s|@@osname@@|$name|g
+            s|@@ostype@@|$ostype|g
             s|@@group@@|$group|g
             s|@@cacheroot@@|$cacheroot|g
             s|@@kopts@@|$kopts|g" "$ostpl" >> "$targetconf" || RC="1"
    fi
-   name=""; root=""; kernel=""; initrd=""; append=""; osroot=""
+   name=""; root=""; kernel=""; initrd=""; append=""; osroot=""; ostype=""
    continue
   fi
   case "$line" in
