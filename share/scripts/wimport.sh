@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 06.10.2015
+# 28.11.2015
 # GPL v3
 #
 
@@ -218,13 +218,17 @@ get_systemtype(){
 #}
 
 # compute and print grub2 compliant disk name
+# args: partition
 grubdisk(){
  local partition="$1"
- local group="$2"
- local startconf="$LINBODIR/start.conf.$group"
- local partnr="$(echo "$partition" | sed -e 's|/dev/[hsv]d[abcdefgh]||')"
- local ord="$(printf "$(echo $partition | sed 's|[1-9]||' | sed 's|/dev/[hsv]d||')" | od -A n -t d1)"
- local disknr=$(( $ord - 97 ))
+ local partnr="$(echo "$partition" | sed -e 's|/dev/[hsv]d[abcdefgh]||' -e 's|/dev/xvd[abcdefgh]||' -e 's|/dev/mmcblk[0-9]p||')"
+ case "$partition" in
+  /dev/mmcblk*) local disknr="$(echo "$partition" | sed 's|/dev/mmcblk[0-9]p\([0-9]*\)|\1|')" ;;
+  *)
+   local ord="$(printf "$(echo $partition | sed 's|/dev/*[hsv]d\([a-z]\)[0-9]|\1|')" | od -A n -t d1)"
+   local disknr=$(( $ord - 97 ))
+   ;;
+ esac
  echo "(hd${disknr},${partnr})"
 }
 
