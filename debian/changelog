@@ -1,3 +1,9 @@
+linuxmuster-base (6.1.2-0ubuntu0) babo; urgency=low
+
+  * Add link Räume -> rooms for tasks (#475).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 16 Jan 2016 14:25:51 +0100
+
 linuxmuster-base (6.1.1-1ubuntu0) babo; urgency=low
 
   * added ecdsa ssh root and host keys (see #468).
