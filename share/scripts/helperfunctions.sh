@@ -53,7 +53,7 @@ checklock() {
     while [ $n -lt $TIMEOUT ]; do
       remaining=$(($(($TIMEOUT-$n))*10))
       echo "Remaining $remaining seconds to wait ..."
-      sleep 1
+      sleep 10
       if [ ! -e "$lockflag" ]; then
         touch $lockflag || return 1
         echo "Lockfile released!"
