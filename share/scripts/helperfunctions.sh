@@ -1,7 +1,7 @@
 # linuxmuster shell helperfunctions
 #
 # thomas@linuxmuster.net
-# 30.10.2015
+# 19.01.2016
 # GPL v3
 #
 
@@ -454,6 +454,11 @@ exec_ipcop() {
  # test connection
  ssh -p 222 root@$ipcopip $* &> /dev/null || return 1
  return 0
+}
+
+# execute a command on firewall width feedback
+exec_ipcop_fb() {
+  ssh -p 222 root@$ipcopip $*
 }
 
 # fetch file from firewall

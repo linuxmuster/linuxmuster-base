@@ -1,3 +1,10 @@
+linuxmuster-base (6.2.0-5ubuntu0) babo-testing; urgency=low
+
+  * Merged pull request #31 of FreeInMind for linuxmuster-ipfire --upgrade,
+    added function exec_ipcop_fb() to helperfunctions.sh.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 19 Jan 2016 16:37:34 +0100
+
 linuxmuster-base (6.2.0-4ubuntu0) babo-testing; urgency=low
 
   * internet_on_off: ensure that upload paths exist.
