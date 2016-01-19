@@ -456,6 +456,11 @@ exec_ipcop() {
  return 0
 }
 
+# execute a command on firewall width feedback
+exec_ipcop_fb() {
+  ssh -p 222 root@$ipcopip $*
+}
+
 # fetch file from firewall
 get_ipcop() {
  scp -r -P 222 root@$ipcopip:$1 $2 &> /dev/null || return 1
