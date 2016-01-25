@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 04.11.2015
+# 25.01.2016
 # GPL v3
 #
 
@@ -473,10 +473,10 @@ EOF
           s/@@internsub@@/${internsub}/g
           s/@@internalnet@@/${internalnet}/g
           s/@@dhcpmask@@/${dhcpmask}/g" "$tpl" > "$conf"
-  # patch dhcp host definitions if necessary
-  if grep -q extensions-path "${conf}.linuxmuster"; then
-   sed -e 's/extensions-path \"/pxelinux.configfile \"pxelinux.cfg\//g' -i "${conf}.linuxmuster"
-  fi
+  # patch dhcp host definitions if necessary, deprecated
+  #if grep -q extensions-path "${conf}.linuxmuster"; then
+  # sed -e 's/extensions-path \"/pxelinux.configfile \"pxelinux.cfg\//g' -i "${conf}.linuxmuster"
+  #fi
   # remove free range if subnetting is set
   [ "$subnetting" = "true" ] && removefrom_file "$conf" "$BEGINSTR" "$ENDSTR"
   # provide custom file
