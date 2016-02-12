@@ -1,3 +1,10 @@
+linuxmuster-base (6.2.0-8ubuntu0) babo-testing; urgency=low
+
+  * smb.conf: allowed guest in linbo-repo share.
+  * wimport.sh: fixed remote cache issue (closes #550).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 12 Feb 2016 14:09:08 +0100
+
 linuxmuster-base (6.2.0-7ubuntu0) babo-testing; urgency=low
 
   * removed linuxmuster-schulkonsole-template from server task (closes #538).

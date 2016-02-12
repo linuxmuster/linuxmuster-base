@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 28.11.2015
+# 10.02.2016
 # GPL v3
 #
 
@@ -224,6 +224,7 @@ grubdisk(){
  local partnr="$(echo "$partition" | sed -e 's|/dev/[hsv]d[abcdefgh]||' -e 's|/dev/xvd[abcdefgh]||' -e 's|/dev/mmcblk[0-9]p||')"
  case "$partition" in
   /dev/mmcblk*) local disknr="$(echo "$partition" | sed 's|/dev/mmcblk[0-9]p\([0-9]*\)|\1|')" ;;
+  *:*|*//*|*\\\\*) echo "nocache" ; return 0 ;; # remote cache, no local cache, no cache partition
   *)
    local ord="$(printf "$(echo $partition | sed 's|/dev/*[hsv]d\([a-z]\)[0-9]|\1|')" | od -A n -t d1)"
    local disknr=$(( $ord - 97 ))
