@@ -1,3 +1,9 @@
+linuxmuster-base (6.2.0-9ubuntu0) babo-testing; urgency=low
+
+  * linuxmuster-reset: hostname-begins-with-cipher-fix (closes #568).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 04 Mar 2016 17:38:01 +0100
+
 linuxmuster-base (6.2.0-8ubuntu0) babo-testing; urgency=low
 
   * smb.conf: allowed guest in linbo-repo share.

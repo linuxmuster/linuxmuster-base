@@ -4,7 +4,7 @@
 # resets the internet, intranet, webfilter, lession state of rooms/hosts
 #
 # thomas@linuxmuster.net
-# 28.01.2014
+# 04.03.2016
 # GPL V3
 #
 
@@ -144,7 +144,7 @@ if [ -n "$all" ]; then
 elif [ -n "$host" ]; then
 
  # test if host is defined in workstations file
- if ! grep ^[A-Za-z] $WIMPORTDATA | awk -F\; '{ print "X"$2"X" }' | grep -qiw X${host}X; then
+ if ! grep ^[0-9A-Za-z] $WIMPORTDATA | awk -F\; '{ print "X"$2"X" }' | grep -qiw X${host}X; then
   echo "Host $host is not known to the system." | tee -a $LOGFILE
   exit_script
  fi
