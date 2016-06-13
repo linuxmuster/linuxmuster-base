@@ -1,3 +1,10 @@
+linuxmuster-base (6.2.0-10ubuntu0) babo62; urgency=low
+
+  * fixed syntax error in wimport.sh.
+  * fixed quotes in extrakurse template. 
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 13 Jun 2016 15:45:44 +0200
+
 linuxmuster-base (6.2.0-9ubuntu0) babo-testing; urgency=low
 
   * linuxmuster-reset: hostname-begins-with-cipher-fix (closes #568).
