@@ -1,10 +1,10 @@
 #
 # thomas@linuxmuster.net
-# 31.05.2014
+# 01.07.2016
 # GPL v3
 #
 
-echo "### 02_firewall postpatch"
+echo "### 04_firewall postpatch"
 
 # remove firewall from known_hosts if it is there, on first install or certificates need to be renewed
 if [ -e /root/.ssh/known_hosts -a -n "$ipcoppw" ]; then

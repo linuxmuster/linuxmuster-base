@@ -739,7 +739,7 @@ for room in $rooms; do
  [ "$room" = "default" ] && continue
  # skip other entries which are not rooms
  grep ^[a-zA-Z0-9] $WIMPORTDATA | grep -q \;$room\; && continue
- if ! awk -F\; '{ print $1 }' $WIMPORTDATA | sort -u | grep ^[a-zA-Z0-9] | grep -qw ${room}; then
+ if ! awk -F\; '{ print $1 }' $WIMPORTDATA | sort -u | grep ^[a-zA-Z0-9] | grep -qw "${room}"; then
   FOUND=1
   remove_defaults $room ; RC_LINE="$?"
   [ $RC_LINE -eq 0 ] || RC=1
@@ -748,7 +748,7 @@ done
 # printers
 rooms="$(grep ^[a-zA-Z0-9] $PRINTERS | awk '{ print $2 }' | grep ^[a-z0-9] | sed -e 's|,| |g')"
 for room in $rooms; do
- if ! awk -F\; '{ print $1 }' $WIMPORTDATA | sort -u | grep -qw ${room}; then
+ if ! awk -F\; '{ print $1 }' $WIMPORTDATA | sort -u | grep -qw "${room}"; then
   FOUND=1
   remove_printeraccess $room
  fi

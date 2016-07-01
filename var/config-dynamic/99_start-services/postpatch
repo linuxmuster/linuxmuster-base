@@ -1,6 +1,6 @@
 #
 # thomas@linuxmuster.net
-# 28.02.2015
+# 01.07.2016
 # GPL v3
 #
 
@@ -10,55 +10,29 @@ echo "### 99_start-services postpatch"
 chown root:crontab /var/spool/cron/crontabs/root
 chmod 600 /var/spool/cron/crontabs/root
 
-# only if firewall is not custom
-if [ "$fwconfig" != "custom" ]; then
+# waiting for firewall to come up 
+c=0
+maxwait=300
+while [ $c -lt $maxwait ]; do
 
- # waiting for firewall to come up 
- c=0
- maxwait=300
- while [ $c -lt $maxwait ]; do
-
-  if ping -c 2 $ipcopip &> /dev/null; then
-
-   # upload root's public key if ipcoppw is set
-   if [ -n "$ipcoppw" ]; then
-
-    # upload root's public key
-    echo "Uploading root's ssh key to $fwconfig ..."
-    mykey="$(cat /root/.ssh/id_dsa.pub)"
-    if [ -s /root/.ssh/known_hosts ]; then
-     for i in ipfire ipcop "$ipcopip" "$ipcopip_old"; do
-      ssh-keygen -f "/root/.ssh/known_hosts" -R ["$i"]:222 &> /dev/null
-     done
-    fi
-    echo "$ipcoppw" | "$SCRIPTSDIR/sshaskpass.sh" ssh -oStrictHostKeyChecking=no -p222 "$ipcopip" "mkdir -p /root/.ssh && echo "$mykey" > /root/.ssh/authorized_keys"
-
-   fi
-
-   success=yes
-   break
-
-  fi
-
-  let c+=5
-  echo "Waiting for Firewall, $c of $maxwait seconds ..."
-  sleep 5
-
- done
-
- if [ "$success" != "yes" ]; then
-  echo "Fatal! Firewall does not come up!"
- else
-  test_pwless_fw
+ if ping -c 2 $ipcopip &> /dev/null; then
+  fwup="yes"
+  break
  fi
  
-fi # fwconfig
+ let c+=5
+ echo "Waiting for Firewall, $c of $maxwait seconds ..."
+ sleep 5
+
+done
 
 # only if internet connection
-if ping -c 2 www.linuxmuster.net &> /dev/null; then
-	# set time
-	ntpdate pool.ntp.org
-	hwclock --utc
+if [ -n "$fwup" ]; then
+ if ping -c 2 www.linuxmuster.net &> /dev/null; then
+  # set time
+  ntpdate pool.ntp.org
+  hwclock --utc
+ fi
 fi
 
 # set installed flag
@@ -66,7 +40,7 @@ touch $INSTALLED
 
 # reconfigure linuxmuster-pkgs finally
 pkgs="base linbo schulkonsole"
-[ "$fwconfig" != "custom" ] && pkgs="$pkgs $fwconfig"
+[ "$fwconfig" != "custom" -a -n "$fwup" ] && pkgs="$pkgs $fwconfig"
 for i in $pkgs; do
  dpkg-reconfigure linuxmuster-$i
 done
@@ -91,7 +65,11 @@ for i in dbus openbsd-inetd atd cron openntpd linuxmuster-base isc-dhcp-server; 
 done
 
 # import_workstations
-[ "$1" = "--modify" ] && import_workstations
+if [ "$1" = "--modify" ]; then
+ import_workstations
+ service linbo-multicast restart
+ service linbo-bittorrent restart
+fi
 
 # update linbofs on initial setup or if certificates where renewed
 [ "$update_certs" = "yes" -o "$1" = "--first" ] && update-linbofs

@@ -1,3 +1,10 @@
+linuxmuster-base (6.2.0-11ubuntu0) babo62; urgency=low
+
+  * fixed linbo template name in dist.conf.
+  * fixed firewall setup on first install (closes #539).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 01 Jul 2016 20:51:18 +0200
+
 linuxmuster-base (6.2.0-10ubuntu0) babo62; urgency=low
 
   * fixed syntax error in wimport.sh.
