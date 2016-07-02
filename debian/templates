@@ -1,174 +1,160 @@
 Template: linuxmuster-base/intro
 Type: note
-Description: Hinweise zur Installation
- Für die im folgenden weitgehend automatisch ablaufende Installation\n
- benötigen Sie einige Daten, die automatisch in den Installations-\n
- prozess miteinbezogen werden. Dies sind:\n
- - der Name des Servers (z.B. server)\n
- - die Internet-Domäne des Schulnetzes (z.B linuxmuster.local)\n
- - die interne IP-Struktur Ihres Schulnetzes\n
- - ggf. die Adresse des Mailservers beim Provider (z.B.: mbox1.belwue.de)\n
- - Passwörter der administrativen User
+_description: Notes for Installation
+ You will need some data for the following - mainly automated -\n
+ installation:\n - Hostname of the server (z.B. server)\n - domain name of
+ the school network (z.B linuxmuster.local)\n - interanl IP sturcture of
+ the school network\n - optional: address of the mailserver (z.B.:
+ mbox1.belwue.de)\n - passwords for admin users
 
 Template: linuxmuster-base/country
 Type: string
-Default: DE
-Description: Länderkürzel?
- Geben Sie das Länderkürzel in Grossbuchstaben ein.\n
- Es sind nur 2 Zeichen erlaubt.
+_default: DE
+_description: Country?
+ Please enter the code for your country. \n 2 characters are allowed (e.g. US,
+ UK, DE)
 
 Template: linuxmuster-base/state
 Type: string
-Default: BW
-Description: Bundesland, Staat, Provinz?
- Geben Sie die Bezeichnung für das Bundesland ein.
+_default: BW
+_description: State, Province?
+ Please enter your state or province!
 
 Template: linuxmuster-base/location
 Type: string
-Default: Musterstadt
-Description: Schulort?
- Geben Sie den Schulort ein.
+_default: sampletown
+_description: Town?
+ Please enter the town of your school!
 
 Template: linuxmuster-base/schoolname
 Type: string
-Default: Musterschule
-Description: Schulname?
- Geben Sie den Schulnamen ein.
+_default: sampleschool
+_description: School name?
+ Please enter the name of the school!
 
 Template: shared/organization
 Type: string
-Description: Organization?
- Enthält den Schulnamen.
+_description: Organization?
+ Please enter the name of your organization (e.g. school name)!
 
 Template: linuxmuster-base/servername
 Type: string
-Default: server
-Description: Hostname des Servers?
- Geben Sie den Hostnamen des Servers ein.\n
- Es sind nur Buchstaben, Ziffern und das Minuszeichen erlaubt.
+_default: server
+_description: Hostname of the server?
+ Please enter a hostname for the server.\n Only letters, numbers and
+ hyphens are allowed!
 
 Template: linuxmuster-base/domainname
 Type: string
-Default: linuxmuster-net.lokal
-Description: Internet-Domäne des Schulnetzes?
- Geben Sie den Domänennamen des Schulnetzes ein.\n
- Es sind nur Buchstaben, Ziffern, Minuszeichen und Punkte\n
- erlaubt.
+_default: linuxmuster-net.local
+_description: Domain of the school network?
+ Geben Sie den Domänennamen des Schulnetzes ein.\n Es sind nur Buchstaben,
+ Ziffern, Minuszeichen und Punkte\n erlaubt.
 
 Template: linuxmuster-base/serverexternname
 Type: string
-Description: Externer Name des Servers?
- Geben Sie hier den vollständigen Namen (FQDN) ein,\n
- unter dem der Server extern erreichbar ist (z.B. Dyndns).\n
- Falls der Server keine externe Adresse hat,\n
- lassen Sie das Feld leer.
+_description: External name of the server?
+ Please enter the full external address (FQDN) of the server (e.g. Dyndns)!
+ \n If your server has no external address you can leave the field empty.
 
 Template: linuxmuster-base/workgroup
 Type: string
-Default: SCHULE
-Description: Samba-Domäne des Schulnetzes?
- Geben Sie die Samba-Domäne des Schulnetzes ein.\n
- Es sind nur Buchstaben erlaubt.\n
- Keine Leerzeichen, Umlaute oder sonstige Sonderzeichen!
+_default: SCHOOL
+_description: Samba-Domain of the school network?
+ Please enter the Samba domain name for the school network. \n Only letters
+ are allowed (no space, numbers or special characters)!
 
 Template: linuxmuster-base/fwconfig
 Type: select
-Choices: ipfire, custom
+_choices: ipfire, custom
+_description: Which firewall do you use?
+ Choose your type of firewall: \n - 'ipfire' if you have IPFire Firewall \n
+ - 'custom' ich you use another firewall solution.
 Default: ipfire
-Description: Welche Firewall wird verwendet?
- Wählen Sie den Typ der Firewall:\n
- 'ipfire' für die Installation mit IPFire.\n
- 'custom' wenn eine andere Firewalllösung verwendet wird.
 
 Template: linuxmuster-base/opsi
 Type: boolean
+_description: Activate support for OPSI-Server?
+ Please note, depending on your choice of the internal ip address range, \n
+ that your OPSI-Server has to be configured with an address like 10.n.1.2!
 Default: false
-Description: OPSI-Server-Unterstützung aktivieren?
- Beachten Sie, dass der OPSI-Server, je nach gewähltem internen Adressbereich,\n
- mit einer IP-Adresse nach dem Schema 10.n.1.2 konfiguriert sein muss.
 
 Template: linuxmuster-base/smtprelay
 Type: string
-Description: SMTP relay host?
- Geben Sie ein, über welchen Mailserver E-Mail
- verschickt und empfangen werden soll.\n
- Bsp.: mbox1.belwue.de
+_description: SMTP relay host?
+ Please enter the address of the Mailserver that should be used \n to send
+ and receive emails (e.g. mbox1.belwue.de)!
 
 Template: linuxmuster-base/subnetting
 Type: boolean
+_description: Subnetting?
+ Do you want to use subnetting?\n Please activate this option only if you
+ know what you are doing!
 Default: false
-Description: Subnetting?
- Wollen Sie Subnetting nutzen?\n
- Aktivieren Sie diese Option nur, wenn Sie genau wissen, was Sie tun.
 
 Template: linuxmuster-base/adminpw
 Type: password
-Description: Administrator-Passwort:
- Auf den folgenden Seiten müssen Sie administrative Passwörter eingeben.\n
- Das Administrator-Passwort auf dieser Seite wird für die Benutzer\n
- administrator, pgmadmin und wwwadmin verwendet.\n
- Sie können die Passwörter später mit sophomorix-passwd ändern.\n
- Folgende Zeichen in Passwörtern werden nicht unterstützt: äöüß$&{}![]+#
+_description: Administrator password:
+ Now you have to enter some passwords for the admin users.\n The password
+ will be used for the users\n - administrator, pgmadmin und wwwadmin.\n You
+ can change the passwords later with 'sophomorix-passwd'.\n The following
+ characters are not supported: äöüß$&{}![]+#
 
 Template: linuxmuster-base/adminpw_confirm
 Type: password
-Description: Bestätigen Sie das Administrator-Passwort:
- Geben Sie das Passwort für die Administratoren nochmals zur Bestätigung ein.
+_description: Confirm the administrator password:
+ Please confirm the password for the administrator!
 
 Template: linuxmuster-base/pgmadminpw
 Type: password
-Description: Programm-Administrator-Passwort:
- Geben Sie das Passwort für den Programm-Administrator pgmadmin ein.
+_description: Program administrator password:
+ Please enter the password for the program adminstrator pgadmin!
 
 Template: linuxmuster-base/wwwadminpw
 Type: password
-Description: Web-Administrator-Passwort:
- Geben Sie das Passwort für den Web-Administrator wwwadmin ein.
+_description: Web administrator password:
+ Please enter the password for the web administrator wwwadmin!
 
 Template: linuxmuster-base/opsipw
 Type: password
-Description: OPSI-Root-Passwort:
- Geben Sie das OPSI-Root-Passwort ein.
+_description: OPSI root password:
+ Please enter the OPSI root password!
 
 Template: linuxmuster-base/opsipw_confirm
 Type: password
-Description: Bestätigen Sie das OPSI-Root-Passwort:
- Geben Sie das OPSI-Root-Passwort nochmals zur Bestätigung ein.
+_description: Confirm OPSI root password:
+ Please confirm the OPSI root password!
 
 Template: linuxmuster-base/ipcoppw
 Type: password
-Description: Firewall-Root-Passwort:
- Geben Sie das Firewall-Root-Passwort ein.\n
- Hier das Root-Passwort einzugeben, \n
- dass Sie bei der Firewall-Installation vergeben haben.
+_description: Firewall root password:
+ Please enter the root password of you firewall!
 
 Template: linuxmuster-base/ipcoppw_confirm
 Type: password
-Description: Bestätigen Sie das Firewall-Root-Passwort:
- Geben Sie das Root-Passwort für die Firewall nochmals zur Bestätigung ein.
+_description: Confirm firewall root password:
+ Please confirm the firewall root password!
 
 Template: linuxmuster-base/sambasid
 Type: string
-Description: SID für samba?
- Keine Eingabe.
+_description: SID for samba?
+ No entry.
 
 Template: linuxmuster-base/internsubrange
 Type: select
-Choices: 16-31, 32-47, 48-63, 64-79, 80-95, 96-111, 112-127, 128-143, 144-159, 160-175, 176-191, 192-207, 208-223, 224-239
-Description: Interner Adressbereich?
- Wählen Sie den Adressbereich für das interne Netz aus:\n
- 16-31: 10.16.0.0 - 10.31.255.255\n
- 32-47: 10.32.0.0 - 10.47.255.255\n
- usw.\n
+_choices: 16-31, 32-47, 48-63, 64-79, 80-95, 96-111, 112-127, 128-143, 144-159, 160-175, 176-191, 192-207, 208-223, 224-239
+_description: Internal address range?
+ Please choose the internal ip address range:\n 16-31: 10.16.0.0 -
+ 10.31.255.255\n 32-47: 10.32.0.0 - 10.47.255.255\n ...\n
 
 Template: linuxmuster-base/nicmenu
 Type: select
-Choices: ${nic_choices}
-Description: Zuordnung der Netzwerkkarte
+_choices: ${nic_choices}
+_description: assignment network interfaces
  ${nic_desc}
 
 Template: linuxmuster-base/iface_lan
 Type: string
-Default: eth0
-Description: lan interface
- Keine Eingabe.
+_default: eth0
+_description: lan interface
+ No entry.

@@ -1,0 +1,485 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the linuxmuster-base package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Stephan Tetzel <npm@zefanjas.de>, 2016.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: linuxmuster-base\n"
+"Report-Msgid-Bugs-To: linuxmuster-base@packages.debian.org\n"
+"POT-Creation-Date: 2016-07-02 14:46+0700\n"
+"PO-Revision-Date: 2016-07-02 14:47+0700\n"
+"Last-Translator: Stephan Tetzel <npm@zefanjas.de>\n"
+"Language-Team: Deutsch <>\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+"X-Generator: Gtranslator 2.91.7\n"
+
+#. Type: note
+#. description
+#: ../templates:1001
+msgid "Notes for Installation"
+msgstr "Hinweise zur Installation"
+
+#. Type: note
+#. description
+#: ../templates:1001
+msgid ""
+"You will need some data for the following - mainly automated -\\n "
+"installation:\\n - Hostname of the server (z.B. server)\\n - domain name of "
+"the school network (z.B linuxmuster.local)\\n - interanl IP sturcture of the "
+"school network\\n - optional: address of the mailserver (z.B.: mbox1.belwue."
+"de)\\n - passwords for admin users"
+msgstr ""
+"Für die im folgenden weitgehend automatisch ablaufende Installation\\n\n"
+" benötigen Sie einige Daten, die automatisch in den Installations-\\n\n"
+" prozess miteinbezogen werden. Dies sind:\\n\n"
+" - der Name des Servers (z.B. server)\\n\n"
+" - die Internet-Domäne des Schulnetzes (z.B linuxmuster.local)\\n\n"
+" - die interne IP-Struktur Ihres Schulnetzes\\n\n"
+" - ggf. die Adresse des Mailservers beim Provider (z.B.: mbox1.belwue."
+"de)\\n\n"
+" - Passwörter der administrativen User"
+
+#. Type: string
+#. default
+#: ../templates:2001
+msgid "DE"
+msgstr "DE"
+
+#. Type: string
+#. description
+#: ../templates:2002
+#| msgid "Country"
+msgid "Country?"
+msgstr "Länderkürzel?"
+
+#. Type: string
+#. description
+#: ../templates:2002
+#| msgid ""
+#| "Please enter the code for your country. \\n 2 letters are allowed (e.g. "
+#| "US, UK, DE)"
+msgid ""
+"Please enter the code for your country. \\n 2 characters are allowed (e.g. "
+"US, UK, DE)"
+msgstr ""
+"Geben Sie das Länderkürzel in Großbuchstaben ein.\\n\n"
+" Es sind nur 2 Zeichen erlaubt."
+
+#. Type: string
+#. default
+#: ../templates:3001
+msgid "BW"
+msgstr "BW"
+
+#. Type: string
+#. description
+#: ../templates:3002
+msgid "State, Province?"
+msgstr "Bundesland, Staat, Provinz?"
+
+#. Type: string
+#. description
+#: ../templates:3002
+msgid "Please enter your state or province!"
+msgstr "Geben Sie die Bezeichnung für das Bundesland ein."
+
+#. Type: string
+#. default
+#: ../templates:4001
+msgid "sampletown"
+msgstr "Musterstadt"
+
+#. Type: string
+#. description
+#: ../templates:4002
+msgid "Town?"
+msgstr "Schulort?"
+
+#. Type: string
+#. description
+#: ../templates:4002
+msgid "Please enter the town of your school!"
+msgstr "Geben Sie den Schulort ein."
+
+#. Type: string
+#. default
+#: ../templates:5001
+msgid "sampleschool"
+msgstr "Musterschule"
+
+#. Type: string
+#. description
+#: ../templates:5002
+msgid "School name?"
+msgstr "Schulname?"
+
+#. Type: string
+#. description
+#: ../templates:5002
+msgid "Please enter the name of the school!"
+msgstr "Geben Sie den Schulnamen ein."
+
+#. Type: string
+#. description
+#: ../templates:6001
+msgid "Organization?"
+msgstr "Organization"
+
+#. Type: string
+#. description
+#: ../templates:6001
+msgid "Please enter the name of your organization (e.g. school name)!"
+msgstr "Enthält den Schulnamen."
+
+#. Type: string
+#. default
+#: ../templates:7001
+msgid "server"
+msgstr "server"
+
+#. Type: string
+#. description
+#: ../templates:7002
+msgid "Hostname of the server?"
+msgstr "Hostname des Servers?"
+
+#. Type: string
+#. description
+#: ../templates:7002
+msgid ""
+"Please enter a hostname for the server.\\n Only letters, numbers and hyphens "
+"are allowed!"
+msgstr ""
+"Geben Sie den Hostnamen des Servers ein.\\n\n"
+" Es sind nur Buchstaben, Ziffern und das Minuszeichen erlaubt."
+
+#. Type: string
+#. default
+#: ../templates:8001
+msgid "linuxmuster-net.local"
+msgstr "linuxmuster-net.lokal"
+
+#. Type: string
+#. description
+#: ../templates:8002
+msgid "Domain of the school network?"
+msgstr "Internet-Domäne des Schulnetzes?"
+
+#. Type: string
+#. description
+#: ../templates:8002
+msgid ""
+"Geben Sie den Domänennamen des Schulnetzes ein.\\n Es sind nur Buchstaben, "
+"Ziffern, Minuszeichen und Punkte\\n erlaubt."
+msgstr ""
+"Geben Sie den Domänennamen des Schulnetzes ein.\\n\n"
+" Es sind nur Buchstaben, Ziffern, Minuszeichen und Punkte\\n\n"
+" erlaubt."
+
+#. Type: string
+#. description
+#: ../templates:9001
+msgid "External name of the server?"
+msgstr "Externer Name des Servers?"
+
+#. Type: string
+#. description
+#: ../templates:9001
+msgid ""
+"Please enter the full external address (FQDN) of the server (e.g. Dyndns)! "
+"\\n If your server has no external address you can leave the field empty."
+msgstr ""
+"Geben Sie hier den vollständigen Namen (FQDN) ein,\\n\n"
+" unter dem der Server extern erreichbar ist (z.B. Dyndns).\\n\n"
+" Falls der Server keine externe Adresse hat,\\n\n"
+" lassen Sie das Feld leer."
+
+#. Type: string
+#. default
+#: ../templates:10001
+msgid "SCHOOL"
+msgstr "SCHULE"
+
+#. Type: string
+#. description
+#: ../templates:10002
+msgid "Samba-Domain of the school network?"
+msgstr "Samba-Domäne des Schulnetzes?"
+
+#. Type: string
+#. description
+#: ../templates:10002
+msgid ""
+"Please enter the Samba domain name for the school network. \\n Only letters "
+"are allowed (no space, numbers or special characters)!"
+msgstr ""
+"Geben Sie die Samba-Domäne des Schulnetzes ein.\\n\n"
+" Es sind nur Buchstaben erlaubt.\\n\n"
+" Keine Leerzeichen, Umlaute oder sonstige Sonderzeichen!"
+
+#. Type: select
+#. choices
+#: ../templates:11001
+msgid "ipfire, custom"
+msgstr "ipfire, custom"
+
+#. Type: select
+#. description
+#: ../templates:11002
+msgid "Which firewall do you use?"
+msgstr "Welche Firewall wird verwendet?"
+
+#. Type: select
+#. description
+#: ../templates:11002
+msgid ""
+"Choose your type of firewall: \\n - 'ipfire' if you have IPFire Firewall \\n "
+"- 'custom' ich you use another firewall solution."
+msgstr ""
+"Wählen Sie den Typ der Firewall:\\n\n"
+" 'ipfire' für die Installation mit IPFire.\\n\n"
+" 'custom' wenn eine andere Firewalllösung verwendet wird."
+
+#. Type: boolean
+#. description
+#: ../templates:12001
+msgid "Activate support for OPSI-Server?"
+msgstr "OPSI-Server-Unterstützung aktivieren?"
+
+#. Type: boolean
+#. description
+#: ../templates:12001
+msgid ""
+"Please note, depending on your choice of the internal ip address range, \\n "
+"that your OPSI-Server has to be configured with an address like 10.n.1.2!"
+msgstr ""
+"Beachten Sie, dass der OPSI-Server, je nach gewähltem internen Adressbereich,"
+"\\n\n"
+" mit einer IP-Adresse nach dem Schema 10.n.1.2 konfiguriert sein muss."
+
+#. Type: string
+#. description
+#: ../templates:13001
+msgid "SMTP relay host?"
+msgstr "SMTP relay host?"
+
+#. Type: string
+#. description
+#: ../templates:13001
+msgid ""
+"Please enter the address of the Mailserver that should be used \\n to send "
+"and receive emails (e.g. mbox1.belwue.de)!"
+msgstr ""
+"Geben Sie ein, über welchen Mailserver E-Mail\n"
+" verschickt und empfangen werden soll.\\n\n"
+" Bsp.: mbox1.belwue.de"
+
+#. Type: boolean
+#. description
+#: ../templates:14001
+msgid "Subnetting?"
+msgstr "Subnetting?"
+
+#. Type: boolean
+#. description
+#: ../templates:14001
+msgid ""
+"Do you want to use subnetting?\\n Please activate this option only if you "
+"know what you are doing!"
+msgstr ""
+"Wollen Sie Subnetting nutzen?\\n\n"
+" Aktivieren Sie diese Option nur, wenn Sie genau wissen, was Sie tun."
+
+#. Type: password
+#. description
+#: ../templates:15001
+msgid "Administrator password:"
+msgstr "Administrator-Passwort:"
+
+#. Type: password
+#. description
+#: ../templates:15001
+msgid ""
+"Now you have to enter some passwords for the admin users.\\n The password "
+"will be used for the users\\n - administrator, pgmadmin und wwwadmin.\\n You "
+"can change the passwords later with 'sophomorix-passwd'.\\n The following "
+"characters are not supported: äöüß$&{}![]+#"
+msgstr ""
+"Auf den folgenden Seiten müssen Sie administrative Passwörter eingeben.\\n\n"
+" Das Administrator-Passwort auf dieser Seite wird für die Benutzer\\n\n"
+" administrator, pgmadmin und wwwadmin verwendet.\\n\n"
+" Sie können die Passwörter später mit sophomorix-passwd ändern.\\n\n"
+" Folgende Zeichen in Passwörtern werden nicht unterstützt: äöüß$&{}![]+#"
+
+#. Type: password
+#. description
+#: ../templates:16001
+msgid "Confirm the administrator password:"
+msgstr "Bestätigen Sie das Administrator-Passwort:"
+
+#. Type: password
+#. description
+#: ../templates:16001
+msgid "Please confirm the password for the administrator!"
+msgstr ""
+"Geben Sie das Passwort für die Administratoren nochmals zur Bestätigung ein."
+
+#. Type: password
+#. description
+#: ../templates:17001
+msgid "Program administrator password:"
+msgstr "Programm-Administrator-Passwort:"
+
+#. Type: password
+#. description
+#: ../templates:17001
+msgid "Please enter the password for the program adminstrator pgadmin!"
+msgstr "Geben Sie das Passwort für den Programm-Administrator pgmadmin ein."
+
+#. Type: password
+#. description
+#: ../templates:18001
+msgid "Web administrator password:"
+msgstr "Web-Administrator-Passwort:"
+
+#. Type: password
+#. description
+#: ../templates:18001
+msgid "Please enter the password for the web administrator wwwadmin!"
+msgstr "Geben Sie das Passwort für den Web-Administrator wwwadmin ein."
+
+#. Type: password
+#. description
+#: ../templates:19001
+msgid "OPSI root password:"
+msgstr "OPSI-Root-Passwort:"
+
+#. Type: password
+#. description
+#: ../templates:19001
+msgid "Please enter the OPSI root password!"
+msgstr "Geben Sie das OPSI-Root-Passwort ein."
+
+#. Type: password
+#. description
+#: ../templates:20001
+msgid "Confirm OPSI root password:"
+msgstr "Bestätigen Sie das OPSI-Root-Passwort:"
+
+#. Type: password
+#. description
+#: ../templates:20001
+msgid "Please confirm the OPSI root password!"
+msgstr "Geben Sie das OPSI-Root-Passwort nochmals zur Bestätigung ein."
+
+#. Type: password
+#. description
+#: ../templates:21001
+msgid "Firewall root password:"
+msgstr "Firewall-Root-Passwort:"
+
+#. Type: password
+#. description
+#: ../templates:21001
+msgid "Please enter the root password of you firewall!"
+msgstr ""
+"Geben Sie das Firewall-Root-Passwort ein.\\n\n"
+" Hier das Root-Passwort einzugeben, \\n\n"
+" dass Sie bei der Firewall-Installation vergeben haben."
+
+#. Type: password
+#. description
+#: ../templates:22001
+msgid "Confirm firewall root password:"
+msgstr "Bestätigen Sie das Firewall-Root-Passwort:"
+
+#. Type: password
+#. description
+#: ../templates:22001
+msgid "Please confirm the firewall root password!"
+msgstr ""
+"Geben Sie das Root-Passwort für die Firewall nochmals zur Bestätigung ein."
+
+#. Type: string
+#. description
+#: ../templates:23001
+msgid "SID for samba?"
+msgstr "SID for samba?"
+
+#. Type: string
+#. description
+#. Type: string
+#. description
+#: ../templates:23001 ../templates:26002
+msgid "No entry."
+msgstr "Keine Eingabe."
+
+#. Type: select
+#. choices
+#: ../templates:24001
+msgid ""
+"16-31, 32-47, 48-63, 64-79, 80-95, 96-111, 112-127, 128-143, 144-159, "
+"160-175, 176-191, 192-207, 208-223, 224-239"
+msgstr ""
+"16-31, 32-47, 48-63, 64-79, 80-95, 96-111, 112-127, 128-143, 144-159, "
+"160-175, 176-191, 192-207, 208-223, 224-239"
+
+#. Type: select
+#. description
+#: ../templates:24002
+msgid "Internal address range?"
+msgstr "Interner Adressbereich?"
+
+#. Type: select
+#. description
+#: ../templates:24002
+msgid ""
+"Please choose the internal ip address range:\\n 16-31: 10.16.0.0 - "
+"10.31.255.255\\n 32-47: 10.32.0.0 - 10.47.255.255\\n ...\\n"
+msgstr ""
+"Wählen Sie den Adressbereich für das interne Netz aus:\\n\n"
+" 16-31: 10.16.0.0 - 10.31.255.255\\n\n"
+" 32-47: 10.32.0.0 - 10.47.255.255\\n\n"
+" usw.\\n"
+
+#. Type: select
+#. choices
+#: ../templates:25001
+msgid "${nic_choices}"
+msgstr ""
+
+#. Type: select
+#. description
+#: ../templates:25002
+msgid "assignment network interfaces"
+msgstr "Zuordnung der Netzwerkkarte"
+
+#. Type: select
+#. description
+#: ../templates:25002
+msgid "${nic_desc}"
+msgstr ""
+
+#. Type: string
+#. default
+#: ../templates:26001
+msgid "eth0"
+msgstr "eth0"
+
+#. Type: string
+#. description
+#: ../templates:26002
+msgid "lan interface"
+msgstr "lan interface"
+
+#~ msgid "Musterstadt"
+#~ msgstr "Musterstadt"
+
+#~ msgid "Musterschule"
+#~ msgstr "sampleschool"
