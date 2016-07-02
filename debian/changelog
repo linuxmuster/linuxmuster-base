@@ -1,3 +1,9 @@
+linuxmuster-base (6.2.0-12) babo62; urgency=low
+
+  * add feature request #509, access_custom.conf
+
+ -- Frank Schütte <fschuett@gymhim.de>  Sat, 02 Jul 2016 10:46:28 +0200
+
 linuxmuster-base (6.2.0-11ubuntu0) babo62; urgency=low
 
   * fixed linbo template name in dist.conf.
