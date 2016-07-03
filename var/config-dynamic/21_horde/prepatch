@@ -33,6 +33,9 @@ EOF
 	#Generate random secret key
 	SK=${cat /dev/urandom | tr -dc 'a-zA-Z0-9-' | fold -w 60 | head -n 1}
 
+	if [ -e horde.conf.php.orig ]; then
+	    mv horde.conf.php.orig horde.conf.php
+	fi
 	cp horde.conf.php horde.conf.php.orig
 	sed -i "s/@@SECRET_KEY@@/$SK/g" horde.conf.php
 	sed -i "s/@@HORDEPASS@@/$hordepw/g" horde.conf.php
