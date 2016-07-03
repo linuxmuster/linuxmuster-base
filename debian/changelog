@@ -1,3 +1,9 @@
+linuxmuster-base (6.2.0-horde5.1) babo62; urgency=low
+
+  * update configs to match horde 5
+
+ -- Frank Schütte <fschuett@gymhim.de>  Sun, 03 Jul 2016 13:31:35 +0200
+
 linuxmuster-base (6.2.0-12) babo62; urgency=low
 
   * add feature request #509, access_custom.conf
