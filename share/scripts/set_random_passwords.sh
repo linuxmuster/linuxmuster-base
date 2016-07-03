@@ -30,7 +30,7 @@ chmod 600 /root/.my.cnf
 
 # horde user
 hordepw=`pwgen -s 24 1`
-conf=/etc/horde/horde3/conf.php
+conf=/etc/linuxmuster/horde/horde/conf.php
 (
 cat <<EOF
 use mysql;

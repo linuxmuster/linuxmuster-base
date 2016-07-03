@@ -1,22 +1,59 @@
-# $Id: prepatch 1223 2012-01-16 19:42:26Z tschmitt $
+# prepatch horde
+# fschuett
+# 2016
 
 echo "### 21_horde prepatch"
 
-# do this only if horde is installed
-if dpkg -L horde3 &> /dev/null; then
+# set some variables
+HORDE_CONFIG_DIR=/etc/linuxmuster/horde
+HORDE_CONFIG=$HORDE_CONFIG_DIR/horde/conf.php
+KRONOLITH_CONFIG=$HORDE_CONFIG_DIR/kronolith/conf.php
 
-  # patch horde config.php with basedn and domainname
-  [ "$1" = "--modify" ] && backup_file /etc/linuxmuster/horde/horde/conf.php
+# do this only if horde is installed
+if dpkg -L horde &> /dev/null; then
+
+    if [ "$1" = "--first" ]; then
+        # first time or fresh install
+	if mysqlshow | grep -qw horde; then
+	    mysqladmin -f drop horde;
+	fi
+
+	# create a random password
+	hordepw=`pwgen -s 24 1`
+
+	mysql <<EOF
+DROP USER horde@localhost;
+FLUSH PRIVILEGES;
+CREATE database horde;
+CREATE USER horde@localhost IDENTIFIED BY '$hordepw';
+GRANT ALL ON horde.* TO horde@localhost;
+FLUSH PRIVILEGES;
+EOF
+
+	#Generate random secret key
+	SK=${cat /dev/urandom | tr -dc 'a-zA-Z0-9-' | fold -w 60 | head -n 1}
+
+	cp horde.conf.php horde.conf.php.orig
+	sed -i "s/@@SECRET_KEY@@/$SK/g" horde.conf.php
+	sed -i "s/@@HORDEPASS@@/$hordepw/g" horde.conf.php
+
+        # unset random password
+        unset hordepw
+
+    fi
+
+  # patch horde with basedn and domainname
+  [ "$1" = "--modify" ] && backup_file $HORDE_CONFIG
   sed -e "s/\$conf\['auth'\]\['admins'\] =.*/\$conf\['auth'\]\['admins'\] = array\('$WWWADMIN'\);/
           s/\$conf\['problems'\]\['email'\] =.*/\$conf\['problems'\]\['email'\] = '$WWWADMIN@$domainname';/
           s/\$conf\['mailer'\]\['params'\]\['localhost'\] =.*/\$conf\['mailer'\]\['params'\]\['localhost'\] = '$domainname';/
-          s/\$conf\['problems'\]\['maildomain'\] =.*/\$conf\['problems'\]\['maildomain'\] = '$domainname';/" -i /etc/linuxmuster/horde/horde/conf.php
+          s/\$conf\['problems'\]\['maildomain'\] =.*/\$conf\['problems'\]\['maildomain'\] = '$domainname';/" -i $HORDE_CONFIG
 
-  # patch kronolith config.php with basedn and domainname
-  [ "$1" = "--modify" ] && backup_file /etc/linuxmuster/horde/kronolith/conf.php
+  # patch kronolith with basedn and domainname
+  [ "$1" = "--modify" ] && backup_file $KRONOLITH_CONFIG
   sed -e "s/\$conf\['storage'\]\['default_domain'\] =.*/\$conf\['storage'\]\['default_domain'\] = '$domainname';/
           s/\$conf\['reminder'\]\['server_name'\] =.*/\$conf\['reminder'\]\['server_name'\] = '$servername.$domainname';/
-          s/\$conf\['reminder'\]\['from_addr'\] =.*/\$conf\['reminder'\]\['from_addr'\] = '$WWWADMIN@$domainname';/" -i /etc/linuxmuster/horde/kronolith/conf.php
+          s/\$conf\['reminder'\]\['from_addr'\] =.*/\$conf\['reminder'\]\['from_addr'\] = '$WWWADMIN@$domainname';/" -i $KRONOLITH_CONFIG
 
   # create symlink for apache2
   [ ! -L /etc/apache2/conf-available/linuxmuster-horde ] && ln -s /etc/linuxmuster/horde/apache.conf /etc/apache2/conf-available/linuxmuster-horde

@@ -1,0 +1,42 @@
+<?php
+/* Security release? */
+$notes['security'] = false;
+
+/* Mailing list release notes. */
+$notes['changes'] = <<<ML
+The Horde Team is pleased to announce the final release of the Horde Groupware
+Webmail Edition version 5.2.14.
+
+Horde Groupware Webmail Edition is a free, enterprise ready, browser based
+communication suite. Users can read, send and organize email messages with four
+different webmail interfaces and manage and share calendars, contacts, tasks,
+notes, files, and bookmarks with the standards compliant components from the
+Horde Project.
+
+For upgrading instructions, please see
+http://www.horde.org/apps/webmail/docs/UPGRADING
+
+For detailed installation and configuration instructions, please see
+http://www.horde.org/apps/webmail/docs/INSTALL
+
+The major changes compared to the Horde Groupware Webmail Edition version
+5.2.13 are:
+
+Mail changes:
+    * Bugfixes in basic view.
+
+Filter changes:
+    * Bugfixes in Procmail driver.
+
+Address Book changes:
+    * Fixed losing tags if copying or moving a contact.
+    * Fixed ActiveSync issues.
+
+Tasks changes:
+    * Fixed regression in date pickers.
+    * Fixed tags handling with ActiveSync.
+ML;
+
+$notes['name'] = 'Horde Groupware Webmail Edition';
+$notes['list'] = 'horde';
+return $notes;
