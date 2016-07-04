@@ -1,3 +1,1 @@
 usr/share/linuxmuster/scripts/ovpn-client-cert.sh	usr/sbin/linuxmuster-ovpn
-etc/linuxmuster/horde/apache.conf	etc/apache2/conf-available/horde.conf
-etc/linuxmuster/horde/apache.conf	etc/apache2/conf-enabled/horde.conf

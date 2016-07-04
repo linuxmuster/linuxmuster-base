@@ -14,12 +14,8 @@ if [ "$1" = "--first" ]; then
     # create database and finish setup
     (
 	cd /usr/share/linuxmuster/webmail/bin;
-	echo -e "\n" | ./webmail-install
+	echo -e "wwwadmin\n" | ./webmail-install
     )
-
-else
-
-    # update settings
 
 fi
 
