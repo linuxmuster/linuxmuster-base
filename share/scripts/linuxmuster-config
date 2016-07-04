@@ -191,7 +191,7 @@ fi
 
 
 # opsi password
-if [ "$1" = "--modify" -a -n "$opsiip" = "true" ]; then
+if [ "$1" = "--modify" -a "$opsiip" != "true" ]; then
 
  STATE=1
  while [ "$STATE"  != 0 ]; do
