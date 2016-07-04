@@ -17,5 +17,8 @@ if [ "$1" = "--first" ]; then
 	echo -e "wwwadmin\n" | ./webmail-install
     )
 
+    # fix for mnemo killing itself on installation
+    . /usr/share/linuxmuster/config/dist.conf
+    cp $STATICTPLDIR/etc/linuxmuster/horde/mnemo/conf.php /etc/linuxmuster/horde/mnemo/
 fi
 
