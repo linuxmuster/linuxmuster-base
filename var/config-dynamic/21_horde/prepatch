@@ -59,8 +59,8 @@ EOF
           s/\$conf\['reminder'\]\['from_addr'\] =.*/\$conf\['reminder'\]\['from_addr'\] = '$WWWADMIN@$domainname';/" -i $KRONOLITH_CONFIG
 
   # create symlink for apache2
-  [ ! -L /etc/apache2/conf-available/linuxmuster-horde ] && ln -s /etc/linuxmuster/horde/apache.conf /etc/apache2/conf-available/linuxmuster-horde
-  [ ! -L /etc/apache2/conf-enabled/linuxmuster-horde ] && ln -s /etc/linuxmuster/horde/apache.conf /etc/apache2/conf-enabled/linuxmuster-horde
+  ln -sf /etc/linuxmuster/horde/apache.conf /etc/apache2/conf-available/linuxmuster-horde.conf
+  ln -sf /etc/linuxmuster/horde/apache.conf /etc/apache2/conf-enabled/linuxmuster-horde.conf
 
   # secure horde configuration
   chown root:www-data /etc/linuxmuster/horde -R

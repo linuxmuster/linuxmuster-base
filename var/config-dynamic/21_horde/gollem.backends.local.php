@@ -1,5 +1,33 @@
 <?php
 
+// disable FTP from example.
+$backends['ftp'] = array(
+    'disabled' => true,
+    'name' => 'FTP Server',
+    'driver' => 'ftp',
+    'hordeauth' => false,
+    'params' => array(
+        'hostspec' => 'localhost',
+        'port' => 21,
+        'pasv' => false,
+    ),
+    'loginparams' => array(
+        
+    ),
+    'attributes' => array(
+        'type',
+        'name',
+        'edit',
+        'download',
+        'modified',
+        'size',
+        'permission',
+        'owner',
+        'group'
+    )
+);
+
+
 $backends['smb-home'] = array(
      'disabled' => false,
      'name' => 'Home',
@@ -7,7 +35,7 @@ $backends['smb-home'] = array(
      'preferred' => '',
      'hordeauth' => true,
      'params' => array(
-         'hostspec' => 'localhost',
+         'hostspec' => '@@serverip@@',
          'port' => 139,
          'share' => 'homes',
          'smbclient' => '/usr/bin/smbclient',
@@ -15,6 +43,7 @@ $backends['smb-home'] = array(
      'clipboard' => true,
      'attributes' => array('type', 'name', 'download', 'modified', 'size')
 );
+
 $backends['smb-shares'] = array(
      'disabled' => false,
      'name' => 'Tauschen',
@@ -22,7 +51,7 @@ $backends['smb-shares'] = array(
      'preferred' => '',
      'hordeauth' => true,
      'params' => array(
-         'hostspec' => 'localhost',
+         'hostspec' => '@@serverip@@',
          'port' => 139,
          'share' => 'shares',
          'smbclient' => '/usr/bin/smbclient',
