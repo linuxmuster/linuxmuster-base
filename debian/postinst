@@ -339,8 +339,8 @@ EOF
 			--slave /usr/share/horde/mnemo/config mnemo-config /etc/linuxmuster/horde/mnemo \
 			--slave /usr/share/horde/nag/config nag-config /etc/linuxmuster/horde/nag \
 			--slave /usr/share/horde/trean/config trean-config /etc/linuxmuster/horde/trean \
-			--slave /usr/share/horde/turba/config turba-config /etc/linuxmuster/horde/turba
-
+			--slave /usr/share/horde/turba/config turba-config /etc/linuxmuster/horde/turba \
+			--slave /usr/share/horde/whups/config whups-config /etc/linuxmuster/horde/whups
   # repair permissions for horde log dir (closes #82)
   [ -e /var/log/horde ] && chown www-data:www-data /var/log/horde -R
 

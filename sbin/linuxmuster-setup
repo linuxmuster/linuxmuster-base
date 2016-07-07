@@ -13,7 +13,7 @@
 . $HELPERFUNCTIONS || exit 1
 
 # parsing parameters
-opt=$1
+getopt $*
 
 usage() {
   echo
@@ -26,11 +26,21 @@ usage() {
   echo
   echo "--modify : Call to modify your server configuration"
   echo
+  echo "--module=module"
+  echo "         : Do the setup only for the named module."
+  echo "         --stop-services"
+  echo "                    : Stop services is needed for module module."
+  echo "         --passwords"
+  echo "                    : Ask for passwords is needed for module module."
+  echo
   exit 1
 }
 
-[[ "$opt" = "--first" || "$opt" = "--prepare" || "$opt" = "--modify" ]] || usage
+[[ -z "$first" && -z "$prepare" &&  -z "$modify" ]] && usage
+[[ ( -n "$stop-services" || -n "$passwords" ) && -z "$module" ]] && usage
 
+[[ -n "$first" ]] && opt="$first"
+[[ -n "$modify" ]] && opt="$modify"
 # warning
 echo
 echo "You have called $0 with parameter $opt."
