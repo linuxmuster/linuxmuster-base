@@ -2,6 +2,8 @@
 #
 # thomas@linuxmuster.net
 # 03.03.2015
+# modified fschuett@gymhim.de
+# 8.7.2016
 # GPL v3
 #
 
@@ -19,6 +21,25 @@ PRIORITY="critical"
 # source helperfunctions
 . $HELPERFUNCTIONS || exit 1
 
+# parsing parameters
+getopt $*
+
+usage() {
+  echo
+  echo "Usage: linuxmuster-config <--first|--modify> [--module=module [--passwords]]"
+  echo
+  echo "--first  : Read all parameters including passwords."
+  echo
+  echo "--modify : Read some parameters."
+  echo
+  echo "--module=module"
+  echo "         : Call --first/--modify only for the named module."
+  echo "         --passwords"
+  echo "                    : Ask for passwords is needed for module module."
+  echo
+  exit 1
+}
+
 db_title "$DISTNAME $DISTFULLVERSION"
 
 # source oldvalues if present
@@ -27,14 +48,15 @@ if [ -e $OLDVALUES ]; then
   oldvalues=yes
 fi
 
-if [ "$1" = "--first" ]; then
+if [[ -n "$first" && -z "$module" ]]; then
  # intro
  db_fset linuxmuster-base/intro seen false
  db_input $PRIORITY linuxmuster-base/intro || true
  db_go
 fi
 
-
+# read data only if configuration is done completely
+if [ -z "$module" ]; then
 # data for certificates and workgroup
 for i in country state location schoolname workgroup; do
  while [ -z "$INPUT" ]; do
@@ -145,8 +167,11 @@ db_go
 db_get linuxmuster-base/subnetting || true
 subnetting=$RET
 
+# end if [ -z "$module" ]
+fi
+
 # admin passwords
-if [ "$1" = "--first" ]; then
+if [[ "$first" && ( -z "$module" || -n "$passwords" ) ]]; then
 
  # administrator
  STATE=1
@@ -189,53 +214,53 @@ if [ "$1" = "--first" ]; then
 
 fi
 
-
+# fschuett - opsiip is always "", code is useless ?
 # opsi password
-if [ "$1" = "--modify" -a "$opsiip" != "true" ]; then
-
- STATE=1
- while [ "$STATE"  != 0 ]; do
-
-  case "$STATE" in
-
-   1)
-    db_fset linuxmuster-base/opsipw seen false
-    db_input $PRIORITY linuxmuster-base/opsipw || true
-    db_go
-    db_get linuxmuster-base/opsipw || true
-    [ -n "$RET" ] && STATE=2
-    unset RET
-    ;;
-
-   2)
-    db_fset linuxmuster-base/opsipw seen false
-    db_input $PRIORITY linuxmuster-base/opsipw_confirm || true
-    db_go
-    db_get linuxmuster-base/opsipw_confirm || true
-    if [ -n "$RET" ]; then
-     CONFIRM=$RET
-     db_get linuxmuster-base/opsipw || true
-     if [ "$RET" = "$CONFIRM" ]; then
-      STATE=0
-     else
-      STATE=1
-      db_set linuxmuster-base/opsipw "" || true
-     fi
-     unset RET
-     unset CONFIRM
-     db_set linuxmuster-base/opsipw_confirm "" || true
-    fi
-    ;;
-
-  esac
-
- done
-
-fi # opsi password
+#if [[ "$modify" && ( -z "$module" || -n "$passwords" ) && -n "$opsiip" ]]; then
+#
+# STATE=1
+# while [ "$STATE"  != 0 ]; do
+#
+#  case "$STATE" in
+#
+#   1)
+#    db_fset linuxmuster-base/opsipw seen false
+#    db_input $PRIORITY linuxmuster-base/opsipw || true
+#    db_go
+#    db_get linuxmuster-base/opsipw || true
+#    [ -n "$RET" ] && STATE=2
+#    unset RET
+#    ;;
+#
+#   2)
+#    db_fset linuxmuster-base/opsipw seen false
+#    db_input $PRIORITY linuxmuster-base/opsipw_confirm || true
+#    db_go
+#    db_get linuxmuster-base/opsipw_confirm || true
+#    if [ -n "$RET" ]; then
+#     CONFIRM=$RET
+#     db_get linuxmuster-base/opsipw || true
+#     if [ "$RET" = "$CONFIRM" ]; then
+#      STATE=0
+#     else
+#      STATE=1
+#      db_set linuxmuster-base/opsipw "" || true
+#     fi
+#     unset RET
+#     unset CONFIRM
+#     db_set linuxmuster-base/opsipw_confirm "" || true
+#    fi
+#    ;;
+#
+#  esac
+#
+# done
+#
+#fi # opsi password
 
 
 # firewall password
-if [ "$1" = "--first" -o -n "$update_fw" ]; then
+if [[ "$first" && ( -z "$module" || -n "$passwords" ) || -n "$update_fw" ]]; then
  if [ "$fwconfig" != "custom" ]; then
 
   STATE=1

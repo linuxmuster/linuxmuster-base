@@ -3,6 +3,8 @@
 #
 # thomas@linuxmuster.net
 # 07.04.2014
+# modfied fschuett@gymhim.de
+# 8.7.2016
 # GPL v3
 #
 
@@ -17,7 +19,7 @@ getopt $*
 
 usage() {
   echo
-  echo "Usage: linuxmuster-setup <--prepare|--first|--modify>"
+  echo "Usage: linuxmuster-setup <--prepare|--first|--modify> [--module=module [--service] [--passwords]]"
   echo
   echo "--prepare: Install setup dependencies only."
   echo
@@ -27,9 +29,9 @@ usage() {
   echo "--modify : Call to modify your server configuration"
   echo
   echo "--module=module"
-  echo "         : Do the setup only for the named module."
-  echo "         --stop-services"
-  echo "                    : Stop services is needed for module module."
+  echo "         : Call --first/--modify only for the named module."
+  echo "         --services"
+  echo "                    : Stop/Start services is needed for module module."
   echo "         --passwords"
   echo "                    : Ask for passwords is needed for module module."
   echo
@@ -37,15 +39,15 @@ usage() {
 }
 
 [[ -z "$first" && -z "$prepare" &&  -z "$modify" ]] && usage
-[[ ( -n "$stop-services" || -n "$passwords" ) && -z "$module" ]] && usage
+[[ ( -n "$first" && -n "$prepare" ) || ( -n "$prepare" && -n "$modify" ) || ( -n "$modify" && -n "$first" ) ]] && usage
+[[ ( -n "$services" || -n "$passwords" ) && -z "$module" ]] && usage
+[[ -z "$module" || -n "$first" || -n "$modify" ]] || usage
 
-[[ -n "$first" ]] && opt="$first"
-[[ -n "$modify" ]] && opt="$modify"
 # warning
 echo
-echo "You have called $0 with parameter $opt."
-[ "$opt" = "--first" ] && echo "Doing a fresh installation. You will lose all your user and workstation data!"
-[ "$opt" = "--modify" ] && echo "Modified configuration files will be backed up to $BACKUPDIR!"
+echo "You have called $0 with parameter --${first}${prepare}${modify}."
+[ -n "$first" ] && echo "Doing a fresh installation. You will lose all your user and workstation data!"
+[ -n "$modify" ] && echo "Modified configuration files will be backed up to $BACKUPDIR!"
 echo "The process will start in 5 seconds. Press CRTL-C to cancel."
 n=0
 while [ $n -lt 5 ]; do
@@ -106,20 +108,16 @@ do_prepare(){
 }
 
 # calling as base-config late command
-case $opt in
-
-  --prepare)
+if [ -n "$prepare" ]; then
 
     do_prepare || exit 1
     exit 0
 
-    ;;
-
-  --first)
+elif [[ -n "$first" && -z "$module" ]]; then
 
     # renew complete apt configuration
     echo "Resetting apt configuration." | tee -a $logfile
-    cp -a $STATICTPLDIR/etc/apt/* /etc/apt | tee -a $logfile
+    cp -a $STATICTPLDIR/00_base/etc/apt/* /etc/apt | tee -a $logfile
 
     # correct vboxadd
     id vboxadd &> /dev/null && userdel vboxadd
@@ -135,9 +133,7 @@ case $opt in
     # install packages
     do_prepare || exit 1
 
-    ;;
-
-  --modify)
+elif [ -n "$modify" ]; then
 
     # check for installed flag
     if [ ! -e "$INSTALLED" ]; then
@@ -159,15 +155,11 @@ case $opt in
     done
     chmod 600 $OLDVALUES
 
-    ;;
-
-  *)
+else
 
     usage
 
-    ;;
-
-esac
+fi
 
 # backup debconf db
 backup_file /var/cache/debconf/config.dat | tee -a $logfile
@@ -175,7 +167,12 @@ backup_file /var/cache/debconf/passwords.dat | tee -a $logfile
 chmod 600 $BACKUPDIR/var/cache/debconf/passwords.dat-$DATETIME.gz
 
 # ask questions
-$SCRIPTSDIR/linuxmuster-config $opt
+args=--${first}${modify}
+[[ -n "$module" ]] && args=${args} --${module}
+[[ -n "$services" ]] && args=${args} --services
+[[ -n "$passwords" ]] && args=${args} --passwords
+
+$SCRIPTSDIR/linuxmuster-config ${args}
 RC=$?
 
 # check status
@@ -191,7 +188,7 @@ fi
 
 
 # call configuration patch script
-$SCRIPTSDIR/linuxmuster-patch $opt
+$SCRIPTSDIR/linuxmuster-patch ${args}
 
 chmod 600 $logfile
 

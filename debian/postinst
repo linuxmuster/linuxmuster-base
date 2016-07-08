@@ -235,9 +235,9 @@ case "$1" in
 
   # adding win7 netlogon example files.
   if ! grep -q replace.vbs "$NETLOGONDIR/common.bat"; then
-   [ -e "$NETLOGONDIR/common.bat.win7" ] || cp "$STATICTPLDIR/$NETLOGONDIR/common.bat" "$NETLOGONDIR/common.bat.win7"
+   [ -e "$NETLOGONDIR/common.bat.win7" ] || cp "$STATICTPLDIR/00_base/$NETLOGONDIR/common.bat" "$NETLOGONDIR/common.bat.win7"
   fi
-  [ -e "$NETLOGONDIR/replace.vbs" ] || cp "$STATICTPLDIR/$NETLOGONDIR/replace.vbs" "$NETLOGONDIR"
+  [ -e "$NETLOGONDIR/replace.vbs" ] || cp "$STATICTPLDIR/00_base/$NETLOGONDIR/replace.vbs" "$NETLOGONDIR"
 
   # provide teachers.bat if not yet there
   tpldir="$DYNTPLDIR/17_admins"
@@ -379,7 +379,7 @@ EOF
   if ! grep -q "$searchstr" "$conf"; then
    echo "Adding allowusermoves option to imapd.conf ..."
    cp "$conf" "${conf}.dpkg-bak"
-   tpl="${STATICTPLDIR}${conf}"
+   tpl="${STATICTPLDIR}/00_base${conf}"
    cp "$tpl" "$conf"
    cyrus_reload=yes
   fi
@@ -447,17 +447,8 @@ EOF
   [ "$subnetting" = "true" ] && removefrom_file "$conf" "$BEGINSTR" "$ENDSTR"
   # provide custom file
   conf="/etc/dhcp/dhcpd.conf.custom"
-  [ -e "$conf" ] || cp "$STATICTPLDIR/$conf" "$conf"
+  [ -e "$conf" ] || cp "$STATICTPLDIR/05_dhcp$conf" "$conf"
   dhcp_reload=yes
-
-  # remove obsolete backup settings from schulkonsole
-  conf="$SYSCONFDIR/schulkonsole/permissions.conf"
-  searchstr="settings_backup"
-  if grep -q "$searchstr" "$SYSCONFDIR/schulkonsole"; then
-   echo "Removing backup settings from schulkonsole."
-   cp "$conf" "$conf.dpkg-bak"
-   sed -e "s|$searchstr||" -i "$conf"
-  fi
 
   # withdraw access rights for room on /home/share
   if [ ! -e "$ROOM_SHARE_ACLS" ]; then

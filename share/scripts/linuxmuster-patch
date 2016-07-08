@@ -3,6 +3,8 @@
 #
 # thomas@linuxmuster.net
 # 11.07.2014
+# modified fschuett@gymhim.de
+# 8.7.2016
 # GPL v3
 #
 
@@ -12,49 +14,81 @@
 # read helperfunctions
 . $HELPERFUNCTIONS
 
+# parsing parameters
+getopt $*
+
+usage() {
+  echo
+  echo "Usage: linuxmuster-patch <--first|--modify> [--module=module [--services] [--passwords]]"
+  echo
+  echo "--first  : Call to do a fresh configuration. Use with caution."
+  echo
+  echo "--modify : Call to modify your server configuration"
+  echo
+  echo "--module=module"
+  echo "         : Call --first/--modify only for the named module."
+  echo "         --services"
+  echo "                    : Stop/Start services is needed for module module."
+  echo "         --passwords"
+  echo "                    : Use passwords from debconf."
+  echo
+  exit 1
+}
+
 # read debconf database
 echo "Reading debconf database ..."
-for i in country state location servername domainname schoolname \
+if [[ -z "$module" || -n "$passwords" ]]; then
+  for i in country state location servername domainname schoolname \
          internsubrange fwconfig opsi smtprelay sambasid adminpw opsipw \
          ipcoppw workgroup iface_lan serverexternname subnetting; do
-  eval $i="$(echo get linuxmuster-base/$i | debconf-communicate | awk '{ print $2 }')"
-done
+    eval $i="$(echo get linuxmuster-base/$i | debconf-communicate | awk '{ print $2 }')"
+  done
 
-# clear admin user passwords from debconf db
-for i in adminpw ipcoppw opsipw; do
-  RET=`echo set linuxmuster-base/$i "" | debconf-communicate`
-done
+  # clear admin user passwords from debconf db
+  for i in adminpw ipcoppw opsipw; do
+    RET=`echo set linuxmuster-base/$i "" | debconf-communicate`
+  done
 
-# escaping special characters in passwords
-esc_spec_chars "$adminpw"
-adminpw=$RET
-esc_spec_chars "$opsipw"
-opsipw=$RET
-esc_spec_chars "$ipcoppw"
-ipcoppw=$RET
+  # escaping special characters in passwords
+  esc_spec_chars "$adminpw"
+  adminpw=$RET
+  esc_spec_chars "$opsipw"
+  opsipw=$RET
+  esc_spec_chars "$ipcoppw"
+  ipcoppw=$RET
 
-# compute md5sum for adminpw
-adminpw_md5=`echo -n $adminpw | md5sum | cut -c -32`
+  # compute md5sum for adminpw
+  adminpw_md5=`echo -n $adminpw | md5sum | cut -c -32`
+
+else
+  for i in country state location servername domainname schoolname \
+         internsubrange fwconfig opsi smtprelay sambasid adminpw \
+         workgroup iface_lan serverexternname subnetting; do
+    eval $i="$(echo get linuxmuster-base/$i | debconf-communicate | awk '{ print $2 }')"
+  done
+fi
 
 # only in modify mode
-if [ "$1" != "--first" ]; then
+if [ -z "$first" ]; then
  # reading old values
  echo "Checking for modified values ..."
  . $OLDVALUES || exit 1
  rm $OLDVALUES
 fi
 
-# install firewall pkgs
-echo 'DPkg::Options {"--force-confold";"--force-confdef";"--force-bad-verify";"--force-overwrite";};' > /etc/apt/apt.conf.d/99upgrade
-echo 'apt-get::CmdLine::Ignore-Trust-Violations "true";' >> /etc/apt/apt.conf.d/99upgrade
-if [ "$fwconfig" = "custom" ]; then
- for i in ipfire ipcop; do
-  dpkg -l | grep linuxmuster-$i | grep -q ^i && apt-get -y remove linuxmuster-$i
- done
-else
- DEBIAN_FRONTEND=noninteractive apt-get -y install linuxmuster-$fwconfig
+if [ -z "$module" ]; then
+  # install firewall pkgs
+  echo 'DPkg::Options {"--force-confold";"--force-confdef";"--force-bad-verify";"--force-overwrite";};' > /etc/apt/apt.conf.d/99upgrade
+  echo 'apt-get::CmdLine::Ignore-Trust-Violations "true";' >> /etc/apt/apt.conf.d/99upgrade
+  if [ "$fwconfig" = "custom" ]; then
+   for i in ipfire ipcop; do
+    dpkg -l | grep linuxmuster-$i | grep -q ^i && apt-get -y remove linuxmuster-$i
+   done
+  else
+   DEBIAN_FRONTEND=noninteractive apt-get -y install linuxmuster-$fwconfig
+  fi
+  rm -f /etc/apt/apt.conf.d/99upgrade
 fi
-rm -f /etc/apt/apt.conf.d/99upgrade
 
 # compute ip's
 maxsub=`echo $internsubrange | awk -F\- '{ print $2 }'`
@@ -100,7 +134,7 @@ else
 fi
 
 # check for modified values
-if [ "$1" != "--first" ]; then
+if [ -z "$first" ]; then
  [ "$country" = "$country_old" ] || update_certs=yes
  [ "$state" = "$state_old" ] || update_certs=yes
  [ "$location" = "$location_old" ] || update_certs=yes
@@ -187,16 +221,26 @@ message1="##### Do not change this file! It will be overwritten!"
 message2="##### This configuration file was automatically created by linuxmuster-setup!"
 message3="##### Last Modification: `date`"
 
-# set a new random password for cyrus user
-$SCRIPTSDIR/cyradmpw.sh
+if [ -z "$module" ]; then
+  # set a new random password for cyrus user
+  $SCRIPTSDIR/cyradmpw.sh
+fi
+
 cyradmpw=`cat /etc/imap.secret`
 
-if [ "$1" = "--first" ]; then
+if [[ -n "$first" && -z "$module" ]]; then
  # save opsi workstations entry
  [ -n "$opsiip" ] && grep ^[a-zA-Z0-9] "$WIMPORTDATA" | grep ";$opsiip_old;" | sed -e "s|;$opsiip_old;|;$opsiip;|" > "$CACHEDIR/workstations.opsi"
- # copying default configuration an remove installed flag for first time installation
+ # copying default configuration and remove installed flag for first time installation
  echo "Copying default static configuration files ..." | tee -a $LOGDIR/setup.log
- cp -a $STATICTPLDIR/* /
+ for m in $(basename $STATICTPLDIR/*); do
+   cp -a $STATICTPLDIR/$m/* /
+   # delete module installed flag
+   if [ -e "${INSTALLED}_${m}" ]; then
+    echo "Removing installed flag ${INSTALLED}_${m} ..." | tee -a $LOGDIR/setup.log
+    rm -f ${INSTALLED}_${m}
+   fi
+ done
  # delete installed flag
  if [ -e "$INSTALLED" ]; then
   echo "Removing installed flag $INSTALLED ..." | tee -a $LOGDIR/setup.log
@@ -211,6 +255,15 @@ if [ "$1" = "--first" ]; then
  ldapadminpw=`pwgen -s 24 1`
  echo -n $ldapadminpw > /etc/ldap.secret
  chmod 600 /etc/ldap.secret
+elif [[ -n "$first" && -n "$module" ]]; then
+ # copying default configuration for module and remove installed flag for first time installation
+ echo "Copying default static configuration files ..." | tee -a $LOGDIR/setup.log
+ cp -a $STATICTPLDIR/$module/* /
+ # delete installed flag
+ if [ -e "${INSTALLED}_${module}" ]; then
+  echo "Removing installed flag ${INSTALLED}_${module} ..." | tee -a $LOGDIR/setup.log
+  rm -f ${INSTALLED}_${module}
+ fi
 else
  ldapadminpw="$(cat /etc/ldap.secret)"
 fi
@@ -218,18 +271,28 @@ fi
 # check if sophomorix is installed
 SOPHOMORIX="$(dpkg -l sophomorix2 | grep -q ^i)"
 
+if [ -n "$module" ]; then
+  [[ -n "$services" ]] && modules=$DYNTPLDIR/01_stop-services
+  modules="$modules $DYNTPLDIR/$module"
+  [[ -n "$services" ]] && modules="$modules $DYNTPLDIR/99_start-services"
+else
+  modules=$DYNTPLDIR/*
+fi
+
+arg=--${first}${modify}
+
 # patching conffiles
-for i in $DYNTPLDIR/*; do
+for i in $modules; do
   cd $i
   echo "Processing $i ..."
   # do something before the configuration is patched
-  [ -f prepatch ] && . prepatch $1 >> $LOGDIR/setup.log 2>&1
+  [ -f prepatch ] && . prepatch $arg >> $LOGDIR/setup.log 2>&1
   # process all variables through all targets
   if ls *.target &> /dev/null; then
     for t in *.target; do
       eval target=`cat $t`
       conffile=${t%.target}
-      [ "$1" = "--modify" ] && backup_file $target >> $LOGDIR/setup.log
+      [ -n "$modify" ] && backup_file $target >> $LOGDIR/setup.log
       sed -e "s/@@message1@@/${message1}/g
               s/@@message2@@/${message2}/g
               s/@@message3@@/${message3}/g
@@ -283,7 +346,7 @@ for i in $DYNTPLDIR/*; do
     done
   fi
   # do something after the configuration is patched
-  [ -f postpatch ] && . postpatch $1 >> $LOGDIR/setup.log 2>&1
+  [ -f postpatch ] && . postpatch $arg >> $LOGDIR/setup.log 2>&1
   # move nopatch files back
   for np in *.nopatch; do
     [ -e "$np" ] && mv $np ${np%.nopatch}
