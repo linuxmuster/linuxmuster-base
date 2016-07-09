@@ -43,42 +43,37 @@ EOF
         # unset random password
         unset hordepw
 
-    fi
+    else
 
-  # patch horde with basedn and domainname
-  [ "$1" = "--modify" ] && backup_file $HORDE_CONFIG
-  sed -e "s/\$conf\['auth'\]\['admins'\] =.*/\$conf\['auth'\]\['admins'\] = array\('$WWWADMIN'\);/
-          s/\$conf\['problems'\]\['email'\] =.*/\$conf\['problems'\]\['email'\] = '$WWWADMIN@$domainname';/
-          s/\$conf\['mailer'\]\['params'\]\['localhost'\] =.*/\$conf\['mailer'\]\['params'\]\['localhost'\] = '$domainname';/
-          s/\$conf\['problems'\]\['maildomain'\] =.*/\$conf\['problems'\]\['maildomain'\] = '$domainname';/" -i $HORDE_CONFIG
+      # change basedn, domainname, servername, schoolname, serverip
 
-  # patch kronolith with basedn and domainname
-  [ "$1" = "--modify" ] && backup_file $KRONOLITH_CONFIG
-  sed -e "s/\$conf\['storage'\]\['default_domain'\] =.*/\$conf\['storage'\]\['default_domain'\] = '$domainname';/
-          s/\$conf\['reminder'\]\['server_name'\] =.*/\$conf\['reminder'\]\['server_name'\] = '$servername.$domainname';/
-          s/\$conf\['reminder'\]\['from_addr'\] =.*/\$conf\['reminder'\]\['from_addr'\] = '$WWWADMIN@$domainname';/" -i $KRONOLITH_CONFIG
-
-  # create symlink for apache2
-  ln -sf /etc/linuxmuster/horde/apache.conf /etc/apache2/conf-available/linuxmuster-horde.conf
-  ln -sf /etc/linuxmuster/horde/apache.conf /etc/apache2/conf-enabled/linuxmuster-horde.conf
-
-  # secure horde configuration
-  chown root:www-data /etc/linuxmuster/horde -R
-  find /etc/linuxmuster/horde -type f -exec chmod 440 '{}' \;
-
-  # change maildomain in horde db
-  if [ "$1" != "--first" -a "$domainname_old" != "$domainname" ]; then
-    mysql <<EOF
+      for f in $HORDE_CONFIG $HORDE_CONFIG_DIR/gollem/backends.local.php \
+               $HORDE_CONFIG_DIR/imp/backends.local.php $HORDE_CONFIG_DIR/turba/backends.local.php; do
+        sed -i -e "s#$basedn_old#$basedn#g" -e "s#$domainname_old#$domainname#g" \
+               -e "s#$servername_old#$servername#g" -e "s#$serverip_old#$serverip#g" \
+               -e "s#$schoolname_old#$schoolname#g" $f;
+      done
+      # change maildomain in horde db
+      if [ "$1" != "--first" -a "$domainname_old" != "$domainname" ]; then
+        mysql <<EOF
 USE horde;
 UPDATE horde_prefs SET pref_value = '$domainname' WHERE pref_value = '$domainname_old';
 EOF
-  fi
+      fi
 
-else
+      # prevent targets from being patched
+      for tt in *.target; do
+        mv $tt $tt.nopatch
+      done
 
-  # prevent targets from being patched
-  for tt in *.target; do
-    mv $tt $tt.nopatch
-  done
+    fi
+
+    # create symlink for apache2
+    ln -sf /etc/linuxmuster/horde/apache.conf /etc/apache2/conf-available/linuxmuster-horde.conf
+    ln -sf /etc/linuxmuster/horde/apache.conf /etc/apache2/conf-enabled/linuxmuster-horde.conf
+
+    # secure horde configuration
+    chown root:www-data /etc/linuxmuster/horde -R
+    find /etc/linuxmuster/horde -type f -exec chmod 440 '{}' \;
 
 fi
