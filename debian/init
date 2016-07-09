@@ -82,7 +82,7 @@ read_fwdata(){
  IPS="$(grep -v ^# $WIMPORTDATA | awk -F\; '{ print $5 }')"
 
  # on first time setup (when there is no diff to static config), ...
- workstationdiff=$(diff $WIMPORTDATA $STATICTPLDIR$WIMPORTDATA)
+ workstationdiff=$(diff $WIMPORTDATA $STATICTPLDIR/00_base$WIMPORTDATA)
  # ... forcibly add all dhcp adresses
  if [ -z "$workstationdiff" ]; then
   echo $workstationdiff

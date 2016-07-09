@@ -199,19 +199,19 @@ case "$1" in
    echo "Fixing ldaps in $conf."
    cp $conf $conf.dpkg-old
    backup=true
-   cp $STATICTPLDIR/$conf $conf
+   cp $STATICTPLDIR/15_ldap$conf $conf
    slapd_reload=yes
   fi
   if ! grep -q ^"SLAPD_OPTIONS=\"\-4\"" $conf; then
    echo "Disabling IPv6 support in $conf."
    [ "$backup" = "false" ] && cp $conf $conf.dpkg-old
-   cp $STATICTPLDIR/$conf $conf
+   cp $STATICTPLDIR/15_ldap$conf $conf
    slapd_reload=yes
   fi
 
   # extraschueler.txt, extrakurse.txt
   for i in extraschueler.txt extrakurse.txt entfernen.txt sperrklassen.txt; do
-   [ -e "/etc/sophomorix/user/$i" ] || cp $STATICTPLDIR/etc/sophomorix/user/$i /etc/sophomorix/user
+   [ -e "/etc/sophomorix/user/$i" ] || cp $STATICTPLDIR/00_base/etc/sophomorix/user/$i /etc/sophomorix/user
   done
 
   # create localized links in certain samba share folders (temporary workaround until sophomorix does the job)
@@ -235,9 +235,9 @@ case "$1" in
 
   # adding win7 netlogon example files.
   if ! grep -q replace.vbs "$NETLOGONDIR/common.bat"; then
-   [ -e "$NETLOGONDIR/common.bat.win7" ] || cp "$STATICTPLDIR/00_base/$NETLOGONDIR/common.bat" "$NETLOGONDIR/common.bat.win7"
+   [ -e "$NETLOGONDIR/common.bat.win7" ] || cp "$STATICTPLDIR/00_base$NETLOGONDIR/common.bat" "$NETLOGONDIR/common.bat.win7"
   fi
-  [ -e "$NETLOGONDIR/replace.vbs" ] || cp "$STATICTPLDIR/00_base/$NETLOGONDIR/replace.vbs" "$NETLOGONDIR"
+  [ -e "$NETLOGONDIR/replace.vbs" ] || cp "$STATICTPLDIR/00_base$NETLOGONDIR/replace.vbs" "$NETLOGONDIR"
 
   # provide teachers.bat if not yet there
   tpldir="$DYNTPLDIR/17_admins"
@@ -346,7 +346,7 @@ EOF
 
   # fix cups configuration (closes #101)
   conf="/etc/cups/cupsd.conf"
-  tpl="${STATICTPLDIR}${conf}"
+  tpl="${STATICTPLDIR}/34_cups${conf}"
   if ! grep -q ^"BrowseAddress 10.*" "$conf"; then
    echo "Fixing $conf ..."
    cp "$conf" "${conf}.dpkg-bak"
@@ -354,7 +354,7 @@ EOF
    cups_reload=yes
   fi
   conf="/etc/cups/cups-files.conf"
-  tpl="${STATICTPLDIR}${conf}"
+  tpl="${STATICTPLDIR}/34_cups${conf}"
   if [ ! -e "$conf" ]; then
    echo "Creating $conf ..."
    cp "$conf" "${conf}.dpkg-bak"
@@ -367,7 +367,7 @@ EOF
   conf="$dir/linuxmuster"
   if [ ! -s "$conf" ]; then
    echo "Adding apparmor profile for linuxmuster.net ..."
-   tpl="${STATICTPLDIR}${conf}"
+   tpl="${STATICTPLDIR}/34_cups${conf}"
    mkdir -p "$dir"
    cp "$tpl" "$conf"
    [ -s "/etc/init.d/apparmor" ] && apparmor_reload=yes

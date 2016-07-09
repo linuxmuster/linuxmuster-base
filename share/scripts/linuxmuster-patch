@@ -233,7 +233,8 @@ if [[ -n "$first" && -z "$module" ]]; then
  [ -n "$opsiip" ] && grep ^[a-zA-Z0-9] "$WIMPORTDATA" | grep ";$opsiip_old;" | sed -e "s|;$opsiip_old;|;$opsiip;|" > "$CACHEDIR/workstations.opsi"
  # copying default configuration and remove installed flag for first time installation
  echo "Copying default static configuration files ..." | tee -a $LOGDIR/setup.log
- for m in $(basename $STATICTPLDIR/*); do
+ for m in $STATICTPLDIR/*; do
+   m=$(basename $m)
    cp -a $STATICTPLDIR/$m/* /
    # delete module installed flag
    if [ -e "${INSTALLED}_${m}" ]; then
