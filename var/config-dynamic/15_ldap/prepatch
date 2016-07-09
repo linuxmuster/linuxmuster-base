@@ -7,7 +7,7 @@ if [ "$1" = "--first" ]; then
  # necessary to trick sophomorix
  pg_dropcluster 9.1 main &> /dev/null
  pg_createcluster 9.1 main
- cp $STATICTPLDIR/etc/postgresql/9.1/main/* /etc/postgresql/9.1/main
+ cp $STATICTPLDIR/00_base/etc/postgresql/9.1/main/* /etc/postgresql/9.1/main
 
 else
 
