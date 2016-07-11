@@ -6,7 +6,7 @@ linuxmuster-base (6.2.0-12ubuntu0) babo62; urgency=low
     - fixed syntax error in linbo configuration script.
     - firewall setup modifications due to migration restore on 6.2 target systems.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 11 Jul 2016 14:00:16 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 11 Jul 2016 14:08:02 +0200
 
 linuxmuster-base (6.2.0-11ubuntu0) babo62; urgency=low
 
