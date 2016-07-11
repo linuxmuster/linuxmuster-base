@@ -8,7 +8,7 @@ $backends['sieve'] = array(
     'disabled' => false,
     'transport' => array(
         Ingo::RULE_ALL => array(
-            'driver' => 'sieve',
+            'driver' => 'timsieved',
             'params' => array(
                 // Hostname of the timsieved server
                 'hostspec' => 'localhost',
