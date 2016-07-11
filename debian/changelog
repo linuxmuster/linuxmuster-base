@@ -1,3 +1,12 @@
+linuxmuster-base (6.2.0-12ubuntu0) babo62; urgency=low
+
+  * linuxmuster-setup:
+    - recreate opsi's workstations entry if present.
+    - fixed syntax error in linbo configuration script.
+    - firewall setup modifications due to migration restore on 6.2 target systems.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 11 Jul 2016 14:00:16 +0200
+
 linuxmuster-base (6.2.0-11ubuntu0) babo62; urgency=low
 
   * fixed linbo template name in dist.conf.
