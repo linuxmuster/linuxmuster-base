@@ -1,5 +1,6 @@
 linuxmuster-base (6.2.0-12ubuntu0) babo62; urgency=low
 
+  * Frank Schütte: add feature request #509, access_custom.conf.
   * linuxmuster-setup:
     - recreate opsi's workstations entry if present.
     - fixed syntax error in linbo configuration script.

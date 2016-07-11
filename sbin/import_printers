@@ -3,6 +3,7 @@
 # creates /etc/cups/access.conf for printer access definitions
 #
 # tschmitt 20121205
+# modification: fschuett 20160702
 # GPL v3
 #
 
@@ -17,12 +18,16 @@ checklock || exit 1
 
 # location of cups access.conf
 ACCESSCONF=/etc/cups/access.conf
+ACCESSCUSTOMCONF=/etc/cups/access_custom.conf
 
 # backup access.conf
 cp -f $ACCESSCONF $ACCESSCONF.bak || cancel "Cannot backup $ACCESSCONF!"
 
 # write first line to access.conf
 echo "# printer access definitions" > $ACCESSCONF.new || cancel "Cannot write $ACCESSCONF.new!"
+
+# write notice for access custom file
+echo "# Put your own settings to $ACCESSCUSTOMCONF" >> $ACCESSCONF.new || cancel "Cannot write $ACCESSCON.new!"
 
 # read printers definitons
 [ -e "$PRINTERS" ] || cancel "$PRINTERS not found!"
@@ -61,6 +66,12 @@ while read printer roomlist hostlist; do
   echo "  Allow From $serverip" >> $ACCESSCONF.new || cancel "Cannot write $ACCESSCONF.new!"
   echo "</Location>" >> $ACCESSCONF.new || cancel "Cannot write $ACCESSCONF.new!"
 done <$PRINTERS
+
+# include access custom file
+echo "include $ACCESSCUSTOMCONF" >> $ACCESSCONF.new || cancel "Cannot write $ACCESSCONF.new!"
+
+[ ! -e "$ACCESSCUSTOMCONF" ] && touch $ACCESSCUSTOMCONF
+
 
 mv $ACCESSCONF.new $ACCESSCONF || cancel "Cannot write $ACCESSCONF!"
 
