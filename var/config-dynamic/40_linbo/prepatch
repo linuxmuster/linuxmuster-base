@@ -1,6 +1,6 @@
 #
 # thomas@linuxmuster.net
-# 28.07.2015
+# 20160711
 # GPL v3
 #
 
@@ -93,7 +93,7 @@ fi
 [ -e /etc/default/linbo-bittorrent ] && ( backup_file /etc/default/linbo-bittorrent ; sed -e 's|^START_BITTORRENT=.*|START_BITTORRENT=1|' -i /etc/default/linbo-bittorrent )
 
 # serverip in atftpd config
-[ "$serverip" = "$serverip_old" ] || ( backup_file /etc/default/atftpd ; sed -e "|$serverip_old|$serverip|g" -i /etc/default/atftpd )
+[ "$serverip" = "$serverip_old" ] || ( backup_file /etc/default/atftpd ; sed -i "s|$serverip_old|$serverip|g" /etc/default/atftpd )
 
 # start relevant services
 for i in atftpd rsync linbo-bittorrent linbo-multicast; do

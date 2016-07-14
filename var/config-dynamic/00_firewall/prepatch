@@ -1,12 +1,11 @@
 #
 # thomas@linuxmuster.net
-# 18.12.2013
+# 20160711
 # GPL v3
 #
 
 echo "### 00_firewall prepatch"
 
-# not on first install and only if firewall ist not custom and has not changed
 if [ "$1" = "--modify" -a "$fwconfig" != "custom" -a "$fwconfig" = "$fwconfig_old" ]; then
 
 	# patch ips if internal net address has changed
