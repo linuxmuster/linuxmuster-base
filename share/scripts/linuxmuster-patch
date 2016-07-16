@@ -39,21 +39,19 @@ usage() {
 echo "Reading debconf database ..."
 if [[ -z "$module" || -n "$passwords" ]]; then
   for i in country state location servername domainname schoolname \
-         internsubrange fwconfig opsi smtprelay sambasid adminpw opsipw \
+         internsubrange fwconfig opsi smtprelay sambasid adminpw \
          ipcoppw workgroup iface_lan serverexternname subnetting; do
     eval $i="$(echo get linuxmuster-base/$i | debconf-communicate | awk '{ print $2 }')"
   done
 
   # clear admin user passwords from debconf db
-  for i in adminpw ipcoppw opsipw; do
+  for i in adminpw ipcoppw; do
     RET=`echo set linuxmuster-base/$i "" | debconf-communicate`
   done
 
   # escaping special characters in passwords
   esc_spec_chars "$adminpw"
   adminpw=$RET
-  esc_spec_chars "$opsipw"
-  opsipw=$RET
   esc_spec_chars "$ipcoppw"
   ipcoppw=$RET
 

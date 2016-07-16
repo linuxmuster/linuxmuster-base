@@ -214,53 +214,8 @@ if [[ "$first" && ( -z "$module" || -n "$passwords" ) ]]; then
 
 fi
 
-# fschuett - opsiip is always "", code is useless ?
-# opsi password
-#if [[ "$modify" && ( -z "$module" || -n "$passwords" ) && -n "$opsiip" ]]; then
-#
-# STATE=1
-# while [ "$STATE"  != 0 ]; do
-#
-#  case "$STATE" in
-#
-#   1)
-#    db_fset linuxmuster-base/opsipw seen false
-#    db_input $PRIORITY linuxmuster-base/opsipw || true
-#    db_go
-#    db_get linuxmuster-base/opsipw || true
-#    [ -n "$RET" ] && STATE=2
-#    unset RET
-#    ;;
-#
-#   2)
-#    db_fset linuxmuster-base/opsipw seen false
-#    db_input $PRIORITY linuxmuster-base/opsipw_confirm || true
-#    db_go
-#    db_get linuxmuster-base/opsipw_confirm || true
-#    if [ -n "$RET" ]; then
-#     CONFIRM=$RET
-#     db_get linuxmuster-base/opsipw || true
-#     if [ "$RET" = "$CONFIRM" ]; then
-#      STATE=0
-#     else
-#      STATE=1
-#      db_set linuxmuster-base/opsipw "" || true
-#     fi
-#     unset RET
-#     unset CONFIRM
-#     db_set linuxmuster-base/opsipw_confirm "" || true
-#    fi
-#    ;;
-#
-#  esac
-#
-# done
-#
-#fi # opsi password
-
-
 # firewall password
-if [[ "$first" && ( -z "$module" || -n "$passwords" ) || -n "$update_fw" ]]; then
+if [[ ( "$first" && ( -z "$module" || -n "$passwords" ) ) || -n "$update_fw" ]]; then
  if [ "$fwconfig" != "custom" ]; then
 
   STATE=1
