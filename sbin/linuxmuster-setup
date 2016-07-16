@@ -133,7 +133,7 @@ elif [[ -n "$first" && -z "$module" ]]; then
     # install packages
     do_prepare || exit 1
 
-elif [ -n "$modify" ]; then
+elif [[ -n "$modify" || ( -n "$first" && -n "$module" ) ]]; then
 
     # check for installed flag
     if [ ! -e "$INSTALLED" ]; then
