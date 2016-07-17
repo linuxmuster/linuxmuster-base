@@ -1,3 +1,9 @@
+linuxmuster-base (6.2.99-1) xenial-unstable; urgency=low
+
+  * update deps for xenial compatibility
+
+ -- root <root@linuxmuster.local>  Sun, 17 Jul 2016 18:39:11 +0200
+
 linuxmuster-base (6.2.0-horde5.1) babo62; urgency=low
 
   * update configs to match horde 5

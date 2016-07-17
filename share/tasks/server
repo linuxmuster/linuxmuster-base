@@ -15,12 +15,7 @@ cyrus-admin-2.2
 cyrus-imapd-2.2
 cyrus-pop3d-2.2
 dhcp3-server
-gollem
-horde3
 hpijs
-imp4
-ingo1
-kronolith2
 language-pack-de
 language-pack-de-base
 ldap-utils
@@ -37,9 +32,7 @@ linuxmuster-linbo
 linuxmuster-nagios-base
 linuxmuster-schulkonsole
 lzop
-mnemo2
 mysql-server
-nag2
 nscd
 ntpdate
 openntpd
@@ -56,6 +49,7 @@ php-db
 php-cache
 php-date
 php-file
+php-horde-webmail
 php-mail-mime
 php-net-ftp
 php-net-imap
@@ -78,7 +72,6 @@ samba-common-bin
 sasl2-bin
 slapd
 sophomorix2
-turba2
 unace
 unrar
 unzip
