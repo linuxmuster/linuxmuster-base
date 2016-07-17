@@ -185,29 +185,3 @@ $cfgSources['localldap'] = array(
     'export' => true,
     'browse' => true,
 );
-
-
-$grpSource = array(
-    'title' => _("Group"),
-    'type' => 'group',
-    'params' => array(
-       'name' => ''
-    ),
-    'map' => array(
-        '__key' => 'email',
-        'name' => 'name',
-        'email' => 'email'
-    ),
-    'search' => array(
-        'name',
-        'email'
-    ),
-    'export' => true,
-    'browse' => true,
-);
-
-foreach ($GLOBALS['injector']->getInstance('Horde_Group')->listGroups($GLOBALS['registry']->getAuth()) as $_group_id => $_group_name) {
-    $cfgSources['group_' . $_group_id] = $grpSource;
-    $cfgSources['group_' . $_group_id]['params'] = array('gid' => $_group_id);
-    $cfgSources['group_' . $_group_id]['title'] = $_group_name;
-}
