@@ -5,7 +5,7 @@ Description: Hinweise zur Installation
  benötigen Sie einige Daten, die automatisch in den Installations-\n
  prozess miteinbezogen werden. Dies sind:\n
  - der Name des Servers (z.B. server)\n
- - die Internet-Domäne des Schulnetzes (z.B linuxmuster.local)\n
+ - die Internet-Domäne des Schulnetzes (z.B linuxmuster-net.lokal)\n
  - die interne IP-Struktur Ihres Schulnetzes\n
  - ggf. die Adresse des Mailservers beim Provider (z.B.: mbox1.belwue.de)\n
  - Passwörter der administrativen User
