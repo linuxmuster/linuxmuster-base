@@ -139,7 +139,7 @@ $cfgSources['localsql'] = array(
 );
 
 $cfgSources['localldap'] = array(
-    // Disabled by default
+     // Disabled by default
     'disabled' => false,
     'title' => _("@@schoolname@@ Adressbuch"),
     'type' => 'ldap',
@@ -148,12 +148,12 @@ $cfgSources['localldap'] = array(
         'port' => 389,
         'tls' => false,
         'root' => 'ou=accounts,@@basedn@@',
-        'sizelimit' => 200,
         'dn' => array('cn'),
         'objectclass' => array('top',
                                'person',
-                               'posixAccout',
+                               'posixAccount',
                                'inetOrgPerson'),
+        'filter' => '!(sn=Account)',
         'scope' => 'one',
         'charset' => 'utf-8',
         'checkrequired' => false,
@@ -164,7 +164,10 @@ $cfgSources['localldap'] = array(
     'map' => array(
         '__key' => 'dn',
         '__uid' => 'uid',
-        'name' => 'cn',
+        'firstname' => 'givenName',
+        'lastname' => 'sn',
+        'name' => array('fields' => array('lastname','firstname'),
+                        'format' => '%s,%s',),
         'email' => 'mail',
         'homePhone' => 'homephone',
         'workPhone' => 'telephonenumber',
@@ -182,6 +185,6 @@ $cfgSources['localldap'] = array(
         'cn',
     ),
     'readonly' => true,
-    'export' => true,
+    'list_name_field' => 'lastname',
     'browse' => true,
 );
