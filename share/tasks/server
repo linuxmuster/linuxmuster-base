@@ -50,6 +50,7 @@ php-cache
 php-date
 php-file
 php-horde-webmail
+php-horde-whups
 php-mail-mime
 php-net-ftp
 php-net-imap
