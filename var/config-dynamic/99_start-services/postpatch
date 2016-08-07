@@ -72,4 +72,5 @@ if [ "$1" = "--modify" ]; then
 fi
 
 # update linbofs on initial setup or if certificates where renewed
-[ "$update_certs" = "yes" -o "$1" = "--first" ] && update-linbofs
+# is reconfigured on every linuxmuster-setup
+#[ "$update_certs" = "yes" -o "$1" = "--first" ] && update-linbofs

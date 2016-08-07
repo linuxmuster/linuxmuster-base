@@ -229,6 +229,7 @@ if [[ -n "$first" && -z "$module" ]]; then
  # copying default configuration and remove installed flag for first time installation
  echo "Copying default static configuration files ..." | tee -a $LOGDIR/setup.log
  for m in $STATICTPLDIR/*; do
+   echo "Processing $m ..."
    m=$(basename $m)
    cp -a $STATICTPLDIR/$m/* /
    # delete module installed flag
@@ -253,7 +254,7 @@ if [[ -n "$first" && -z "$module" ]]; then
  chmod 600 /etc/ldap.secret
 elif [[ -n "$first" && -n "$module" ]]; then
  # copying default configuration for module and remove installed flag for first time installation
- echo "Copying default static configuration files ..." | tee -a $LOGDIR/setup.log
+ echo "Copying $module default static configuration files ..." | tee -a $LOGDIR/setup.log
  cp -a $STATICTPLDIR/$module/* /
  # delete installed flag
  if [ -e "${INSTALLED}_${module}" ]; then
@@ -347,6 +348,8 @@ for i in $modules; do
   for np in *.nopatch; do
     [ -e "$np" ] && mv $np ${np%.nopatch}
   done
+  module=$(basename $i)
+  touch ${INSTALLED}_${module}
 done
 
 # finish logging
