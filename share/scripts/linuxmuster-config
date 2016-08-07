@@ -33,7 +33,7 @@ usage() {
   echo "--modify : Read some parameters."
   echo
   echo "--module=module"
-  echo "         : Call --first/--modify only for the named module."
+  echo "         : Call --first/--modify only for the named module. Don't ask for parameters, use debconf values."
   echo "         --passwords"
   echo "                    : Ask for passwords is needed for module module."
   echo
@@ -259,11 +259,16 @@ if [[ ( "$first" && ( -z "$module" || -n "$passwords" ) ) || -n "$update_fw" ]];
  fi
 fi # firewall password
 
-
-# assign nic to intern interface
-assign_nics ; RC="$?"
+if [ -z "$module" ]; then
+ # assign nic to intern interface
+ assign_nics ; RC="$?"
+fi
 
 # important: close debconf database
 db_stop
 
-exit "$RC"
+if [ -z "$RC" ]; then
+  exit 0
+else
+  exit "$RC"
+fi

@@ -43,21 +43,23 @@ usage() {
 [[ ( -n "$services" || -n "$passwords" ) && -z "$module" ]] && usage
 [[ -z "$module" || -n "$first" || -n "$modify" ]] || usage
 
-# warning
-echo
-echo "You have called $0 with parameter --${first}${prepare}${modify}."
-[ -n "$first" ] && echo "Doing a fresh installation. You will lose all your user and workstation data!"
-[ -n "$modify" ] && echo "Modified configuration files will be backed up to $BACKUPDIR!"
-echo "The process will start in 5 seconds. Press CRTL-C to cancel."
-n=0
-while [ $n -lt 5 ]; do
-  echo -n .
-  sleep 1
-  let n=n+1
-done
-echo
-echo "Let's go! :-)"
-echo
+# warning only for complete run
+if [ -z "$module" ]; then
+ echo
+ echo "You have called $0 with parameter --${first}${prepare}${modify}."
+ [ -n "$first" ] && echo "Doing a fresh installation. You will lose all your user and workstation data!"
+ [ -n "$modify" ] && echo "Modified configuration files will be backed up to $BACKUPDIR!"
+ echo "The process will start in 5 seconds. Press CRTL-C to cancel."
+ n=0
+ while [ $n -lt 5 ]; do
+   echo -n .
+   sleep 1
+   let n=n+1
+ done
+ echo
+ echo "Let's go! :-)"
+ echo
+fi
 
 # logfile
 logfile=$LOGDIR/setup.log
@@ -168,9 +170,9 @@ chmod 600 $BACKUPDIR/var/cache/debconf/passwords.dat-$DATETIME.gz
 
 # ask questions
 args=--${first}${modify}
-[[ -n "$module" ]] && args=${args} --${module}
-[[ -n "$services" ]] && args=${args} --services
-[[ -n "$passwords" ]] && args=${args} --passwords
+[[ -n "$module" ]] && args="${args} --module=${module}"
+[[ -n "$services" ]] && args="${args} --services"
+[[ -n "$passwords" ]] && args="${args} --passwords"
 
 $SCRIPTSDIR/linuxmuster-config ${args}
 RC=$?

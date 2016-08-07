@@ -37,10 +37,14 @@ usage() {
 
 # read debconf database
 echo "Reading debconf database ..."
+for i in country state location servername domainname schoolname \
+       internsubrange fwconfig opsi smtprelay sambasid \
+        workgroup iface_lan serverexternname subnetting; do
+  eval $i="$(echo get linuxmuster-base/$i | debconf-communicate | awk '{ print $2 }')"
+done
+# read passwords from debconf database if read by linuxmuster-config
 if [[ -z "$module" || -n "$passwords" ]]; then
-  for i in country state location servername domainname schoolname \
-         internsubrange fwconfig opsi smtprelay sambasid adminpw \
-         ipcoppw workgroup iface_lan serverexternname subnetting; do
+  for i in adminpw ipcoppw; do
     eval $i="$(echo get linuxmuster-base/$i | debconf-communicate | awk '{ print $2 }')"
   done
 
@@ -57,13 +61,6 @@ if [[ -z "$module" || -n "$passwords" ]]; then
 
   # compute md5sum for adminpw
   adminpw_md5=`echo -n $adminpw | md5sum | cut -c -32`
-
-else
-  for i in country state location servername domainname schoolname \
-         internsubrange fwconfig opsi smtprelay sambasid adminpw \
-         workgroup iface_lan serverexternname subnetting; do
-    eval $i="$(echo get linuxmuster-base/$i | debconf-communicate | awk '{ print $2 }')"
-  done
 fi
 
 # only in modify mode
