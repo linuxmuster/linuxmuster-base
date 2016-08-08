@@ -4,7 +4,6 @@ set -e
 
 case "$1" in
     remove)
-	update-alternatives --remove horde-config /etc/linuxmuster/horde/horde
     ;;
 
     upgrade|deconfigure|failed-upgrade)

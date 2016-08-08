@@ -330,20 +330,6 @@ EOF
    fi
   fi
 
-  # install horde config links
-  update-alternatives --install /usr/share/horde/config horde-config /etc/linuxmuster/horde/horde 100 \
-			--slave /usr/share/horde/gollem/config gollem-config /etc/linuxmuster/horde/gollem \
-			--slave /usr/share/horde/imp/config imp-config /etc/linuxmuster/horde/imp \
-			--slave /usr/share/horde/ingo/config ingo-config /etc/linuxmuster/horde/ingo \
-			--slave /usr/share/horde/kronolith/config kronolith-config /etc/linuxmuster/horde/kronolith \
-			--slave /usr/share/horde/mnemo/config mnemo-config /etc/linuxmuster/horde/mnemo \
-			--slave /usr/share/horde/nag/config nag-config /etc/linuxmuster/horde/nag \
-			--slave /usr/share/horde/trean/config trean-config /etc/linuxmuster/horde/trean \
-			--slave /usr/share/horde/turba/config turba-config /etc/linuxmuster/horde/turba \
-			--slave /usr/share/horde/whups/config whups-config /etc/linuxmuster/horde/whups
-  # repair permissions for horde log dir (closes #82)
-  [ -e /var/log/horde ] && chown www-data:www-data /var/log/horde -R
-
   # fix cups configuration (closes #101)
   conf="/etc/cups/cupsd.conf"
   tpl="${STATICTPLDIR}/34_cups${conf}"
