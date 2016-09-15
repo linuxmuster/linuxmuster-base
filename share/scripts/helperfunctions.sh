@@ -166,7 +166,7 @@ removefrom_file() {
 validdomain() {
  [ -z "$1" ] && return 1
  tolower "$1"
-  if (expr match "$RET" '\([abcdefghijklmnopqrstuvwxyz0-9\-]\+\(\.[abcdefghijklmnopqrstuvwxyz0-9\-]\+\)\+$\)') &> /dev/null; then
+  if (expr match "$RET" '\([a-z0-9\-]\+\(\.[a-z0-9\-]\+\)\+$\)') &> /dev/null; then
     return 0
   else
     return 1
@@ -197,7 +197,7 @@ validmac() {
 validhostname() {
  [ -z "$1" ] && return 1
  tolower "$1"
- if (expr match "$RET" '\([abcdefghijklmnopqrstuvwxyz0-9\-]\+$\)') &> /dev/null; then
+ if (expr match "$RET" '\([a-z0-9\-]\+$\)') &> /dev/null; then
   return 0
  else
   return 1

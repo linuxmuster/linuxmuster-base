@@ -1,3 +1,9 @@
+linuxmuster-base (6.2.0-13ubuntu0) babo62; urgency=low
+
+  * /dev/mmcblk disknumber fix (closes #626 partially).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 15 Sep 2016 09:09:14 +0200
+
 linuxmuster-base (6.2.0-12ubuntu0) babo62; urgency=low
 
   * Frank Schütte: add feature request #509, access_custom.conf.
