@@ -1,4 +1,6 @@
-# $Id: extrakurse.txt 787 2010-07-08 18:15:43Z tschmitt $
+# thomas@linuxmuster.netz
+# 20160421
+#
 # sophomorix-Konfigurationsdatei
 # Mit einer Zeile Dieser Datei wird ein Kurs/eine Klasse angelegt.
 #
@@ -31,12 +33,12 @@
 #
 # multi;user;32;10.1.2003;aklinux;netz;10.01.2005
 # 
-# Diese Erzeugt die Klasse/Kurs "multi" mit den Usern "user01"
-# bis "user32". 
-# Alle User haben das Passwort "netz" 
+# Diese Erzeugt die Klasse/Kurs 'multi' mit den Usern 'user01'
+# bis 'user32'. 
+# Alle User haben das Passwort 'netz' 
 # Die User kommen ab 10.1.2005 in den
 # Tolerierung/Deaktivierungsmechanismus.
-# Im gecos-Feld in /etc/passwd wird "aklinux" eingetragen
+# Im gecos-Feld in /etc/passwd wird 'aklinux' eingetragen
 #
 #
 # kurs;basisname;anzahl;geburtsdatum;gecos;passwort;entferndatum

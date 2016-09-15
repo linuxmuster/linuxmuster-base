@@ -1,7 +1,7 @@
 # linuxmuster shell helperfunctions
 #
 # thomas@linuxmuster.net
-# 07.07.2015
+# 19.01.2016
 # GPL v3
 #
 
@@ -166,7 +166,7 @@ removefrom_file() {
 validdomain() {
  [ -z "$1" ] && return 1
  tolower "$1"
-  if (expr match "$RET" '\([abcdefghijklmnopqrstuvwxyz0-9\-]\+\(\.[abcdefghijklmnopqrstuvwxyz0-9\-]\+\)\+$\)') &> /dev/null; then
+  if (expr match "$RET" '\([a-z0-9\-]\+\(\.[a-z0-9\-]\+\)\+$\)') &> /dev/null; then
     return 0
   else
     return 1
@@ -197,7 +197,7 @@ validmac() {
 validhostname() {
  [ -z "$1" ] && return 1
  tolower "$1"
- if (expr match "$RET" '\([abcdefghijklmnopqrstuvwxyz0-9\-]\+$\)') &> /dev/null; then
+ if (expr match "$RET" '\([a-z0-9\-]\+$\)') &> /dev/null; then
   return 0
  else
   return 1
@@ -634,7 +634,7 @@ discover_nics() {
 
  n=0
  # fetch all interfaces and their macs from /sys
- for i in /sys/class/net/bond* /sys/class/net/em* /sys/class/net/eth* /sys/class/net/br* /sys/class/net/wlan* /sys/class/net/intern /sys/class/net/extern /sys/class/net/dmz; do
+ for i in /sys/class/net/bond* /sys/class/net/eth* /sys/class/net/br* /sys/class/net/wlan* /sys/class/net/intern /sys/class/net/extern /sys/class/net/dmz; do
 
   [ -e $i/address ] || continue
 
@@ -745,6 +745,7 @@ assign_nics() {
 # uid=$1
 get_login_by_id() {
   unset RET
+  [ -z "$1" ] && return 1
   RET=`psql -U ldap -d ldap -t -c "select uid from userdata where id = '$1';"`
 }
 
@@ -752,6 +753,7 @@ get_login_by_id() {
 # username=$1
 get_uidnumber() {
   unset RET
+  [ -z "$1" ] && return 1
   RET=`psql -U ldap -d ldap -t -c "select uidnumber from posix_account where uid = '$1';"`
 }
 
@@ -759,6 +761,7 @@ get_uidnumber() {
 # group=$1
 get_gidnumber() {
   unset RET
+  [ -z "$1" ] && return 1
   RET=`psql -U ldap -d ldap -t -c "select gidnumber from groups where gid = '$1';"`
 }
 
@@ -767,7 +770,9 @@ get_gidnumber() {
 get_pgroup() {
   unset T_RET
   unset RET
+  [ -z "$1" ] && return 1
   T_RET=`psql -U ldap -d ldap -t -c "select gidnumber from posix_account where uid = '$1';"`
+  [ -z "$T_RET" ] && return 1
   RET=`psql -U ldap -d ldap -t -c "select gid from groups where gidnumber = '$T_RET';"`
 }
 
@@ -775,6 +780,7 @@ get_pgroup() {
 # username=$1
 get_homedir() {
   unset RET
+  [ -z "$1" ] && return 1
   RET=`psql -U ldap -d ldap -t -c "select homedirectory from posix_account where uid = '$1';"`
 }
 
@@ -782,6 +788,7 @@ get_homedir() {
 # username=$1
 get_realname() {
   unset RET
+  [ -z "$1" ] && return 1
   RET=`psql -U ldap -d ldap -t -c "select gecos from posix_account where uid = '$1';"`
 }
 
@@ -789,6 +796,7 @@ get_realname() {
 # group=$1
 get_pgroup_members() {
   unset RET
+  [ -z "$1" ] && return 1
   RET=`psql -U ldap -d ldap -t -c "select uid from memberdata where adminclass = '$1';"`
 }
 
@@ -796,6 +804,7 @@ get_pgroup_members() {
 # group=$1
 get_group_members() {
   unset RET
+  [ -z "$1" ] && return 1
   RET=`psql -U ldap -d ldap -t -c "select uid from memberdata where adminclass = '$1' or gid = '$1';"`
 }
 
@@ -803,6 +812,7 @@ get_group_members() {
 # group=$1
 check_project() {
   unset RET
+  [ -z "$1" ] && return 1
   RET=`psql -U ldap -d ldap -t -c "select gid from projectdata where gid = '$1';"`
   strip_spaces $RET
   [ "$RET" = "$1" ] && return 0
@@ -814,6 +824,8 @@ check_project() {
 check_group() {
   # check valid gid
   unset RET
+  [ -z "$1" ] && return 1
+
   get_gidnumber $1
   [ -z "$RET" ] && return 1
   [ "$RET" -lt 10000 ] && return 1
@@ -921,29 +933,17 @@ check_id() {
 # check if user is teacher
 # teacher=$1
 check_teacher() {
-  unset RET
   [ -z "$1" ] && return 1
-  local RC=1
-  get_group_members $TEACHERSGROUP
-  if echo "$RET" | grep -qw $1; then
-    RC=0
-  fi
-  unset RET
-  return $RC
+  groups "$1" | grep -qw "$TEACHERSGROUP" && return 0
+  return 1
 }
 
 # check if user is admin
 # admin=$1
 check_admin() {
-  unset RET
-  [ -z "$1" ] && return 1
-  local RC=1
-  get_group_members $DOMADMINS
-  if echo "$RET" | grep -qw $1; then
-    RC=0
-  fi
-  unset RET
-  return $RC
+ [ -z "$1" ] && return 1
+ groups "$1" | grep -qw "$DOMADMINS" && return 0
+ return 1
 }
 
 

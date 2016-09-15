@@ -1,17 +1,31 @@
 #
 # thomas@linuxmuster.net
-# 05.03.2014
+# 20160709
 # GPL v3
 #
 
 echo "### 50_opsi prepatch"
 
 # initial setup
-[ "$1" = "--first" -a -n "$opsiip" -a -n "$opsipw" ] && linuxmuster-opsi --setup --password="$opsipw" --first --quiet
+if [ "$1" = "--first" -a -n "$opsiip" -a -n "$opsipw" ]; then
 
-# recreate ssh connect
+ echo " * initial opsi setup"
+ linuxmuster-opsi --setup --password="$opsipw" --first --quiet
+
+ # restore opsi workstation data
+ if [ -s "$CACHEDIR/workstations.opsi" ]; then
+  echo " * restore opsi workstation data"
+  cat "$CACHEDIR/workstations.opsi" >> "$WIMPORTDATA"
+ fi
+
+fi
+
+# recreate opsi ssh known hosts entry
 if [ "$1" = "--modify" -a -n "$opsiip" ]; then
+
+ echo " * recreate opsi ssh known hosts entry"
  ssh-keygen -f /root/.ssh/known_hosts -R "$opsiip"
  ssh-keygen -f /root/.ssh/known_hosts -R opsi
  test_pwless_opsi
+
 fi

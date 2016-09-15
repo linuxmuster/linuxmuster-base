@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 11.04.2015
+# 20160914
 # GPL v3
 #
 
@@ -9,7 +9,6 @@ DB10TMP=/var/tmp/db10.$$
 DBREVTMP=/var/tmp/dbrev.$$
 SERVERNET="${srvnetip}/${SUBNETBITMASK}"
 SRVNETLINE="$SERVERNET;$srvnetgw;;;0;0"
-LINBOPXETPL="$LINBOTPLDIR/default.pxe"
 
 RC=0
 
@@ -200,37 +199,133 @@ Group = $group" -i $conf || RC="1"
  return "$RC"
 }
 
+# get systemtype from start.conf
+get_systemtype(){
+ local group="$1"
+ local conf="$LINBODIR/start.conf.$group"
+ [ -e "$conf" ] || return 1
+ grep -iw ^systemtype "$conf" | tail -1 | awk -F\= '{ print $2 }' | awk '{ print $1 }'
+}
+
+# deprecated because of grub2
 # get reboot option from start.conf
-get_reboot(){
- local conf="$LINBODIR/start.conf.$1"
- if [ -e "$conf" ]; then
-  grep -iw ^kernel "$conf" | grep -qiw reboot && return 0
- fi
- return 1
+#get_reboot(){
+# local conf="$LINBODIR/start.conf.$1"
+# if [ -e "$conf" ]; then
+#  grep -iw ^kernel "$conf" | grep -qiw reboot && return 0
+# fi
+# return 1
+#}
+
+# compute and print grub2 compliant disk name
+# args: partition
+grubdisk(){
+ local partition="$1"
+ local partnr="$(echo "$partition" | sed -e 's|/dev/[hsv]d[abcdefgh]||' -e 's|/dev/xvd[abcdefgh]||' -e 's|/dev/mmcblk[0-9]p||')"
+ case "$partition" in
+  /dev/mmcblk*) local disknr="$(echo "$partition" | sed 's|/dev/mmcblk\([0-9]\)p[1-9]|\1|')" ;;
+  *:*|*//*|*\\\\*) echo "nocache" ; return 0 ;; # remote cache, no local cache, no cache partition
+  *)
+   local ord="$(printf "$(echo $partition | sed 's|/dev/*[hsv]d\([a-z]\)[0-9]|\1|')" | od -A n -t d1)"
+   local disknr=$(( $ord - 97 ))
+   ;;
+ esac
+ echo "(hd${disknr},${partnr})"
 }
 
 # sets pxe config file, params: group kopts
 set_pxeconfig(){
  local group="$1"
  local kopts="$2"
- local conf="$PXECFGDIR/$group"
- if ([ -s "$conf" ] && ! grep -q "$MANAGEDSTR" "$conf"); then
+ local RC="0"
+ local startconf="$LINBODIR/start.conf.$group"
+ local targetconf="$LINBODIR/boot/grub/$group.cfg"
+ local globaltpl="$LINBOTPLDIR/grub.cfg.global"
+ local cache="$(grep -i ^cache /$startconf | tail -1 | awk -F\= '{ print $2 }' | awk '{ print $1 }' 2> /dev/null)"
+ local cacheroot="$(grubdisk "$cache" "$group")"
+ local ostpl
+ local ostype
+ if ([ -s "$targetconf" ] && ! grep -q "$MANAGEDSTR" "$targetconf"); then
   echo -e "\tkeeping pxe config."
   return 0
  fi
+
+ # create gobal part for group cfg
  echo -e "\twriting pxe config."
- local default
- local kopts
- local RC="0"
- # get default boot label
- if get_reboot "$group"; then
-  default="reboot"
- else
-  default="linbo"
- fi
- # create configfile
- sed -e "s|@@default@@|$default|
-         s|@@kopts@@|$kopts|g" "$LINBOPXETPL" > "$conf" || RC="1"
+ sed -e "s|@@group@@|$group|g
+         s|@@cacheroot@@|$cacheroot|g
+         s|@@kopts@@|$kopts|g" "$globaltpl" > "$targetconf" || RC="1"
+
+ # collect boot parameters from start.conf and write os parts for group cfg
+ local line
+ local partnr
+ local root
+ local name
+ local osroot
+ local kernel
+ local initrd
+ local append
+ local ostpl="$LINBOTPLDIR/grub.cfg.os"
+ local osnr=0
+ echo "[EOF]" | cat "$startconf" - | grep -v '^$\|^\s*\#' | awk -F\# '{ print $1 }' | sed -e 's|^ *||g' -e 's| *$||g' -e 's| =|=|g' -e 's|= |=|g' | while read line; do
+  if [ "${line:0:1}" = "[" ]; then
+   if [ -n "$kernel" ]; then
+    osnr=$((osnr + 1))
+    if [ "$kernel" = "reboot" ]; then
+     kernel="nokernel_placeholder"
+    else
+     kernel="$(echo $kernel | sed 's|^\/||')"
+    fi
+    if [ -z "$initrd" ]; then
+     initrd="noinitrd_placeholder"
+    else
+     initrd="$(echo $initrd | sed 's|^\/||')"
+    fi
+    # convert partition to grub syntax
+    osroot="$(grubdisk "$root" "$group")"
+    # computer partition number from start.conf
+    partnr="$(grep -i ^dev "$startconf" | grep -n "$root" | awk -F\: '{ print $1 }')"
+    # get ostype from osname
+    case "$(echo "$name" | tr A-Z a-z)" in
+     *windows*) ostype="win" ;;
+     *kubuntu*) ostype="kubuntu" ;;
+     *lubuntu*) ostype="lubuntu" ;;
+     *xubuntu*) ostype="xubuntu" ;;
+     *ubuntu*|*trusty*|*wily*) ostype="ubuntu" ;;
+     *centos*) ostype="centos" ;;
+     *arch*) ostype="arch" ;;
+     *linuxmint*) ostype="linuxmint" ;;
+     *fedora*) ostype="fedora" ;;
+     *gentoo*) ostype="gentoo" ;;
+     *debian*) ostype="debian" ;;
+     *suse*) ostype="opensuse" ;;
+     *linux*) ostype="linux" ;;
+     *) ostype="unknown" ;;
+    esac
+    # create config from template
+    sed -e "s|@@osnr@@|$osnr|g
+            s|@@kernel@@|$kernel|g
+            s|@@initrd@@|$initrd|g
+            s|@@append@@|$append|g
+            s|@@partition@@|$root|g
+            s|@@partnr@@|$partnr|g
+            s|@@osroot@@|$osroot|g
+            s|@@osname@@|$name|g
+            s|@@ostype@@|$ostype|g
+            s|@@group@@|$group|g
+            s|@@cacheroot@@|$cacheroot|g
+            s|@@kopts@@|$kopts|g" "$ostpl" >> "$targetconf" || RC="1"
+   fi
+   name=""; root=""; kernel=""; initrd=""; append=""; osroot=""; ostype=""
+   continue
+  fi
+  case "$line" in
+   [Nn][Aa][Mm][Ee]=*) name="$(echo $line | awk -F\= '{ print $2 }')" ;;
+   [Aa][Pp][Pp][Ee][Nn][Dd]=*) append="$(echo $line | sed s'|^[Aa][Pp][Pp][Ee][Nn][Dd]=||')" ;;
+   [Rr][Oo][Oo][Tt]=*|[Kk][Ee][Rr][Nn][Ee][Ll]=*|[Ii][Nn][Ii][Tt][Rr][Dd]=*) eval "$(echo $line | tr A-Z a-z)" ;;
+  esac
+ done
+
  return "$RC"
 }
 
@@ -241,6 +336,7 @@ do_pxe(){
  local ip="$2"
  local RC="0"
  local server=""
+ local kopts=""
  # copy default start.conf if there is none for this group
  if [ ! -e "$LINBODIR/start.conf.$group" ]; then
   echo "    Creating new linbo group $group."
@@ -265,17 +361,18 @@ do_pxe(){
   fi
   # set group in start.conf
   set_group "$group" || RC="2"
-  # provide pxelinux configfile for group
+  # provide grub2 pxe configfile for group
   set_pxeconfig "$group" "$kopts" || RC="2"
  fi
 
  # create start.conf link for host
  ln -sf "start.conf.$group" "$LINBODIR/start.conf-$ip" || RC="1"
+ # deprecated because of grub2
  # create pxelinux cfg link for host
- local hostip="$(gethostip -x "$ip")" || RC="1"
- if [ -n "$hostip" ]; then
-  ln -sf "$group" "$PXECFGDIR/$hostip" || RC="1"
- fi
+# local hostip="$(gethostip -x "$ip")" || RC="1"
+# if [ -n "$hostip" ]; then
+#  ln -sf "$group" "$PXECFGDIR/$hostip" || RC="1"
+# fi
  case "$RC" in
   1) echo "   ERROR in pxe host configuration!" ;;
   2) echo "   ERROR in pxe group configuration!" ;;
@@ -299,9 +396,14 @@ write_dhcp_host() {
  [ "$pxe" = "3" -a -z "$opsiip" ] && pxe="1"
  case "$pxe" in
   1|2|22)
-   # experimental pxegrub support
-   if [ -e "$LINBODIR/grub/pxegrub.0" ]; then
-    echo "  option extensions-path \"${hostgroup}\";"
+   # inform grub about hostgroup
+   echo "  option extensions-path \"${hostgroup}\";"
+   # bootfiles for efi netboot
+   local systemtype="$(get_systemtype "$hostgroup")"
+   if [ "$systemtype" = "efi64" ]; then
+    echo "  filename \"boot/grub/x86_64-efi/core.efi\";"
+   elif [ "$systemtype" = "efi32" ]; then
+    echo "  filename \"boot/grub/i386-efi/core.efi\";"
    fi
   ;;
   3)
@@ -338,7 +440,7 @@ sed -e 's/\(^[A-Za-z0-9].*\)/\L\1/
 
 
 # check workstation data
-echo -n "Checking workstation data ..."
+echo "Checking workstation data ..."
 # rooms
 rooms="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $1 }' | sort -u)"
 for i in $rooms; do
@@ -350,7 +452,7 @@ for i in $roomsips; do
  r=$(echo $i|awk -F\; '{ print $1 }')
  n=$(echo $roomsips|tr ' ' '\n'|grep ^"$r;" | wc -l)
  ips=$(echo $roomsips|tr ' ' '\n'|grep ^"$r;"| cut -d\; -f2| tr '\n' ' ')
- [ $n -eq 1 ] || exitmsg "room $r has multiple ip ranges $ips!"
+ [ $n -eq 1 ] || echo "WARNING: room $r has multiple ip ranges $ips!"
 done
 
 # hostgroups
@@ -489,9 +591,10 @@ echo ";$BEGINSTR" > $DBREVTMP
 # remove linbo/pxe links
 echo -n "Removing old links under $LINBODIR ... "
 find "$LINBODIR" -name "start.conf-*" -type l -exec rm '{}' \;
-for i in $PXECFGDIR/*; do
- if [ -L "$i" ] && [[ "$(basename $i)" =~ [A-F0-9]{4} ]]; then rm "$i"; fi
-done
+# deprecated because of grub2
+#for i in $PXECFGDIR/*; do
+# if [ -L "$i" ] && [[ "$(basename $i)" =~ [A-F0-9]{4} ]]; then rm "$i"; fi
+#done
 echo "Done!"
 echo
 
@@ -636,7 +739,7 @@ for room in $rooms; do
  [ "$room" = "default" ] && continue
  # skip other entries which are not rooms
  grep ^[a-zA-Z0-9] $WIMPORTDATA | grep -q \;$room\; && continue
- if ! awk -F\; '{ print $1 }' $WIMPORTDATA | sort -u | grep ^[a-zA-Z0-9] | grep -qw $room; then
+ if ! awk -F\; '{ print $1 }' $WIMPORTDATA | sort -u | grep ^[a-zA-Z0-9] | grep -qw "${room}"; then
   FOUND=1
   remove_defaults $room ; RC_LINE="$?"
   [ $RC_LINE -eq 0 ] || RC=1
@@ -645,7 +748,7 @@ done
 # printers
 rooms="$(grep ^[a-zA-Z0-9] $PRINTERS | awk '{ print $2 }' | grep ^[a-z0-9] | sed -e 's|,| |g')"
 for room in $rooms; do
- if ! awk -F\; '{ print $1 }' $WIMPORTDATA | sort -u | grep -qw $room; then
+ if ! awk -F\; '{ print $1 }' $WIMPORTDATA | sort -u | grep -qw "${room}"; then
   FOUND=1
   remove_printeraccess $room
  fi
