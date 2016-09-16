@@ -2,15 +2,21 @@ linuxmuster-base (6.2.99-1) xenial-unstable; urgency=low
 
   * update deps for xenial compatibility
 
- -- root <root@linuxmuster.local>  Sun, 17 Jul 2016 18:39:11 +0200
+ -- Frank Schütte <fschuett@gymhim.de>  Sun, 17 Jul 2016 18:39:11 +0200
 
-linuxmuster-base (6.2.0-horde5.1) babo62; urgency=low
+linuxmuster-base (6.2.1-horde5.1) babo62; urgency=low
 
   * update configs to match horde 5
   * implemented parameter --module=module [--services] [--passwords] for linuxmuster-setup
   * removed obsolete webmin configs
 
  -- Frank Schütte <fschuett@gymhim.de>  Sun, 03 Jul 2016 13:31:35 +0200
+
+linuxmuster-base (6.2.1-0ubuntu0) babo62; urgency=low
+
+  * /dev/mmcblk disknumber fix (closes #626 partially).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 15 Sep 2016 09:15:21 +0200
 
 linuxmuster-base (6.2.0-12ubuntu0) babo62; urgency=low
 

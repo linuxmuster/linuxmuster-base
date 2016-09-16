@@ -235,9 +235,15 @@ case "$1" in
 
   # adding win7 netlogon example files.
   if ! grep -q replace.vbs "$NETLOGONDIR/common.bat"; then
+<<<<<<< HEAD
    [ -e "$NETLOGONDIR/common.bat.win7" ] || cp "$STATICTPLDIR/00_base$NETLOGONDIR/common.bat" "$NETLOGONDIR/common.bat.win7"
   fi
   [ -e "$NETLOGONDIR/replace.vbs" ] || cp "$STATICTPLDIR/00_base$NETLOGONDIR/replace.vbs" "$NETLOGONDIR"
+=======
+   [ -e "$NETLOGONDIR/common.bat.win7" ] || cp "$STATICTPLDIR/$NETLOGONDIR/common.bat" "$NETLOGONDIR/common.bat.win7"
+  fi
+  [ -e "$NETLOGONDIR/replace.vbs" ] || cp "$STATICTPLDIR/$NETLOGONDIR/replace.vbs" "$NETLOGONDIR"
+>>>>>>> master
 
   # provide teachers.bat if not yet there
   tpldir="$DYNTPLDIR/17_admins"
@@ -330,14 +336,78 @@ EOF
    fi
   fi
 
+<<<<<<< HEAD
   # fix cups configuration (closes #101)
   conf="/etc/cups/cupsd.conf"
   tpl="${STATICTPLDIR}/34_cups${conf}"
+=======
+  # update turba's sources.php (closes #83 & #184)
+  tpl="$DYNTPLDIR/21_horde3/turba2.sources.php"
+  conf="$(cat $tpl.target)"
+  searchstr="* 22.04.2013"
+  if (! grep -q "$searchstr" "$conf" || grep -q @@ "$conf"); then
+   echo "Backing up $conf to $conf.dpkg-bak."
+   cp $conf $conf.dpkg-bak
+   echo "Fixing turba's sources.php."
+   sed -e "s|@@schoolname@@|$schoolname|
+           s|@@basedn@@|$basedn|" "$tpl" > "$conf"
+   chown root:www-data "$conf"
+   chmod 440 "$conf"
+  fi
+
+  # update gollem configs
+  confdir="/etc/horde/gollem"
+  conf="$confdir/prefs.php"
+  searchstr='* 19.02.2013'
+  if ! grep -q "$searchstr" "$conf"; then
+   echo "Fixing gollem's $(basename $conf)."
+   cp "${STATICTPLDIR}${conf}" "$conf"
+   chown root:www-data "$conf"
+   chmod 440 "$conf"
+  fi
+  conf="$confdir/backends.php"
+  searchstr='* 27.01.2014'
+  if ! grep -q "$searchstr" "$conf"; then
+   echo "Fixing gollem's $(basename $conf)."
+   cp "${STATICTPLDIR}${conf}" "$conf"
+   chown root:www-data "$conf"
+   chmod 440 "$conf"
+  fi
+
+  # repair permissions for horde log dir (closes #82)
+  [ -e /var/log/horde ] && chown www-data:www-data /var/log/horde -R
+
+  # fix cups configuration (closes #101)
+  conf="/etc/cups/cupsd.conf"
+  tpl="${STATICTPLDIR}${conf}"
+>>>>>>> master
   if ! grep -q ^"BrowseAddress 10.*" "$conf"; then
    echo "Fixing $conf ..."
    cp "$conf" "${conf}.dpkg-bak"
    cp "$tpl" "$conf"
    cups_reload=yes
+<<<<<<< HEAD
+=======
+  fi
+  conf="/etc/cups/cups-files.conf"
+  tpl="${STATICTPLDIR}${conf}"
+  if [ ! -e "$conf" ]; then
+   echo "Creating $conf ..."
+   cp "$conf" "${conf}.dpkg-bak"
+   cp "$tpl" "$conf"
+   cups_reload=yes
+  fi
+
+  # adding apparmor profile for linuxmuster (see #156)
+  dir="/etc/apparmor.d/tunables/home.d"
+  conf="$dir/linuxmuster"
+  if [ ! -s "$conf" ]; then
+   echo "Adding apparmor profile for linuxmuster.net ..."
+   tpl="${STATICTPLDIR}${conf}"
+   mkdir -p "$dir"
+   cp "$tpl" "$conf"
+   [ -s "/etc/init.d/apparmor" ] && apparmor_reload=yes
+>>>>>>> master
   fi
   conf="/etc/cups/cups-files.conf"
   tpl="${STATICTPLDIR}/34_cups${conf}"
