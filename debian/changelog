@@ -1,44 +1,172 @@
-linuxmuster-base (6.1.5-0ubuntu0) babo; urgency=low
+linuxmuster-base (6.2.1-0ubuntu0) babo62; urgency=low
+
+  * /dev/mmcblk disknumber fix (closes #626 partially).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 15 Sep 2016 09:15:21 +0200
+
+linuxmuster-base (6.2.0-12ubuntu0) babo62; urgency=low
+
+  * Frank Schütte: add feature request #509, access_custom.conf.
+  * linuxmuster-setup:
+    - recreate opsi's workstations entry if present.
+    - fixed syntax error in linbo configuration script.
+    - firewall setup modifications due to migration restore on 6.2 target systems.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 11 Jul 2016 14:08:02 +0200
+
+linuxmuster-base (6.2.0-11ubuntu0) babo62; urgency=low
+
+  * fixed linbo template name in dist.conf.
+  * fixed firewall setup on first install (closes #539).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 01 Jul 2016 20:51:18 +0200
+
+linuxmuster-base (6.2.0-10ubuntu0) babo62; urgency=low
+
+  * fixed syntax error in wimport.sh.
+  * fixed quotes in extrakurse template. 
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 13 Jun 2016 15:45:44 +0200
+
+linuxmuster-base (6.2.0-9ubuntu0) babo-testing; urgency=low
 
   * linuxmuster-reset: hostname-begins-with-cipher-fix (closes #568).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 04 Mar 2016 18:30:07 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 04 Mar 2016 17:38:01 +0100
 
-linuxmuster-base (6.1.4-0ubuntu0) babo; urgency=low
+linuxmuster-base (6.2.0-8ubuntu0) babo-testing; urgency=low
+
+  * smb.conf: allowed guest in linbo-repo share.
+  * wimport.sh: fixed remote cache issue (closes #550).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 12 Feb 2016 14:09:08 +0100
+
+linuxmuster-base (6.2.0-7ubuntu0) babo-testing; urgency=low
 
   * removed linuxmuster-schulkonsole-template from server task (closes #538).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 26 Jan 2016 20:13:58 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 26 Jan 2016 20:09:47 +0100
 
-linuxmuster-base (6.1.3-0ubuntu0) babo; urgency=low
+linuxmuster-base (6.2.0-6ubuntu0) babo-testing; urgency=low
 
-  * Pull Requests #31 (FreeInMind) und #32 (fschuett) mit Master zusammengeführt:
-    - neue Funktion exec_ipcop_fb() in helperfunctions.sh,
-      notwendig für "linuxmuster-ipfire --upgrade" (#31).
-    - Fix für checklock timeout in helperfunctions.sh (#32).
+  * postinst-fix (closes #535).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 19 Jan 2016 15:14:57 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 25 Jan 2016 15:44:59 +0100
 
-linuxmuster-base (6.1.2-0ubuntu0) babo; urgency=low
+linuxmuster-base (6.2.0-5ubuntu0) babo-testing; urgency=low
 
-  * Add link Räume -> rooms for tasks (#475).
+  * Merged pull request #31 of FreeInMind for linuxmuster-ipfire --upgrade,
+    added function exec_ipcop_fb() to helperfunctions.sh.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 16 Jan 2016 14:25:51 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 19 Jan 2016 16:37:34 +0100
 
-linuxmuster-base (6.1.1-1ubuntu0) babo; urgency=low
+linuxmuster-base (6.2.0-4ubuntu0) babo-testing; urgency=low
+
+  * internet_on_off: ensure that upload paths exist.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 28 Nov 2015 16:29:14 +0100
+
+linuxmuster-base (6.2.0-3ubuntu0) babo-testing; urgency=low
+
+  * wimport.sh: added support for /dev/mmcblk? and /dev/xvd? devices.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 28 Nov 2015 16:29:14 +0100
+
+linuxmuster-base (6.2.0-2ubuntu0) babo-testing; urgency=low
+
+  * wimport.sh: modifications due to linbo's grub theme support.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 06 Nov 2015 21:53:28 +0100
+
+linuxmuster-base (6.2.0-1ubuntu0) babo-testing; urgency=low
+
+  * wimport.sh: modifications due to extended linbo's grub config templates.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 05 Nov 2015 13:54:48 +0100
+
+linuxmuster-base (6.2.0-0ubuntu0) babo-testing; urgency=low
 
   * added ecdsa ssh root and host keys (see #468).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 04 Nov 2015 14:09:06 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 04 Nov 2015 13:48:59 +0100
+
+linuxmuster-base (6.1.6-0ubuntu0) babo-testing; urgency=low
+
+  * helperfunctions.sh: minor code improvements, increased sleep to 10 in checklock().
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 30 Oct 2015 10:57:46 +0100
+
+linuxmuster-base (6.1.5-0ubuntu0) babo-testing; urgency=low
+
+  * merged Frank Schüttes pull requests #28 & #29:
+    - Add link Räume -> rooms for tasks (#475).
+    - Remove wlan related files (moved to schulkonsole-0.19.0-1).
+    - group_defaults no longer needed.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 15 Oct 2015 09:43:31 +0200
+
+linuxmuster-base (6.1.4-0ubuntu0) babo-testing; urgency=low
+
+  * wimport.sh:
+    * append fix for grub.cfg os template (closes #479 finally).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 15 Sep 2015 16:54:55 +0200
+
+linuxmuster-base (6.1.3-4ubuntu0) babo-testing; urgency=low
+
+  * wimport.sh:
+    * fixed grubdisk().
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 14 Sep 2015 14:56:34 +0200
+
+linuxmuster-base (6.1.3-3ubuntu0) babo-testing; urgency=low
+
+  * wimport.sh:
+    * Changed multiple ip ranges check of rooms from error to warning.
+    * fixed double room check.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 08 Sep 2015 12:26:58 +0000
+
+linuxmuster-base (6.1.3-2ubuntu0) babo-testing; urgency=low
+
+  * wimport.sh, set_pxe_config():
+    * added cache partition in grub.cfg global template.
+    * kernel and initrd fix for grub.cfg os template (closes #479).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 08 Sep 2015 09:10:27 +0200
+
+linuxmuster-base (6.1.3-1ubuntu0) babo-testing; urgency=low
+
+  * changed grub prefix to boot/grub in wimport.sh.
+  * added grub loader paths in dhcpd.conf template.
+  * fixed typo in 40_linbo/prepatch.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 28 Jul 2015 09:23:23 +0200
+
+linuxmuster-base (6.1.3-0ubuntu0) babo-testing; urgency=low
+
+  * initial implementation of feature/grub2.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 20 Jul 2015 21:39:10 +0200
+
+linuxmuster-base (6.1.2-0ubuntu0) babo-testing; urgency=low
+
+  * Merged feature/wlan from Frank Schütte:
+    * start.conf: Variable system=bios|bios64|efi32|efi64 (Standard: bios bedeutet bios 32bit linbo)
+    * DHCP boot ia32 / x64 / bios
+    * added wlan (ticket #98)
+    * import_workstations writes linbo/linbo64 to pxe-config
+  * removed experimental pxegrub support finally.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 14 Jul 2015 15:33:38 +0000
 
 linuxmuster-base (6.1.1-0ubuntu0) babo; urgency=low
 
   * Merge pull request #23 from fschuett/fix-461: calling custom.bat if it exists (closes #461).
   * Merge pull request #22 from fschuett/fix-349: cupsd.conf BrowseAddress fix (closes #349).
   * Merge pull request #21 from fschuett/fix-419: wimport.sh: Added test for room - ipranges (closes #419).
-  * Fixed discovering of network interfaces which are named like em* (closes #468).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 7 Jul 2015 11:16:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 7 Jul 2015 10:34:00 +0200
 
 linuxmuster-base (6.1.0-30ubuntu0) babo; urgency=low
 

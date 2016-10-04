@@ -1,10 +1,13 @@
 #
 # thomas@linuxmuster.net
-# 31.05.2014
+# 20160711
 # GPL v3
 #
 
-echo "### 02_firewall postpatch"
+echo "### 04_firewall postpatch"
+
+# initial firewall configuration on firewall changes
+[ -n "$ipcoppw" ] && /usr/sbin/linuxmuster-ipfire --setup --first --password="$ipcoppw"
 
 # remove firewall from known_hosts if it is there, on first install or certificates need to be renewed
 if [ -e /root/.ssh/known_hosts -a -n "$ipcoppw" ]; then
@@ -12,6 +15,3 @@ if [ -e /root/.ssh/known_hosts -a -n "$ipcoppw" ]; then
   ssh-keygen -f /root/.ssh/known_hosts -R ["$f"]:222
  done
 fi
-
-# initial firewall configuration on first install or firewall change
-[ -n "$ipcoppw" ] && /usr/sbin/linuxmuster-ipfire --setup --first --password="$ipcoppw"
