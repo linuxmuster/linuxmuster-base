@@ -773,8 +773,11 @@ else
 fi
 
 echo " * Reloading external firewall ..."
+#check for custom firewall
+if [ "$fwconfig" = "custom"]; then
+ echo "   ...nothing to do."
 # first create and upload custom firewall stuff
-if ! fw_do_custom; then
+elif ! fw_do_custom; then
  echo "   ...failed!"
  RC=1
 else # update external fw

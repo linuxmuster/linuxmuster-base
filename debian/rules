@@ -56,7 +56,7 @@ clean1:
 
 	# Add here commands to clean up after the build process.
 	#-$(MAKE) clean
-
+	debconf-updatepo
 	dh_clean
 
 
@@ -84,6 +84,9 @@ binary-indep: build install
 	dh_testroot
 	dh_installdirs
 	dh_installdebconf
+	# Merge in all templates.
+	echo >> debian/linuxmuster-base/DEBIAN/templates
+	po2debconf debian/templates >> debian/linuxmuster-base/DEBIAN/templates
 	dh_installdocs
 #	dh_installexamples -i
 #	dh_installmenu -i
