@@ -80,13 +80,13 @@ fi
 
 # update blocked ips list
 case "$trigger" in
- 
+
  on) # remove ips
   for i in $IPS_TO_PROCESS; do
    sed "/^\($i\)$/d" -i "$BLOCKEDHOSTSINTERNET" || cancel "Cannot write to $BLOCKEDHOSTSINTERNET!"
   done
   ;;
-  
+
  off) # add ips
   for i in $IPS_TO_PROCESS; do
    if ! grep -qw "$i" "$BLOCKEDHOSTSINTERNET"; then
