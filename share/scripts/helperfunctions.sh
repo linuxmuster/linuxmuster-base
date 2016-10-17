@@ -390,7 +390,7 @@ test_maclist() {
    fi
   fi
  done
- 
+
  echo "$maclist_tested"
  return 0
 }
@@ -432,9 +432,7 @@ test_pwless_fw(){
 
 # returns ipfire, ipcop or none
 get_fwtype(){
- local fwtype="custom"
- ssh -p 222 root@$ipcopip /bin/ls /var/ipfire &> /dev/null && fwtype="ipfire"
- echo "$fwtype"
+ echo "$fwconfig"
 }
 
 # check if urlfilter is active
@@ -606,7 +604,7 @@ network_address_to_ips() {
    netmaskarr=(255 $((256-2**(16-${network[1]}))) 0 0)
   elif  [[ $((24-${network[1]})) > 0 ]]; then
    netmaskarr=(255 255 $((256-2**(24-${network[1]}))) 0)
-  elif [[ $((32-${network[1]})) > 0 ]]; then 
+  elif [[ $((32-${network[1]})) > 0 ]]; then
    netmaskarr=(255 255 255 $((256-2**(32-${network[1]}))))
   fi
  fi
