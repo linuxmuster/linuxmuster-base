@@ -390,7 +390,7 @@ test_maclist() {
    fi
   fi
  done
- 
+
  echo "$maclist_tested"
  return 0
 }
@@ -404,7 +404,7 @@ test_pwless_ssh(){
  local ip="$1"
  local port="$2"
  local target="$3"
- if ! ssh -oNumberOfPasswordPrompts=0 -oStrictHostKeyChecking=no -p "$port" "$ip" echo "Passwordless ssh connection to $target is available."; then
+ if ! ssh -oNumberOfPasswordPrompts=0 -oStrictHostKeyChecking=no -oConnectTimeout=5 -p "$port" "$ip" echo "Passwordless ssh connection to $target is available."; then
   echo "Cannot establish ssh connection to $target!"
   return 1
  else
@@ -423,7 +423,9 @@ test_pwless_opsi(){
 
 # test if firewall can be connected passwordless
 test_pwless_fw(){
- if test_pwless_ssh "$ipcopip" 222 Firewall; then
+ if [ "$fwconfig" = "custom" ]; then
+  return 0
+ elif test_pwless_ssh "$ipcopip" 222 Firewall; then
   return 0
  else
   return 1
@@ -451,6 +453,8 @@ check_urlfilter() {
 
 # execute a command on firewall
 exec_ipcop() {
+ #check type of firewall
+ [ "$fwconfig" = "custom" ] && return 0
  # test connection
  ssh -p 222 root@$ipcopip $* &> /dev/null || return 1
  return 0
@@ -458,17 +462,23 @@ exec_ipcop() {
 
 # execute a command on firewall width feedback
 exec_ipcop_fb() {
-  ssh -p 222 root@$ipcopip $*
+ #check type of firewall
+ [ "$fwconfig" = "custom" ] && return 0
+ ssh -p 222 root@$ipcopip $*
 }
 
 # fetch file from firewall
 get_ipcop() {
+ #check type of firewall
+ [ "$fwconfig" = "custom" ] && return 0
  scp -r -P 222 root@$ipcopip:$1 $2 &> /dev/null || return 1
  return 0
 }
 
 # upload file to firewall
 put_ipcop() {
+ #check type of firewall
+ [ "$fwconfig" = "custom" ] && return 0
  scp -r -P 222 $1 root@$ipcopip:$2 &> /dev/null || return 1
  return 0
 }
@@ -606,7 +616,7 @@ network_address_to_ips() {
    netmaskarr=(255 $((256-2**(16-${network[1]}))) 0 0)
   elif  [[ $((24-${network[1]})) > 0 ]]; then
    netmaskarr=(255 255 $((256-2**(24-${network[1]}))) 0)
-  elif [[ $((32-${network[1]})) > 0 ]]; then 
+  elif [[ $((32-${network[1]})) > 0 ]]; then
    netmaskarr=(255 255 255 $((256-2**(32-${network[1]}))))
   fi
  fi
