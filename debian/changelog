@@ -2,7 +2,7 @@ linuxmuster-base (6.2.3-0ubuntu0) babo62; urgency=low
 
   * merged zefanja's pr42.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 22 Oct 2016 17:29:39 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 24 Oct 2016 15:16:52 +0200
 
 linuxmuster-base (6.2.2-0ubuntu0) babo62; urgency=low
 
