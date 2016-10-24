@@ -1,6 +1,6 @@
 #
 # thomas@linuxmuster.net
-# 20160711
+# 20161021
 # GPL v3
 #
 
@@ -8,7 +8,7 @@ echo "### 40_linbo prepatch"
 
 # stop relevant services if not done yet
 service rsync status | grep -q running && service rsync stop
-ps ax | grep -v grep | grep -q atftpd && service atftpd stop
+ps ax | grep -v grep | grep -q tftpd && service tftpd-hpa stop
 ps ax | grep -v grep | grep -q torrent && ( service linbo-bittorrent stop ; service bittorrent stop )
 ps ax | grep -v grep | grep -q mcast && service linbo-multicast stop
 
@@ -92,10 +92,7 @@ if [ -e /etc/default/bittorrent ]; then
 fi
 [ -e /etc/default/linbo-bittorrent ] && ( backup_file /etc/default/linbo-bittorrent ; sed -e 's|^START_BITTORRENT=.*|START_BITTORRENT=1|' -i /etc/default/linbo-bittorrent )
 
-# serverip in atftpd config
-[ "$serverip" = "$serverip_old" ] || ( backup_file /etc/default/atftpd ; sed -i "s|$serverip_old|$serverip|g" /etc/default/atftpd )
-
 # start relevant services
-for i in atftpd rsync linbo-bittorrent linbo-multicast; do
+for i in tftpd-hpa rsync linbo-bittorrent linbo-multicast; do
  service "$i" start
 done

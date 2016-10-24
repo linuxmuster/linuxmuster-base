@@ -1,3 +1,9 @@
+linuxmuster-base (6.2.2-0ubuntu0) babo62; urgency=low
+
+  * tftpd-hpa modifications due to linuxmuster-linbo 2.3.12.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 22 Oct 2016 17:29:39 +0200
+
 linuxmuster-base (6.2.1-0ubuntu0) babo62; urgency=low
 
   * /dev/mmcblk disknumber fix (closes #626 partially).
