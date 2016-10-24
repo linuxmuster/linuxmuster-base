@@ -404,7 +404,7 @@ test_pwless_ssh(){
  local ip="$1"
  local port="$2"
  local target="$3"
- if ! ssh -oNumberOfPasswordPrompts=0 -oStrictHostKeyChecking=no -oConnectTimeout=5 -p "$port" "$ip" echo "Passwordless ssh connection to $target is available."; then
+ if ! ssh -oNumberOfPasswordPrompts=0 -oStrictHostKeyChecking=no -p "$port" "$ip" echo "Passwordless ssh connection to $target is available."; then
   echo "Cannot establish ssh connection to $target!"
   return 1
  else
@@ -432,11 +432,9 @@ test_pwless_fw(){
  fi
 }
 
-# returns ipfire, ipcop or none
+# returns ipfire, ipcop or custom
 get_fwtype(){
- local fwtype="custom"
- ssh -p 222 root@$ipcopip /bin/ls /var/ipfire &> /dev/null && fwtype="ipfire"
- echo "$fwtype"
+ echo "$fwconfig"
 }
 
 # check if urlfilter is active
