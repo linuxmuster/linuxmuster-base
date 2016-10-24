@@ -16,7 +16,6 @@
 # test ssh connection
 test_pwless_fw || exit 1
 
-
 # parsing parameters
 getopt $*
 
@@ -489,7 +488,7 @@ if [[ -n "$cleanup" || -n "$purgeallstudentcerts" ]]; then
 	fi
 
 	for certuser in `awk -F, '{ print $3 }' $tmpdir/ovpnconfig`; do
-		
+
 		# filter users not created by this script
 		grep -q ",$certuser,$certuser - " $tmpdir/ovpnconfig || continue
 
