@@ -16,7 +16,7 @@
 # Framed-Compression = Van-Jacobsen-TCP-IP
 
 # linuxmuster.net -- automatic entries below this line
-DEFAULT Ldap-Group == teachers
+DEFAULT Group != p_wifi
 DEFAULT Auth-Type := REJECT
-    Reply-Message = "Sie dürfen momentan nicht auf das WLAN zugreifen."
+    Reply-Message = "You are not allowed to access the WLAN!"
 # linuxmuster.net -- automatic entries above this line
