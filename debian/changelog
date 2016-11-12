@@ -1,3 +1,14 @@
+linuxmuster-base (6.2.4-0ubuntu0) babo62; urgency=low
+
+  * Merge pull request #35 from ni-kw/master: Korrekturen der Felder in workstations.5.
+  * Merge pull request #37 from FreeInMind/master: Vorschlag der Domäme an Dokumentation angepasst.
+  * Merge branch 'debconf-i18n' of https://github.com/zefanja/linuxmuster.
+  * Merge branch 'zefanja-debconf-i18n'.
+  * Merge pull request #40 from zefanja/fix-freeradius-conf:fixed bug in freeradius configuration.
+  * Merge pull request #41 from zefanja/fix-630 (closes #630).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 12 Nov 2016 22:31:40 +0100
+
 linuxmuster-base (6.2.3-0ubuntu0) babo62; urgency=low
 
   * merged zefanja's pr42.

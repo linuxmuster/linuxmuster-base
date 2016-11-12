@@ -1,23 +1,12 @@
 Template: linuxmuster-base/intro
 Type: note
-<<<<<<< HEAD
-Description: Hinweise zur Installation
- Für die im folgenden weitgehend automatisch ablaufende Installation\n
- benötigen Sie einige Daten, die automatisch in den Installations-\n
- prozess miteinbezogen werden. Dies sind:\n
- - der Name des Servers (z.B. server)\n
- - die Internet-Domäne des Schulnetzes (z.B linuxmuster-net.lokal)\n
- - die interne IP-Struktur Ihres Schulnetzes\n
- - ggf. die Adresse des Mailservers beim Provider (z.B.: mbox1.belwue.de)\n
- - Passwörter der administrativen User
-=======
 _description: Notes for Installation
  You will need some data for the following - mainly automated - installation:\n
- - Hostname of the server (z.B. server)\n - domain name of
- the school network (z.B linuxmuster.local)\n - interanl IP sturcture of
- the school network\n - optional: address of the mailserver (z.B.: mbox1.belwue.de)\n
+ - Hostname of the server (eg. server)\n
+ - domain name of the school network (eg. linuxmuster.local)\n
+ - internal IP structure of the school network\n
+ - optional: address of the mailserver (eg. mbox1.belwue.de)\n
  - passwords for admin users
->>>>>>> 9e67bc2451b5548ca189bf4b1e63ccff2ddc99f8
 
 Template: linuxmuster-base/country
 Type: string
