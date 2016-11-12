@@ -23,12 +23,12 @@
 .
 Jede Zeile beschreibt ein Gerät (Computer, Drucker, ...)  und hat die folgende Syntax:
 .sp
-.B Raum;Hostname;Gruppe;MAC;IP;1;1;1;1;1;PXE;Optionen
+.B Raum;Hostname;Gruppe;MAC;IP;Office-Key;Windows-Key;lmnreserve;userreserve;Account-Typ;PXE-Flag;Optionen
 .
 .PP
 .SH BEISPIEL
 .
-r66;r66-pc03;hd;00:11:22:3A:4B:5F;10.20.66.3;1;1;1;1;1;1
+r66;r66-pc03;hd;00:11:22:3A:4B:5F;10.20.66.3;XXXXX-XXXXX-XXXXX-XXXXX-XXXXX;XXXXX-XXXXX-XXXXX-XXXXX-XXXXX;;;1;1
 .PP
 .SH BESCHREIBUNG
 .
@@ -66,7 +66,14 @@ Der Name des Raumes, in dem der Rechner steht.
 Anhand dieses Namens werden die Computer in der Schulkonsole 
 den Räumen zugeordnet.
 .TP
-.B Feld 2: Gruppe
+.B Feld 2: Hostname
+.br
+Der eindeutige Hostname. 
+Zulässige Zeichen sind Kleinbuchstaben und Ziffern 
+sowie der Bindestrich 
+(der nicht an erster oder letzter Stelle stehen darf).
+.TP
+.B Feld 3: Gruppe
 .br
 Die Rechnergruppe, zu der der Computer gehört. 
 Computer in derselben Rechnergruppe erhalten 
@@ -75,13 +82,6 @@ Ist eine Integration in Linbo nicht erforderlich
 (etwa für Drucker, siehe Feld
 .B PXE
 ), so wird dieses Feld nicht ausgewertet. 
-.TP
-.B Feld 3: Hostname
-.br
-Der eindeutige Hostname. 
-Zulässige Zeichen sind Kleinbuchstaben und Ziffern 
-sowie der Bindestrich 
-(der nicht an erster oder letzter Stelle stehen darf).
 .TP
 .B Feld 4: MAC-Adresse
 .br
@@ -106,13 +106,13 @@ Beispielsweise gehören alle Rechner mit einer IP-Adresse
 der Form 10.17.113.x zum selben Raum.
 .RE
 .TP
-.B Feld 6: MSOffice-Key für Reaktivierung nach Synchronisation
+.B Feld 6: MSOffice-Key
 .br
-Feld derzeit ungenutzt.
+MSOffice-Key für Reaktivierung nach Synchronisation
 .TP
-.B Feld 7: Windows-MAK- oder OEM-Key für Reaktivierung nach Synchronisation
+.B Feld 7: Windows-Key
 .br
-Feld derzeit ungenutzt.
+Windows-MAK- oder OEM-Key für Reaktivierung nach Synchronisation
 .TP
 .B Feld 8: Momentan unbenutzt. Für linuxmuster.net reserviert
 .br
@@ -128,12 +128,11 @@ Zulässige Zeichen: [0-9a-zA-Z_-.,]
 .TP
 .B Feld 10: Account flag (number)
 .br
-0: Device ohne Account, mit Firewall
+0: IP-Host: DHCP only, Zugriff auf Server und Internet
 .br
-1: Device ohne Account, ohne Firewall
+1: Domain-Host: Computeraccount im LDAP, Zugriff auf Server und Internet
 .br
 2-6: ???
-.TP
 .B Feld 11: PXE Flag (number)
 .br
 0: kein PXE-Boot, kein Imaging, mit Sambakonto
