@@ -271,6 +271,10 @@ write_rulesfile() {
 -A IN-$IFACE ! -s $internalnet/$INTERNBITMASK -j ACCEPT
 EOF
 
+ unset global_subnets
+ declare -A global_subnets
+ prepare_subnet_lookup_tab "$ALLOWEDNETS"
+
  # add custom rules before
  [ -r "$CUSTOMRULESBEFORE" ] && cat "$CUSTOMRULESBEFORE" >> "$IPTRULES"
 
@@ -301,7 +305,7 @@ EOF
   else # write rules into allowed and blocked chains
    for i in $IPS; do
     # if ip matches an already allowed subnet only a reject rule for bocked ips is needed
-    if ([ -n "$suballowed" ] && ipsubmatch "$i" "$ALLOWEDNETS"); then
+    if ([ -n "$suballowed" ] && is_ip_in_subnets "$i"); then
      if [ "$TYPE" = "BLOCKED" ]; then
       # create reject rule for ips which are blocked
       if ! echo "$UNBLOCKED_IPS" | grep -qw "$i"; then
