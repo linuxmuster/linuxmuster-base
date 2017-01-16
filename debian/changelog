@@ -3,8 +3,9 @@ linuxmuster-base (6.2.5-0ubuntu0) babo62; urgency=low
   * removed obsolete comment from smb.conf.
   * added dependency to linuxmuster-community-feedback.
   * minor postinst cleanup.
+  * merged pull request #43 from newkit: Optimized "is IP in subnet" calculations.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 11 Jan 2017 17:38:50 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 16 Jan 2017 21:15:06 +0100
 
 linuxmuster-base (6.2.4-0ubuntu0) babo62; urgency=low
 
