@@ -1003,3 +1003,89 @@ toupper() {
   [ -z "$1" ] && return 1
   RET=`echo $1 | tr a-z A-Z`
 }
+
+# converts a W.X.Y.Z IP address into its decimal representation
+function ip_to_dec
+{
+    local ip=$1
+    local octs=($(echo $ip | sed "s/\./ /g"))
+    local oct
+    local dec=0
+
+    for oct in ${octs[@]}; do
+        dec=$((($dec<<8)+($oct)))
+    done
+    echo $dec
+}
+
+# converts a decimal represented IP address into dotted notion W.X.Y.Z
+function dec_to_ip
+{
+    local dec=$1
+    local oct0
+    local oct1
+    local oct2
+    local oct3
+
+    oct0=$(($dec&255))
+    dec=$((dec>>8))
+    oct1=$(($dec&255))
+    dec=$((dec>>8))
+    oct2=$(($dec&255))
+    dec=$((dec>>8))
+    oct3=$(($dec&255))
+    dec=$((dec>>8))
+
+    echo "$oct3.$oct2.$oct1.$oct0"
+}
+
+# converts a bitwise netmask into dotted notion (e.g. /24 -> 255.255.255.0)
+function gen_netmask
+{
+    local l_ones=$1
+    local l_zeros=$((32-${l_ones}))
+    local ones=$(printf '1%.0s' $(seq -s " " ${l_ones}))
+    local zeros=$(printf '0%.0s' $(seq -s " " ${l_zeros}))
+    echo "ibase=2;${ones}${zeros}" | bc
+}
+
+# use global associative array global_subnets to store allowed subnets
+# it is up to the user of this function to initialize this data structure:
+#   unset global_subnets  
+#   declare -A global_subnets
+function prepare_subnet_lookup_tab
+{
+    local networks=$1
+    local netaddr
+    local netaddr_dec
+    local netmask
+    local netmask_dec
+
+    for i in $networks; do
+        netaddr="$(echo $i | awk -F\/ '{ print $1}')"
+        netmask="$(echo $i | awk -F\/ '{ print $2}')"
+        netaddr_dec=$(ip_to_dec $netaddr)
+        netmask_dec=$(gen_netmask $netmask)
+        if  [ -z ${global_subnets[$netaddr_dec]} ] || [ $netmask_dec -lt ${global_subnets[$netaddr_dec]}]; then
+            global_subnets[$netaddr_dec]=$netmask_dec
+        fi
+    done
+}
+
+# uses global variable global_subnets in order to lookup whether a 
+# supplied IP address is within given subnets. use function 
+# prepare_subnet_lookup_tab in order to prepare lookup table 
+function is_ip_in_subnets
+{
+    local ip=$1
+    local ip_dec=$(ip_to_dec $ip)
+
+    for netmask in ${global_subnets[@]}; do
+        netaddr=$(($ip_dec&$netmask))
+        if [ ! -z ${global_subnets[$netaddr]} ]; then
+            return 0
+        fi
+    done
+    return 1
+}
+

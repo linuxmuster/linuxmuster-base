@@ -126,10 +126,14 @@ if [ "$subnetting" = "true" ]; then
  # are there any subnets?
  if [ -n "$networks" ]; then
 
+  unset global_subnets
+  declare -A global_subnets
+  prepare_subnet_lookup_tab "$networks"
+
   # remove ips which match allowed subnets from allowed hosts
-  for i in $(awk -F\, '{ print $4}' $ALLOWEDHOSTS | sed -e 's|host ||g'); do
-   if ipsubmatch "$i" "$networks"; then
-    sed "/,host $i,/d" -i "$ALLOWEDHOSTS" || cancel "Cannot write to $ALLOWEDHOSTS 3!"
+  for ip in $(awk -F\, '{ print $4}' $ALLOWEDHOSTS | sed -e 's|host ||g'); do
+   if is_ip_in_subnets "$ip"; then
+    sed "/,host $ip,/d" -i "$ALLOWEDHOSTS" || cancel "Cannot write to $ALLOWEDHOSTS 3!"
    fi
   done
 
