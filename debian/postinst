@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 25.01.2016
+# 20170116
 # GPL v3
 #
 
@@ -31,7 +31,7 @@ read_values(){
           smtprelay sambasid internsubrange iface_lan serverexternname subnetting; do
   eval $i="$(echo "get linuxmuster-base/$i" | debconf-communicate | awk '{ print $2 }')"
  done
- 
+
  # compute additional values
  internsub=`echo $serverip | awk -F. '{ print $2 }'`
  serverrev_short=1.1.$internsub
@@ -40,7 +40,7 @@ read_values(){
  srvnetip=10.$internsub.1.0
  srvnetgw=10.$internsub.1.253
  srvnetbc="$(ipcalc -b "$srvnetip/$subnetmask" | grep ^Broadcast | awk '{ print $2 }')"
- 
+
  # update serverexternname
  if [ -z "$serverexternname" ]; then
   serverexternname="$servername.$domainname"
@@ -125,16 +125,6 @@ case "$1" in
   # add startup scripts to runlevels
   update-rc.d linuxmuster-base defaults
 
-  # system groups and users which are needed by udevd
-  #for i in fuse kvm nvram rdma scanner tss; do
-  # if ! grep -q ^${i}: /etc/group; then
-  #  addgroup --system $i
-  # fi
-  #done
-  #if ! grep -q ^tss: /etc/passwd; then
-  # adduser --system --no-create-home --ingroup tss --disabled-login tss
-  #fi
-
   # change default shell to /bin/bash
   echo "Changing default shell to /bin/bash!"
   ln -sf bash /bin/sh
@@ -163,7 +153,7 @@ case "$1" in
 
   # read setup values from debconf
   read_values
-  
+
   # test if fwconfig is valid
   case $fwconfig in
    ipfire|custom) ;;
@@ -264,7 +254,9 @@ case "$1" in
   find "$ADMINSHOME/$ADMINISTRATOR" -xtype l -name registry-patches -exec rm '{}' \;
 
   # linbo administrative user
-  if ps ax | grep -v grep | grep -q slapd && ps ax | grep -v grep | grep -q postgresql; then
+  service slapd status | grep -q "is running" && slapd_running="yes"
+  pg_running="$(service postgresql status | awk -F\: '{ print $2 }' | awk '{ print $1 }')"
+  if [ -n "$slapd_running" -a -n "$pg_running" ]; then
    if ! check_id linbo &>/dev/null; then
     linbopasswd=`grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }'`
     if [ -n "$linbopasswd" ]; then
@@ -285,7 +277,7 @@ case "$1" in
    ln -s ldap.secret /etc/$i.secret
   done
   chmod 600 /etc/*.secret
-  
+
   # refresh samba admin passwd (see #80)
   smbpasswd -w "$(cat /etc/ldap.secret)"
 
@@ -484,15 +476,6 @@ EOF
   [ -e "$conf" ] || cp "$STATICTPLDIR/$conf" "$conf"
   dhcp_reload=yes
 
-  # remove obsolete backup settings from schulkonsole
-  conf="$SYSCONFDIR/schulkonsole/permissions.conf"
-  searchstr="settings_backup"
-  if grep -q "$searchstr" "$SYSCONFDIR/schulkonsole"; then
-   echo "Removing backup settings from schulkonsole."
-   cp "$conf" "$conf.dpkg-bak"
-   sed -e "s|$searchstr||" -i "$conf"
-  fi
-
   # withdraw access rights for room on /home/share
   if [ ! -e "$ROOM_SHARE_ACLS" ]; then
    "$SCRIPTSDIR/room_share_acl.sh" --deny || true
@@ -589,4 +572,3 @@ esac
 #DEBHELPER#
 
 exit 0
-

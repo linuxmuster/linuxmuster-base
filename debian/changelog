@@ -1,3 +1,11 @@
+linuxmuster-base (6.2.5-0ubuntu0) babo62; urgency=low
+
+  * removed obsolete comment from smb.conf.
+  * added dependency to linuxmuster-community-feedback.
+  * minor postinst cleanup.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 11 Jan 2017 17:38:50 +0100
+
 linuxmuster-base (6.2.4-0ubuntu0) babo62; urgency=low
 
   * Merge pull request #35 from ni-kw/master: Korrekturen der Felder in workstations.5.
@@ -47,7 +55,7 @@ linuxmuster-base (6.2.0-11ubuntu0) babo62; urgency=low
 linuxmuster-base (6.2.0-10ubuntu0) babo62; urgency=low
 
   * fixed syntax error in wimport.sh.
-  * fixed quotes in extrakurse template. 
+  * fixed quotes in extrakurse template.
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 13 Jun 2016 15:45:44 +0200
 
@@ -193,20 +201,20 @@ linuxmuster-base (6.1.1-0ubuntu0) babo; urgency=low
 
 linuxmuster-base (6.1.0-30ubuntu0) babo; urgency=low
 
-  * wwwadmin migration fix: added wwwadmin password templates needed by 
+  * wwwadmin migration fix: added wwwadmin password templates needed by
     migration restore (closes #447).
   * removed obsolete pgmadmin_confirm template.
   * ip range modification fix for linuxmuster-setup (closes #448).
-  * minor improvements in linuxmuster-setup concerning to start time of 
+  * minor improvements in linuxmuster-setup concerning to start time of
     linbo services and config files.
   * postinst: fixed obsolete query for common.bat.win7.
-  * import_workstations: Bugfix for linbo group processing (closes #459). 
+  * import_workstations: Bugfix for linbo group processing (closes #459).
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 14 Apr 2015 18:35:15 +0200
 
 linuxmuster-base (6.1.0-29ubuntu0) babo; urgency=low
 
-  * wimport.sh: start.conf server ip fix (closes #427).* 
+  * wimport.sh: start.conf server ip fix (closes #427).*
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 20 Jan 2015 14:33:39 +0100
 
@@ -303,7 +311,7 @@ linuxmuster-base (6.1.0-22ubuntu0) precise-testing; urgency=low
 
 linuxmuster-base (6.1.0-21ubuntu0) precise-testing; urgency=low
 
-  * linuxmuster-setup: 
+  * linuxmuster-setup:
     - removed tftpd-hpa from server tasks (closes #303).
     - added --prepare parameter to install only the packages needed for setup.
 
@@ -343,7 +351,7 @@ linuxmuster-base (6.1.0-18ubuntu0) precise-testing; urgency=low
   * linuxmuster-setup:
     - cleaned up linbo stuff.
     - added opsi support activation and password question.
-    - removed pgmadmin and wwwadmin password question, 
+    - removed pgmadmin and wwwadmin password question,
       using admin password for these accounts.
     - fixed servername change in user db (closes #284).
   * postinst: fixed gollem config update.
@@ -747,7 +755,7 @@ linuxmuster-base (6.0.0-17ubuntu0) precise; urgency=low
   * import_workstations:
     - calls now "sophomorix-workstation --sync-accounts" to manage computer
       accounts.
-    - reworked config file handling 
+    - reworked config file handling
     - removed deprecated imaging stuff (however, it's LINBO only).
   * linuxmuster-reset:
     - exits now with 0 if nothing has to be done.
@@ -887,7 +895,7 @@ linuxmuster-base (6.0.0-6ubuntu0) precise; urgency=low
 linuxmuster-base (6.0.0-5ubuntu0) lenny; urgency=low
 
   * helperfunctions.sh, assign_nics(): checks existance of network.settings before iface_lan is written.
-  * linuxmuster-setup: 
+  * linuxmuster-setup:
     * network: fixed interface name.
     * ldap: using sophomorix-dump-pg2ldap instead of ldif file to create initial ldap tree.
 
@@ -1039,7 +1047,7 @@ linuxmuster-base (1.5.35-lenny0) lenny; urgency=low
     in case of domainname change if package is installed (see #215).
   * postinst:
     * removes local.list which was not removed by upgrade script (because of typo, see above).
-    * removed obsolete sophomorix nscd patch. 
+    * removed obsolete sophomorix nscd patch.
 
  -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 24 Sep 2011 12:57:20 +0200
 
@@ -1207,7 +1215,7 @@ linuxmuster-base (1.5.21-lenny0) lenny; urgency=low
 
   * helperfunctions.sh, get_maclist(): convert macs to upper case (#291).
   * wimport.sh, helperfunctions.sh, linuxmuster-reset: improved case handling
-    for macs, hostnames and room names (#386). 
+    for macs, hostnames and room names (#386).
     and hostnames to lowercase in workstations data file.
   * slapd.conf:
     - added access rules for server and ipcop ip.
@@ -1262,7 +1270,7 @@ linuxmuster-base (1.5.16-lenny1) lenny; urgency=low
 
 linuxmuster-base (1.5.16-lenny0) lenny; urgency=low
 
-  * smb.conf: removed [admin] share, added "admin users = administrator" to 
+  * smb.conf: removed [admin] share, added "admin users = administrator" to
     [home], [students], [shares] and [tasks].
   * wimport.sh: sets machine account password only on account creation to speed
     things up.
@@ -1382,7 +1390,7 @@ linuxmuster-base (1.5.10-lenny20) lenny; urgency=low
 
   * removed samba-common-bin from server task
   * added several horde recommended php-pear modules to server task.
-  * postinst: 
+  * postinst:
     - removed alternative link repair for /usr/bin/net.
     - added check for clamav-freshclam startlinks (closes #262).
   * horde-upgrade.sh:
@@ -4120,7 +4128,7 @@ linuxmuster-base (0.2-6) testing; urgency=low
   * fixed domain logon: machine accounts have to added with
     smbpasswd -a -i machine$
     changed in import_workstations_services.pl
-    
+
  -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 13 Mar 2005 11:11:00 +0100
 
 linuxmuster-base (0.2-5) testing; urgency=low
@@ -4136,7 +4144,7 @@ linuxmuster-base (0.2-5) testing; urgency=low
   * changed "/etc/init.d/dhcp3-server force-reload" to
     "/etc/init.d/dhcp3-server restart" in import_workstation_services.pl
   * fixed adding machine account in import_workstation_services.pl
-    
+
  -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 12 Mar 2005 15:40:00 +0100
 
 linuxmuster-base (0.2-4) testing; urgency=low
@@ -4184,7 +4192,7 @@ linuxmuster-base (0.2-1) testing; urgency=low
 
 linuxmuster-base (0.1-18) testing; urgency=low
 
-  * splitted linuxmuster-setup in linuxmuster-setup and 
+  * splitted linuxmuster-setup in linuxmuster-setup and
     linuxmuster-setup-stage2 to avoid problems with opened debconf
     database files
   * fixes in config-tasks
