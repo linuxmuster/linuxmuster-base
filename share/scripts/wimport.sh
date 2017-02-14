@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 20160914
+# 20170214
 # GPL v3
 #
 
@@ -221,9 +221,10 @@ get_systemtype(){
 # args: partition
 grubdisk(){
  local partition="$1"
- local partnr="$(echo "$partition" | sed -e 's|/dev/[hsv]d[abcdefgh]||' -e 's|/dev/xvd[abcdefgh]||' -e 's|/dev/mmcblk[0-9]p||')"
+ local partnr="$(echo "$partition" | sed -e 's|/dev/[hsv]d[abcdefgh]||' -e 's|/dev/xvd[abcdefgh]||' -e 's|/dev/mmcblk[0-9]p||' -e 's|/dev/nvme0n[0-9]p||')"
  case "$partition" in
   /dev/mmcblk*) local disknr="$(echo "$partition" | sed 's|/dev/mmcblk\([0-9]\)p[1-9]|\1|')" ;;
+  /dev/nvme0n*) local disknr="$(echo "$partition" | sed 's|/dev/nvme0n\([0-9]\)p[1-9]|\1|')" ;;
   *:*|*//*|*\\\\*) echo "nocache" ; return 0 ;; # remote cache, no local cache, no cache partition
   *)
    local ord="$(printf "$(echo $partition | sed 's|/dev/*[hsv]d\([a-z]\)[0-9]|\1|')" | od -A n -t d1)"
@@ -804,4 +805,3 @@ fi
 
 # exit with return code
 exit $RC
-
