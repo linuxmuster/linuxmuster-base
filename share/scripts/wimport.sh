@@ -368,7 +368,8 @@ do_pxe(){
  fi
 
  # create start.conf link for host
- ln -sf "start.conf.$group" "$LINBODIR/start.conf-$ip" || RC="1"
+ # obsolete with pull request #68 for linuxmuster-linbo
+ # ln -sf "start.conf.$group" "$LINBODIR/start.conf-$ip" || RC="1"
  # deprecated because of grub2
  # create pxelinux cfg link for host
 # local hostip="$(gethostip -x "$ip")" || RC="1"
