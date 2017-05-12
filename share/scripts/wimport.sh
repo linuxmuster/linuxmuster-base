@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 20170214
+# 20170512
 # GPL v3
 #
 
@@ -9,6 +9,9 @@ DB10TMP=/var/tmp/db10.$$
 DBREVTMP=/var/tmp/dbrev.$$
 SERVERNET="${srvnetip}/${SUBNETBITMASK}"
 SRVNETLINE="$SERVERNET;$srvnetgw;;;0;0"
+
+GRUBDIR="$LINBODIR/boot/grub"
+HOSTCFGDIR="$GRUBDIR/hostcfg"
 
 RC=0
 
@@ -241,7 +244,7 @@ set_pxeconfig(){
  local kopts="$2"
  local RC="0"
  local startconf="$LINBODIR/start.conf.$group"
- local targetconf="$LINBODIR/boot/grub/$group.cfg"
+ local targetconf="$GRUBDIR/$group.cfg"
  local globaltpl="$LINBOTPLDIR/grub.cfg.global"
  local cache="$(grep -i ^cache /$startconf | tail -1 | awk -F\= '{ print $2 }' | awk '{ print $1 }' 2> /dev/null)"
  local cacheroot="$(grubdisk "$cache" "$group")"
@@ -335,7 +338,8 @@ set_pxeconfig(){
 # process configs for pxe hosts
 do_pxe(){
  local group="$1"
- local ip="$2"
+ local hostname="$2"
+ local ip="$3"
  local RC="0"
  local server=""
  local kopts=""
@@ -369,12 +373,12 @@ do_pxe(){
 
  # create start.conf link for host
  ln -sf "start.conf.$group" "$LINBODIR/start.conf-$ip" || RC="1"
- # deprecated because of grub2
- # create pxelinux cfg link for host
-# local hostip="$(gethostip -x "$ip")" || RC="1"
-# if [ -n "$hostip" ]; then
-#  ln -sf "$group" "$PXECFGDIR/$hostip" || RC="1"
-# fi
+
+ # create grub config link for host
+ groupcfg="../$group.cfg"
+ hostcfg="$HOSTCFGDIR/$hostname.cfg"
+ [ ! -e "$hostcfg" ] && ln -sf "$groupcfg" "$hostcfg"
+
  case "$RC" in
   1) echo "   ERROR in pxe host configuration!" ;;
   2) echo "   ERROR in pxe group configuration!" ;;
@@ -389,24 +393,49 @@ write_dhcp_host() {
  local hostgroup="$2"
  local ip="$3"
  local mac="$4"
- local pxe="$5"
+ local pxeflag="$5"
+ local dhcpopts="$6"
+ local filename=""
+ # dhcpopts have to contain 5 chars minimum
+ [ ${#dhcpopts} -lt 5 ] && dhcpopts=""
+ # test if alternate filename is set in custom dhcp host options
+ echo "$dhcpopts" | grep -qw filename && filename="yes"
+ # print host entries
  echo "host $ip {"
  echo "  hardware ethernet $mac;"
  echo "  fixed-address $ip;"
  echo "  option host-name \"$hostname\";"
  # do not evaluate opsi pxe boot if opsiip is not set
- [ "$pxe" = "3" -a -z "$opsiip" ] && pxe="1"
- case "$pxe" in
+ [ "$pxeflag" = "3" -a -z "$opsiip" ] && pxeflag="1"
+ case "$pxeflag" in
   1|2|22)
    # inform grub about hostgroup
    echo "  option extensions-path \"${hostgroup}\";"
    # bootfiles for efi netboot
    local systemtype="$(get_systemtype "$hostgroup")"
-   if [ "$systemtype" = "efi64" ]; then
+   if [ "$systemtype" = "efi64" -a -z "$filename" ]; then
     echo "  filename \"boot/grub/x86_64-efi/core.efi\";"
-   elif [ "$systemtype" = "efi32" ]; then
+   elif [ "$systemtype" = "efi32" -a -z "$filename" ]; then
     echo "  filename \"boot/grub/i386-efi/core.efi\";"
    fi
+  # print custom dhcp host options
+  if [ -n "$dhcpopts" ]; then
+    # get number of commas
+    n=$(grep -o "," <<< "$dhcpopts" | wc -l)
+    # print single option
+    if [ $n -eq 0 ]; then
+      echo "  $dhcpopts;"
+    else
+      # number of options
+      n=$(( $n + 1 ))
+      c=1
+      # split options and iterate
+      while [ $c -le $n ]; do
+        echo "  $(echo "$dhcpopts" | cut -d\, -f$c);"
+        c=$(( $c + 1 ))
+      done
+    fi
+  fi
   ;;
   3)
    echo "  next-server $opsiip;"
@@ -593,6 +622,7 @@ echo ";$BEGINSTR" > $DBREVTMP
 # remove linbo/pxe links
 echo -n "Removing old links under $LINBODIR ... "
 find "$LINBODIR" -name "start.conf-*" -type l -exec rm '{}' \;
+find "$HOSTCFGDIR" -name "*.cfg" -type l -exec rm '{}' \;
 # deprecated because of grub2
 #for i in $PXECFGDIR/*; do
 # if [ -L "$i" ] && [[ "$(basename $i)" =~ [A-F0-9]{4} ]]; then rm "$i"; fi
@@ -622,7 +652,8 @@ sort -b -d -t';' -k5 $WIMPORTDATA | grep ^[a-z0-9] | while read line; do
  hostgroup="$(echo "$hostgroup" | awk -F\, '{ print $1 }')"
  mac="$(echo "$line" | awk -F\; '{ print $4 }')"
  ip="$(echo "$line" | awk -F\; '{ print $5 }')"
- pxe="$(echo "$line" | awk -F\; '{ print $11 }')"
+ dhcpopts="$(echo "$line" | awk -F\; '{ print $8 }')"
+ pxeflag="$(echo "$line" | awk -F\; '{ print $11 }')"
 
  # if subnetting is set handle subnet dhcp entries
  if [ "$subnetting" = "true" -a "$vnetwork" != "$(test_subnet "$ip" 1)" ]; then
@@ -632,15 +663,15 @@ sort -b -d -t';' -k5 $WIMPORTDATA | grep ^[a-z0-9] | while read line; do
  fi
 
  # write dhcpd.conf entries for hosts
- case "$pxe" in
+ case "$pxeflag" in
   1|2|3|22)
    # process linbo pxe configs
-   do_pxe "$hostgroup" "$ip" || RC="1"
+   do_pxe "$hostgroup" "$hostname" "$ip" || RC="1"
    echo -en " * PXE" ;;
   *) echo -en " * IP" ;;
  esac
  conf="$DHCPDCACHE/host_$ip"
- write_dhcp_host "$hostname" "$hostgroup" "$ip" "$mac" "$pxe" > "$conf"
+ write_dhcp_host "$hostname" "$hostgroup" "$ip" "$mac" "$pxeflag" "$dhcpopts" > "$conf"
  echo -e "-Host\t$ip\t$hostname."
 
  # write bind config

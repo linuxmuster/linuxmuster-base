@@ -33,23 +33,23 @@ r66;r66-pc03;hd;00:11:22:3A:4B:5F;10.20.66.3;XXXXX-XXXXX-XXXXX-XXXXX-XXXXX;XXXXX
 .SH BESCHREIBUNG
 .
 Anhand der Einträge in dieser Datei werden die in der Schule vorhandenen
-Computer und sonstigen Geräte dem System bekanntgemacht. 
-Dabei werden unter anderem IP-Adressen vergeben, 
-Maschinenaccounts für die Domänenanmeldung sowie 
-Accounts für den Klassenarbeitsmodus eingerichtet. 
-Computer, die nicht in der Datei 
-.B workstations 
-aufgelistet sind, können nicht auf den Server zugreifen. 
+Computer und sonstigen Geräte dem System bekanntgemacht.
+Dabei werden unter anderem IP-Adressen vergeben,
+Maschinenaccounts für die Domänenanmeldung sowie
+Accounts für den Klassenarbeitsmodus eingerichtet.
+Computer, die nicht in der Datei
+.B workstations
+aufgelistet sind, können nicht auf den Server zugreifen.
 .br
-Auch Drucker, Switche und andere Geräte im Schulnetz 
+Auch Drucker, Switche und andere Geräte im Schulnetz
 können hier verwaltet werden.
 .br
 Nach jeder Änderung an der Datei muss der Befehl
 .B import_workstations
 aufgerufen werden (als root).
 .br
-Zeilen, die mit einer Raute beginnen, 
-werden als Kommentarzeilen aufgefasst und ignoriert. 
+Zeilen, die mit einer Raute beginnen,
+werden als Kommentarzeilen aufgefasst und ignoriert.
 Achtung: Bearbeitet man die Datei über den Reiter
 .B Hosts
 in der Schulkonsole, so werden Kommentarzeilen gelöscht.
@@ -57,31 +57,31 @@ in der Schulkonsole, so werden Kommentarzeilen gelöscht.
 .PP
 .SH FELDER
 .
-Die Felder werden durch Strichpunkte getrennt 
+Die Felder werden durch Strichpunkte getrennt
 und haben folgende Bedeutung:
 .TP
 .B Feld 1: Raum
 .br
-Der Name des Raumes, in dem der Rechner steht. 
-Anhand dieses Namens werden die Computer in der Schulkonsole 
+Der Name des Raumes, in dem der Rechner steht.
+Anhand dieses Namens werden die Computer in der Schulkonsole
 den Räumen zugeordnet.
 .TP
 .B Feld 2: Hostname
 .br
-Der eindeutige Hostname. 
-Zulässige Zeichen sind Kleinbuchstaben und Ziffern 
-sowie der Bindestrich 
+Der eindeutige Hostname.
+Zulässige Zeichen sind Kleinbuchstaben und Ziffern
+sowie der Bindestrich
 (der nicht an erster oder letzter Stelle stehen darf).
 .TP
 .B Feld 3: Gruppe
 .br
-Die Rechnergruppe, zu der der Computer gehört. 
-Computer in derselben Rechnergruppe erhalten 
-von Linbo dasselbe Image. 
-Ist eine Integration in Linbo nicht erforderlich 
+Die Rechnergruppe, zu der der Computer gehört.
+Computer in derselben Rechnergruppe erhalten
+von Linbo dasselbe Image.
+Ist eine Integration in Linbo nicht erforderlich
 (etwa für Drucker, siehe Feld
 .B PXE
-), so wird dieses Feld nicht ausgewertet. 
+), so wird dieses Feld nicht ausgewertet.
 .TP
 .B Feld 4: MAC-Adresse
 .br
@@ -95,14 +95,14 @@ Bei der Vergabe der IP-Adressen ist Folgendes zu beachten:
 .HP 2
 \(em\ Die IP-Adresse muss eindeutig sein
 .HP 2
-\(em\ Die IP-Adresse muss in dem bei der Installation 
+\(em\ Die IP-Adresse muss in dem bei der Installation
 festgelegten Bereich liegen, etwa 10.16.x.x bis 10.31.x.x
 .HP 2
 \(em\ Keine der vier Zahlen darf 0 oder 255 sein
 .HP 2
-\(em\ Bei allen Rechnern in einem Raum müssen 
-die ersten drei Zahlen übereinstimmen. 
-Beispielsweise gehören alle Rechner mit einer IP-Adresse 
+\(em\ Bei allen Rechnern in einem Raum müssen
+die ersten drei Zahlen übereinstimmen.
+Beispielsweise gehören alle Rechner mit einer IP-Adresse
 der Form 10.17.113.x zum selben Raum.
 .RE
 .TP
@@ -114,11 +114,11 @@ MSOffice-Key für Reaktivierung nach Synchronisation
 .br
 Windows-MAK- oder OEM-Key für Reaktivierung nach Synchronisation
 .TP
-.B Feld 8: Momentan unbenutzt. Für linuxmuster.net reserviert
+.B Feld 8: Host spezifische DHCP-Optionen
 .br
-Für zukünftige, jetzt noch nicht vorhersehbare Angaben zum Rechner.
+Komma separiert, Anführungszeichen müssen maskiert werden. Beispiel:
 .br
-Zulässige Zeichen: [0-9a-zA-Z_-.,]
+filename \\"pxelinux.0\\",next-server 10.16.1.5
 .TP
 .B Feld 9: Dauerhaft unbenutzt von linuxmuster.net
 .br

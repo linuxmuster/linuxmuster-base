@@ -1,3 +1,12 @@
+linuxmuster-base (6.2.7-0ubuntu0) babo62; urgency=low
+
+  * import_workstations:
+    - get host specific dhcp options from field 8 of workstations file and write
+      it to dhcpd.conf.linuxmuster.
+    - create grub cfg links for every pxe host in $LINBODIR/boot/grub/hostcfg.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 12 May 2017 17:45:04 +0200
+
 linuxmuster-base (6.2.6-1ubuntu0) babo62; urgency=low
 
   * import_workstations: nvme0n1 disknr fix.
