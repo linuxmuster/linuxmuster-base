@@ -3,7 +3,7 @@
 # linuxmuster-opsi configuration script
 #
 # thomas@linuxmuster.net
-# 11.07.2014
+# 20170718
 # GPL v3
 #
 
@@ -29,6 +29,7 @@ header(){
 usage() {
   header "usage"
   echo "linuxmuster-opsi --setup [--password=<password>]"
+  echo "                         [--opsiip=<opsiip>]"
   echo "                         [--first]"
   echo "                         [--reboot]"
   echo "                 --disable"
@@ -40,6 +41,8 @@ usage() {
   echo "              It does an initial setup of passwordless ssh"
   echo "              connection to OPSI server first."
   echo "              If password is not given it will be asked."
+  echo "  opsiip:     Set ip address of opsi machine. If not set it will be"
+  echo "              derived from setup values or serverip (e.g. 10.16.1.2)."
   echo "  first:      Force creation of certificates on opsi server."
   echo "              To be used for initial setup."
   echo "  reboot:     Reboots opsi server."
@@ -80,6 +83,10 @@ if [ -e "$mypidfile" ]; then
 fi
 echo "$mypid" > $mypidfile
 
+# if opsiip is not set derive it from serverip
+[ -z "$opsiip" ] && opsiip="${serverip/.1.1/.1.2}"
+validip "$opsiip" || bailout "Opsi ip $opsiip is not valid!"
+
 # exit if error occurs
 bailout(){
  local msg="$1"
@@ -88,78 +95,89 @@ bailout(){
  exit 1
 }
 
-# test connection
-test_connection(){
- local opsiip="${serverip/.1.1/.1.2}"
- if ping -c1 -q "$opsiip"; then
-  echo
-  return 0
- else
-  bailout "Connection to opsi not available!"
- fi
+# update opsi entry in workstations file
+update_wimportdata(){
+  # get mac address from arp
+  local opsimac="$(LANG=C arp -a | grep -w "$opsiip" | awk '{ print $4 }' | tr a-z A-Z)"
+  if [ -z "$opsimac" ]; then
+    echo "Cannot get mac address of opsi machine. Skipping workstations update!"
+    return 1
+  fi
+  # get opsi entry line
+  local opsiline="$(grep -w "$opsiip" "$WIMPORTDATA" | grep ^[a-zA-Z0-9] | grep -i \;opsi\;)"
+  if [ -n "$opsiline" ]; then
+    # create new line with investigated mac address
+    local opsiline_new="$(echo "$opsiline" | sed -e 's|\([0-9a-fA-F][0-9a-fA-F]:\)\{5\}[0-9a-fA-F][0-9a-fA-F]|'"$opsimac"'|')"
+    # write new line if differs
+    if [ "$opsiline" != "$opsiline_new" ]; then
+      cp "$WIMPORTDATA" "$WIMPORTDATA".opsi-bak
+      sed -e 's|^'"$opsiline"'|'"$opsiline_new"'|' "$WIMPORTDATA".opsi-bak > "$WIMPORTDATA"
+      echo "Modified workstations entry for opsi. Please check it and run import_workstations when convenient!"
+    fi
+  else
+    echo "Creating workstations entry for opsi. Please check it and run import_workstations when convenient!"
+    cp "$WIMPORTDATA" "$WIMPORTDATA".opsi-bak
+    echo "# line created by linuxmuster-opsi" >> "$WIMPORTDATA"
+    echo "servers;opsi;x;$opsimac;$opsiip;;;;1;1;0;0" >> "$WIMPORTDATA"
+  fi
 }
 
 # setup
 do_setup(){
- test_connection
- # update opsi debconf value
- local status="$(debconf-show linuxmuster-base | grep /opsi | awk -F\: '{ print $2 }' | awk '{ print $1 }')"
- if [ "$status" != "true" ]; then
-  echo "Updating debconf variable."
-  status="true"
-  echo "set linuxmuster-base/opsi $status" | debconf-communicate || bailout "Debconf update failed!"
- else
-  echo "Debconf variable already set."
- fi
- # ip
- local ip="10.$(debconf-show linuxmuster-base | grep /internsubrange | awk -F\: '{ print $2 }' | awk -F\- '{ print $1 }' | awk '{ print $1 }').1.2"
- validip "$ip" || bailout "Cannot set opsi ip!"
- if [ "$ip" != "$opsiip" ]; then
-  echo "Setting up ip address."
-  opsiip="$ip"
-  if grep -q ^opsiip "$NETWORKSETTINGS"; then
-   sed -e "s|^opsiip=.*|opsiip=\"$opsiip\"|" -i "$NETWORKSETTINGS"
+  # test if opsi appliance is online
+  ping -c2 -q "$opsiip" &> /dev/null || bailout "Connection to opsi not available!"
+  # test & update opsi entry in workstations file
+  update_wimportdata
+  # update opsi debconf value
+  local status="$(debconf-show linuxmuster-base | grep /opsi | awk -F\: '{ print $2 }' | awk '{ print $1 }')"
+  if [ "$status" != "true" ]; then
+    echo "Updating debconf variable."
+    status="true"
+    echo "set linuxmuster-base/opsi $status" | debconf-communicate || bailout "Debconf update failed!"
   else
-   echo "opsiip=\"$opsiip\"" >> "$NETWORKSETTINGS"
+    echo "Debconf variable already set."
   fi
- else
-  echo "Ip address already set up."
- fi
-
- # setup ssh connection
- ssh-keygen -f "/root/.ssh/known_hosts" -R "$opsiip"
- if ! test_pwless_opsi; then
-  echo "Setting up passwordless ssh connection."
-  if [ -z "$password" -a -z "$unattended" ]; then
-   echo
-   stty -echo
-   read -p "Please enter OPSI's root password: " password; echo
-   stty echo
+  # save opsi ip
+  if grep -q ^opsiip "$NETWORKSETTINGS"; then
+    sed -i "s|^opsiip=.*|opsiip=\"$opsiip\"|" "$NETWORKSETTINGS"
+  else
+    echo "opsiip=\"$opsiip\"" >> "$NETWORKSETTINGS"
   fi
-  [ -z "$password" -a -z "$unattended" ] && bailout "No password given!"
-  mykey="$(cat /root/.ssh/id_dsa.pub)"
-  [ -z "$mykey" ] && bailout "No ssh key available!"
-  if [ -s /root/.ssh/known_hosts ]; then
-   ssh-keygen -f /root/.ssh/known_hosts -R "$opsiip" &> /dev/null
-   ssh-keygen -f /root/.ssh/known_hosts -R opsi &> /dev/null
+
+  # setup ssh connection
+  ssh-keygen -f "/root/.ssh/known_hosts" -R "$opsiip"
+  if ! test_pwless_opsi; then
+    echo "Setting up passwordless ssh connection."
+    if [ -z "$password" -a -z "$unattended" ]; then
+      echo
+      stty -echo
+      read -p "Please enter OPSI's root password: " password; echo
+      stty echo
+    fi
+    [ -z "$password" -a -z "$unattended" ] && bailout "No password given!"
+    mykey="$(cat /root/.ssh/id_ecdsa.pub)"
+    [ -z "$mykey" ] && bailout "No ssh key available!"
+    if [ -s /root/.ssh/known_hosts ]; then
+      ssh-keygen -f /root/.ssh/known_hosts -R "$opsiip" &> /dev/null
+      ssh-keygen -f /root/.ssh/known_hosts -R opsi &> /dev/null
+    fi
+    # upload root's public key
+    echo "$password" | "$SCRIPTSDIR/sshaskpass.sh" ssh -oStrictHostKeyChecking=no "$opsiip" "mkdir -p /root/.ssh && echo "$mykey" >> /root/.ssh/authorized_keys"
+    # test passwordless ssh connection again
+    test_pwless_opsi || bailout "Aborting!"
+    echo
   fi
-  # upload root's public key
-  echo "$password" | "$SCRIPTSDIR/sshaskpass.sh" ssh -oStrictHostKeyChecking=no "$opsiip" "mkdir -p /root/.ssh && echo "$mykey" >> /root/.ssh/authorized_keys"
-  # test passwordless ssh connection again
-  test_pwless_opsi || bailout "Aborting!"
-  echo
- fi
 
- # upload settings file
- rsync "$NETWORKSETTINGS" "$opsiip":"$OPSILMNSETTINGS" || bailout "Upload of settings failed!"
+  # upload settings file
+  rsync "$NETWORKSETTINGS" "$opsiip":"$OPSILMNSETTINGS" || bailout "Upload of settings failed!"
 
- # do setup on opsi server
- OPSISETUP="$OPSISETUP --quiet"
- [ -n "$first" ] && OPSISETUP="$OPSISETUP --first"
- [ -n "$reboot" ] && OPSISETUP="$OPSISETUP --reboot"
- ssh "$opsiip" $OPSISETUP || bailout "Setup on opsi server failed!"
- ssh-keygen -f "/root/.ssh/known_hosts" -R "$opsiip"
- test_pwless_opsi
+  # do setup on opsi server
+  OPSISETUP="$OPSISETUP --quiet"
+  [ -n "$first" ] && OPSISETUP="$OPSISETUP --first"
+  [ -n "$reboot" ] && OPSISETUP="$OPSISETUP --reboot"
+  ssh "$opsiip" $OPSISETUP || bailout "Setup on opsi server failed!"
+  ssh-keygen -f "/root/.ssh/known_hosts" -R "$opsiip"
+  test_pwless_opsi
 }
 
 # disable

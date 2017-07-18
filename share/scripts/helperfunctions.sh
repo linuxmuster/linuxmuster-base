@@ -1,7 +1,7 @@
 # linuxmuster shell helperfunctions
 #
 # thomas@linuxmuster.net
-# 19.01.2016
+# 20170718
 # GPL v3
 #
 
@@ -185,8 +185,7 @@ validip() {
 # test valid mac address syntax
 validmac() {
   [ -z "$1" ] && return 1
-  [ `expr length $1` -ne "17" ] && return 1
-  if (expr match "$1" '\([a-fA-F0-9-][a-fA-F0-9-]\+\(\:[a-fA-F0-9-][a-fA-F0-9-]\+\)\+$\)') &> /dev/null; then
+  if [ "$1" = "$(echo "$1" | sed -n "/^\([0-9a-fA-F][0-9a-fA-F]:\)\{5\}[0-9a-fA-F][0-9a-fA-F]$/p")" ]; then
     return 0
   else
     return 1
@@ -1051,7 +1050,7 @@ function gen_netmask
 
 # use global associative array global_subnets to store allowed subnets
 # it is up to the user of this function to initialize this data structure:
-#   unset global_subnets  
+#   unset global_subnets
 #   declare -A global_subnets
 function prepare_subnet_lookup_tab
 {
@@ -1072,9 +1071,9 @@ function prepare_subnet_lookup_tab
     done
 }
 
-# uses global variable global_subnets in order to lookup whether a 
-# supplied IP address is within given subnets. use function 
-# prepare_subnet_lookup_tab in order to prepare lookup table 
+# uses global variable global_subnets in order to lookup whether a
+# supplied IP address is within given subnets. use function
+# prepare_subnet_lookup_tab in order to prepare lookup table
 function is_ip_in_subnets
 {
     local ip=$1
@@ -1088,4 +1087,3 @@ function is_ip_in_subnets
     done
     return 1
 }
-

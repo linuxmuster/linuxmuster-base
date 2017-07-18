@@ -1,3 +1,14 @@
+linuxmuster-base (6.2.8-0ubuntu0) babo62; urgency=low
+
+  * linuxmuster-opsi:
+    - use ecdsa key for ssh connection,
+      see https://github.com/linuxmuster/linuxmuster-base/issues/46.
+    - improved setup routine, added creation of workstations entry.
+  * helperfunctions.sh, validmac(): fix, hyphen as separator is no longer tolerated,
+    see https://github.com/linuxmuster/linuxmuster-base/issues/44.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 18 Jul 2017 16:12:49 +0200
+
 linuxmuster-base (6.2.7-0ubuntu0) babo62; urgency=low
 
   * import_workstations:
