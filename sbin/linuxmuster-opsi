@@ -3,7 +3,7 @@
 # linuxmuster-opsi configuration script
 #
 # thomas@linuxmuster.net
-# 20170718
+# 20170719
 # GPL v3
 #
 
@@ -122,10 +122,15 @@ update_wimportdata(){
   fi
 }
 
+# test connection to opsi vm
+test_connection(){
+  ping -c2 -q "$opsiip" &> /dev/null || bailout "Connection to opsi not available!"
+}
+
 # setup
 do_setup(){
   # test if opsi appliance is online
-  ping -c2 -q "$opsiip" &> /dev/null || bailout "Connection to opsi not available!"
+  test_connection
   # test & update opsi entry in workstations file
   update_wimportdata
   # update opsi debconf value

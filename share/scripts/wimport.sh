@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 20170512
+# 20170719
 # GPL v3
 #
 
@@ -12,6 +12,7 @@ SRVNETLINE="$SERVERNET;$srvnetgw;;;0;0"
 
 GRUBDIR="$LINBODIR/boot/grub"
 HOSTCFGDIR="$GRUBDIR/hostcfg"
+[ -d "$HOSTCFGDIR" ] || mkdir -p "$HOSTCFGDIR"
 
 RC=0
 

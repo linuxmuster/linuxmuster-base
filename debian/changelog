@@ -1,3 +1,15 @@
+linuxmuster-base (6.2.8-2ubuntu0) babo62; urgency=low
+
+  * linuxmuster-opsi: fix connection test.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 19 Jul 2017 17:45:45 +0200
+
+linuxmuster-base (6.2.8-1ubuntu0) babo62; urgency=low
+
+  * import_workstations: fix missing directory $LINBODIR/boot/grub/hostcfg.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 18 Jul 2017 16:12:49 +0200
+
 linuxmuster-base (6.2.8-0ubuntu0) babo62; urgency=low
 
   * linuxmuster-opsi:
