@@ -1,7 +1,7 @@
 # workstation import for linuxmuster.net
 #
 # Thomas Schmitt <thomas@linuxmuster.net>
-# 20170719
+# 20171107
 # GPL v3
 #
 
@@ -222,9 +222,11 @@ get_systemtype(){
 #}
 
 # compute and print grub2 compliant disk name
-# args: partition
+# args: partition group
 grubdisk(){
  local partition="$1"
+ local group="$2"
+ local systemtype="$(get_systemtype "$group")"
  local partnr="$(echo "$partition" | sed -e 's|/dev/[hsv]d[abcdefgh]||' -e 's|/dev/xvd[abcdefgh]||' -e 's|/dev/mmcblk[0-9]p||' -e 's|/dev/nvme0n[0-9]p||')"
  case "$partition" in
   /dev/mmcblk*) local disknr="$(echo "$partition" | sed 's|/dev/mmcblk\([0-9]\)p[1-9]|\1|')" ;;
@@ -236,7 +238,30 @@ grubdisk(){
    local disknr=$(( $ord - 97 ))
    ;;
  esac
+ # adjust disknr in case of efi/gpt
+ echo "$systemtype" | grep -qi efi && disknr=$(( $disknr +1 ))
  echo "(hd${disknr},${partnr})"
+}
+
+# return partition label from start.conf
+# partlabel partition startconf
+partlabel(){
+  local part="$1"
+  local startconf="$2"
+  local line=""
+  local dev=""
+  local label=""
+  grep -i ^[dl][ea][vb] "$startconf" | awk -F\= '{ print $1 " " $2 }' | awk '{ print $1 " " $2 }' | while read line; do
+    echo "$line" | grep -qi ^dev && dev="$(echo "$line" | awk '{ print $2 }')"
+    echo "$line" | grep -qi ^label && label="$(echo "$line" | awk '{ print $2 }')"
+    if [ -n "$dev" -a -n "$label" ]; then
+      if [ "$dev" = "$part" ]; then
+        echo "$label"
+        return
+      fi
+      dev="" ; label=""
+    fi
+  done
 }
 
 # sets pxe config file, params: group kopts
@@ -249,7 +274,7 @@ set_pxeconfig(){
  local globaltpl="$LINBOTPLDIR/grub.cfg.global"
  local cache="$(grep -i ^cache /$startconf | tail -1 | awk -F\= '{ print $2 }' | awk '{ print $1 }' 2> /dev/null)"
  local cacheroot="$(grubdisk "$cache" "$group")"
- local ostpl
+ local cachelabel="$(partlabel "$cache" "$startconf")"
  local ostype
  if ([ -s "$targetconf" ] && ! grep -q "$MANAGEDSTR" "$targetconf"); then
   echo -e "\tkeeping pxe config."
@@ -260,6 +285,7 @@ set_pxeconfig(){
  echo -e "\twriting pxe config."
  sed -e "s|@@group@@|$group|g
          s|@@cacheroot@@|$cacheroot|g
+         s|@@cachelabel@@|$cachelabel|g
          s|@@kopts@@|$kopts|g" "$globaltpl" > "$targetconf" || RC="1"
 
  # collect boot parameters from start.conf and write os parts for group cfg
@@ -268,6 +294,7 @@ set_pxeconfig(){
  local root
  local name
  local osroot
+ local oslabel
  local kernel
  local initrd
  local append
@@ -289,6 +316,7 @@ set_pxeconfig(){
     fi
     # convert partition to grub syntax
     osroot="$(grubdisk "$root" "$group")"
+    oslabel="$(partlabel "$root" "$startconf")"
     # computer partition number from start.conf
     partnr="$(grep -i ^dev "$startconf" | grep -n "$root" | awk -F\: '{ print $1 }')"
     # get ostype from osname
@@ -308,18 +336,25 @@ set_pxeconfig(){
      *linux*) ostype="linux" ;;
      *) ostype="unknown" ;;
     esac
+    # create root parameter string
+    if [ -n "$oslabel" ]; then
+      append="root=LABEL=$oslabel $append"
+    else
+      append="root=$root $append"
+    fi
     # create config from template
     sed -e "s|@@osnr@@|$osnr|g
             s|@@kernel@@|$kernel|g
             s|@@initrd@@|$initrd|g
             s|@@append@@|$append|g
-            s|@@partition@@|$root|g
             s|@@partnr@@|$partnr|g
             s|@@osroot@@|$osroot|g
+            s|@@oslabel@@|$oslabel|g
             s|@@osname@@|$name|g
             s|@@ostype@@|$ostype|g
             s|@@group@@|$group|g
             s|@@cacheroot@@|$cacheroot|g
+            s|@@cachelabel@@|$cachelabel|g
             s|@@kopts@@|$kopts|g" "$ostpl" >> "$targetconf" || RC="1"
    fi
    name=""; root=""; kernel=""; initrd=""; append=""; osroot=""; ostype=""
